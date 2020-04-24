@@ -1,0 +1,35 @@
+Changelog for SHE_Validation
+
+Changes in v0.1
+=========================
+
+API Changes
+-----------
+
+
+Dependency Changes
+------------------
+
+- Initialised to use EDEN 2.1
+- Depends on Elements 5.10
+
+Deprecated Features
+-------------------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+New Config Features
+-------------------
+
+
+Miscellaneous
+-------------
+
+- Initialised project
