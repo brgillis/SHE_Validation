@@ -1,4 +1,4 @@
-CTI Validation Test Descriptions
+**CTI Validation Test Descriptions**
 
 1. CTI PSF Validation
 
