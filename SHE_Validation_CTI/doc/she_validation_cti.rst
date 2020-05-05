@@ -57,8 +57,43 @@ As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Colour.
 TC-SHE-100025-CTI-PSF-epoch
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Observation Epoch.
 
+1.9 Input Data
+--------------
 
+*Shear Star Catalog (SHE)*
+* Purpose: Provides ellipticities of Model PSFs
+* DPDD Description: https://gitlab.euclid-sgs.uk/msauvage/data-product-doc/-/blob/SHE_SC8/shedpd/dpcards/she_starcatalog.rst
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/she/euc-test-she-StarCatalog.xsd
+* Cardinality: 1-4 per Observation (one for each exposure)
 
+*Calibrated Frame Product (VIS)*
+* Purpose: WCS for detectors is needed to convert sky coordinates of stars to detector coordinates; provides observation epoch, and provides background level at any position
+* DPDD Description: http://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/vis/euc-test-vis-CalibratedFrame.xsd
+* Cardinality: 1-4 per Observation (one for each exposure, same cardinality as Shear Star Catalog)
+
+*Final Catalog (MER)*
+* Purpose: Provide SNR and colour for each object
+* DPDD Description: http://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/mer/euc-test-mer-FinalCatalog.xsd
+* Cardinality: 1-12 per Observation (one for each overlapping tile)
+
+*Input PSF Catalog (SIM)*
+* Purpose: Provides ellipticities of input PSFs
+* DPDD Description: N/A (doesn't exist yet)
+* Data Product: N/A (doesn't exist yet)
+* Cardinality: Unknown
+
+Input data for each port will be provided as listfiles of .xml data products. Data may be provided for more than one observation, and ordering cannot be guaranteed, so attention will need to be paid to properly associate files using information in the data products (such as the ObservationId values) to make sure they are all properly associated.
+
+1.10 Output Data
+----------------
+
+*Validation Test Results (SHE)*
+* Purpose: Contains name, ID, and result of validation test(s), plus extra data such as plots
+* DPDD Description: https://gitlab.euclid-sgs.uk/msauvage/data-product-doc/-/blob/SHE_SC8/shedpd/dpcards/she_validationtestresults.rst
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/she/euc-test-she-ValidationTestResults.xsd
+* Cardinality: 1
 
 2. CTI Galaxy Validation
 =========================
@@ -115,3 +150,35 @@ As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by galaxy size.
 2.9 Test Cases:
 TC-SHE-100031-CTI-gal-epoch
 As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by Observation Epoch.
+
+2.10 Input Data
+---------------
+
+*Validated Shear Measurements (SHE)*
+* Purpose: Provides shear estimates for detected objects, which can be interpreted as ellipticity measurements for the purpose of this test
+* DPDD Description: https://gitlab.euclid-sgs.uk/msauvage/data-product-doc/-/blob/SHE_SC8/shedpd/dpcards/she_starcatalog.rst
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/she/euc-test-she-StarCatalog.xsd
+* Cardinality: 1 per Observation
+
+*Calibrated Frame Product (VIS)*
+* Purpose: WCS for detectors is needed to convert sky coordinates of stars to detector coordinates; provides observation epoch, and provides background level at any position
+* DPDD Description: http://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/vis/euc-test-vis-CalibratedFrame.xsd
+* Cardinality: 1-4 per Observation (one for each exposure)
+
+*Final Catalog (MER)*
+* Purpose: Provide SNR, colour, and size for each object
+* DPDD Description: http://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/mer/euc-test-mer-FinalCatalog.xsd
+* Cardinality: 1-12 per Observation (one for each overlapping tile)
+
+Input data for each port will be provided as listfiles of .xml data products. Data may be provided for more than one observation, and ordering cannot be guaranteed, so attention will need to be paid to properly associate files using information in the data products (such as the ObservationId values) to make sure they are all properly associated.
+
+2.11 Output Data
+----------------
+
+*Validation Test Results (SHE)*
+* Purpose: Contains name, ID, and result of validation test(s), plus extra data such as plots
+* DPDD Description: https://gitlab.euclid-sgs.uk/msauvage/data-product-doc/-/blob/SHE_SC8/shedpd/dpcards/she_validationtestresults.rst
+* Data Product: https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel/-/blob/develop/ST_DM_Schema/auxdir/ST_DM_Schema/dpd/she/euc-test-she-ValidationTestResults.xsd
+* Cardinality: 1
