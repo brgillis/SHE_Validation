@@ -1,6 +1,7 @@
 **CTI Validation Test Descriptions**
+*****************************************
 
-1. CTI PSF Validation
+1.**CTI PSF Validation**
 
 1.1 Requirement: R-SHE-CAL-F-020:
 Residual of CTI to PSF ellipticity <1.1x10-4 (1-sigma) per VIS exposure per component.
