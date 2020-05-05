@@ -4,7 +4,7 @@
 1. CTI PSF Validation
 =====================
 
-1.1 Requirement: R-SHE-CAL-F-020:
+1.1 Requirement: R-SHE-CAL-F-020
 ---------------------------------
 *Residual of CTI to PSF ellipticity <1.1x10-4 (1-sigma) per VIS exposure per component.*
 
@@ -18,16 +18,16 @@ On Euclid data by cross-correlating corrected galaxy ellipticity in image coordi
 ------------------------------------------
 Linear dependence of PSF ellipticity with read-out register distance (slope).
 
-1.4 Rational:
+1.4 Rational
 -------------
 Residual CTI is expected to leave a trail along the Readout direction of the CCD, which will induce an ellipticity signal as a function of distance from the Readout Register. The absolute value of this is degenerate with other effects, so the test is to measure the gradient of the ellipticity as a function of distance from the Readout Register, which would indicate a residual CTI. Note this is not a strong test (compared to eg a chi^2 fit of the PSF), but is a sanity test of the PSF at the Catalogue Level.
 
-1.5 Test Cases:
+1.5 Test Cases
 ----------------
 TC-SHE-100024-CTI-PSF-SNR
 Linear dependence of residual PSF ellipticity with read-out register distance (slope) in bins of SNR of stars.
 
-1.5.1 Test Procedure: 
+1.5.1 Test Procedure 
 ^^^^^^^^^^^^^^^^^^^^^
 1. This process is carried out on simulated Euclid Observations. 
 2. This test is carried out per Observation. 
@@ -42,17 +42,17 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 11. Need to be able to plot results and fit Locally and Globally.
 12. Summary Statistics and Figures are produced.
 
-1.6 Test Cases:
+1.6 Test Cases
 ---------------
 TC-SHE-100025-CTI-PSF-bg
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Sky Background Level.
 
-1.7 Test Cases:
+1.7 Test Cases
 ----------------
 TC-SHE-100025-CTI-PSF-col
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Colour.
 
-1.8 Test Cases:
+1.8 Test Cases
 ----------------
 TC-SHE-100025-CTI-PSF-epoch
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Observation Epoch.
@@ -63,7 +63,7 @@ As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Observation Epoch.
 2. CTI Galaxy Validation
 =========================
 
-2.1 Requirement: R-SHE-CAL-F-140:
+2.1 Requirement: R-SHE-CAL-F-140
 ----------------------------------
 Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma).
 
