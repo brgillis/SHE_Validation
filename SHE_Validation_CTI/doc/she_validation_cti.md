@@ -40,7 +40,22 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 
 #### Test Case : TC-SHE-100025-CTI-PSF-bg
 
-As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Sky Background Level.
+Linear dependence of residual PSF ellipticity with read-out register distance (slope) in bins of Sky Background Level.
+
+##### Test Procedure 
+
+1. This process is carried out on simulated Euclid Observations. 
+1. This test is carried out per Observation. 
+1. Stars are binned by Sky Background Level over the range [TBD] with bin intervals of [TBD]. [Note: what sample of stars?]
+1. Each Sky Background Level sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
+1. The average difference between the Model Sky Background Level ellipticity and simulated Stellar image ellipticity calculated, with error. 
+1. The linear regression of the slope of the differential ellipticity as a function of readout distance is estimated, with error. 
+1. The sloped and its error are compare to a threshold [TBD].
+1. If slope or error is larger than threshold, flag Observation. 
+1. Results are stored.
+1. Results are collated Globally and compared to Simulated distributions. [TBC] 
+1. Need to be able to plot results and fit Locally and Globally.
+1. Summary Statistics and Figures are produced.
 
 #### Test Case : TC-SHE-100025-CTI-PSF-col
 
