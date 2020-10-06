@@ -14,17 +14,17 @@ Related VIS Validation:
 VAL-WL-VIS-0030
 Parent: R-VIS-CAL-F-040, R-VIS-CAL-F-020
 
-##Validation Test: T-SHE-000009-CTI-PSF
+## Validation Test: T-SHE-000009-CTI-PSF
 Linear dependence of PSF ellipticity with read-out register distance (slope).
 
 ## Rational:
 Residual CTI is expected to leave a trail along the Readout direction of the CCD, which will induce an ellipticity signal as a function of distance from the Readout Register. The absolute value of this is degenerate with other effects, so the test is to measure the gradient of the ellipticity as a function of distance from the Readout Register, which would indicate a residual CTI. Note this is not a strong test (compared to eg a chi^2 fit of the PSF), but is a sanity test of the PSF at the Catalogue Level.
 
 ## Test Cases:
-TC-SHE-100024-CTI-PSF-SNR
+### TC-SHE-100024-CTI-PSF-SNR
 Linear dependence of residual PSF ellipticity with read-out register distance (slope) in bins of SNR of stars.
 
-### Test Procedure:
+#### Test Procedure:
 1. This process is carried out on simulated Euclid Observations.
 1. This test is carried out per Observation.
 1. Stars are binned by SNR over the range [TBD] with bin intervals of [TBD]. [Note: what sample of stars?]
@@ -38,16 +38,13 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 1. Need to be able to plot results and fit Locally and Globally.
 1. Summary Statistics and Figures are produced.
 
-## Test Cases:
-TC-SHE-100025-CTI-PSF-bg
+### TC-SHE-100025-CTI-PSF-bg
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Sky Background Level.
 
-## Test Cases:
-TC-SHE-100025-CTI-PSF-col
+### TC-SHE-100025-CTI-PSF-col
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Colour.
 
-## Test Cases:
-TC-SHE-100025-CTI-PSF-epoch
+### TC-SHE-100025-CTI-PSF-epoch
 As for TC-SHE-100024-CTI-PSF-SNR with SNR replaced by Observation Epoch.
 
 ## Issues:
