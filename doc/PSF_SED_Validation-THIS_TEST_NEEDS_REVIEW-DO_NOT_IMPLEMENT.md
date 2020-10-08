@@ -29,9 +29,9 @@ Approximate PSF from broad-band magnitudes compared to precise PSF from spectros
 the emulated broad-band magnitudes only.
 1. Compute the unweighted quadrupole moments Q and Qˆ from I kl,i kl,i
 respectively; k, l = 1, 2 are the components of the 2D tensor Qkl,i.
-1. Compute from Qkl,i, Qˆkl,i, respectively:
-(⃗x) and Iˆ psf,i psf,i
-(⃗x),
+1. Compute from Qkl,i, Qˆkl,i, respectively:  
+(⃗x) and Iˆ psf,i psf,i  
+(⃗x),  
 • the ellipticity components eij , eˆij j = 1, 2 are the ellipticity components.
 1. Obtain difference between reference and estimated, approximate quantities, and their scatter (around zero by construction).
 
