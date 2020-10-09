@@ -1,7 +1,7 @@
 ## Requirement: R-SHE-CAL- F-060
 Parent: None
 
-R-SHE-CAL- F-060: An estimate of the SED of the stars used in the PSF modelling shall be provided, using available data.
+R-SHE-CAL-F-060: An estimate of the SED of the stars used in the PSF modelling shall be provided, using available data.
 
 ## Requirement Comment from GDPRD
 This shall be provided from PHZ.
