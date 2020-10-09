@@ -4,7 +4,7 @@ Parent: None
 R-SHE-CAL-F-060: An estimate of the SED of the stars used in the PSF modelling shall be provided, using available data.
 
 ## Requirement Comment from GDPRD
-This shall be provided from PHZ.
+This shall be provided from PHZ.  
 [ANT: Note this is updated from SHE RSD which incorrectly named SPE. ]
 
 ## Validation Test: T-SHE-000011-star-SED-exist
