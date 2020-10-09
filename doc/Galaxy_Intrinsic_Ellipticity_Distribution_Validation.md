@@ -1,5 +1,5 @@
 ## Requirement: R-SHE-PRD-F-160 / R-SHE-PRD-F-160
-Parent: R-GDP- DL3-048 / 049
+Parent: R-GDP-DL3-048 / 049
 
 R-SHE-PRD-F-160: The error on the variance of the probability distribution function (pdf) of the ellipticity distribution for representative sub-samples (TBD) of the galaxies used in the weak lensing analysis shall be less than 5x10-4.
 
