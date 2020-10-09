@@ -1,5 +1,6 @@
 ## Requirement: R-SHE-PRD-F-070 / R-SHE-PRD-F-080
 Parent: R-GDP-CAL-070 / R-GDP-CAL-072
+
 R-SHE-PRD-F-070: The average error on the multiplicative bias (μ) intrinsic to the ellipticity measurement per galaxy, accounting for the weak lensing weights, shall be less than 2×10-3 (1 sigma) for the ensemble of galaxies used for weak lensing.
 
 R-SHE-PRD-F-080: The average error on the additive bias (c) intrinsic to the ellipticity measurement method, accounting for the weak lensing weights, shall be known to better than 5×10-4 (1 sigma) for the ensemble of galaxies used for weak lensing.
