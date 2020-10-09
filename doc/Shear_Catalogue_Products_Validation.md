@@ -44,10 +44,10 @@ Compare the number of objects in the input and output catalogues for SHE.
 **Pass/Fail criteria:** Both conditions in the test description must be fulfilled: All objects on input are present in the output catalogue (Nout/Nin =1), and all output catalogue entries have valid values or else are flagged.
 
 #### Test Procedure:
-Evaluate number of objects in SHE input catalogue, N\_in.
-Evaluate number of objects in SHE output catalogue, N\_out.
-Take ratio of N\_out to N\_in (Nout/N\_in).
-Check Nout/N\_in =1
+Evaluate number of objects in SHE input catalogue, N\_in.  
+Evaluate number of objects in SHE output catalogue, N\_out.  
+Take ratio of N\_out to N\_in (Nout/N\_in).  
+Check Nout/N\_in =1  
 
 ANT Note: Should we make a pairwise comparison per object?
 
