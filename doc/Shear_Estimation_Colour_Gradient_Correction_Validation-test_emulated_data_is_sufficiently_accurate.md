@@ -1,5 +1,6 @@
 ## Requirement: R-SHE-PRD-F-130 / R-SHE-PRD-F-150:
 Parent: R-GDP-DL3-045
+
 R-SHE-PRD-F-130: The error on the multiplicative bias (μ) on galaxy ellipticity for those used for weak lensing, determined using mock Euclid data created from HST imaging (an emulation of Euclid corrected for CTI) shall be known to better than 5x10-4.
 
 R-SHE-PRD-F-150: The error on the additive bias (c) on galaxy ellipticity determined using mock Euclid data, created from HST imaging (an emulation of Euclid corrected for CTI) shall be known to better than 5 x10-5 (1 sigma).
@@ -22,9 +23,9 @@ To validate that the emulated Euclid images are sufficiently realistic to be use
 - The Euclid PSF model of those fields
 
 ## Analysis Tools:
--KS test
--Relative error
--Completeness
+- KS test
+- Relative error
+- Completeness
 
 ## Test Cases:
 ### TC-SHE-100013-colgrad-emul-A
