@@ -11,7 +11,8 @@ Dependency Changes
 ------------------
 
 - Initialised to use EDEN 2.1
-- Depends on Elements 5.10
+- Depends on SHE_PPT 8.6, inheriting dependencies on Elements 5.10.0,
+  ST_DataModelBindings 8.0.3, and ST_DataModelTools 8.0.3
 
 Deprecated Features
 -------------------
