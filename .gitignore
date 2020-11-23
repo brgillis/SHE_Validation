@@ -1,5 +1,5 @@
 # gitignore file for Euclid Elements projects
-# (personal attempt, couldn't find an official one)
+# (personal attempt, couldn't fine an official one)
 
 # Linux-specific
 .*
@@ -45,5 +45,4 @@ InstallArea/
 PAQA/
 sonar-project.properties
 
-# Generated documents
-*.pdf
+
