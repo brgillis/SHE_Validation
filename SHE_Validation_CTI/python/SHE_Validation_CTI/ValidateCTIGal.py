@@ -1,3 +1,10 @@
+""" @file ValidateCTIGal.py
+
+    Created 24 November 2020
+
+    Entry-point file for CTI-Gal validation executable.
+"""
+
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
