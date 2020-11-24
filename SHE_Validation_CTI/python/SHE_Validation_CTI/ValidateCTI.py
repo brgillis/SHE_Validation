@@ -26,6 +26,12 @@ Author: user
 
 import argparse
 from SHE_PPT import logging as log
+from SHE_PPT.utility import get_arguments_string
+
+import SHE_Validation
+from SHE_Validation_CTI.validate_cti import run_validate_cti_from_args
+
+profiling_filename = "validate_cti.prof"
 
 logger = log.getLogger(__name__)
 
@@ -68,6 +74,11 @@ def defineSpecificProgramOptions():
     parser.add_argument('--she_validation_test_results', type=str,
                         help='OUTPUT: Desired filename of output .xml data product for validation test results')
 
+    # Optional input arguments (cannot be used in pipeline)
+
+    parser.add_argument('--profile', action="store_true",
+                        help=f'If set, will output profiling data to {profiling_filename}')
+
     # Arguments needed by the pipeline runner
     parser.add_argument('--workdir', type=str, default=".")
     parser.add_argument('--logdir', type=str, default=".")
@@ -89,12 +100,19 @@ def mainMethod(args):
     logger.info('# Entering ValidateCTI mainMethod()')
     logger.info('#')
 
-    # !! Getting the option from the example option in defineSpecificProgramOption
-    # !! e.g string_option = args.string_value
+    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_ValidateCTI",
+                                    store_true=["profile"])
+    logger.info('Execution command for this step:')
+    logger.info(exec_cmd)
 
-    #
-    # !!! Write you main code here !!!
-    #
+    if args.profile:
+        import cProfile
+        cProfile.runctx("run_validate_cti_from_args(args)", {},
+                        {"run_validate_cti_from_args": run_validate_cti_from_args,
+                         "args": args},
+                        filename=profiling_filename)
+    else:
+        run_validate_cti_from_args(args)
 
     logger.info('#')
     logger.info('# Exiting ValidateCTI mainMethod()')
