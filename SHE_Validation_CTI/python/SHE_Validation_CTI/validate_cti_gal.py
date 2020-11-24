@@ -24,9 +24,10 @@ from os.path import join
 
 from astropy.table import Table
 
+from SHE_PPT import mdb
 from SHE_PPT import products
 from SHE_PPT.file_io import (read_xml_product, write_xml_product,
-                             get_allowed_filename)
+                             get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
@@ -36,159 +37,79 @@ from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from SHE_PPT.table_utility import is_in_format
 
+
 shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                          "REGAUSS": regm_tf,
                                          "MomentsML": mmlm_tf,
                                          "LensMC": lmcm_tf}
 
+logger = log.getLogger(__name__)
 
-def cross_validate_shear_estimates(primary_shear_estimates_table,
-                                   other_shear_estimates_tables=None,
-                                   shear_validation_statistics_table=None):
+
+def run_validate_cti_gal_from_args(args):
     """
-        Stub for validating shear estimates against validation statistics. Presently
-        sets everything to "pass".
+        Main function for CTI-Gal validation
     """
-
-    # Skip if we don't have the primary table
-    if primary_shear_estimates_table is None:
-        return
-
-    if other_shear_estimates_tables is None:
-        other_shear_estimates_tables = []
-
-    logger = getLogger(__name__)
-    logger.debug("Entering validate_shear_estimates")
-
-    # Compare primary table to all others
-
-    for other_shear_estimates_table in other_shear_estimates_tables:
-        # TODO Do something to compare with primary
-        pass
-
-    # TODO analyse comparisons somehow
-
-    # For now, just say it passed
-    primary_shear_estimates_table.meta[sm_tf.m.valid] = 1
-
-    logger.debug("Exiting validate_shear_estimates")
-
-    return
-
-
-def cross_validate_shear(args, dry_run=False):
-    """
-        Main function for shear validation.
-    """
-
-    logger = getLogger(__name__)
-
-    if dry_run:
-        dry_label = " dry"
-    else:
-        dry_label = ""
 
     # Load in the files in turn to make sure there aren't any issues with them.
 
-    # Shear estimates product
+    # Load the MDB
+    logger.info("Loading MDB.")
+    mdb.init(args.mdb)
+    logger.info("Complete!")
 
-    logger.info("Reading" + dry_label + " shear estimates product...")
+    # Load the image data as a SHEFrameStack
+    logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
+    data_stack = SHEFrameStack.read(exposure_listfile_filename=args.vis_calibrated_frame_listfile,
+                                    seg_listfile_filename=args.she_exposure_segmentation_map_listfile,
+                                    detections_listfile_filename=args.mer_final_catalog_listfile,
+                                    workdir=args.workdir,
+                                    memmap=True,
+                                    mode='denywrite')
+    logger.info("Complete!")
 
-    shear_estimates_prod = read_xml_product(join(args.workdir, args.shear_estimates_product))
+    # Load the shear measurements
 
-    if not isinstance(shear_estimates_prod, products.she_measurements.dpdSheMeasurements):
-        raise ValueError("Shear estimates product from " + join(args.workdir, args.shear_estimates_product)
+    logger.info("Loading validated shear measurements.")
+
+    qualified_she_validated_measurements_product_filename = join(args.workdir, args.she_validated_measurements_product)
+    shear_estimates_prod = read_xml_product(qualified_she_validated_measurements_product_filename)
+
+    if not isinstance(shear_estimates_prod, products.she_validated_measurements.dpdSheValidatedMeasurements):
+        raise ValueError("Shear estimates product from " + qualified_she_validated_measurements_product_filename
                          + " is invalid type.")
 
-    primary_shear_estimates_table = None
-    other_shear_estimates_tables = {}
-
-    for method in sm_tfs:
+    # Load the table for each method
+    shear_estimate_table_dict = {}
+    for method in shear_estimation_method_table_formats:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
-        if filename is not None and filename != "None" and filename != "data/None":
-            shear_estimates_table = Table.read(join(args.workdir, filename), format='fits')
+        if filename_exists(filename):
+            shear_estimate_table_dict[method] = Table.read(join(args.workdir, filename), format='fits')
             if not is_in_format(shear_estimates_table, sm_tfs[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 continue
         else:
-            shear_estimates_table = None
-            if method == args.primary_method:
-                logger.warning("Primary shear estimates file is not available.")
+            shear_estimate_table_dict[method] = None
+    logger.info("Complete!")
 
-        if method == args.primary_method:
-            primary_shear_estimates_table = shear_estimates_table
-        else:
-            other_shear_estimates_tables[method] = shear_estimates_table
-
-    # Shear validation statistics - Disabled until this exists
-
-    if False:
-
-        logger.info("Reading" + dry_label + " shear validation statistics...")
-
-        shear_validation_stats_prod = read_xml_product(join(args.workdir, args.shear_validation_statistics_table))
-        if not isinstance(shear_validation_stats_prod, products.she_expected_shear_validation_statistics.DpdSheExpectedShearValidationStatistics):
-            raise ValueError("Shear validation statistics product from " + join(args.workdir, args.shear_validation_stats_product)
-                             + " is invalid type.")
-
-        shear_validation_stats_filename = shear_validation_stats_prod.get_filename()
-
-        shear_validation_statistics_table = Table.read(join(args.workdir, shear_validation_stats_filename))
-
-        if not is_in_format(shear_validation_statistics_table, sm_tf):
-            raise ValueError("Shear validation statistics table from " +
-                             join(args.workdir, filename) + " is in invalid format.")
-    else:
-        shear_validation_statistics_table = None
-
-    # Perform the validation
-    cross_validate_shear_estimates(primary_shear_estimates_table=primary_shear_estimates_table,
-                                   other_shear_estimates_tables=other_shear_estimates_tables,
-                                   shear_validation_statistics_table=shear_validation_statistics_table)
+    # TODO: Perform the validation
 
     # Set up output product
 
-    logger.info("Generating" + dry_label + " validated shear estimates...")
+    logger.info("Creating and outputting validation test result data product.")
 
-    method_table_filenames = {}
+    val_test_result_product = products.she_validation_test_results.create_validation_test_results_product()
 
-    # Write out the primary table
-    if primary_shear_estimates_table is None:
-        validated_primary_shear_estimates_filename = "None"
-    else:
-        validated_primary_shear_estimates_filename = get_allowed_filename("VAL-SHM-" + args.primary_method.upper(), "0",
-                                                                          ".fits", version=SHE_CTE.__version__)
-        primary_shear_estimates_table.write(
-            join(args.workdir, validated_primary_shear_estimates_filename))
-        logger.info("Wrote primary shear estimates table to " + validated_primary_shear_estimates_filename)
-    method_table_filenames[args.primary_method] = validated_primary_shear_estimates_filename
+    # TODO: Fill in val_test_result_product with results
 
-    # Write out the other tables
-    for method in other_shear_estimates_tables:
-        method_table = other_shear_estimates_tables[method]
-        if method_table is None:
-            method_table_filename = "None"
-        else:
-            method_table_filename = get_allowed_filename("VAL-SHM-" + method.upper(), "0", ".fits",
-                                                         version=SHE_CTE.__version__)
-            method_table.write(join(args.workdir, method_table_filename))
-            logger.info("Wrote shear estimates table to " + method_table_filename)
-        method_table_filenames[method] = method_table_filename
+    qualified_val_test_result_product_filename = join(args.workdir, args.she_validation_test_results_product)
+    write_xml_product(val_test_result_product, qualified_val_test_result_product_filename)
 
-    validated_shear_estimates_prod = products.she_validated_measurements.create_dpd_she_validated_measurements(
-        spatial_footprint=shear_estimates_prod)
+    logger.info("Output validation test results to: " + qualified_val_test_result_product_filename)
 
-    for method in method_table_filenames:
-        validated_shear_estimates_prod.set_method_filename(method, method_table_filenames[method])
-
-    write_xml_product(validated_shear_estimates_prod, args.cross_validated_shear_estimates_product,
-                      workdir=args.workdir)
-
-    logger.info("Wrote cross-validated shear measurements product to " + args.cross_validated_shear_estimates_product)
-
-    logger.info("Finished" + dry_label + " shear validation.")
+    logger.info("Execution complete.")
 
     return
