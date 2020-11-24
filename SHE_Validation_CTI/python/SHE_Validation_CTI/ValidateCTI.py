@@ -47,6 +47,8 @@ def defineSpecificProgramOptions():
         An  ArgumentParser.
     """
 
+    logger.debug('# Entering SHE_Validation_ValidateCTI defineSpecificProgramOptions()')
+
     parser = argparse.ArgumentParser()
 
     # Required input arguments
@@ -83,7 +85,7 @@ def defineSpecificProgramOptions():
     parser.add_argument('--workdir', type=str, default=".")
     parser.add_argument('--logdir', type=str, default=".")
 
-    logger.debug('# Exiting SHE_CTE_EstimateShear defineSpecificProgramOptions()')
+    logger.debug('# Exiting SHE_Validation_ValidateCTI defineSpecificProgramOptions()')
 
     return parser
 
