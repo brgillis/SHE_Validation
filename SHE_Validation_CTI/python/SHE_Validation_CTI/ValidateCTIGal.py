@@ -74,8 +74,8 @@ def defineSpecificProgramOptions():
 
     # Output arguments
 
-    parser.add_argument('--she_validation_test_results_product', type=str,
-                        help='OUTPUT: Desired filename of output .xml data product for validation test results')
+    parser.add_argument('--she_validation_test_results_listfile', type=str,
+                        help='OUTPUT: Desired filename of output .json listfile for validation test results')
 
     # Optional input arguments (cannot be used in pipeline)
 
