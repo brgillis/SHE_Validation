@@ -46,27 +46,27 @@ def defineSpecificProgramOptions():
     # Required input arguments
 
     parser.add_argument('--vis_calibrated_frame_listfile', type=str,
-                        help='.json listfile containing filenames of exposure image products.')
+                        help='INPUT: .json listfile containing filenames of exposure image products.')
 
     parser.add_argument('--she_exposure_segmentation_map_listfile', type=str,
-                        help='.json listfile containing filenames of remapped exposure segmentation maps.')
+                        help='INPUT: .json listfile containing filenames of remapped exposure segmentation maps.')
 
     parser.add_argument('--mer_final_catalog_listfile', type=str,
-                        help='.json listfile containing filenames of mer final catalogs.')
+                        help='INPUT: .json listfile containing filenames of mer final catalogs.')
 
     parser.add_argument('--she_validated_measurements', type=str,
-                        help='Filename of the cross-validated shear measurements .xml data product.')
+                        help='INPUT: Filename of the cross-validated shear measurements .xml data product.')
 
     parser.add_argument("--pipeline_config", default=None, type=str,
-                        help="Pipeline-wide configuration file.")
+                        help="INPUT: Pipeline-wide configuration file.")
 
     parser.add_argument('--mdb', type=str, default=None,  # Use default to allow simple running with default values
-                        help='Mission Database .xml file')
+                        help='INPUT: Mission Database .xml file')
 
     # Output arguments
 
     parser.add_argument('--she_validation_test_results', type=str,
-                        help='Desired filename of output .xml data product for validation test results')
+                        help='OUTPUT: Desired filename of output .xml data product for validation test results')
 
     # Arguments needed by the pipeline runner
     parser.add_argument('--workdir', type=str, default=".")
