@@ -63,9 +63,8 @@ def defineSpecificProgramOptions():
     parser.add_argument('--mer_final_catalog_listfile', type=str,
                         help='INPUT: .json listfile containing filenames of mer final catalogs.')
 
-    parser.add_argument('--she_validated_measurements_product_or_listfile', type=str,
-                        help='INPUT: Filename of the cross-validated shear measurements .xml data product or ' +
-                             '.json listfile listing multiple filenames.')
+    parser.add_argument('--she_validated_measurements_product', type=str,
+                        help='INPUT: Filename of the cross-validated shear measurements .xml data product.')
 
     parser.add_argument("--pipeline_config", default=None, type=str,
                         help="INPUT: Pipeline-wide configuration file.")
