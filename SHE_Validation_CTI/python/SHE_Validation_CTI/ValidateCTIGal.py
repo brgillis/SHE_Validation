@@ -18,7 +18,7 @@
 
 
 """
-File: python/SHE_Validation_CTI/ValidateCTI.py
+File: python/SHE_Validation_CTI/ValidateCTIGal.py
 
 Created on: 11/24/20
 Author: user
@@ -29,9 +29,9 @@ from SHE_PPT import logging as log
 from SHE_PPT.utility import get_arguments_string
 
 import SHE_Validation
-from SHE_Validation_CTI.validate_cti import run_validate_cti_from_args
+from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 
-profiling_filename = "validate_cti.prof"
+profiling_filename = "validate_cti_gal.prof"
 
 logger = log.getLogger(__name__)
 
@@ -47,7 +47,7 @@ def defineSpecificProgramOptions():
         An  ArgumentParser.
     """
 
-    logger.debug('# Entering SHE_Validation_ValidateCTI defineSpecificProgramOptions()')
+    logger.debug('# Entering SHE_Validation_ValidateCTIGal defineSpecificProgramOptions()')
 
     parser = argparse.ArgumentParser()
 
@@ -85,7 +85,7 @@ def defineSpecificProgramOptions():
     parser.add_argument('--workdir', type=str, default=".")
     parser.add_argument('--logdir', type=str, default=".")
 
-    logger.debug('# Exiting SHE_Validation_ValidateCTI defineSpecificProgramOptions()')
+    logger.debug('# Exiting SHE_Validation_ValidateCTIGal defineSpecificProgramOptions()')
 
     return parser
 
@@ -99,23 +99,23 @@ def mainMethod(args):
     """
 
     logger.info('#')
-    logger.info('# Entering ValidateCTI mainMethod()')
+    logger.info('# Entering ValidateCTIGal mainMethod()')
     logger.info('#')
 
-    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_ValidateCTI",
+    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_ValidateCTIGal",
                                     store_true=["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
     if args.profile:
         import cProfile
-        cProfile.runctx("run_validate_cti_from_args(args)", {},
-                        {"run_validate_cti_from_args": run_validate_cti_from_args,
+        cProfile.runctx("run_validate_cti_gal_from_args(args)", {},
+                        {"run_validate_cti_gal_from_args": run_validate_cti_gal_from_args,
                          "args": args},
                         filename=profiling_filename)
     else:
-        run_validate_cti_from_args(args)
+        run_validate_cti_gal_from_args(args)
 
     logger.info('#')
-    logger.info('# Exiting ValidateCTI mainMethod()')
+    logger.info('# Exiting ValidateCTIGal mainMethod()')
     logger.info('#')
