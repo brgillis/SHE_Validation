@@ -1,9 +1,11 @@
-""" @file cross_validate_shear.py
+""" @file validate_cti_gal.py
 
-    Created 12 Oct 2017
+    Created 24 November 2020 by Bryan Gillis
 
-    Function for performing shear validation.
+    Primary function code for performing CTI-Gal validation
 """
+
+__updated__ = "2020-11-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,6 +22,9 @@
 
 from os.path import join
 
+from astropy.table import Table
+
+import SHE_CTE
 from SHE_PPT import products
 from SHE_PPT.file_io import (read_xml_product, write_xml_product,
                              get_allowed_filename)
@@ -27,9 +32,6 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
-from astropy.table import Table
-
-import SHE_CTE
 
 
 sm_tfs = {"KSB": sm_tf,
