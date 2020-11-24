@@ -9,9 +9,11 @@ elements_install_python_modules()
 
 # Instruction for creating a Python executable
 # elements_add_python_program(...)
+elements_add_python_program(SHE_Validation_ValidateCTI SHE_Validation_CTI.ValidateCTI)
 
 # Install the configuration files
 # elements_install_conf_files()
+elements_install_conf_files()
 
 # Install the auxiliary files
 # elements_install_aux_files()
