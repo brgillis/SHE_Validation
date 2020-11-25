@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2020-11-24"
+__updated__ = "2020-11-25"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -74,8 +74,11 @@ def defineSpecificProgramOptions():
 
     # Output arguments
 
-    parser.add_argument('--she_validation_test_results_listfile', type=str,
-                        help='OUTPUT: Desired filename of output .json listfile for validation test results')
+    parser.add_argument('--she_observation_validation_test_results_product', type=str,
+                        help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
+
+    parser.add_argument('--she_exposure_validation_test_results_listfile', type=str,
+                        help='OUTPUT: Desired filename of output .json listfile for exposure validation test results')
 
     # Optional input arguments (cannot be used in pipeline)
 
