@@ -44,7 +44,7 @@ shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                          "MomentsML": mmlm_tf,
                                          "LensMC": lmcm_tf}
 
-logger = log.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 def run_validate_cti_gal_from_args(args):
