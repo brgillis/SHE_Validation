@@ -57,9 +57,6 @@ def defineSpecificProgramOptions():
     parser.add_argument('--vis_calibrated_frame_listfile', type=str,
                         help='INPUT: .json listfile containing filenames of exposure image products.')
 
-    parser.add_argument('--she_exposure_segmentation_map_listfile', type=str,
-                        help='INPUT: .json listfile containing filenames of remapped exposure segmentation maps.')
-
     parser.add_argument('--mer_final_catalog_listfile', type=str,
                         help='INPUT: .json listfile containing filenames of mer final catalogs.')
 

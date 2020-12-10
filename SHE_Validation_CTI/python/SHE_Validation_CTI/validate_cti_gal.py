@@ -62,7 +62,6 @@ def run_validate_cti_gal_from_args(args):
     # Load the image data as a SHEFrameStack
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
     data_stack = SHEFrameStack.read(exposure_listfile_filename=args.vis_calibrated_frame_listfile,
-                                    seg_listfile_filename=args.she_exposure_segmentation_map_listfile,
                                     detections_listfile_filename=args.mer_final_catalog_listfile,
                                     workdir=args.workdir,
                                     memmap=True,
