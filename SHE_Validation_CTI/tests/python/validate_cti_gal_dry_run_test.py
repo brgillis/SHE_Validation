@@ -28,10 +28,11 @@ import pytest
 from ElementsServices.DataSync import DataSync
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
+from SHE_Validation.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
-test_data_location = "/SHE_PPT_8_5"
+test_data_location = "SHE_PPT_8_5"
 
 # Input data filenames
 
@@ -79,14 +80,12 @@ class TestCase:
         # Download the MDB from WebDAV
         sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
         sync_mdb.download()
-        mdb_filename = sync_mdb.absolutePath("SHE_PPT_8_5/sample_mdb-SC8.xml")
-
-        mdb.init(mdb_filename)
 
         # Download the data stack files from WebDAV
         sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
         sync_datastack.download()
-        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath("SHE_PPT_8_5/vis_calibrated_frames.json")
+        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
+            os.path.join(test_data_location, vis_calibrated_frames_filename))
         assert os.path.isfile(
             qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
 
@@ -103,5 +102,14 @@ class TestCase:
 
     @classmethod
     def teardown_class(cls):
+
+        return
+
+    def test_cti_gal_dry_run(self):
+
+        # Call to validation function
+        run_validate_cti_gal_from_args(self.args)
+
+        # TODO: Check output
 
         return
