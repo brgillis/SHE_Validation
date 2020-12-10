@@ -74,6 +74,7 @@ def run_validate_cti_gal_from_args(args):
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
         vis_calibrated_frame_product.append(read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir))
+        # TODO: Add check on data product type
 
     # Load the shear measurements
 
@@ -94,12 +95,14 @@ def run_validate_cti_gal_from_args(args):
 
         if filename_exists(filename):
             shear_estimate_table_dict[method] = Table.read(join(args.workdir, filename), format='fits')
-            if not is_in_format(shear_estimates_table, sm_tfs[method], strict=False):
+            if not is_in_format(shear_estimates_table, shear_estimation_method_table_formats[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 continue
+                shear_estimate_table_dict[method] = None
         else:
             shear_estimate_table_dict[method] = None
+    # TODO: Add warning if no data from any method
     logger.info("Complete!")
 
     if not args.dry_run:
@@ -136,8 +139,8 @@ def run_validate_cti_gal_from_args(args):
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
-    # Use the last observation ID, assuming they're all the same
-    obs_test_result_product.Data.ObservationId = reference_product.Data.obs_id
+    # Use the last observation ID, assuming they're all the same - TODO: Check to be sure
+    obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.obs_id
 
     if not args.dry_run:
         # TODO: Fill in obs_test_result_product and l_exp_test_result_product with results
