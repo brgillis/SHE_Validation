@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2020-11-25"
+__updated__ = "2020-12-10"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -84,6 +84,9 @@ def defineSpecificProgramOptions():
 
     parser.add_argument('--profile', action="store_true",
                         help=f'If set, will output profiling data to {profiling_filename}')
+
+    parser.add_argument('--dry_run', action="store_true",
+                        help=f'If set, will only read in input data and output dummy output data products')
 
     # Arguments needed by the pipeline runner
     parser.add_argument('--workdir', type=str, default=".")

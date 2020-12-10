@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-11-25"
+__updated__ = "2020-12-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -102,7 +102,9 @@ def run_validate_cti_gal_from_args(args):
             shear_estimate_table_dict[method] = None
     logger.info("Complete!")
 
-    # TODO: Perform the validation
+    if not args.dry_run:
+        # TODO: Perform the validation
+        pass
 
     # Set up output product
 
@@ -137,7 +139,9 @@ def run_validate_cti_gal_from_args(args):
     # Use the last observation ID, assuming they're all the same
     obs_test_result_product.Data.ObservationId = reference_product.Data.obs_id
 
-    # TODO: Fill in obs_test_result_product and l_exp_test_result_product with results
+    if not args.dry_run:
+        # TODO: Fill in obs_test_result_product and l_exp_test_result_product with results
+        pass
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product, l_exp_test_result_filename):
