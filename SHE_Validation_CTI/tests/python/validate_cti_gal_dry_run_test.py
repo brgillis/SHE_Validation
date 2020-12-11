@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2020-12-10"
+__updated__ = "2020-12-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -38,7 +38,7 @@ test_data_location = "SHE_PPT_8_5"
 
 vis_calibrated_frames_filename = "vis_calibrated_frames.json"
 mer_final_catalogs_filename = "mer_final_catalogs.json"
-she_validated_measurements_filename = "she_validated_measurements.xml"
+she_validated_measurements_filename = "mock_she_validated_measurements.xml"
 mdb_filename = "sample_mdb-SC7.xml"
 
 # Output data filenames
