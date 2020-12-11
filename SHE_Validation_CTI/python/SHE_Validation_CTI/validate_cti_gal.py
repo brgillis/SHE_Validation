@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-10"
+__updated__ = "2020-12-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,7 +26,7 @@ from astropy.table import Table
 
 from SHE_PPT import mdb
 from SHE_PPT import products
-from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile,
+from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
@@ -56,7 +56,7 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the MDB
     logger.info("Loading MDB.")
-    mdb.init(args.mdb)
+    mdb.init(join(args.workdir, args.mdb))
     logger.info("Complete!")
 
     # Load the image data as a SHEFrameStack
@@ -72,7 +72,7 @@ def run_validate_cti_gal_from_args(args):
     l_vis_calibrated_frame_filename = read_listfile(join(args.workdir, args.vis_calibrated_frame_listfile))
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
-        vis_calibrated_frame_product.append(read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir))
+        l_vis_calibrated_frame_product.append(read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir))
         # TODO: Add check on data product type
 
     # Load the shear measurements
@@ -93,7 +93,8 @@ def run_validate_cti_gal_from_args(args):
         filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
-            shear_estimate_table_dict[method] = Table.read(join(args.workdir, filename), format='fits')
+            shear_estimates_table = Table.read(join(args.workdir, filename), format='fits')
+            shear_estimate_table_dict[method] = shear_estimates_table
             if not is_in_format(shear_estimates_table, shear_estimation_method_table_formats[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
@@ -139,7 +140,7 @@ def run_validate_cti_gal_from_args(args):
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
     # Use the last observation ID, assuming they're all the same - TODO: Check to be sure
-    obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.obs_id
+    obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
 
     if not args.dry_run:
         # TODO: Fill in obs_test_result_product and l_exp_test_result_product with results
@@ -148,14 +149,14 @@ def run_validate_cti_gal_from_args(args):
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product, l_exp_test_result_filename):
         write_xml_product(exp_test_result_product, exp_test_result_filename, workdir=args.workdir)
-    qualified_exp_test_results_filename = join(args.she_exposure_validation_test_results_listfile, args.workdir)
+    qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
 
     logger.info("Output observation validation test results to: " +
                 qualified_exp_test_results_filename)
 
     # Write out observation test results product
-    write_xml_product(val_test_result_product,
+    write_xml_product(obs_test_result_product,
                       args.she_observation_validation_test_results_product, workdir=args.workdir)
 
     logger.info("Output observation validation test results to: " +

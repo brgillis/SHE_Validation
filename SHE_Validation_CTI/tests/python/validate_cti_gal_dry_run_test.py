@@ -28,7 +28,7 @@ import pytest
 from ElementsServices.DataSync import DataSync
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
-from SHE_Validation.validate_cti_gal import run_validate_cti_gal_from_args
+from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
@@ -38,8 +38,8 @@ test_data_location = "SHE_PPT_8_5"
 
 vis_calibrated_frames_filename = "vis_calibrated_frames.json"
 mer_final_catalogs_filename = "mer_final_catalogs.json"
-she_validated_measurements_filename = "mock_she_validated_measurements.xml"
-mdb_filename = "sample_mdb-SC7.xml"
+she_validated_measurements_filename = "she_validated_measurements.xml"
+mdb_filename = "sample_mdb-SC8.xml"
 
 # Output data filenames
 
@@ -56,7 +56,7 @@ class Args(object):
         self.mer_final_catalog_listfile = mer_final_catalogs_filename
         self.she_validated_measurements_product = she_validated_measurements_filename
         self.pipeline_config = None
-        self.mdb = "mdb_filename"
+        self.mdb = mdb_filename
 
         self.she_observation_validation_test_results_product = she_observation_validation_test_results_filename
         self.she_exposure_validation_test_results_listfile = she_exposure_validation_test_results_filename
