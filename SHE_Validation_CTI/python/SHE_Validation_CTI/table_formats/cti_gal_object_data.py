@@ -26,15 +26,16 @@ from typing import List
 
 from astropy.table import Table
 
-from SHE_PPT import magic_values as mv
 from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from SHE_Validation import magic_values as mv
 
 
 fits_version = "8.0"
 fits_def = "she.ctiGalObjectData"
 
-logger = getLogger(mv.logger_name)
+logger = getLogger(__name__)
 
 
 class SheCtiGalObjectDataMeta(object):
@@ -48,8 +49,8 @@ class SheCtiGalObjectDataMeta(object):
         self.table_format = fits_def
 
         # Table metadata labels
-        self.fits_version = mv.fits_version_label
-        self.fits_def = mv.fits_def_label
+        self.fits_version = fits_version_label
+        self.fits_def = fits_def_label
 
         # Store the less-used comments in a dict
         self.comments = OrderedDict(((self.fits_version, None),
@@ -82,13 +83,22 @@ class SheCtiGalObjectDataFormat(object):
         self.det_x = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
         self.det_y = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
 
-        self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1)
+        self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
+        self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
 
-        self.g1_world = set_column_properties(self, "G1_WORLD")
-        self.g2_world = set_column_properties(self, "G2_WORLD")
+        # Set up separate shear columns for each shear estimation method
 
-        self.g1_image = set_column_properties(self, "G1_IMAGE")
-        self.g2_image = set_column_properties(self, "G2_IMAGE")
+        for method in mv.d_shear_estimation_method_table_formats:
+
+            setattr(self, "g1_world_" + method, set_column_properties(self,
+                                                                      "G1_WORLD_" + method.upper(), is_optional=True))
+            setattr(self, "g2_world_" + method, set_column_properties(self,
+                                                                      "G2_WORLD_" + method.upper(), is_optional=True))
+
+            setattr(self, "g1_image_" + method, set_column_properties(self,
+                                                                      "G1_IMAGE_" + method.upper(), is_optional=True))
+            setattr(self, "g2_image_" + method, set_column_properties(self,
+                                                                      "G2_IMAGE_" + method.upper(), is_optional=True))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())
