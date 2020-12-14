@@ -40,10 +40,7 @@ from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
 
-d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
-                                           "REGAUSS": regm_tf,
-                                           "MomentsML": mmlm_tf,
-                                           "LensMC": lmcm_tf}
+from SHE_Validation_CTI.magic_values import d_shear_estimation_method_table_formats
 
 logger = getLogger(__name__)
 
