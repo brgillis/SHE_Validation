@@ -25,7 +25,7 @@ import os
 from astropy.table import Column, Table
 import pytest
 
-from SHE_PPT.table_utility import is_in_format
+from SHE_PPT.table_testing import _test_is_in_format
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 import numpy as np
 
@@ -62,39 +62,8 @@ class TestTableFormats:
         return
 
     def test_is_in_format(self):
-        # Test each format is detected correctly
-        # TODO: This is copied from SHE_PPT. Should move to its own function and reuse that code instead of copying.
 
-        empty_tables = []
-
-        for init in self.initializers:
-            empty_tables.append(init())
-
-        assert len(self.initializers) == len(self.formats)
-
-        for i in range(len(self.initializers)):
-
-            # Try strict test
-            for j in range((len(self.formats))):
-                if i == j and not is_in_format(empty_tables[i], self.formats[j], strict=True):
-                    raise Exception("Table format " + self.formats[j].m.table_format +
-                                    " doesn't initialize a valid table" +
-                                    " in strict test.")
-                elif i != j and is_in_format(empty_tables[i], self.formats[j], strict=True):
-                    raise Exception("Table format " + self.formats[j].m.table_format +
-                                    " resolves true for tables of format " + self.formats[i].m.table_format +
-                                    " in strict test.")
-
-            # Try non-strict version now
-            empty_tables[i].add_column(Column(name='new_column', data=np.zeros((0,))))
-            for j in range((len(self.formats))):
-                if i == j and not is_in_format(empty_tables[i], self.formats[j], strict=False):
-                    raise Exception("Table format " + self.formats[j].m.table_format +
-                                    " doesn't initialize a valid table" +
-                                    " in non-strict test.")
-                elif i != j and is_in_format(empty_tables[i], self.formats[j], strict=False):
-                    raise Exception("Table format " + self.formats[j].m.table_format +
-                                    " resolves true for tables of format " + self.formats[i].m.table_format +
-                                    " in non-strict test.")
+        # Call the test stored in the table_testing module
+        _test_is_in_format(self)
 
         return
