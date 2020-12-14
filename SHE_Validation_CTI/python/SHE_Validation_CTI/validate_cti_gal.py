@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-11"
+__updated__ = "2020-12-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,8 +21,9 @@ __updated__ = "2020-12-11"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from os.path import join
+from typing import Dict
 
-from astropy.table import Table
+from astropy import table
 
 from SHE_PPT import mdb
 from SHE_PPT import products
@@ -39,10 +40,10 @@ from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
 
-shear_estimation_method_table_formats = {"KSB": ksbm_tf,
-                                         "REGAUSS": regm_tf,
-                                         "MomentsML": mmlm_tf,
-                                         "LensMC": lmcm_tf}
+d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
+                                           "REGAUSS": regm_tf,
+                                           "MomentsML": mmlm_tf,
+                                           "LensMC": lmcm_tf}
 
 logger = getLogger(__name__)
 
@@ -87,27 +88,27 @@ def run_validate_cti_gal_from_args(args):
                          + " is invalid type.")
 
     # Load the table for each method
-    shear_estimate_table_dict = {}
-    for method in shear_estimation_method_table_formats:
+    d_shear_estimate_tables = {}
+    for method in d_shear_estimation_method_table_formats:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
-            shear_estimates_table = Table.read(join(args.workdir, filename), format='fits')
-            shear_estimate_table_dict[method] = shear_estimates_table
-            if not is_in_format(shear_estimates_table, shear_estimation_method_table_formats[method], strict=False):
+            shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
+            d_shear_estimate_tables[method] = shear_measurements_table
+            if not is_in_format(shear_measurements_table, d_shear_estimation_method_table_formats[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
+                d_shear_estimate_tables[method] = None
                 continue
-                shear_estimate_table_dict[method] = None
         else:
-            shear_estimate_table_dict[method] = None
+            d_shear_estimate_tables[method] = None
     # TODO: Add warning if no data from any method
     logger.info("Complete!")
 
     if not args.dry_run:
-        # TODO: Perform the validation
-        pass
+        exposure_regression_results_table, observation_regression_results_table = validate_cti_gal(data_stack=data_stack,
+                                                                                                   shear_estimate_tables=d_shear_estimate_tables)
 
     # Set up output product
 
@@ -142,9 +143,17 @@ def run_validate_cti_gal_from_args(args):
     # Use the last observation ID, assuming they're all the same - TODO: Check to be sure
     obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
 
+    # Fill in the products with the results
     if not args.dry_run:
-        # TODO: Fill in obs_test_result_product and l_exp_test_result_product with results
-        pass
+
+        # Fill in each exposure product in turn with results
+        for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table, l_exp_test_result_product):
+            fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
+                                            regression_results_row=exposure_regression_results_row)
+
+        # And fill in the observation product
+        fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
+                                        regression_results_row=observation_regression_results_table)
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product, l_exp_test_result_filename):
@@ -165,3 +174,74 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Execution complete.")
 
     return
+
+
+def validate_cti_gal(data_stack: SHEFrameStack,
+                     shear_estimate_tables: Dict[str, table.Table]):
+    """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
+        for each shear estimation method.
+    """
+
+    # First, we'll need to get the pixel coords of each object in the table in each exposure, along with the detector
+    # and quadrant where it's found and e1/2 in world coords. We'll start by
+    # getting them in a raw format by looping over objects
+    l_raw_object_data = get_raw_cti_gal_object_data(data_stack=data_stack, shear_estimate_tables=shear_estimate_tables)
+
+    # Now sort the raw data into tables (one for each exposure)
+    l_object_data_table = sort_raw_object_data_into_table(raw_object_data_list=l_raw_object_data)
+
+    # We'll now loop over the table for each exposure, eventually getting regression results for each
+
+    exposure_regression_results_table = initialise_regression_results_table()
+
+    for object_data_table in l_object_data_table:
+
+        # At this point, the only maths that's been done is converting world coords into image coords and detector/quadrant.
+        # We'll also need to convert shear estimates into the image orientation,
+        # so do that now by adding columns to the table
+        add_image_shear_estimate_columns(object_data_table=object_data_table)
+
+        # Next, we'll also need to calculate the distance from the readout register, so add columns for that as well
+        add_readout_register_distance(object_data_table=object_data_table)
+
+        # Calculate the results of the regression and add it to the results table
+        exposure_regression_results = calculate_regression_results(object_data_table=object_data_table)
+        exposure_regression_results_table.add_row(regression_results=exposure_regression_results)
+
+    # With the exposures done, we'll now do a test for the observation as a whole on a merged table
+    merged_object_table = table.vstack(tables=l_object_data_table)
+
+    observation_regression_results = calculate_regression_results(object_data_table=merged_object_table)
+
+    observation_regression_results_table = initialise_regression_results_table()
+    observation_regression_results_table.add_row(regression_results=observation_regression_results)
+
+    # And we're done here, so return the results
+    return exposure_regression_results_table, observation_regression_results_table
+
+# Placeholder function definitions to prevent a crash from them not being imported yet
+# TODO: Fill in each of these functions and move to other modules
+
+
+def fill_cti_gal_validation_results(*args, **kwargs):
+    pass
+
+
+def get_raw_cti_gal_object_data(*args, **kwargs):
+    pass
+
+
+def initialise_regression_results_table(*args, **kwargs):
+    pass
+
+
+def add_image_shear_estimate_columns(*args, **kwargs):
+    pass
+
+
+def add_readout_register_distance(*args, **kwargs):
+    pass
+
+
+def calculate_regression_results(*args, **kwargs):
+    pass
