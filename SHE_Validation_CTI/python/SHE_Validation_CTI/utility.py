@@ -20,26 +20,28 @@
 
 from copy import deepcopy
 
-from SHE_PPT.table_formats.she_measurements import tf as sm_tf
-from SHE_PPT.table_utility import is_in_format
 import astropy.table
 import astropy.wcs
 from scipy.stats import linregress
 
+from SHE_PPT.table_formats.she_measurements import tf as sm_tf
+from SHE_PPT.table_utility import is_in_format
+from SHE_Validation import magic_values as mv
 import numpy as np
 
-reg_pix = 1 # Readout register - believed to be y, but might have to fix later
 
-readout_split = 4134.5 # Maximum pixel position for which values are read out downward (in stacked frame)
+mv.reg_pix = 1  # Readout register - believed to be y, but might have to fix later
 
-g1_fail_flag_offset = 1
-g2_fail_flag_offset = 4
+mv.readout_split = 4134.5  # Maximum pixel position for which values are read out downward (in stacked frame)
 
-lower_fail_flag_offset = 1
-upper_fail_flag_offset = 2
+mv.g1_fail_flag_offset = 1
+mv.g2_fail_flag_offset = 4
 
-slope_fail_sigma = 5
-intercept_fail_sigma = 5
+mv.lower_fail_flag_offset = 1
+mv.upper_fail_flag_offset = 2
+
+mv.slope_fail_sigma = 5
+mv.intercept_fail_sigma = 5
 
 
 def validate_cti_ellipticity_residual_bin(r, g):
@@ -47,8 +49,8 @@ def validate_cti_ellipticity_residual_bin(r, g):
     result_flag = 0
 
     # Check for both lower and upper half of detectors
-    for flag, limits in ((lower_fail_flag_offset, (-1e99, readout_split)),
-                         (upper_fail_flag_offset, (readout_split, 1e99)),
+    for flag, limits in ((mv.lower_fail_flag_offset, (-1e99, mv.readout_split)),
+                         (mv.upper_fail_flag_offset, (mv.readout_split, 1e99)),
                          ):
 
         # Get rows within this half
@@ -61,8 +63,8 @@ def validate_cti_ellipticity_residual_bin(r, g):
                                                           g_binned)
 
         # Check if we fall outside acceptable sigma for slope not being 0
-        if abs(slope / slope_err) > slope_fail_sigma:
-            result_flag += flag # Add flag for this half if it's bad
+        if abs(slope / slope_err) > mv.slope_fail_sigma:
+            result_flag += flag  # Add flag for this half if it's bad
 
     return result_flag
 
@@ -89,7 +91,7 @@ def validate_cti_ellipticity_residuals(shear_estimates_table,
     all_validated = True
 
     # Loop over different columns we're testing
-    for colname, metaname, bins in ((sm_tf.snr, "CE_SN_VAL", (-1e99, 1e99)), # TODO make these magic values and store somewhere
+    for colname, metaname, bins in ((sm_tf.snr, "CE_SN_VAL", (-1e99, 1e99)),  # TODO make these magic values and store somewhere
                                     (sm_tf.sky_bg, "CE_SB_VAL", (-1e99, 1e99)),
                                     (sm_tf.re, "CE_RE_VAL", (-1e99, 1e99)),
                                     (sm_tf.color, "CE_CO_VAL", (-1e99, 1e99)),
@@ -109,14 +111,14 @@ def validate_cti_ellipticity_residuals(shear_estimates_table,
             bin_max = bins[bin_i + 1]
 
             good_rows = np.logical_and(col >= bin_min, col < bin_max)
-            r = shear_estimates_table[reg_pix][good_rows]
+            r = shear_estimates_table[mv.reg_pix][good_rows]
 
             # Test g1 and g2 for residuals, and flag appropriately
 
-            validation_results[colname][bin_i] += (g1_fail_flag_offset *
+            validation_results[colname][bin_i] += (mv.g1_fail_flag_offset *
                                                    validate_cti_ellipticity_residual_bin(r=r,
                                                                                          g=shear_estimates_table[sm_tf.g1][good_rows]))
-            validation_results[colname][bin_i] += (g2_fail_flag_offset *
+            validation_results[colname][bin_i] += (mv.g2_fail_flag_offset *
                                                    validate_cti_ellipticity_residual_bin(r=r,
                                                                                          g=shear_estimates_table[sm_tf.g2][good_rows]))
             # Report results in the header of the original table
