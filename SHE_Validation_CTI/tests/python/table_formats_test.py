@@ -26,7 +26,7 @@ from astropy.table import Column, Table
 import pytest
 
 from SHE_PPT.table_utility import is_in_format
-from SHE_Validation.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 import numpy as np
 
 

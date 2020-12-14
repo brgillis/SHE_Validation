@@ -29,7 +29,7 @@ from astropy.table import Table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
-from SHE_Validation import magic_values as mv
+from SHE_Validation_CTI import magic_values as mv
 
 
 fits_version = "8.0"
