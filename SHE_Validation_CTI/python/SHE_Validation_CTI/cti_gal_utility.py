@@ -87,7 +87,9 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
     for method in mv.methods:
         # Update the set with the Object ID column from the table
         shear_estimate_table = shear_estimate_tables[method]
-        sem_tf = d_shear_estimation_method_table_formats[method]
+        if shear_estimate_table is None:
+            continue
+        sem_tf = mv.d_shear_estimation_method_table_formats[method]
         s_object_ids.update(shear_estimate_table[sem_tf.ID])
 
         # Set up the table to use the ID as an index
@@ -100,7 +102,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
         for oid_index, object_id in enumerate(s_object_ids):
 
             # Find the object's pixel coordinates by extracting a size 0 stamp
-            ministamp_stack = data_stack.extract_galaxy_stack(object_id, width=0, none_if_out_of_bounds=True)
+            ministamp_stack = data_stack.extract_galaxy_stack(object_id, width=1, none_if_out_of_bounds=True)
 
             if ministamp_stack is None:
                 logger.warning(f"Object {object_id} is outside the observation.")
@@ -109,7 +111,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             object_data = SingleObjectData(ID=object_id)
 
             # Set the position info for each exposure
-            for exp_index, exposure_ministamp in ministamp_stack.exposures:
+            for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
 
                 if exposure_ministamp is None:
 
@@ -121,8 +123,8 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                     y_pix = exposure_ministamp.offset[1]
 
                     ccdid = exposure_ministamp.header[ccdid_label]
-                    det_ix = ccdid[0]
-                    det_iy = ccdid[2]
+                    det_ix = int(ccdid[6])
+                    det_iy = int(ccdid[8])
 
                     quadrant = get_vis_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
 
@@ -152,6 +154,9 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
     finally:
         # Make sure to remove the indices from the tables
         for method in mv.methods:
-            shear_estimate_tables[method].remove_index(sem_tf.ID)
+            shear_estimate_table = shear_estimate_tables[method]
+            if shear_estimate_table is None:
+                continue
+            shear_estimate_table.remove_indices(sem_tf.ID)
 
     return
