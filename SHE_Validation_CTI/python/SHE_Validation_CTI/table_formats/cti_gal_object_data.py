@@ -24,7 +24,7 @@ __updated__ = "2020-12-14"
 from collections import OrderedDict
 from typing import List
 
-from astropy.table import Table
+from astropy import table
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
