@@ -80,8 +80,8 @@ class SheCtiGalObjectDataFormat(object):
         self.x = set_column_properties(self, "X_IMAGE", comment="pixels")
         self.y = set_column_properties(self, "Y_IMAGE", comment="pixels")
 
-        self.det_x = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
-        self.det_y = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
+        self.det_ix = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
+        self.det_iy = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
 
         self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
         self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
