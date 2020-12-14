@@ -39,8 +39,9 @@ from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-
+from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.magic_values import d_shear_estimation_method_table_formats
+
 
 logger = getLogger(__name__)
 
@@ -221,10 +222,6 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
 
 def fill_cti_gal_validation_results(*args, **kwargs):
-    pass
-
-
-def get_raw_cti_gal_object_data(*args, **kwargs):
     pass
 
 

@@ -26,22 +26,8 @@ from scipy.stats import linregress
 
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
-from SHE_Validation import magic_values as mv
+from SHE_Validation_CTI import magic_values as mv
 import numpy as np
-
-
-mv.reg_pix = 1  # Readout register - believed to be y, but might have to fix later
-
-mv.readout_split = 4134.5  # Maximum pixel position for which values are read out downward (in stacked frame)
-
-mv.g1_fail_flag_offset = 1
-mv.g2_fail_flag_offset = 4
-
-mv.lower_fail_flag_offset = 1
-mv.upper_fail_flag_offset = 2
-
-mv.slope_fail_sigma = 5
-mv.intercept_fail_sigma = 5
 
 
 def validate_cti_ellipticity_residual_bin(r, g):
