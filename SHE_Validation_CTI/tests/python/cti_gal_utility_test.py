@@ -23,11 +23,14 @@ __updated__ = "2020-12-14"
 import os
 import time
 
+from astropy.table import Table
 import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
@@ -38,7 +41,7 @@ test_data_location = "SHE_PPT_8_5"
 
 vis_calibrated_frames_filename = "vis_calibrated_frames.json"
 mer_final_catalogs_filename = "mer_final_catalogs.json"
-she_validated_measurements_filename = "she_validated_measurements.xml"
+lensmc_measurements_filename = "mock_lensmc_measurements.fits"
 mdb_filename = "sample_mdb-SC8.xml"
 
 
@@ -67,6 +70,14 @@ class TestCase:
         cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
         cls.logdir = os.path.join(cls.workdir, "logs")
 
+        # Read in the test data
+        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=vis_calibrated_frames_filename,
+                                            detections_listfile_filename=mer_final_catalogs_filename,
+                                            workdir=cls.workdir,
+                                            clean_detections=False,
+                                            memmap=True,
+                                            mode='denywrite')
+
         return
 
     @classmethod
@@ -76,6 +87,14 @@ class TestCase:
 
     def test_cti_gal_dry_run(self):
 
-        # TODO: Fill in test
+        # Read in the mock shear estimates
+        lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
+        d_shear_estimates_tables = {"KSB": None,
+                                    "LensMC": lensmc_shear_estimates_table,
+                                    "MomentsML": None,
+                                    "REGAUSS": None}
+
+        raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack=self.data_stack,
+                                                              shear_estimate_tables=d_shear_estimates_tables)
 
         return
