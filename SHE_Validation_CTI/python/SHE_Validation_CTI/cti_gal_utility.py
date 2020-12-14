@@ -12,6 +12,7 @@ from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import posit
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.telescope_coords import get_vis_quadrant
 from SHE_Validation_CTI import magic_values as mv
 import numpy as np
 
@@ -123,7 +124,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                     det_ix = ccdid[0]
                     det_iy = ccdid[2]
 
-                    quadrant = get_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
+                    quadrant = get_vis_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
 
                     object_data.position_info[exp_index] = PositionInfo(x_pix=x_pix,
                                                                         y_pix=y_pix,
@@ -154,41 +155,3 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             shear_estimate_tables[method].remove_index(sem_tf.ID)
 
     return
-
-
-# Quadrant layout - note that due to column/row-major flip and the visual layout starting from bottom-left, this is transposed
-# and flipped vertically compared to how the layout actually looks
-
-quadrant_layout_123 = [["E", "H"],
-                       ["F", "G"]]
-quadrant_layout_456 = [["G", "F"],
-                       ["H", "E"]]
-
-quad_x_size = 2119
-quad_y_size = 2066
-
-
-def get_quadrant(x_pix: float,
-                 y_pix: float,
-                 det_iy: int):
-    """ Get the letter signifying the quadrant of a detector where a pixel coordinate is. Returns "X" if the position
-        is outside of the detector bounds.
-
-        This uses the charts at http://euclid.esac.esa.int/dm/dpdd/latest/le1dpd/dpcards/le1_visrawframe.html for its
-        logic.
-    """
-
-    if det_iy <= 3:
-        quadrant_layout = quadrant_layout_123
-    else:
-        quadrant_layout = quadrant_layout_456
-
-    quad_ix = int(x_pix / quad_x_size)
-    quad_iy = int(y_pix / quad_y_size)
-
-    if quad_ix in (0, 1) and quad_iy in (0, 1):
-        quadrant = quadrant_layout[quad_ix, quad_iy]
-    else:
-        quadrant = "X"
-
-    return quadrant

@@ -27,6 +27,7 @@ from astropy import table
 
 from SHE_PPT import mdb
 from SHE_PPT import products
+from SHE_PPT import telescope_coords
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
@@ -55,7 +56,9 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the MDB
     logger.info("Loading MDB.")
-    mdb.init(join(args.workdir, args.mdb))
+    qualified_mdb_filename = join(args.workdir, args.mdb)
+    mdb.init(qualified_mdb_filename)
+    telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
     logger.info("Complete!")
 
     # Load the image data as a SHEFrameStack
