@@ -97,7 +97,15 @@ def run_validate_cti_gal_from_args(args):
                 continue
         else:
             d_shear_estimate_tables[method] = None
-    # TODO: Add warning if no data from any method
+
+    # Log a warning if no data from any method and set a flag for 
+    # later code to refer to
+    if all(value == None for value in d_shear_estimate_tables.values()):
+        logger.warning("No method has any data associated with it.")
+        method_data_exists = "False"
+    else:
+        method_data_exists = "True"
+
     logger.info("Complete!")
 
     if not args.dry_run:
