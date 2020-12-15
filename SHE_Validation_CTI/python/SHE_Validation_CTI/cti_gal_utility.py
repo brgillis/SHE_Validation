@@ -9,6 +9,7 @@ from typing import Dict
 from astropy import table
 from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
 
+from SHE_PPT import shear_utility
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -17,7 +18,7 @@ from SHE_Validation_CTI import magic_values as mv
 import numpy as np
 
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -38,27 +39,67 @@ logger = getLogger(__name__)
 
 class ShearInfo(object):
     def __init__(self,
-                 g1_world: float = np.NaN,
-                 g2_world: float = np.NaN,
+                 g1: float = np.NaN,
+                 g2: float = np.NaN,
                  weight: float = 0):
-        self.g1_world = g1_world
-        self.g2_world = g2_world
+        self.g1 = g1
+        self.g2 = g2
         self.weight = weight
 
 
 class PositionInfo(object):
-    def __init__(self,
-                 x_pix: float = np.NaN,
-                 y_pix: float = np.NaN,
-                 det_ix: int = 0,
-                 det_iy: int = 0,
-                 quadrant: str = "X",):
+    def __init__(self, stamp=None, world_shear_info=None):
 
-        self.x_pix = x_pix
-        self.y_pix = y_pix
-        self.det_ix = det_ix
-        self.det_iy = det_iy
-        self.quadrant = quadrant
+        # Get input data from the provided stamp; otherwise use initializer input
+        if stamp is not None:
+
+            self.x_pix = stamp.offset[0]
+            self.y_pix = stamp.offset[1]
+
+            ccdid = stamp.header[ccdid_label]
+            self.det_ix = int(ccdid[6])
+            self.det_iy = int(ccdid[8])
+
+            self.quadrant = get_vis_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
+
+            # Calculate the shear in the image coords for this exposure for each method
+
+            self.image_shear_info = {}
+
+            if world_shear_info is not None:
+                for method in mv.methods:
+
+                    method_world_shear_info = world_shear_info[method]
+
+                    if method_world_shear_info is None:
+                        self.image_shear_info[method] = ShearInfo()
+                        continue
+
+                    shear_estimate = shear_utility.ShearEstimate(g1=method_world_shear_info.g1,
+                                                                 g2=method_world_shear_info.g2)
+                    shear_utility.uncorrect_for_wcs_shear_and_rotation(shear_estimate, stamp)
+
+                    self.image_shear_info[method] = ShearInfo(g1=shear_estimate.g1,
+                                                              g2=shear_estimate.g2,
+                                                              weight=method_world_shear_info.weight)
+
+            else:
+                for method in mv.methods:
+                    self.image_shear_info[method] = ShearInfo()
+
+        else:  # Default initialize
+
+            self.x_pix = np.NaN
+            self.y_pix = np.NaN
+
+            self.det_ix = 0
+            self.det_iy = 0
+
+            self.quadrant = "X"
+
+            self.image_shear_info = {}
+            for method in mv.methods:
+                self.image_shear_info[method] = ShearInfo()
 
 
 class SingleObjectData(object):
@@ -67,12 +108,8 @@ class SingleObjectData(object):
                  num_exposures: int = 1,
                  ):
         self.ID = ID
+        # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
-        self.y_pix = [None] * num_exposures
-        self.det_ix = [None] * num_exposures
-        self.det_iy = [None] * num_exposures
-        self.quadrant = [None] * num_exposures
-
         self.shear_info = {}  # To be filled with objects of type ShearInfo, with method names as keys
 
         return
@@ -83,17 +120,25 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                 ):
 
     # Start by getting a set of all object ids, merging from all methods tables
+
     s_object_ids = set()
+
     for method in mv.methods:
-        # Update the set with the Object ID column from the table
+
+        # Check if the table exists for this method
         shear_estimate_table = shear_estimate_tables[method]
         if shear_estimate_table is None:
             continue
+
+        # Update the set with the Object ID column from the table
         sem_tf = mv.d_shear_estimation_method_table_formats[method]
         s_object_ids.update(shear_estimate_table[sem_tf.ID])
 
         # Set up the table to use the ID as an index
         shear_estimate_table.add_index(sem_tf.ID)
+
+        # Since extra indices can occasionally lead to bugs, we remove this index in the
+        # "finally" block below
 
     try:
 
@@ -113,26 +158,9 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             # Set the position info for each exposure
             for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
 
-                if exposure_ministamp is None:
-
-                    object_data.position_info[exp_index] = PositionInfo()
-
-                else:
-
-                    x_pix = exposure_ministamp.offset[0]
-                    y_pix = exposure_ministamp.offset[1]
-
-                    ccdid = exposure_ministamp.header[ccdid_label]
-                    det_ix = int(ccdid[6])
-                    det_iy = int(ccdid[8])
-
-                    quadrant = get_vis_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
-
-                    object_data.position_info[exp_index] = PositionInfo(x_pix=x_pix,
-                                                                        y_pix=y_pix,
-                                                                        det_ix=det_ix,
-                                                                        det_iy=det_iy,
-                                                                        quadrant=quadrant)
+                # Add the position info by using the stamp as an initializer. The initializer
+                # will properly use default values if the stamp is None
+                object_data.position_info[exp_index] = PositionInfo(stamp=exposure_ministamp)
 
             # Set the shear info for each method
             for method in mv.methods:
