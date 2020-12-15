@@ -1,23 +1,9 @@
-""" @file cti_residual_validation.py
+""" @file input_data.py
 
     Created 24 December 2020
 
-    Utility functions for CTI-Gal validation, handling different pieces of the code
+    Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
-from typing import Dict
-
-from astropy import table
-from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
-
-from SHE_PPT import shear_utility
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-from SHE_PPT.telescope_coords import get_vis_quadrant
-from SHE_Validation_CTI import magic_values as mv
-import numpy as np
-
 
 __updated__ = "2020-12-15"
 
@@ -34,6 +20,20 @@ __updated__ = "2020-12-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
+from typing import Dict
+
+from astropy import table
+from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
+
+from SHE_PPT import shear_utility
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import ccdid_label
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from SHE_PPT.telescope_coords import get_vis_quadrant
+from SHE_Validation_CTI import magic_values as mv
+import numpy as np
 
 logger = getLogger(__name__)
 

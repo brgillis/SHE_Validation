@@ -1,8 +1,8 @@
-""" @file cti_gal_utility_test.py
+""" @file input_data_test.py
 
     Created 14 December 2020
 
-    Unit tests of the CTI-Gal utility functions
+    Unit tests of the input_data.py module
 """
 
 __updated__ = "2020-12-15"
@@ -32,7 +32,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import magic_values as mv
-from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
@@ -87,7 +87,7 @@ class TestCase:
 
         return
 
-    def test_cti_gal_dry_run(self):
+    def test_get_raw_cti_gal_object_data(self):
 
         # Read in the mock shear estimates
         lmcm_tf = mv.d_shear_estimation_method_table_formats["LensMC"]
