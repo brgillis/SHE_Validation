@@ -60,7 +60,7 @@ class PositionInfo(object):
             self.det_ix = int(ccdid[6])
             self.det_iy = int(ccdid[8])
 
-            self.quadrant = get_vis_quadrant(x_pix=x_pix, y_pix=y_pix, det_iy=det_iy)
+            self.quadrant = get_vis_quadrant(x_pix=self.x_pix, y_pix=self.y_pix, det_iy=self.det_iy)
 
             # Calculate the shear in the image coords for this exposure for each method
 
@@ -110,7 +110,7 @@ class SingleObjectData(object):
         self.ID = ID
         # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
-        self.shear_info = {}  # To be filled with objects of type ShearInfo, with method names as keys
+        self.world_shear_info = {}  # To be filled with objects of type ShearInfo, with method names as keys
 
         return
 
@@ -153,29 +153,31 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                 logger.warning(f"Object {object_id} is outside the observation.")
                 continue
 
-            object_data = SingleObjectData(ID=object_id)
+            object_data = SingleObjectData(ID=object_id,
+                                           num_exposures=len(ministamp_stack.exposures))
+
+            # Set the shear info for each method
+            for method in mv.methods:
+                shear_estimate_table = shear_estimate_tables[method]
+                if shear_estimate_table is None:
+                    object_data.world_shear_info[method] = ShearInfo()
+                    continue
+
+                sem_tf = mv.d_shear_estimation_method_table_formats[method]
+
+                object_row = shear_estimate_table.loc[object_id]
+
+                object_data.world_shear_info[method] = ShearInfo(g1=object_row[sem_tf.g1],
+                                                                 g2=object_row[sem_tf.g2],
+                                                                 weight=object_row[sem_tf.weight])
 
             # Set the position info for each exposure
             for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
 
                 # Add the position info by using the stamp as an initializer. The initializer
                 # will properly use default values if the stamp is None
-                object_data.position_info[exp_index] = PositionInfo(stamp=exposure_ministamp)
-
-            # Set the shear info for each method
-            for method in mv.methods:
-                shear_estimate_table = shear_estimate_tables[method]
-                if shear_estimate_table is None:
-                    object.data.shear_info = ShearInfo()
-                    continue
-
-                sem_tf = d_shear_estimation_method_table_formats[method]
-
-                object_row = shear_estimate_table.loc[object_id]
-
-                object.data.shear_info = ShearInfo(g1_world=object_row[sem_tf.g1],
-                                                   g2_world=object_row[sem_tf.g2],
-                                                   weight=object_row[sem_tf.weight])
+                object_data.position_info[exp_index] = PositionInfo(stamp=exposure_ministamp,
+                                                                    world_shear_info=object_data.world_shear_info)
 
             l_object_data[oid_index] = object_data
 
