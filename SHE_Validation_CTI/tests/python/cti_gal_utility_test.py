@@ -114,8 +114,10 @@ class TestCase:
         # Check the info is correct for each object
         for object_data in raw_cti_gal_object_data:
 
-            # Get the corresponding LensMC row
+            # Get the corresponding LensMC row for this object
             lmcm_row = lensmc_shear_estimates_table.loc[object_data.ID]
+
+            # Check that the world shear info is correct
 
             lensmc_world_shear_info = object_data.world_shear_info["LensMC"]
             assert lensmc_world_shear_info.g1 == lmcm_row[lmcm_tf.g1]
@@ -126,6 +128,29 @@ class TestCase:
             assert np.isnan(object_data.world_shear_info["MomentsML"].g1)
             assert np.isnan(object_data.world_shear_info["REGAUSS"].g1)
 
-            # TODO: Check data for each exposure
+            # Check the shear info for each exposure
+            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.ID, width=1)
+
+            num_exposures = len(ministamp_stack.exposures)
+            for exp_index in range(num_exposures):
+                ministamp = ministamp_stack.exposures[exp_index]
+                position_info = object_data.position_info[exp_index]
+
+                assert np.isclose(position_info.x_pix, ministamp.offset[0])
+                assert np.isclose(position_info.y_pix, ministamp.offset[1])
+                assert position_info.det_ix == 1
+                assert position_info.det_iy == 1
+                assert position_info.quadrant == "E"
+
+                lensmc_exposure_shear_info = position_info.exposure_shear_info["LensMC"]
+
+                # No rotation here, so all shear values should be the same as the world value
+                assert lensmc_exposure_shear_info.g1 == lmcm_row[lmcm_tf.g1]
+                assert lensmc_exposure_shear_info.g2 == lmcm_row[lmcm_tf.g2]
+                assert lensmc_exposure_shear_info.weight == lmcm_row[lmcm_tf.weight]
+
+                assert np.isnan(position_info.exposure_shear_info["KSB"].g1)
+                assert np.isnan(position_info.exposure_shear_info["MomentsML"].g1)
+                assert np.isnan(position_info.exposure_shear_info["REGAUSS"].g1)
 
         return

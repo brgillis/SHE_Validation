@@ -64,7 +64,7 @@ class PositionInfo(object):
 
             # Calculate the shear in the image coords for this exposure for each method
 
-            self.image_shear_info = {}
+            self.exposure_shear_info = {}
 
             if world_shear_info is not None:
                 for method in mv.methods:
@@ -72,20 +72,20 @@ class PositionInfo(object):
                     method_world_shear_info = world_shear_info[method]
 
                     if method_world_shear_info is None:
-                        self.image_shear_info[method] = ShearInfo()
+                        self.exposure_shear_info[method] = ShearInfo()
                         continue
 
                     shear_estimate = shear_utility.ShearEstimate(g1=method_world_shear_info.g1,
                                                                  g2=method_world_shear_info.g2)
                     shear_utility.uncorrect_for_wcs_shear_and_rotation(shear_estimate, stamp)
 
-                    self.image_shear_info[method] = ShearInfo(g1=shear_estimate.g1,
-                                                              g2=shear_estimate.g2,
-                                                              weight=method_world_shear_info.weight)
+                    self.exposure_shear_info[method] = ShearInfo(g1=shear_estimate.g1,
+                                                                 g2=shear_estimate.g2,
+                                                                 weight=method_world_shear_info.weight)
 
             else:
                 for method in mv.methods:
-                    self.image_shear_info[method] = ShearInfo()
+                    self.exposure_shear_info[method] = ShearInfo()
 
         else:  # Default initialize
 
@@ -97,9 +97,9 @@ class PositionInfo(object):
 
             self.quadrant = "X"
 
-            self.image_shear_info = {}
+            self.exposure_shear_info = {}
             for method in mv.methods:
-                self.image_shear_info[method] = ShearInfo()
+                self.exposure_shear_info[method] = ShearInfo()
 
 
 class SingleObjectData(object):
