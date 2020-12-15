@@ -90,17 +90,19 @@ class SheCtiGalObjectDataFormat(object):
 
         for method in constants.d_shear_estimation_method_table_formats:
 
-            setattr(self, "g1_world_" + method, set_column_properties(self,
-                                                                      "G1_WORLD_" + method.upper(), is_optional=True))
-            setattr(self, "g2_world_" + method, set_column_properties(self,
-                                                                      "G2_WORLD_" + method.upper(), is_optional=True))
+            upper_method = method.upper()
 
-            setattr(self, "weight_" + method, set_column_properties(self, "WEIGHT_" + method.upper()))
+            setattr(self, f"g1_world_{method}", set_column_properties(self,
+                                                                      f"G1_WORLD_{upper_method}", is_optional=True))
+            setattr(self, f"g2_world_{method}", set_column_properties(self,
+                                                                      f"G2_WORLD_{upper_method}", is_optional=True))
 
-            setattr(self, "g1_image_" + method,
-                    set_column_properties(self, "G1_IMAGE_" + method.upper()))
-            setattr(self, "g2_image_" + method,
-                    set_column_properties(self, "G2_IMAGE_" + method.upper()))
+            setattr(self, f"weight_{method}", set_column_properties(self, f"WEIGHT_{upper_method}"))
+
+            setattr(self, f"g1_image_{method}",
+                    set_column_properties(self, f"G1_IMAGE_{upper_method}"))
+            setattr(self, f"g2_image_{method}",
+                    set_column_properties(self, f"G2_IMAGE_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())
