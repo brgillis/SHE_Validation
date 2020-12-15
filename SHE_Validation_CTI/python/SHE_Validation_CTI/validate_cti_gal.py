@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -33,15 +33,12 @@ from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile,
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
+from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_
 from SHE_Validation_CTI.magic_values import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
 logger = getLogger(__name__)
@@ -225,10 +222,6 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
 
 def fill_cti_gal_validation_results(*args, **kwargs):
-    pass
-
-
-def initialise_regression_results_table(*args, **kwargs):
     pass
 
 
