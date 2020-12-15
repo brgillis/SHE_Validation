@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2020-12-11"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

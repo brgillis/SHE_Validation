@@ -41,3 +41,5 @@ d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                            "REGAUSS": regm_tf,
                                            "MomentsML": mmlm_tf,
                                            "LensMC": lmcm_tf}
+
+methods = d_shear_estimation_method_table_formats.keys()
