@@ -27,6 +27,7 @@ import pytest
 
 from SHE_PPT.table_testing import _test_is_in_format
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
+from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 import numpy as np
 
 
@@ -40,8 +41,8 @@ class TestTableFormats:
     def setup_class(cls):
         # Define a list of the table formats we'll be testing
         cls.formats_and_initializers = [(cgod_tf, initialise_cti_gal_object_data_table),
+                                        (cgrr_tf, initialise_regression_results_table),
                                         ]
-        # (, ),
 
         cls.formats, cls.initializers = zip(*cls.formats_and_initializers)
 
