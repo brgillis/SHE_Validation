@@ -29,7 +29,7 @@ from astropy import table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
-from SHE_Validation_CTI import magic_values as mv
+from SHE_Validation_CTI import constants
 
 
 fits_version = "8.0"
@@ -88,7 +88,7 @@ class SheCtiGalObjectDataFormat(object):
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in mv.d_shear_estimation_method_table_formats:
+        for method in constants.d_shear_estimation_method_table_formats:
 
             setattr(self, "g1_world_" + method, set_column_properties(self,
                                                                       "G1_WORLD_" + method.upper(), is_optional=True))
