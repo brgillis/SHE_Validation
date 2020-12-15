@@ -5,7 +5,7 @@
     SHE_Validation package, for general-purpose code within the SHE_Validation project.
 """
 
-__updated__ = "2020-04-24"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,4 +20,18 @@ __updated__ = "2020-04-24"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+__all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__version__", "__maintainer__", "__email__",
+           "__status__", "__url__"]
+
+__authors__ = ["Rob Blake", "Bryan Gillis"]
+__copyright__ = 'Copyright (C) 2012-2020 Euclid Science Ground Segment'
+__credits__ = ["Rob Blake", "Bryan Gillis"]
+__license__ = "GNU LGPL 3.0"
 __version__ = "0.1"
+__maintainer__ = "Rob Blake"
+__email__ = "rpb@roe.ac.uk"
+__status__ = 'Development'
+
+__name__ = 'SHE_Validation'
+__description__ = 'Elements project for validation tests within PF-SHE.'
+__url__ = 'https://gitlab.euclid-sgs.uk/PF-SHE/SHE_Validation'

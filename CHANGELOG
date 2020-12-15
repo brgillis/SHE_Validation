@@ -6,6 +6,7 @@ Changes in v0.1
 API Changes
 -----------
 
+- Added task SHE_Validation_ValidateCTIGal to perform CTI-Gal validation test (Under construction)
 
 Dependency Changes
 ------------------

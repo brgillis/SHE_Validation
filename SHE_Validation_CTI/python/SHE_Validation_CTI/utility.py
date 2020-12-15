@@ -5,6 +5,8 @@
     Function for performing validation of CTI residuals
 """
 
+__updated__ = "2020-12-15"
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -26,7 +28,7 @@ from scipy.stats import linregress
 
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
-from SHE_Validation_CTI import magic_values as mv
+from SHE_Validation_CTI import constants
 import numpy as np
 
 
@@ -35,8 +37,8 @@ def validate_cti_ellipticity_residual_bin(r, g):
     result_flag = 0
 
     # Check for both lower and upper half of detectors
-    for flag, limits in ((mv.lower_fail_flag_offset, (-1e99, mv.readout_split)),
-                         (mv.upper_fail_flag_offset, (mv.readout_split, 1e99)),
+    for flag, limits in ((constants.lower_fail_flag_offset, (-1e99, constants.readout_split)),
+                         (constants.upper_fail_flag_offset, (constants.readout_split, 1e99)),
                          ):
 
         # Get rows within this half
@@ -49,7 +51,7 @@ def validate_cti_ellipticity_residual_bin(r, g):
                                                           g_binned)
 
         # Check if we fall outside acceptable sigma for slope not being 0
-        if abs(slope / slope_err) > mv.slope_fail_sigma:
+        if abs(slope / slope_err) > constants.slope_fail_sigma:
             result_flag += flag  # Add flag for this half if it's bad
 
     return result_flag
@@ -97,14 +99,14 @@ def validate_cti_ellipticity_residuals(shear_estimates_table,
             bin_max = bins[bin_i + 1]
 
             good_rows = np.logical_and(col >= bin_min, col < bin_max)
-            r = shear_estimates_table[mv.reg_pix][good_rows]
+            r = shear_estimates_table[constants.reg_pix][good_rows]
 
             # Test g1 and g2 for residuals, and flag appropriately
 
-            validation_results[colname][bin_i] += (mv.g1_fail_flag_offset *
+            validation_results[colname][bin_i] += (constants.g1_fail_flag_offset *
                                                    validate_cti_ellipticity_residual_bin(r=r,
                                                                                          g=shear_estimates_table[sm_tf.g1][good_rows]))
-            validation_results[colname][bin_i] += (mv.g2_fail_flag_offset *
+            validation_results[colname][bin_i] += (constants.g2_fail_flag_offset *
                                                    validate_cti_ellipticity_residual_bin(r=r,
                                                                                          g=shear_estimates_table[sm_tf.g2][good_rows]))
             # Report results in the header of the original table
