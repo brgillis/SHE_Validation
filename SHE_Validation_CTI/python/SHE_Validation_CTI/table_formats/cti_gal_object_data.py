@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -95,10 +95,12 @@ class SheCtiGalObjectDataFormat(object):
             setattr(self, "g2_world_" + method, set_column_properties(self,
                                                                       "G2_WORLD_" + method.upper(), is_optional=True))
 
-            setattr(self, "g1_image_" + method, set_column_properties(self,
-                                                                      "G1_IMAGE_" + method.upper(), is_optional=True))
-            setattr(self, "g2_image_" + method, set_column_properties(self,
-                                                                      "G2_IMAGE_" + method.upper(), is_optional=True))
+            setattr(self, "weight_" + method, set_column_properties(self, "WEIGHT_" + method.upper()))
+
+            setattr(self, "g1_image_" + method,
+                    set_column_properties(self, "G1_IMAGE_" + method.upper()))
+            setattr(self, "g2_image_" + method,
+                    set_column_properties(self, "G2_IMAGE_" + method.upper()))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())
