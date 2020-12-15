@@ -13,6 +13,7 @@ from SHE_PPT import shear_utility
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.telescope_coords import get_vis_quadrant
 from SHE_Validation_CTI import magic_values as mv
 import numpy as np
@@ -48,13 +49,21 @@ class ShearInfo(object):
 
 
 class PositionInfo(object):
-    def __init__(self, stamp=None, world_shear_info=None):
+    def __init__(self, stamp=None,
+                 world_shear_info=None,
+                 ra=None,
+                 dec=None):
 
         # Get input data from the provided stamp; otherwise use initializer input
         if stamp is not None:
 
-            self.x_pix = stamp.offset[0]
-            self.y_pix = stamp.offset[1]
+            if ra is None or dec is None:
+                self.x_pix = stamp.offset[0]
+                self.y_pix = stamp.offset[1]
+            else:
+                x_pix_stamp, y_pix_stamp = stamp.world2pix(ra, dec)
+                self.x_pix = stamp.offset[0] + x_pix_stamp
+                self.y_pix = stamp.offset[1] + y_pix_stamp
 
             ccdid = stamp.header[ccdid_label]
             self.det_ix = int(ccdid[6])
@@ -173,13 +182,19 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                                                  g2=object_row[sem_tf.g2],
                                                                  weight=object_row[sem_tf.weight])
 
+            # Get the object's world position from the detections catalog
+            ra = data_stack.detections_catalogue.loc[object_id][mfc_tf.gal_x_world]
+            dec = data_stack.detections_catalogue.loc[object_id][mfc_tf.gal_y_world]
+
             # Set the position info for each exposure
             for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
 
                 # Add the position info by using the stamp as an initializer. The initializer
                 # will properly use default values if the stamp is None
                 object_data.position_info[exp_index] = PositionInfo(stamp=exposure_ministamp,
-                                                                    world_shear_info=object_data.world_shear_info)
+                                                                    world_shear_info=object_data.world_shear_info,
+                                                                    ra=ra,
+                                                                    dec=dec)
 
             l_object_data[oid_index] = object_data
 

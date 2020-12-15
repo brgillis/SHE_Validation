@@ -30,6 +30,7 @@ from ElementsServices.DataSync import DataSync
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import magic_values as mv
 from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
@@ -131,13 +132,21 @@ class TestCase:
             # Check the shear info for each exposure
             ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.ID, width=1)
 
+            ra = self.data_stack.detections_catalogue.loc[object_data.ID][mfc_tf.gal_x_world]
+            dec = self.data_stack.detections_catalogue.loc[object_data.ID][mfc_tf.gal_y_world]
+
             num_exposures = len(ministamp_stack.exposures)
             for exp_index in range(num_exposures):
                 ministamp = ministamp_stack.exposures[exp_index]
                 position_info = object_data.position_info[exp_index]
 
-                assert np.isclose(position_info.x_pix, ministamp.offset[0])
-                assert np.isclose(position_info.y_pix, ministamp.offset[1])
+                x_pix_stamp, y_pix_stamp = ministamp.world2pix(ra, dec)
+
+                assert np.isclose(int(position_info.x_pix), ministamp.offset[0])
+                assert np.isclose(int(position_info.y_pix), ministamp.offset[1])
+                assert np.isclose(position_info.x_pix, ministamp.offset[0] + x_pix_stamp)
+                assert np.isclose(position_info.y_pix, ministamp.offset[1] + y_pix_stamp)
+
                 assert position_info.det_ix == 1
                 assert position_info.det_iy == 1
                 assert position_info.quadrant == "E"
