@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -119,6 +119,7 @@ def run_validate_cti_gal_from_args(args):
     l_exp_test_result_product = []
     l_exp_test_result_filename = []
 
+    obs_id_check = -1
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product)
@@ -135,6 +136,13 @@ def run_validate_cti_gal_from_args(args):
         # Store the product and filename in lists
         l_exp_test_result_product.append(exp_test_result_product)
         l_exp_test_result_filename.append(exp_test_result_filename)
+
+        #Check the obs_ids are all the same (important below)
+        if (obs_id_check == -1):  #First time
+            obs_id_check = obs_id #Store the value in obs_id_check
+        else:
+            if (obs_id_check != obs_id):
+                logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
