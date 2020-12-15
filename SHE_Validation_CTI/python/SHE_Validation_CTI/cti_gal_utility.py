@@ -140,6 +140,8 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
         # Since extra indices can occasionally lead to bugs, we remove this index in the
         # "finally" block below
 
+    l_object_data = [None] * len(s_object_ids)
+
     try:
 
         # Create a SingleObjectData for each object_id and store them in a list to output
@@ -189,4 +191,4 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                 continue
             shear_estimate_table.remove_indices(sem_tf.ID)
 
-    return
+    return l_object_data

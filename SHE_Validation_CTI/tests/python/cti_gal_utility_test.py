@@ -5,7 +5,7 @@
     Unit tests of the CTI-Gal utility functions
 """
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,6 +30,7 @@ from ElementsServices.DataSync import DataSync
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_Validation_CTI import magic_values as mv
 from SHE_Validation_CTI.cti_gal_utility import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
@@ -88,6 +89,7 @@ class TestCase:
     def test_cti_gal_dry_run(self):
 
         # Read in the mock shear estimates
+        lmcm_tf = mv.d_shear_estimation_method_table_formats["LensMC"]
         lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
         d_shear_estimates_tables = {"KSB": None,
                                     "LensMC": lensmc_shear_estimates_table,
@@ -96,5 +98,34 @@ class TestCase:
 
         raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack=self.data_stack,
                                                               shear_estimate_tables=d_shear_estimates_tables)
+
+        # Check the results
+
+        # Check the general attributes of the list
+        assert len(raw_cti_gal_object_data) == len(lensmc_shear_estimates_table)
+
+        # Order of IDs isn't guaranteed, so we have to check that we have the right IDs in a roundabout way
+        assert raw_cti_gal_object_data[0].ID in lensmc_shear_estimates_table[lmcm_tf.ID]
+        assert raw_cti_gal_object_data[1].ID in lensmc_shear_estimates_table[lmcm_tf.ID]
+        assert raw_cti_gal_object_data[0].ID != raw_cti_gal_object_data[1].ID
+
+        lensmc_shear_estimates_table.add_index(lmcm_tf.ID)
+
+        # Check the info is correct for each object
+        for object_data in raw_cti_gal_object_data:
+
+            # Get the corresponding LensMC row
+            lmcm_row = lensmc_shear_estimates_table.loc[object_data.ID]
+
+            lensmc_world_shear_info = object_data.world_shear_info["LensMC"]
+            assert lensmc_world_shear_info.g1 == lmcm_row[lmcm_tf.g1]
+            assert lensmc_world_shear_info.g2 == lmcm_row[lmcm_tf.g2]
+            assert lensmc_world_shear_info.weight == lmcm_row[lmcm_tf.weight]
+
+            assert np.isnan(object_data.world_shear_info["KSB"].g1)
+            assert np.isnan(object_data.world_shear_info["MomentsML"].g1)
+            assert np.isnan(object_data.world_shear_info["REGAUSS"].g1)
+
+            # TODO: Check data for each exposure
 
         return
