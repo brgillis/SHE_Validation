@@ -32,7 +32,9 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
+from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
+                                           get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
@@ -161,5 +163,56 @@ class TestCase:
                 assert np.isnan(position_info.exposure_shear_info["KSB"].g1)
                 assert np.isnan(position_info.exposure_shear_info["MomentsML"].g1)
                 assert np.isnan(position_info.exposure_shear_info["REGAUSS"].g1)
+
+    def test_sort_raw_object_data_into_table(self):
+
+        # Set up test data
+        raw_object_data_list = []
+        num_exposures = 4
+
+        dx_dexp = 100
+        dy_dexp = 200
+        dg1_dexp = -0.01
+        dg2_dexp = 0.02
+        dweight_dexp = 1
+
+        for ID, x, y, g1, g2, weight in ((1, 128, 129, 0.1, 0.3, 10),
+                                         (2, 2000, 2000, -0.1, 0.2, 11)):
+            object_data = SingleObjectData(ID=ID,
+                                           num_exposures=num_exposures)
+            object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
+                                                               g2=g2,
+                                                               weight=weight)
+            object_data.world_shear_info["KSB"] = ShearInfo()
+            object_data.world_shear_info["MomentsML"] = ShearInfo()
+            object_data.world_shear_info["REGAUSS"] = ShearInfo()
+
+            for exp_index in range(num_exposures):
+                position_info = PositionInfo()
+                position_info.x_pix = x + dx_dexp * exp_index
+                position_info.y_pix = y + dy_dexp * exp_index
+                position_info.exposure_shear_info["LensMC"] = ShearInfo(g1=g1 + dg1_dexp * exp_index,
+                                                                        g2=g2 + dg2_dexp * exp_index,
+                                                                        weight=weight + dweight_dexp * exp_index)
+                object_data.position_info[exp_index] = position_info
+
+            raw_object_data_list.append(object_data)
+
+        object_data_table_list = sort_raw_object_data_into_table(raw_object_data_list=raw_object_data_list)
+
+        # Check that the tables are as expected
+        for exp_index, object_data_table in enumerate(object_data_table_list):
+
+            for object_data, row in zip(raw_object_data_list, object_data_table):
+
+                assert object_data.ID == row[cgod_tf.ID]
+                assert np.isclose(object_data.position_info[exp_index].x_pix, row[cgod_tf.x])
+                assert np.isclose(object_data.position_info[exp_index].y_pix, row[cgod_tf.y])
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,
+                                  row[getattr(cgod_tf, "g1_image_LensMC")])
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g2,
+                                  row[getattr(cgod_tf, "g2_image_LensMC")])
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].weight,
+                                  row[getattr(cgod_tf, "weight_LensMC")])
 
         return
