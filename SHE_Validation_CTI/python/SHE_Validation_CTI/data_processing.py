@@ -27,6 +27,7 @@ from SHE_PPT import mdb
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
+from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 import numpy as np
 
 
@@ -51,3 +52,23 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
     return
+
+
+def calculate_regression_results(object_data_table: table.Table,
+                                 product_type: str = "UNKNOWN"):
+    """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
+        using data in the input object_data_table, and returns it as a one-row table of format regression_results.
+    """
+
+    # Initialize a table for the output data
+    regression_results_table = initialise_regression_results_table(product_type=product_type, size=1)
+
+    rr_row = regression_results_table[0]
+
+    # Perform a regression for each method
+    for method in constants.methods:
+
+        # Get required data
+        g1 = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
+
+    return regression_results_table
