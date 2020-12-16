@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal validation
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,17 +20,7 @@ __updated__ = "2020-12-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
-reg_pix = 1  # Readout register - believed to be y, but might have to fix later
-
-readout_split = 4134.5  # Maximum pixel position for which values are read out downward (in stacked frame)
-
-g1_fail_flag_offset = 1
-g2_fail_flag_offset = 4
-
-lower_fail_flag_offset = 1
-upper_fail_flag_offset = 2
-
+# Failure thresholds - these will likely be set in the configuration file in the future
 slope_fail_sigma = 5
 intercept_fail_sigma = 5
 
