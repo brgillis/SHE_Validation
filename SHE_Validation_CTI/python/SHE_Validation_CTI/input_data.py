@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,6 @@ __updated__ = "2020-12-15"
 from typing import Dict
 
 from astropy import table
-from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
 
 from SHE_PPT import shear_utility
 from SHE_PPT.logging import getLogger
