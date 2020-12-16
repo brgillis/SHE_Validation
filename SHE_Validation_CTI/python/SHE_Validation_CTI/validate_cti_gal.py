@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -67,8 +67,12 @@ def run_validate_cti_gal_from_args(args):
     l_vis_calibrated_frame_filename = read_listfile(join(args.workdir, args.vis_calibrated_frame_listfile))
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
-        l_vis_calibrated_frame_product.append(read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir))
-        # TODO: Add check on data product type
+        vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir)
+        if isinstance(vis_calibrated_frame_prod, products.vis_calibrated_frame.dpdVisCalibratedFrame):
+            l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
+        else:
+            raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
+                         + " is invalid type.")
 
     # Load the shear measurements
 
@@ -137,7 +141,7 @@ def run_validate_cti_gal_from_args(args):
         l_exp_test_result_product.append(exp_test_result_product)
         l_exp_test_result_filename.append(exp_test_result_filename)
 
-        #Check the obs_ids are all the same (important below)
+        # Check the obs_ids are all the same (important below)
         if (obs_id_check == -1):  #First time
             obs_id_check = obs_id #Store the value in obs_id_check
         else:
@@ -150,7 +154,7 @@ def run_validate_cti_gal_from_args(args):
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
-    # Use the last observation ID, assuming they're all the same - TODO: Check to be sure
+    # Use the last observation ID, having checked they're all the same above
     obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
 
     # Fill in the products with the results
