@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -36,8 +36,9 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.constants import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI.data_processing import add_readout_register_distance
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
@@ -226,10 +227,6 @@ def fill_cti_gal_validation_results(*args, **kwargs):
 
 
 def add_image_shear_estimate_columns(*args, **kwargs):
-    pass
-
-
-def add_readout_register_distance(*args, **kwargs):
     pass
 
 
