@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -253,4 +253,4 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
 
         l_object_data_tables[exp_index] = object_data_table
 
-    return
+    return l_object_data_tables
