@@ -54,7 +54,7 @@ class TestCase:
         # Download the MDB from WebDAV
         sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
         sync_mdb.download()
-        qualified_mdb_filename = sync_datastack.absolutePath(
+        qualified_mdb_filename = sync_mdb.absolutePath(
             os.path.join(test_data_location, mdb_filename))
         assert os.path.isfile(
             qualified_mdb_filename), f"Cannot find file: {qualified_mdb_filename}"
@@ -79,7 +79,7 @@ class TestCase:
         assert det_size_y == 4136  # Calculations here rely on this being the value
 
         # Make some mock data
-        mock_y_data = np.array([-100., 0., 500., 1000., 2000., 3000., 4000., 5000.])
+        mock_y_data = np.array([-100., 0., 500., 1000., 2000., 3000., 4000., 5000.], dtype='>f4')
 
         mock_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.y: mock_y_data})
 
