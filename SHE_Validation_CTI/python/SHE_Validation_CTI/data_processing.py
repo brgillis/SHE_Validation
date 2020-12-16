@@ -25,6 +25,7 @@ from astropy import table
 
 from SHE_PPT import mdb
 from SHE_PPT.logging import getLogger
+from SHE_PPT.math import linregress_with_errors
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
@@ -64,11 +65,37 @@ def calculate_regression_results(object_data_table: table.Table,
     regression_results_table = initialise_regression_results_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
+    readout_dist_data = object_data_table[cgod_tf.readout_dist]
 
     # Perform a regression for each method
     for method in constants.methods:
 
         # Get required data
-        g1 = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
+        g1_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
+        weight_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
+
+        tot_weight = np.nansum(weight_data)
+
+        # If there's no weight, skip the regression and output NaN for all values
+        if not tot_weight > 0.:
+            rr_row[getattr(rr_tf, f"weight_{method}")] = 0.
+            rr_row[getattr(rr_tf, f"slope_{method}")] = np.NaN
+            rr_row[getattr(rr_tf, f"intercept_{method}")] = np.NaN
+            rr_row[getattr(rr_tf, f"slope_err_{method}")] = np.NaN
+            rr_row[getattr(rr_tf, f"intercept_err_{method}")] = np.NaN
+            rr_row[getattr(rr_tf, f"slope_intercept_covar_{method}")] = np.NaN
+            continue
+
+        # Perform the regression
+        g1_err_data = np.sqrt(1 / weight_data)
+        linregress_results = linregress_with_errors(readout_dist_data, g1_data, g1_err_data)
+
+        # Save the results in the output table
+        rr_row[getattr(rr_tf, f"weight_{method}")] = tot_weight
+        rr_row[getattr(rr_tf, f"slope_{method}")] = linregress_results.slope
+        rr_row[getattr(rr_tf, f"intercept_{method}")] = linregress_results.intercept
+        rr_row[getattr(rr_tf, f"slope_err_{method}")] = linregress_results.slope_err
+        rr_row[getattr(rr_tf, f"intercept_err_{method}")] = linregress_results.intercept_err
+        rr_row[getattr(rr_tf, f"slope_intercept_covar_{method}")] = linregress_results.slope_intercept_covar
 
     return regression_results_table
