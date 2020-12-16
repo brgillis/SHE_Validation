@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,7 +21,7 @@ __updated__ = "2020-12-15"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from typing import Dict
+from typing import Dict, List
 
 from astropy import table
 from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
@@ -33,6 +33,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.telescope_coords import get_vis_quadrant
 from SHE_Validation_CTI import constants
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 import numpy as np
 
 logger = getLogger(__name__)
@@ -207,3 +208,49 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             shear_estimate_table.remove_indices(sem_tf.ID)
 
     return l_object_data
+
+
+def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]):
+    """ Takes a list of raw object data and sorts it into an astropy Table of format cti_gal_object_data.
+    """
+
+    num_objects = len(raw_object_data_list)
+    if num_objects == 0:
+        num_exposures = 1
+    else:
+        num_exposures = len(raw_object_data_list[0].position_info)
+
+    # Create a table for each exposure
+    l_object_data_tables = [None] * num_exposures
+
+    for exp_index in range(num_exposures):
+
+        # Initialise the table with one row for each object
+        object_data_table = initialise_cti_gal_object_data_table(size=num_objects,
+                                                                 optional_columns=[cgod_tf.quadrant])
+
+        # Fill in the data for each object
+        for object, row in zip(raw_object_data_list, object_data_table):
+
+            position_info = object.position_info[exp_index]
+
+            row[cgod_tf.ID] = object.ID
+
+            row[cgod_tf.x] = position_info.x_pix
+            row[cgod_tf.y] = position_info.y_pix
+
+            row[cgod_tf.det_ix] = position_info.det_ix
+            row[cgod_tf.det_iy] = position_info.det_iy
+
+            # Fill in data for each shear estimate method
+            for method in constants.methods:
+
+                exposure_shear_info = position_info.exposure_shear_info[method]
+
+                row[getattr(cgod_tf, f"g1_image_{method}")] = exposure_shear_info.g1
+                row[getattr(cgod_tf, f"g2_image_{method}")] = exposure_shear_info.g2
+                row[getattr(cgod_tf, f"weight_{method}")] = exposure_shear_info.weight
+
+        l_object_data_tables[exp_index] = object_data_table
+
+    return l_object_data_tables
