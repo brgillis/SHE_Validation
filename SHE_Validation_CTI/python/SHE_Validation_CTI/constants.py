@@ -1,9 +1,11 @@
-""" @file cti_residual_validation.py
+""" @file constants.py
 
-    Created 12 Feb 2018
+    Created 15 Dec 2020
 
-    Function for performing validation of CTI residuals
+    Constants relating to CTI-Gal validation
 """
+
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,3 +43,5 @@ d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                            "REGAUSS": regm_tf,
                                            "MomentsML": mmlm_tf,
                                            "LensMC": lmcm_tf}
+
+methods = d_shear_estimation_method_table_formats.keys()

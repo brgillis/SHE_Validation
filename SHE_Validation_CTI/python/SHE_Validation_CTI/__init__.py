@@ -5,7 +5,7 @@
     SHE_Validation_CTI package, for validation tests and documentation related to CTI.
 """
 
-__updated__ = "2020-04-24"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,3 +19,8 @@ __updated__ = "2020-04-24"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from SHE_Validation.__init__ import *
+
+__name__ = 'SHE_Validation_CTI'
+__description__ = 'Python package for unit tests relating to CTI.'

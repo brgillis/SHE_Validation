@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2020-12-14"
+__updated__ = "2020-12-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,7 @@ from astropy import table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
-from SHE_Validation_CTI import magic_values as mv
+from SHE_Validation_CTI import constants
 
 
 fits_version = "8.0"
@@ -80,25 +80,29 @@ class SheCtiGalObjectDataFormat(object):
         self.x = set_column_properties(self, "X_IMAGE", comment="pixels")
         self.y = set_column_properties(self, "Y_IMAGE", comment="pixels")
 
-        self.det_x = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
-        self.det_y = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
+        self.det_ix = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
+        self.det_iy = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
 
         self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
         self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in mv.d_shear_estimation_method_table_formats:
+        for method in constants.d_shear_estimation_method_table_formats:
 
-            setattr(self, "g1_world_" + method, set_column_properties(self,
-                                                                      "G1_WORLD_" + method.upper(), is_optional=True))
-            setattr(self, "g2_world_" + method, set_column_properties(self,
-                                                                      "G2_WORLD_" + method.upper(), is_optional=True))
+            upper_method = method.upper()
 
-            setattr(self, "g1_image_" + method, set_column_properties(self,
-                                                                      "G1_IMAGE_" + method.upper(), is_optional=True))
-            setattr(self, "g2_image_" + method, set_column_properties(self,
-                                                                      "G2_IMAGE_" + method.upper(), is_optional=True))
+            setattr(self, f"g1_world_{method}", set_column_properties(self,
+                                                                      f"G1_WORLD_{upper_method}", is_optional=True))
+            setattr(self, f"g2_world_{method}", set_column_properties(self,
+                                                                      f"G2_WORLD_{upper_method}", is_optional=True))
+
+            setattr(self, f"weight_{method}", set_column_properties(self, f"WEIGHT_{upper_method}"))
+
+            setattr(self, f"g1_image_{method}",
+                    set_column_properties(self, f"G1_IMAGE_{upper_method}"))
+            setattr(self, f"g2_image_{method}",
+                    set_column_properties(self, f"G2_IMAGE_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())

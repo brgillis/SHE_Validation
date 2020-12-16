@@ -27,6 +27,7 @@ from astropy import table
 
 from SHE_PPT import mdb
 from SHE_PPT import products
+from SHE_PPT import telescope_coords
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
@@ -35,7 +36,8 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.magic_values import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
+from SHE_Validation_CTI.constants import d_shear_estimation_method_table_formats
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
@@ -51,7 +53,9 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the MDB
     logger.info("Loading MDB.")
-    mdb.init(join(args.workdir, args.mdb))
+    qualified_mdb_filename = join(args.workdir, args.mdb)
+    mdb.init(qualified_mdb_filename)
+    telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
     logger.info("Complete!")
 
     # Load the image data as a SHEFrameStack
@@ -238,10 +242,6 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
 
 def fill_cti_gal_validation_results(*args, **kwargs):
-    pass
-
-
-def get_raw_cti_gal_object_data(*args, **kwargs):
     pass
 
 
