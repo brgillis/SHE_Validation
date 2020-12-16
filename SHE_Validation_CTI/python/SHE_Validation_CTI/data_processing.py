@@ -72,7 +72,7 @@ def calculate_regression_results(object_data_table: table.Table,
 
         # Get required data
         g1_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
-        weight_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
+        weight_data = object_data_table[getattr(cgod_tf, f"weight_{method}")]
 
         tot_weight = np.nansum(weight_data)
 

@@ -31,7 +31,7 @@ from SHE_PPT import mdb
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.data_processing import add_readout_register_distance
+from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf
 import numpy as np
@@ -105,16 +105,16 @@ class TestCase:
 
         l = 200
 
-        np.random.seed(12345)
+        rng = np.random.default_rng(seed=12345)
 
         g1_err_data = g1_err * np.ones(200, dtype='>f4')
         weight_data = np.power(g1_err_data, -2)
         readout_dist_data = np.linspace(0, 2000, l, dtype='>f4')
-        g1_data = (m * readout_dist_data + b + g1_err_data * np.random.standard_normal(size=l)).astype('>f4')
+        g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size=l)).astype('>f4')
 
-        object_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.weight: weight_data,
+        object_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.weight_LensMC: weight_data,
                                                                             cgod_tf.readout_dist: readout_dist_data,
-                                                                            cgod_tf.g1_LensMC: g1_data})
+                                                                            cgod_tf.g1_image_LensMC: g1_data})
 
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
@@ -123,7 +123,7 @@ class TestCase:
         # Check the results
 
         assert regression_results_table.meta[rr_tf.m.product_type] == "EXP"
-        assert len(regression_results_table) == 0
+        assert len(regression_results_table) == 1
 
         rr_row = regression_results_table[0]
 
@@ -131,14 +131,14 @@ class TestCase:
         assert np.isnan(rr_row[rr_tf.slope_KSB])
 
         readout_dist_mean = np.mean(readout_dist_data)
-        ex_slope_err = g1_err / np.sqrt((readout_dist_data - readout_dist_mean)**2)
+        ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data - readout_dist_mean)**2))
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data**2) / l)
 
         assert rr_row[rr_tf.weight_LensMC] == l / g1_err**2
         assert np.isclose(rr_row[rr_tf.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
         assert np.isclose(rr_row[rr_tf.slope_err_LensMC], ex_slope_err, rtol=0.1)
-        assert np.isclose(rr_row[rr_tf.intercept_LensMC], m, atol=sigmal_tol * ex_intercept_err)
-        assert np.isclose(rr_row[rr_tf.intercept_err_LensMC], ex_slope_err, rtol=0.1)
+        assert np.isclose(rr_row[rr_tf.intercept_LensMC], b, atol=sigmal_tol * ex_intercept_err)
+        assert np.isclose(rr_row[rr_tf.intercept_err_LensMC], ex_intercept_err, rtol=0.1)
         assert np.isclose(rr_row[rr_tf.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         return
