@@ -49,13 +49,6 @@ class TestCase:
 
         return
 
-    @pytest.fixture(autouse=True)
-    def setup(self, tmpdir):
-        self.workdir = tmpdir.strpath
-        self.logdir = join(tmpdir.strpath, "logs")
-
-        return
-
     def test_fill_cti_gal_validation_results(self):
         """ Test of the fill_cti_gal_validation_results function.
         """
@@ -82,7 +75,8 @@ class TestCase:
             exp_row[getattr(rr_tf, "intercept_LensMC")] = exp_results.intercept
             exp_row[getattr(rr_tf, "intercept_err_LensMC")] = exp_results.intercept_err
 
-            exp_product = create_validation_test_results_product(num_tests=constants.num_method_cti_gal_test_cases)
+            exp_product = products.she_validation_test_results.create_validation_test_results_product(
+                num_tests=constants.num_method_cti_gal_test_cases)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
@@ -94,7 +88,8 @@ class TestCase:
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
         obs_row = obs_results_table[0]
 
-        obs_product = create_validation_test_results_product(num_tests=constants.num_method_cti_gal_test_cases)
+        obs_product = products.she_validation_test_results.create_validation_test_results_product(
+            num_tests=constants.num_method_cti_gal_test_cases)
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
