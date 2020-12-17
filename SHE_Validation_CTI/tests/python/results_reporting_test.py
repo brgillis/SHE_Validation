@@ -99,9 +99,11 @@ class TestCase:
         obs_product.validateBinding()
 
         # Check metadata for the product
+        obs_test_result = obs_product.Data.ValidationTestList[0]
+        assert obs_test_result.TestId == constants.cti_gal_test_id
+        assert obs_test_result.TestDescription == constants.cti_gal_test_description
 
         # Check that the product indeed reports no data
-        obs_test_result = obs_product.Data.ValidationTestList[0]
         assert obs_test_result.GlobalResult == "PASSED"
         assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
         obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
