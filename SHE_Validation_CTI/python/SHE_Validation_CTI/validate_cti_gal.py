@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2020-12-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -110,9 +110,9 @@ def run_validate_cti_gal_from_args(args):
     # later code to refer to
     if all(value == None for value in d_shear_estimate_tables.values()):
         logger.warning("No method has any data associated with it.")
-        method_data_exists = "False"
+        method_data_exists = False
     else:
-        method_data_exists = "True"
+        method_data_exists = True
 
     logger.info("Complete!")
 
