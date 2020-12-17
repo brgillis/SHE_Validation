@@ -74,4 +74,4 @@ methods = d_shear_estimation_method_table_formats.keys()
 
 num_methods = len(methods)
 
-num_method_cti_gal_test_cases = num_methods * cti_gal_test_cases
+num_method_cti_gal_test_cases = num_methods * num_cti_gal_test_cases
