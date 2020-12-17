@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2020-12-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -72,8 +72,12 @@ def run_validate_cti_gal_from_args(args):
     l_vis_calibrated_frame_filename = read_listfile(join(args.workdir, args.vis_calibrated_frame_listfile))
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
-        l_vis_calibrated_frame_product.append(read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir))
-        # TODO: Add check on data product type
+        vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename, workdir=args.workdir)
+        if isinstance(vis_calibrated_frame_prod, products.vis_calibrated_frame.dpdVisCalibratedFrame):
+            l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
+        else:
+            raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
+                             + " is invalid type.")
 
     # Load the shear measurements
 
@@ -102,7 +106,15 @@ def run_validate_cti_gal_from_args(args):
                 continue
         else:
             d_shear_estimate_tables[method] = None
-    # TODO: Add warning if no data from any method
+
+    # Log a warning if no data from any method and set a flag for
+    # later code to refer to
+    if all(value == None for value in d_shear_estimate_tables.values()):
+        logger.warning("No method has any data associated with it.")
+        method_data_exists = False
+    else:
+        method_data_exists = True
+
     logger.info("Complete!")
 
     if not args.dry_run:
@@ -116,6 +128,7 @@ def run_validate_cti_gal_from_args(args):
     l_exp_test_result_product = []
     l_exp_test_result_filename = []
 
+    obs_id_check = -1
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product)
@@ -133,13 +146,20 @@ def run_validate_cti_gal_from_args(args):
         l_exp_test_result_product.append(exp_test_result_product)
         l_exp_test_result_filename.append(exp_test_result_filename)
 
+        # Check the obs_ids are all the same (important below)
+        if (obs_id_check == -1):  # First time
+            obs_id_check = obs_id  # Store the value in obs_id_check
+        else:
+            if (obs_id_check != obs_id):
+                logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
+
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product))
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
-    # Use the last observation ID, assuming they're all the same - TODO: Check to be sure
+    # Use the last observation ID, having checked they're all the same above
     obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
 
     # Fill in the products with the results
