@@ -49,187 +49,141 @@ def report_test_not_run(requirement_object,
     return
 
 
-def add_supplementary_info(requirement_object,
-                           slope: float,
-                           slope_err: float,
-                           slope_z: float,
-                           slope_result: float,
-                           intercept: float,
-                           intercept_err: float,
-                           intercept_result: float,
-                           extra_slope_message: str ="",
-                           extra_intercept_message: str =""):
+class CTIGalRequirementWriter():
+    """ Class for managing reporting of results for a single CTI-Gal test case.
+    """
 
-    # Check the extra messages and make sure they end in a linebreak
-    if extra_slope_message != "" and extra_slope_message[-2:] != "\n":
-        extra_slope_message = extra_slope_message + "\n"
-    if extra_intercept_message != "" and extra_intercept_message[-2:] != "\n":
-        extra_intercept_message = extra_intercept_message + "\n"
+    def __init__(self,
+                 requirement_object,
+                 slope: float,
+                 slope_err: float,
+                 intercept: float,
+                 intercept_err: float,):
 
-    slope_supplementary_info_parameter = requirement_object.SupplementaryInformation.Parameter[0]
-    intercept_supplementary_info_parameter = deepcopy(slope_supplementary_info_parameter)
-    requirement_object.SupplementaryInformation.Parameter[0].append(
-        intercept_supplementary_info_parameter)
+        self.requirement_object = requirement_object
+        self.slope = slope
+        self.slope_err = slope_err
+        self.intercept = intercept
+        self.intercept_err = intercept_err
 
-    slope_supplementary_info_parameter.Key = "SLOPE_INFO"
-    slope_supplementary_info_parameter.Description = ("Information about the test on slope of g1_image " +
-                                                      "versus readout distance.")
-    slope_supplementary_info_parameter.StringValue = (extra_slope_message +
-                                                      f"slope = {slope}\n" +
-                                                      f"slope_err = {slope_err}\n" +
-                                                      f"slope_z = {slope_z}\n" +
-                                                      f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" +
-                                                      f"Result: {slope_result}\n")
+        # Calculate some values for both the slope and intercept
+        for attr in ("slope", "intercept"):
+            if np.isnan(getattr(self, attr)) or np.isnan(getattr(self, f"{attr}_err")):
+                setattr(self, f"{attr}_z", np.NaN)
+                setattr(self, f"{attr}_pass", False)
+                setattr(self, f"{attr}_result", "FAILED")
+            elif getattr(self, f"{attr}_err") == 0.:
+                setattr(self, f"{attr}_z", np.NaN)
+                setattr(self, f"{attr}_pass", False)
+            else:
+                setattr(self, f"{attr}_z", np.abs(getattr(self, attr) / getattr(self, f"{attr}_err")))
+                setattr(self, f"{attr}_pass", getattr(self, f"{attr}_z") < constants.slope_fail_sigma)
 
-    intercept_supplementary_info_parameter.Key = "INTERCEPT_INFO"
-    intercept_supplementary_info_parameter.Description = ("Information about the test on intercept of " +
-                                                          "g1_image versus readout distance.")
-    intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
-                                                          f"intercept = {intercept}\n" +
-                                                          f"intercept_err = {intercept_err}\n" +
-                                                          f"intercept_z = {intercept_z}\n" +
-                                                          f"Maximum allowed intercept_z = " +
-                                                          f"{constants.intercept_fail_sigma}\n" +
-                                                          f"Result: {intercept_result}\n")
+            if getattr(self, f"{attr}_pass"):
+                setattr(self, f"{attr}_result", "PASSED")
+            else:
+                setattr(self, f"{attr}_result", "FAILED")
 
+        return
 
-def report_bad_data(requirement_object,
-                    slope=slope,
-                    slope_err=slope_err,
-                    intercept=intercept,
-                    intercept_err=intercept_err,):
+    def add_supplementary_info(self,
+                               extra_slope_message: str ="",
+                               extra_intercept_message: str =""):
 
-    # Calculate slope_z and intercept_z - one or both might be NaN, but try anyway in case we get something
-    slope_z = np.abs(slope / slope_err)
-    intercept_z = np.abs(intercept / intercept_err)
+        # Check the extra messages and make sure they end in a linebreak
+        if extra_slope_message != "" and extra_slope_message[-2:] != "\n":
+            extra_slope_message = extra_slope_message + "\n"
+        if extra_intercept_message != "" and extra_intercept_message[-2:] != "\n":
+            extra_intercept_message = extra_intercept_message + "\n"
 
-    # Report -1 as the measured value for this test
-    requirement_object.MeasuredValue.Parameter = -1
+        self.slope_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        self.intercept_supplementary_info_parameter = deepcopy(self.slope_supplementary_info_parameter)
+        self.requirement_object.SupplementaryInformation.Parameter[0].append(
+            self.intercept_supplementary_info_parameter)
 
-    intercept_pass = intercept_z < constants.intercept_fail_sigma
+        self.slope_supplementary_info_parameter.Key = "self.slope_INFO"
+        self.slope_supplementary_info_parameter.Description = ("Information about the test on self.slope of g1_image " +
+                                                               "versus readout distance.")
+        self.slope_supplementary_info_parameter.StringValue = (extra_slope_message +
+                                                               f"self.slope = {self.slope}\n" +
+                                                               f"self.slope_err = {self.slope_err}\n" +
+                                                               f"self.slope_z = {self.slope_z}\n" +
+                                                               f"Maximum allowed self.slope_z = {constants.self.slope_fail_sigma}\n" +
+                                                               f"Result: {self.slope_result}\n")
 
-    # Report the result as failed
-    slope_result = "FAILED"
-    requirement_object.ValidationResult = slope_result
+        self.intercept_supplementary_info_parameter.Key = "self.intercept_INFO"
+        self.intercept_supplementary_info_parameter.Description = ("Information about the test on self.intercept of " +
+                                                                   "g1_image versus readout distance.")
+        self.intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
+                                                                   f"self.intercept = {self.intercept}\n" +
+                                                                   f"self.intercept_err = {self.intercept_err}\n" +
+                                                                   f"self.intercept_z = {self.intercept_z}\n" +
+                                                                   f"Maximum allowed self.intercept_z = " +
+                                                                   f"{constants.self.intercept_fail_sigma}\n" +
+                                                                   f"Result: {self.intercept_result}\n")
 
-    # Also record whether or not the intercept test passed
-    if intercept_pass:
-        intercept_result = "PASSED"
-    else:
-        intercept_result = "FAILED"
+        return
 
-    requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
+    def report_bad_data(self):
 
-    # Add a supplementary info key for each of the slope and intercept, reporting details
+        # Report -1 as the measured value for this test
+        self.requirement_object.MeasuredValue.Parameter = -1
 
-    add_supplementary_info(requirement_object,
-                           slope=slope,
-                           slope_err=slope_err,
-                           slope_z=slope_z,
-                           slope_result=slope_result,
-                           intercept=intercept,
-                           intercept_err=intercept_err,
-                           intercept_result=intercept_result,
-                           extra_slope_message="Test failed due to NaN regression results for slope.\n",
-                           extra_intercept_message="")
+        self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
-    return
+        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
 
+        add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for self.slope.\n")
 
-def report_zero_slope_err(requirement_object,
-                          slope: float,
-                          intercept: float,
-                          intercept_err: float,):
+        return
 
-    # Calculate slope_z and intercept_z - one or both might be NaN, but try anyway in case we get something
-    slope_err = 0
-    slope_z = np.inf
-    intercept_z = np.abs(intercept / intercept_err)
+    def report_zero_slope_err(self):
 
-    # Report -2 as the measured value for this test
-    requirement_object.MeasuredValue.Parameter = -2
+        # Report -2 as the measured value for this test
+        self.requirement_object.MeasuredValue.Parameter = -2
 
-    intercept_pass = intercept_z < constants.intercept_fail_sigma
+        self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
-    # Report the result as failed
-    slope_result = "FAILED"
-    requirement_object.ValidationResult = slope_result
+        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
 
-    # Also record whether or not the intercept test passed
-    if intercept_pass:
-        intercept_result = "PASSED"
-    else:
-        intercept_result = "FAILED"
+        self.add_supplementary_info(extra_slope_message="Test failed due to zero self.slope error.\n",)
 
-    requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
+        return
 
-    # Add a supplementary info key for each of the slope and intercept, reporting details
+    def report_good_data(self):
 
-    add_supplementary_info(requirement_object,
-                           slope=slope,
-                           slope_err=slope_err,
-                           slope_z=slope_z,
-                           slope_result=slope_result,
-                           intercept=intercept,
-                           intercept_err=intercept_err,
-                           intercept_result=intercept_result,
-                           extra_slope_message="Test failed due to zero slope error.\n",
-                           extra_intercept_message="")
+        # Report the self.slope_z as the measured value for this test
+        self.requirement_object.MeasuredValue.Parameter = self.slope_z
 
-    return
+        # If the slope passes but the intercept doesn't, we should raise a warning
+        if self.slope_pass and not self.intercept_pass:
+            comment_level = "WARNING"
+        else:
+            comment_level = "INFO"
 
+        self.requirement_object.Comment = f"{comment_level}: Multiple notes; see SupplementaryInformation."
 
-def report_good_data(requirement_object,
-                     slope=slope,
-                     slope_err=slope_err,
-                     intercept=intercept,
-                     intercept_err=intercept_err,):
+        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
 
-    # Calculate if it passes or fails
-    slope_z = np.abs(slope / slope_err)
-    intercept_z = np.abs(intercept / intercept_err)
+        self.add_supplementary_info()
 
-    # Report the slope_z as the measured value for this test
-    requirement_object.MeasuredValue.Parameter = slope_z
+        return
 
-    slope_pass = slope_z < constants.slope_fail_sigma
-    intercept_pass = intercept_z < constants.intercept_fail_sigma
+    def report_data(self):
 
-    # Report the result based on whether or not the slope passed.
-    if slope_pass:
-        slope_result = "PASSED"
-    else:
-        slope_result = "FAILED"
-    requirement_object.ValidationResult = slope_result
+        # Report the result based on whether or not the slope passed.
+        self.requirement_object.ValidationResult = self.slope_result
 
-    # Also record whether or not the intercept test passed
-    if intercept_pass:
-        intercept_result = "PASSED"
-    else:
-        intercept_result = "FAILED"
+        # Check for data quality issues and report as proper if found
+        if (np.isnan([self.slope, self.slope_err]).any() or
+                np.isinf([self.slope, self.slope_err]).any()):
+            self.report_bad_data()
+        elif self.slope_err == 0.:
+            self.report_zero_slope()
+        else:
+            self.report_good_data()
 
-    # If the slope passes but the intercept doesn't, we should raise a warning
-    if slope_pass and not intercept_pass:
-        comment_level = "WARNING"
-    else:
-        comment_level = "INFO"
-
-    requirement_object.Comment = f"{comment_level}: Multiple notes; see SupplementaryInformation."
-
-    # Add a supplementary info key for each of the slope and intercept, reporting details
-
-    add_supplementary_info(requirement_object,
-                           slope=slope,
-                           slope_err=slope_err,
-                           slope_z=slope_z,
-                           slope_result=slope_result,
-                           intercept=intercept,
-                           intercept_err=intercept_err,
-                           intercept_result=intercept_result,
-                           extra_slope_message="",
-                           extra_intercept_message="")
-
-    return
+        return
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -259,31 +213,18 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             requirement_object.MeasuredValue.Parameter = constants.cti_gal_parameter
 
             if test_case == "Global" and method_data_exists:
-                # Get the required info for this test
-                slope = regression_results_row[getattr(rr_tf, f"slope_{method}")]
-                slope_err = regression_results_row[getattr(rr_tf, f"slope_err_{method}")]
-                intercept = regression_results_row[getattr(rr_tf, f"intercept_{method}")]
-                intercept_err = regression_results_row[getattr(rr_tf, f"intercept_err_{method}")]
 
-                # Check for data quality issues
-                if (np.isnan([slope, slope_err]).any() or np.isinf([slope, slope_err]).any()):
-                    report_bad_data(requirement_object,
-                                    slope=slope,
-                                    slope_err=slope_err,
-                                    intercept=intercept,
-                                    intercept_err=intercept_err,)
-                elif slope_err == 0.:
-                    report_zero_slope(requirement_object,
-                                      slope=slope,
-                                      slope_err=slope_err,
-                                      intercept=intercept,
-                                      intercept_err=intercept_err,)
-                else:
-                    report_good_data(requirement_object,
-                                     slope=slope,
-                                     slope_err=slope_err,
-                                     intercept=intercept,
-                                     intercept_err=intercept_err,)
+                requirement_writer = CTIGalRequirementWriter(requirement_object,
+                                                             slope=regression_results_row[getattr(
+                                                                 rr_tf, f"slope_{method}")],
+                                                             slope_err=regression_results_row[getattr(
+                                                                 rr_tf, f"slope_err_{method}")],
+                                                             intercept=regression_results_row[getattr(
+                                                                 rr_tf, f"intercept_{method}")],
+                                                             intercept_err=regression_results_row[getattr(
+                                                                 rr_tf, f"intercept_err_{method}")])
+
+                requirement_writer.report_data()
 
             elif test_case == "Global" and not method_data_exists:
                 # Report that the test wasn't run due to a lack of data
