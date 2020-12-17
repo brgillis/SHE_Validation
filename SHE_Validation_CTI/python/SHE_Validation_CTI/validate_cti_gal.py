@@ -36,7 +36,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.constants import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
@@ -91,14 +91,14 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the table for each method
     d_shear_estimate_tables = {}
-    for method in d_shear_estimation_method_table_formats:
+    for method in constants.methods:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
             d_shear_estimate_tables[method] = shear_measurements_table
-            if not is_in_format(shear_measurements_table, d_shear_estimation_method_table_formats[method], strict=False):
+            if not is_in_format(shear_measurements_table, constants.d_shear_estimation_method_table_formats[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 d_shear_estimate_tables[method] = None
