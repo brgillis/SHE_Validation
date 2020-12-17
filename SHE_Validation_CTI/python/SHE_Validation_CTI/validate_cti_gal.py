@@ -36,8 +36,8 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.constants import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
@@ -76,7 +76,7 @@ def run_validate_cti_gal_from_args(args):
             l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
         else:
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
-                         + " is invalid type.")
+                             + " is invalid type.")
 
     # Load the shear measurements
 
@@ -106,7 +106,7 @@ def run_validate_cti_gal_from_args(args):
         else:
             d_shear_estimate_tables[method] = None
 
-    # Log a warning if no data from any method and set a flag for 
+    # Log a warning if no data from any method and set a flag for
     # later code to refer to
     if all(value == None for value in d_shear_estimate_tables.values()):
         logger.warning("No method has any data associated with it.")
@@ -146,8 +146,8 @@ def run_validate_cti_gal_from_args(args):
         l_exp_test_result_filename.append(exp_test_result_filename)
 
         # Check the obs_ids are all the same (important below)
-        if (obs_id_check == -1):  #First time
-            obs_id_check = obs_id #Store the value in obs_id_check
+        if (obs_id_check == -1):  # First time
+            obs_id_check = obs_id  # Store the value in obs_id_check
         else:
             if (obs_id_check != obs_id):
                 logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
@@ -167,11 +167,13 @@ def run_validate_cti_gal_from_args(args):
         # Fill in each exposure product in turn with results
         for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table, l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
-                                            regression_results_row=exposure_regression_results_row)
+                                            regression_results_row=exposure_regression_results_row,
+                                            method_data_exists=method_data_exists)
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
-                                        regression_results_row=observation_regression_results_table)
+                                        regression_results_row=observation_regression_results_table[0],
+                                        method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product, l_exp_test_result_filename):
