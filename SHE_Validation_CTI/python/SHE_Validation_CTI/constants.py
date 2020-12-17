@@ -25,6 +25,8 @@ from collections import namedtuple
 # Metadata about the requirement
 cti_gal_requirement_id = "R-SHE-CAL-F-140"
 cti_gal_requirement_description = "Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma)."
+cti_gal_parameter = ("Z-value for slope of g1_image versus distance from readout register compared to expectation " +
+                     "of zero.")
 
 # Metadata about the test
 cti_gal_test_id = "T-SHE-000010-CTI-gal"
