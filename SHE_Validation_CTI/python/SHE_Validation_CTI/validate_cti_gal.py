@@ -130,7 +130,8 @@ def run_validate_cti_gal_from_args(args):
     obs_id_check = -1
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
-        exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product)
+        exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product,
+                                                                         num_tests=constants.num_method_cti_gal_test_cases)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
@@ -154,7 +155,8 @@ def run_validate_cti_gal_from_args(args):
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
-    obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product))
+    obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product),
+                                                                     num_tests=constants.num_method_cti_gal_test_cases)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
