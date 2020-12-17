@@ -24,7 +24,6 @@ __updated__ = "2020-12-16"
 from typing import Dict, List
 
 from astropy import table
-from astropy.io.misc.asdf.tags.coordinates.tests.test_earthlocation import position
 
 from SHE_PPT import shear_utility
 from SHE_PPT.logging import getLogger

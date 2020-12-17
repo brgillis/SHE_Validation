@@ -36,8 +36,9 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
-from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.constants import d_shear_estimation_method_table_formats
+from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
@@ -76,7 +77,7 @@ def run_validate_cti_gal_from_args(args):
             l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
         else:
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
-                         + " is invalid type.")
+                             + " is invalid type.")
 
     # Load the shear measurements
 
@@ -106,7 +107,7 @@ def run_validate_cti_gal_from_args(args):
         else:
             d_shear_estimate_tables[method] = None
 
-    # Log a warning if no data from any method and set a flag for 
+    # Log a warning if no data from any method and set a flag for
     # later code to refer to
     if all(value == None for value in d_shear_estimate_tables.values()):
         logger.warning("No method has any data associated with it.")
@@ -146,8 +147,8 @@ def run_validate_cti_gal_from_args(args):
         l_exp_test_result_filename.append(exp_test_result_filename)
 
         # Check the obs_ids are all the same (important below)
-        if (obs_id_check == -1):  #First time
-            obs_id_check = obs_id #Store the value in obs_id_check
+        if (obs_id_check == -1):  # First time
+            obs_id_check = obs_id  # Store the value in obs_id_check
         else:
             if (obs_id_check != obs_id):
                 logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
@@ -210,9 +211,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
     # We'll now loop over the table for each exposure, eventually getting regression results for each
 
-    exposure_regression_results_table = initialise_regression_results_table()
+    exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
 
-    for object_data_table in l_object_data_table:
+    for object_data_table, exposure_product_id in zip(l_object_data_table, l_exposure_product_id):
 
         # At this point, the only maths that's been done is converting world coords into image coords and detector/quadrant.
         # We'll also need to convert shear estimates into the image orientation,
@@ -223,16 +224,14 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         add_readout_register_distance(object_data_table=object_data_table)
 
         # Calculate the results of the regression and add it to the results table
-        exposure_regression_results = calculate_regression_results(object_data_table=object_data_table)
-        exposure_regression_results_table.add_row(regression_results=exposure_regression_results)
+        exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table)[0]
+        exposure_regression_results_table.add_row(regression_results=exposure_regression_results_row)
 
     # With the exposures done, we'll now do a test for the observation as a whole on a merged table
     merged_object_table = table.vstack(tables=l_object_data_table)
 
-    observation_regression_results = calculate_regression_results(object_data_table=merged_object_table)
-
-    observation_regression_results_table = initialise_regression_results_table()
-    observation_regression_results_table.add_row(regression_results=observation_regression_results)
+    observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                        product_type="OBS")
 
     # And we're done here, so return the results
     return exposure_regression_results_table, observation_regression_results_table
@@ -246,12 +245,4 @@ def fill_cti_gal_validation_results(*args, **kwargs):
 
 
 def add_image_shear_estimate_columns(*args, **kwargs):
-    pass
-
-
-def add_readout_register_distance(*args, **kwargs):
-    pass
-
-
-def calculate_regression_results(*args, **kwargs):
     pass
