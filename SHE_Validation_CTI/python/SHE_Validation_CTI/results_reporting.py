@@ -20,6 +20,8 @@ __updated__ = "2020-12-17"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
+
 from astropy import table
 
 from SHE_PPT.logging import getLogger
@@ -37,7 +39,7 @@ def report_test_not_run(requirement_object,
     """ Fills in the data model with the fact that a test was not run and the reason.
     """
 
-    requirement_object.MeasuredValue.Parameter = 0.
+    requirement_object.MeasuredValue.Parameter = "WARNING: Test not run."
     requirement_object.ValidationResult = "PASSED"
     requirement_object.Comment = "WARNING: Test not run."
 
@@ -96,51 +98,52 @@ class CTIGalRequirementWriter():
         if extra_intercept_message != "" and extra_intercept_message[-2:] != "\n":
             extra_intercept_message = extra_intercept_message + "\n"
 
-        self.slope_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
-        self.intercept_supplementary_info_parameter = deepcopy(self.slope_supplementary_info_parameter)
-        self.requirement_object.SupplementaryInformation.Parameter[0].append(
-            self.intercept_supplementary_info_parameter)
+        slope_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        intercept_supplementary_info_parameter = deepcopy(slope_supplementary_info_parameter)
 
-        self.slope_supplementary_info_parameter.Key = "self.slope_INFO"
-        self.slope_supplementary_info_parameter.Description = ("Information about the test on self.slope of g1_image " +
-                                                               "versus readout distance.")
-        self.slope_supplementary_info_parameter.StringValue = (extra_slope_message +
-                                                               f"self.slope = {self.slope}\n" +
-                                                               f"self.slope_err = {self.slope_err}\n" +
-                                                               f"self.slope_z = {self.slope_z}\n" +
-                                                               f"Maximum allowed self.slope_z = {constants.self.slope_fail_sigma}\n" +
-                                                               f"Result: {self.slope_result}\n")
+        self.requirement_object.SupplementaryInformation.Parameter = [slope_supplementary_info_parameter,
+                                                                      intercept_supplementary_info_parameter]
 
-        self.intercept_supplementary_info_parameter.Key = "self.intercept_INFO"
-        self.intercept_supplementary_info_parameter.Description = ("Information about the test on self.intercept of " +
-                                                                   "g1_image versus readout distance.")
-        self.intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
-                                                                   f"self.intercept = {self.intercept}\n" +
-                                                                   f"self.intercept_err = {self.intercept_err}\n" +
-                                                                   f"self.intercept_z = {self.intercept_z}\n" +
-                                                                   f"Maximum allowed self.intercept_z = " +
-                                                                   f"{constants.self.intercept_fail_sigma}\n" +
-                                                                   f"Result: {self.intercept_result}\n")
+        slope_supplementary_info_parameter.Key = "self.slope_INFO"
+        slope_supplementary_info_parameter.Description = ("Information about the test on self.slope of g1_image " +
+                                                          "versus readout distance.")
+        slope_supplementary_info_parameter.StringValue = (extra_slope_message +
+                                                          f"self.slope = {self.slope}\n" +
+                                                          f"self.slope_err = {self.slope_err}\n" +
+                                                          f"self.slope_z = {self.slope_z}\n" +
+                                                          f"Maximum allowed self.slope_z = {constants.slope_fail_sigma}\n" +
+                                                          f"Result: {self.slope_result}\n")
+
+        intercept_supplementary_info_parameter.Key = "self.intercept_INFO"
+        intercept_supplementary_info_parameter.Description = ("Information about the test on self.intercept of " +
+                                                              "g1_image versus readout distance.")
+        intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
+                                                              f"self.intercept = {self.intercept}\n" +
+                                                              f"self.intercept_err = {self.intercept_err}\n" +
+                                                              f"self.intercept_z = {self.intercept_z}\n" +
+                                                              f"Maximum allowed self.intercept_z = " +
+                                                              f"{constants.intercept_fail_sigma}\n" +
+                                                              f"Result: {self.intercept_result}\n")
 
         return
 
     def report_bad_data(self):
 
         # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue.Parameter = -1
+        self.requirement_object.MeasuredValue.Parameter = "-1"
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
         # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
 
-        add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for self.slope.\n")
+        self.add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for self.slope.\n")
 
         return
 
     def report_zero_slope_err(self):
 
         # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue.Parameter = -2
+        self.requirement_object.MeasuredValue.Parameter = "ERROR: Zero slope"
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
@@ -153,7 +156,7 @@ class CTIGalRequirementWriter():
     def report_good_data(self):
 
         # Report the self.slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue.Parameter = self.slope_z
+        self.requirement_object.MeasuredValue.Parameter = str(self.slope_z)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
@@ -179,7 +182,7 @@ class CTIGalRequirementWriter():
                 np.isinf([self.slope, self.slope_err]).any()):
             self.report_bad_data()
         elif self.slope_err == 0.:
-            self.report_zero_slope()
+            self.report_zero_slope_err()
         else:
             self.report_good_data()
 
