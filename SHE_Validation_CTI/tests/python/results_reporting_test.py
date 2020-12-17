@@ -95,4 +95,18 @@ class TestCase:
                                         regression_results_row=obs_row,
                                         method_data_exists=False)
 
+        # Check that the product validates its binding
+        obs_product.validateBinding()
+
+        # Check metadata for the product
+
+        # Check that the product indeed reports no data
+        obs_test_result = obs_product.Data.ValidationTestList[0]
+        assert obs_test_result.GlobalResult == "PASSED"
+        assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
+        obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
+        assert obs_info.Parameter[0].Key == "REASON"
+        assert obs_info.Parameter[0].Description == "Why the test was not run."
+        assert obs_info.Parameter[0].StringValue == "No data is available for this test."
+
         return
