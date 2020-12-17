@@ -177,7 +177,7 @@ As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by galaxy Colour.
 
 As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by galaxy size.
 
-#### Test Case : TC-SHE-100031-CTI-gal-epoch
+#### Test Case : TC-SHE-100032-CTI-gal-epoch
 
 As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by Observation Epoch.
 
