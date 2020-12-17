@@ -98,17 +98,24 @@ class TestCase:
         # Check that the product validates its binding
         obs_product.validateBinding()
 
-        # Check metadata for the product
-        obs_test_result = obs_product.Data.ValidationTestList[0]
-        assert obs_test_result.TestId == constants.cti_gal_test_id
-        assert obs_test_result.TestDescription == constants.cti_gal_test_description
+        # Check metadata for the product's first batch of test cases
+        test_case_index = 0
+        for test_case in constants.cti_gal_test_cases:
+            obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
+            assert obs_test_result.TestId == constants.cti_gal_test_case_info[test_case].id
+            assert obs_test_result.TestDescription == constants.cti_gal_test_case_info[test_case].description
 
-        # Check that the product indeed reports no data
-        assert obs_test_result.GlobalResult == "PASSED"
-        assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
-        obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
-        assert obs_info.Parameter[0].Key == "REASON"
-        assert obs_info.Parameter[0].Description == "Why the test was not run."
-        assert obs_info.Parameter[0].StringValue == "No data is available for this test."
+            # Check that the product indeed reports no data
+            assert obs_test_result.GlobalResult == "PASSED"
+            assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
+            obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
+            assert obs_info.Parameter[0].Key == "REASON"
+            assert obs_info.Parameter[0].Description == "Why the test was not run."
+            if test_case == "Global":
+                assert obs_info.Parameter[0].StringValue == "No data is available for this test."
+            else:
+                assert obs_info.Parameter[0].StringValue == "This test has not yet been implemented."
+
+            test_case_index += 1
 
         return
