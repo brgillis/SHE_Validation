@@ -37,6 +37,7 @@ from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
 from SHE_Validation_CTI import constants
+from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_result
 from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
@@ -214,9 +215,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
     # We'll now loop over the table for each exposure, eventually getting regression results for each
 
-    exposure_regression_results_table = initialise_regression_results_table()
+    exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
 
-    for object_data_table in l_object_data_table:
+    for object_data_table, exposure_product_id in zip(l_object_data_table, l_exposure_product_id):
 
         # At this point, the only maths that's been done is converting world coords into image coords and detector/quadrant.
         # We'll also need to convert shear estimates into the image orientation,
@@ -227,35 +228,14 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         add_readout_register_distance(object_data_table=object_data_table)
 
         # Calculate the results of the regression and add it to the results table
-        exposure_regression_results = calculate_regression_results(object_data_table=object_data_table)
-        exposure_regression_results_table.add_row(regression_results=exposure_regression_results)
+        exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table)[0]
+        exposure_regression_results_table.add_row(regression_results=exposure_regression_results_row)
 
     # With the exposures done, we'll now do a test for the observation as a whole on a merged table
     merged_object_table = table.vstack(tables=l_object_data_table)
 
-    observation_regression_results = calculate_regression_results(object_data_table=merged_object_table)
-
-    observation_regression_results_table = initialise_regression_results_table()
-    observation_regression_results_table.add_row(regression_results=observation_regression_results)
+    observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                        product_type="OBS")
 
     # And we're done here, so return the results
     return exposure_regression_results_table, observation_regression_results_table
-
-# Placeholder function definitions to prevent a crash from them not being imported yet
-# TODO: Fill in each of these functions and move to other modules
-
-
-def fill_cti_gal_validation_results(*args, **kwargs):
-    pass
-
-
-def add_image_shear_estimate_columns(*args, **kwargs):
-    pass
-
-
-def add_readout_register_distance(*args, **kwargs):
-    pass
-
-
-def calculate_regression_results(*args, **kwargs):
-    pass
