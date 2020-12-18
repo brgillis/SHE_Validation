@@ -4,7 +4,6 @@
 
     Unit tests of the results_reporting.py module
 """
-from collections import namedtuple
 
 __updated__ = "2020-12-18"
 
@@ -21,6 +20,7 @@ __updated__ = "2020-12-18"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from collections import namedtuple
 import os
 
 import pytest
@@ -107,7 +107,8 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == str(3. / 2.)
+        assert requirement_object.MeasuredValue.Parameter == "Slope Z-value"
+        assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == "PASSED"
 
         exp_info = requirement_object.SupplementaryInformation
@@ -138,7 +139,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == str(15. / 2.)
+        assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == "FAILED"
 
         # Exposure 2 - slope pass and intercept fail
@@ -147,7 +148,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == str(3. / 2.)
+        assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == "PASSED"
 
         # Exposure 3 - slope fail and intercept fail
@@ -156,7 +157,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == str(15. / 2.)
+        assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == "FAILED"
 
         # Exposure 4 - zero slope_err and zero intercept_err
@@ -165,7 +166,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == "ERROR: Zero slope."
+        assert requirement_object.MeasuredValue.Value.FloatValue == -2.0
         assert requirement_object.ValidationResult == "FAILED"
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
@@ -177,7 +178,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == "ERROR: NaN in slope calculation."
+        assert requirement_object.MeasuredValue.Value.FloatValue == -1.0
         assert requirement_object.ValidationResult == "FAILED"
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
@@ -197,24 +198,26 @@ class TestCase:
         # Check that the product validates its binding
         obs_product.validateBinding()
 
-        # Check metadata for the product's first batch of test cases
+        # Check metadata for all test cases
         test_case_index = 0
-        for test_case in constants.cti_gal_test_cases:
-            obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-            assert obs_test_result.TestId == constants.cti_gal_test_case_info[test_case].id
-            assert obs_test_result.TestDescription == constants.cti_gal_test_case_info[test_case].description
+        for method in constants.methods:
+            for test_case in constants.cti_gal_test_cases:
+                obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
+                assert constants.cti_gal_test_case_info[test_case].id in obs_test_result.TestId
+                assert method in obs_test_result.TestId
+                assert obs_test_result.TestDescription == constants.cti_gal_test_case_info[test_case].description
 
-            # Check that the product indeed reports no data
-            assert obs_test_result.GlobalResult == "PASSED"
-            assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
-            obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
-            assert obs_info.Parameter[0].Key == "REASON"
-            assert obs_info.Parameter[0].Description == "Why the test was not run."
-            if test_case == "Global":
-                assert obs_info.Parameter[0].StringValue == "No data is available for this test."
-            else:
-                assert obs_info.Parameter[0].StringValue == "This test has not yet been implemented."
+                # Check that the product indeed reports no data
+                assert obs_test_result.GlobalResult == "PASSED"
+                assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
+                obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
+                assert obs_info.Parameter[0].Key == "REASON"
+                assert obs_info.Parameter[0].Description == "Why the test was not run."
+                if test_case == "Global":
+                    assert obs_info.Parameter[0].StringValue == "No data is available for this test."
+                else:
+                    assert obs_info.Parameter[0].StringValue == "This test has not yet been implemented."
 
-            test_case_index += 1
+                test_case_index += 1
 
         return
