@@ -168,7 +168,7 @@ class TestCase:
         assert requirement_object.MeasuredValue.Parameter == "ERROR: Zero slope."
         assert requirement_object.ValidationResult == "FAILED"
 
-        exp_slope_info_string = exp_info.Parameter[0].StringValue
+        exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
         assert "Test failed due to zero slope error.\n" in exp_slope_info_string
 
         # Exposure 5 - NaN data
@@ -180,7 +180,7 @@ class TestCase:
         assert requirement_object.MeasuredValue.Parameter == "ERROR: NaN in slope calculation."
         assert requirement_object.ValidationResult == "FAILED"
 
-        exp_slope_info_string = exp_info.Parameter[0].StringValue
+        exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
         assert "Test failed due to NaN regression results for slope.\n" in exp_slope_info_string
 
         # With the observation, test saying we have no data
