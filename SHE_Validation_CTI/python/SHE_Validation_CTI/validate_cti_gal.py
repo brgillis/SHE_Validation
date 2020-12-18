@@ -185,7 +185,7 @@ def run_validate_cti_gal_from_args(args):
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
 
-    logger.info("Output observation validation test results to: " +
+    logger.info("Output exposure validation test results to: " +
                 qualified_exp_test_results_filename)
 
     # Write out observation test results product
@@ -193,7 +193,7 @@ def run_validate_cti_gal_from_args(args):
                       args.she_observation_validation_test_results_product, workdir=args.workdir)
 
     logger.info("Output observation validation test results to: " +
-                join(args.she_observation_validation_test_results_product, args.workdir))
+                join(args.workdir, args.she_observation_validation_test_results_product))
 
     logger.info("Execution complete.")
 
