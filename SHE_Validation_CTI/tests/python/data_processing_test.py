@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -103,14 +103,22 @@ class TestCase:
 
         sigmal_tol = 5  # Pass test if calculations are within 5 sigma
 
-        l = 200
+        l = 200  # Length of good data
+        lnan = 5  # Length of bad data
+        lzero = 5  # Length of zero-weight data
 
         rng = np.random.default_rng(seed=12345)
 
-        g1_err_data = g1_err * np.ones(200, dtype='>f4')
+        g1_err_data = g1_err * np.ones(l + lnan, dtype='>f4')
         weight_data = np.power(g1_err_data, -2)
-        readout_dist_data = np.linspace(0, 2000, l, dtype='>f4')
+        readout_dist_data = np.linspace(0, 2100, l + lnan, dtype='>f4')
         g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size=l)).astype('>f4')
+
+        # Make the last bit of data bad or zero weight
+        weight_data[-lnan - lzero:-lzero] = np.NaN
+        readout_dist_data[-lnan - lzero:-lzero] = np.NaN
+        g1_data[-lnan - lzero:-lzero] = np.NaN
+        weight_data[-lzero:] = 0
 
         object_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.weight_LensMC: weight_data,
                                                                             cgod_tf.readout_dist: readout_dist_data,
@@ -130,9 +138,9 @@ class TestCase:
         assert rr_row[rr_tf.weight_KSB] == 0
         assert np.isnan(rr_row[rr_tf.slope_KSB])
 
-        readout_dist_mean = np.mean(readout_dist_data)
-        ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data - readout_dist_mean)**2))
-        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data**2) / l)
+        readout_dist_mean = np.mean(readout_dist_data[:l])
+        ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean[:l])**2))
+        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data[:l]**2) / l)
 
         assert rr_row[rr_tf.weight_LensMC] == l / g1_err**2
         assert np.isclose(rr_row[rr_tf.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
