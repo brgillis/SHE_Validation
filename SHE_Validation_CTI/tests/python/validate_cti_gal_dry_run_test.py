@@ -113,8 +113,6 @@ class TestCase:
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
 
-        # TODO: Check output
-
         return
 
     def test_cti_gal_integration(self):
@@ -127,7 +125,5 @@ class TestCase:
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
-
-        # TODO: Check output
 
         return
