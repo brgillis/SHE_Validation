@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2020-12-17"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -69,22 +69,22 @@ class CTIGalRequirementWriter():
         self.intercept_err = intercept_err
 
         # Calculate some values for both the slope and intercept
-        for attr in ("slope", "intercept"):
-            if np.isnan(getattr(self, attr)) or np.isnan(getattr(self, f"{attr}_err")):
-                setattr(self, f"{attr}_z", np.NaN)
-                setattr(self, f"{attr}_pass", False)
-                setattr(self, f"{attr}_result", "FAILED")
-            elif getattr(self, f"{attr}_err") == 0.:
-                setattr(self, f"{attr}_z", np.NaN)
-                setattr(self, f"{attr}_pass", False)
+        for prop in ("slope", "intercept"):
+            if np.isnan(getattr(self, prop)) or np.isnan(getattr(self, f"{prop}_err")):
+                setattr(self, f"{prop}_z", np.NaN)
+                setattr(self, f"{prop}_pass", False)
+                setattr(self, f"{prop}_result", "FAILED")
+            elif getattr(self, f"{prop}_err") == 0.:
+                setattr(self, f"{prop}_z", np.NaN)
+                setattr(self, f"{prop}_pass", False)
             else:
-                setattr(self, f"{attr}_z", np.abs(getattr(self, attr) / getattr(self, f"{attr}_err")))
-                setattr(self, f"{attr}_pass", getattr(self, f"{attr}_z") < constants.slope_fail_sigma)
+                setattr(self, f"{prop}_z", np.abs(getattr(self, prop) / getattr(self, f"{prop}_err")))
+                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < constants.slope_fail_sigma)
 
-            if getattr(self, f"{attr}_pass"):
-                setattr(self, f"{attr}_result", "PASSED")
+            if getattr(self, f"{prop}_pass"):
+                setattr(self, f"{prop}_result", "PASSED")
             else:
-                setattr(self, f"{attr}_result", "FAILED")
+                setattr(self, f"{prop}_result", "FAILED")
 
         return
 
@@ -104,24 +104,24 @@ class CTIGalRequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = [slope_supplementary_info_parameter,
                                                                       intercept_supplementary_info_parameter]
 
-        slope_supplementary_info_parameter.Key = "self.slope_INFO"
-        slope_supplementary_info_parameter.Description = ("Information about the test on self.slope of g1_image " +
+        slope_supplementary_info_parameter.Key = "SLOPE_INFO"
+        slope_supplementary_info_parameter.Description = ("Information about the test on slope of g1_image " +
                                                           "versus readout distance.")
         slope_supplementary_info_parameter.StringValue = (extra_slope_message +
-                                                          f"self.slope = {self.slope}\n" +
-                                                          f"self.slope_err = {self.slope_err}\n" +
-                                                          f"self.slope_z = {self.slope_z}\n" +
-                                                          f"Maximum allowed self.slope_z = {constants.slope_fail_sigma}\n" +
+                                                          f"slope = {self.slope}\n" +
+                                                          f"slope_err = {self.slope_err}\n" +
+                                                          f"slope_z = {self.slope_z}\n" +
+                                                          f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" +
                                                           f"Result: {self.slope_result}\n")
 
-        intercept_supplementary_info_parameter.Key = "self.intercept_INFO"
-        intercept_supplementary_info_parameter.Description = ("Information about the test on self.intercept of " +
+        intercept_supplementary_info_parameter.Key = "INTERCEPT_INFO"
+        intercept_supplementary_info_parameter.Description = ("Information about the test on intercept of " +
                                                               "g1_image versus readout distance.")
         intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
-                                                              f"self.intercept = {self.intercept}\n" +
-                                                              f"self.intercept_err = {self.intercept_err}\n" +
-                                                              f"self.intercept_z = {self.intercept_z}\n" +
-                                                              f"Maximum allowed self.intercept_z = " +
+                                                              f"intercept = {self.intercept}\n" +
+                                                              f"intercept_err = {self.intercept_err}\n" +
+                                                              f"intercept_z = {self.intercept_z}\n" +
+                                                              f"Maximum allowed intercept_z = " +
                                                               f"{constants.intercept_fail_sigma}\n" +
                                                               f"Result: {self.intercept_result}\n")
 

@@ -6,7 +6,7 @@
 """
 from collections import namedtuple
 
-__updated__ = "2020-12-17"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -83,6 +83,55 @@ class TestCase:
                                             method_data_exists=True)
 
             exp_product_list[exp_index] = exp_product
+
+        # Check the results for each exposure are as expected. Only check for LensMC-Global here
+
+        # Figure out the index for LensMC Global test results and save it for each check
+        test_case_list = exp_product_list[0].Data.ValidationTestList
+        test_case_index = 0
+        for method in constants.methods:
+            if not method == "LensMC":
+                test_case_index += constants.num_cti_gal_test_cases
+                continue
+            for test_case in constants.cti_gal_test_cases:
+                if not test_case == "Global":
+                    test_case_index += 1
+                    continue
+
+                LensMC_global_test_case_index = test_case_index
+
+                break
+
+        # Exposure 0 - slope pass and intercept pass. Do most detailed checks here
+        exp_test_result = exp_product_list[0].Data.ValidationTestList[LensMC_global_test_case_index]
+        assert exp_test_result.GlobalResult == "PASSED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == str(3. / 2.)
+        assert requirement_object.ValidationResult == "PASSED"
+
+        exp_info = requirement_object.SupplementaryInformation
+
+        assert exp_info.Parameter[0].Key == "SLOPE_INFO"
+        assert exp_info.Parameter[0].Description == ("Information about the test on slope of g1_image " +
+                                                     "versus readout distance.")
+        exp_slope_info_string = exp_info.Parameter[0].StringValue
+        assert f"slope = {3.}\n" in exp_slope_info_string
+        assert f"slope_err = {2.}\n" in exp_slope_info_string
+        assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
+        assert f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" in exp_slope_info_string
+        assert f"Result: PASSED\n" in exp_slope_info_string
+
+        assert exp_info.Parameter[1].Key == "INTERCEPT_INFO"
+        assert exp_info.Parameter[1].Description == ("Information about the test on intercept of " +
+                                                     "g1_image versus readout distance.")
+        exp_intercept_info_string = exp_info.Parameter[1].StringValue
+        assert f"intercept = {0.}\n" in exp_intercept_info_string
+        assert f"intercept_err = {2.}\n" in exp_intercept_info_string
+        assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
+        assert f"Maximum allowed intercept_z = {constants.intercept_fail_sigma}\n" in exp_intercept_info_string
+        assert f"Result: PASSED\n" in exp_intercept_info_string
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
