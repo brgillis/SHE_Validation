@@ -130,7 +130,7 @@ class CTIGalRequirementWriter():
     def report_bad_data(self):
 
         # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue.Value = -1.0
+        self.requirement_object.MeasuredValue.Value.FloatValue = -1.0
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
@@ -143,7 +143,7 @@ class CTIGalRequirementWriter():
     def report_zero_slope_err(self):
 
         # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue.Value = -2.0
+        self.requirement_object.MeasuredValue.Value.FloatValue = -2.0
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
@@ -156,7 +156,7 @@ class CTIGalRequirementWriter():
     def report_good_data(self):
 
         # Report the self.slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue.Value = self.slope_z
+        self.requirement_object.MeasuredValue.Value.FloatValue = self.slope_z
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
