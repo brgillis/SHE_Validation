@@ -109,10 +109,10 @@ class TestCase:
 
         rng = np.random.default_rng(seed=12345)
 
-        g1_err_data = g1_err * np.ones(l + lnan, dtype='>f4')
+        g1_err_data = g1_err * np.ones(l + lnan + lzero, dtype='>f4')
         weight_data = np.power(g1_err_data, -2)
-        readout_dist_data = np.linspace(0, 2100, l + lnan, dtype='>f4')
-        g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size=l)).astype('>f4')
+        readout_dist_data = np.linspace(0, 2100, l + lnan + lzero, dtype='>f4')
+        g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size=l + lnan + lzero)).astype('>f4')
 
         # Make the last bit of data bad or zero weight
         weight_data[-lnan - lzero:-lzero] = np.NaN
@@ -139,7 +139,7 @@ class TestCase:
         assert np.isnan(rr_row[rr_tf.slope_KSB])
 
         readout_dist_mean = np.mean(readout_dist_data[:l])
-        ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean[:l])**2))
+        ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean)**2))
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data[:l]**2) / l)
 
         assert rr_row[rr_tf.weight_LensMC] == l / g1_err**2

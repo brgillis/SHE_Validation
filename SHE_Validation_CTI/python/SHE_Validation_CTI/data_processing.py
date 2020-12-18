@@ -87,11 +87,11 @@ def calculate_regression_results(object_data_table: table.Table,
             continue
 
         # Get a mask for the data where the weight is > 0 and not NaN
-        bad_data_mask = np.isnan(weight_data) or weight_data <= 0
+        bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
 
         masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
         masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
-        masked_g1_err_data = np.ma.masked_array(np.sqrt(1 / weight_data), mask=bad_data_mask)
+        masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
 
         # Perform the regression
 
