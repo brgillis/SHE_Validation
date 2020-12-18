@@ -93,9 +93,9 @@ class CTIGalRequirementWriter():
                                extra_intercept_message: str =""):
 
         # Check the extra messages and make sure they end in a linebreak
-        if extra_slope_message != "" and extra_slope_message[-2:] != "\n":
+        if extra_slope_message != "" and extra_slope_message[-1:] != "\n":
             extra_slope_message = extra_slope_message + "\n"
-        if extra_intercept_message != "" and extra_intercept_message[-2:] != "\n":
+        if extra_intercept_message != "" and extra_intercept_message[-1:] != "\n":
             extra_intercept_message = extra_intercept_message + "\n"
 
         slope_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
