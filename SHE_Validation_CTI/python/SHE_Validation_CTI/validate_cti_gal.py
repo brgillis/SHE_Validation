@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-17"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,7 +37,7 @@ from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_result
+from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
@@ -228,14 +228,14 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         add_readout_register_distance(object_data_table=object_data_table)
 
         # Calculate the results of the regression and add it to the results table
-        exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table)[0]
+        exposure_regression_results_row = calculate_regression_resultss(object_data_table=object_data_table)[0]
         exposure_regression_results_table.add_row(regression_results=exposure_regression_results_row)
 
     # With the exposures done, we'll now do a test for the observation as a whole on a merged table
     merged_object_table = table.vstack(tables=l_object_data_table)
 
-    observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
-                                                                        product_type="OBS")
+    observation_regression_results_table = calculate_regression_resultss(object_data_table=merged_object_table,
+                                                                         product_type="OBS")
 
     # And we're done here, so return the results
     return exposure_regression_results_table, observation_regression_results_table
