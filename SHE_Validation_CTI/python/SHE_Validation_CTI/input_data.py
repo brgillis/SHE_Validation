@@ -1,11 +1,11 @@
 """ @file input_data.py
 
-    Created 24 December 2020
+    Created 14 December 2020
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2020-12-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

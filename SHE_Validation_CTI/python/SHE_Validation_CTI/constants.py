@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal validation
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,17 +20,43 @@ __updated__ = "2020-12-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from collections import namedtuple
 
-reg_pix = 1  # Readout register - believed to be y, but might have to fix later
+# Metadata about the requirement
+cti_gal_requirement_id = "R-SHE-CAL-F-140"
+cti_gal_requirement_description = "Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma)."
+cti_gal_parameter = ("Z-value for slope of g1_image versus distance from readout register compared to expectation " +
+                     "of zero.")
 
-readout_split = 4134.5  # Maximum pixel position for which values are read out downward (in stacked frame)
+# Metadata about the test
+cti_gal_test_id = "T-SHE-000010-CTI-gal"
+cti_gal_test_description = "Linear dependence of galaxy ellipticity with read-out register distance (slope)."
 
-g1_fail_flag_offset = 1
-g2_fail_flag_offset = 4
+TestCaseInfo = namedtuple("TestCaseInfo", ["id", "description"])
 
-lower_fail_flag_offset = 1
-upper_fail_flag_offset = 2
+cti_gal_test_case_info = {"Global": TestCaseInfo("T-SHE-000010-CTI-gal", "Linear dependence of residual galaxy " +
+                                                 "ellipticity with read-out register distance (slope) unbinned."),
+                          "SNR": TestCaseInfo("TC-SHE-100028-CTI-gal-SNR", "Linear dependence of residual galaxy " +
+                                              "ellipticity with read-out register distance (slope) in bins of SNR " +
+                                              "of galaxies."),
+                          "BG": TestCaseInfo("TC-SHE-100029-CTI-gal-bg", "Linear dependence of residual galaxy " +
+                                             "ellipticity with read-out register distance (slope) in bins of sky " +
+                                             "background levels."),
+                          "Colour": TestCaseInfo("TC-SHE-100030-CTI-gal-col", "Linear dependence of residual galaxy " +
+                                                 "ellipticity with read-out register distance (slope) in bins of "
+                                                 "colour of galaxies."),
+                          "Size": TestCaseInfo("TC-SHE-100031-CTI-gal-size", "Linear dependence of residual galaxy " +
+                                               "ellipticity with read-out register distance (slope) in bins of size " +
+                                               "of galaxies."),
+                          "Epoch": TestCaseInfo("TC-SHE-100032-CTI-gal-epoch", "Linear dependence of residual galaxy " +
+                                                "ellipticity with read-out register distance (slope) in bins of " +
+                                                "observation epoch"), }
 
+cti_gal_test_cases = cti_gal_test_case_info.keys()
+
+num_cti_gal_test_cases = len(cti_gal_test_cases)
+
+# Failure thresholds - these will likely be set in the configuration file in the future
 slope_fail_sigma = 5
 intercept_fail_sigma = 5
 
@@ -45,3 +71,7 @@ d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                            "LensMC": lmcm_tf}
 
 methods = d_shear_estimation_method_table_formats.keys()
+
+num_methods = len(methods)
+
+num_method_cti_gal_test_cases = num_methods * num_cti_gal_test_cases
