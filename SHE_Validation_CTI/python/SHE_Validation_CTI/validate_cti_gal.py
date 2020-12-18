@@ -38,7 +38,8 @@ from SHE_PPT.table_utility import is_in_format
 import SHE_Validation
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
-from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data
+from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
+from SHE_Validation_CTI.results_reporting import fill_cti_gal_validation_results
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
 
 
@@ -184,7 +185,7 @@ def run_validate_cti_gal_from_args(args):
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
 
-    logger.info("Output observation validation test results to: " +
+    logger.info("Output exposure validation test results to: " +
                 qualified_exp_test_results_filename)
 
     # Write out observation test results product
@@ -192,7 +193,7 @@ def run_validate_cti_gal_from_args(args):
                       args.she_observation_validation_test_results_product, workdir=args.workdir)
 
     logger.info("Output observation validation test results to: " +
-                join(args.she_observation_validation_test_results_product, args.workdir))
+                join(args.workdir, args.she_observation_validation_test_results_product))
 
     logger.info("Execution complete.")
 
@@ -217,25 +218,20 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
     exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
 
-    for object_data_table, exposure_product_id in zip(l_object_data_table, l_exposure_product_id):
+    for object_data_table in l_object_data_table:
 
-        # At this point, the only maths that's been done is converting world coords into image coords and detector/quadrant.
-        # We'll also need to convert shear estimates into the image orientation,
-        # so do that now by adding columns to the table
-        add_image_shear_estimate_columns(object_data_table=object_data_table)
-
-        # Next, we'll also need to calculate the distance from the readout register, so add columns for that as well
+        # We'll need to calculate the distance from the readout register, so add columns for that as well
         add_readout_register_distance(object_data_table=object_data_table)
 
         # Calculate the results of the regression and add it to the results table
-        exposure_regression_results_row = calculate_regression_resultss(object_data_table=object_data_table)[0]
-        exposure_regression_results_table.add_row(regression_results=exposure_regression_results_row)
+        exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table)[0]
+        exposure_regression_results_table.add_row(exposure_regression_results_row)
 
     # With the exposures done, we'll now do a test for the observation as a whole on a merged table
     merged_object_table = table.vstack(tables=l_object_data_table)
 
-    observation_regression_results_table = calculate_regression_resultss(object_data_table=merged_object_table,
-                                                                         product_type="OBS")
+    observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                        product_type="OBS")
 
     # And we're done here, so return the results
     return exposure_regression_results_table, observation_regression_results_table

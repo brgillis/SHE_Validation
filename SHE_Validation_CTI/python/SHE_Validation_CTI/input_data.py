@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-17"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -66,8 +66,14 @@ class PositionInfo(object):
                 self.y_pix = stamp.offset[1] + y_pix_stamp
 
             ccdid = stamp.header[ccdid_label]
-            self.det_ix = int(ccdid[6])
-            self.det_iy = int(ccdid[8])
+            if len(ccdid) == 3:
+                # Short form
+                self.det_ix = int(ccdid[0])
+                self.det_iy = int(ccdid[2])
+            elif len(ccdid) == 9:
+                # Long form
+                self.det_ix = int(ccdid[6])
+                self.det_iy = int(ccdid[8])
 
             self.quadrant = get_vis_quadrant(x_pix=self.x_pix, y_pix=self.y_pix, det_iy=self.det_iy)
 

@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -107,9 +107,23 @@ class TestCase:
 
     def test_cti_gal_dry_run(self):
 
+        # Ensure this is a dry run
+        self.args.dry_run = True
+
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
 
-        # TODO: Check output
+        return
+
+    def test_cti_gal_integration(self):
+        """ Integration test of the full executable. Once we have a proper integration test set up,
+            this should be skipped.
+        """
+
+        # Ensure this is not a dry run
+        self.args.dry_run = False
+
+        # Call to validation function
+        run_validate_cti_gal_from_args(self.args)
 
         return

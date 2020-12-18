@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2020-12-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -86,9 +86,18 @@ def calculate_regression_results(object_data_table: table.Table,
             rr_row[getattr(rr_tf, f"slope_intercept_covar_{method}")] = np.NaN
             continue
 
+        # Get a mask for the data where the weight is > 0 and not NaN
+        bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
+
+        masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
+        masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
+        masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
+
         # Perform the regression
-        g1_err_data = np.sqrt(1 / weight_data)
-        linregress_results = linregress_with_errors(readout_dist_data, g1_data, g1_err_data)
+
+        linregress_results = linregress_with_errors(masked_readout_dist_data[~bad_data_mask],
+                                                    masked_g1_data[~bad_data_mask],
+                                                    masked_g1_err_data[~bad_data_mask])
 
         # Save the results in the output table
         rr_row[getattr(rr_tf, f"weight_{method}")] = tot_weight

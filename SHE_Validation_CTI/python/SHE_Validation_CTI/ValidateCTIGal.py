@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2020-12-10"
+__updated__ = "2020-12-18"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -107,7 +107,7 @@ def mainMethod(args):
     logger.info('#')
 
     exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_ValidateCTIGal",
-                                    store_true=["profile"])
+                                    store_true=["profile", "dry_run"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
