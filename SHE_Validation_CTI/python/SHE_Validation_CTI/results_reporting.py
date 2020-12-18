@@ -207,7 +207,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             test_object = test_result_product.Data.ValidationTestList[test_case_index]
 
             # Fill in metadata about the test
-            test_object.TestId = constants.cti_gal_test_case_info[test_case].id
+            test_object.TestId = constants.cti_gal_test_case_info[test_case].id + "-" + method
             test_object.TestDescription = constants.cti_gal_test_case_info[test_case].description
 
             requirement_object = test_object.ValidatedRequirements.Requirement[0]
