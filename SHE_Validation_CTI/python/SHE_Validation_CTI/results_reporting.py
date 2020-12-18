@@ -130,7 +130,7 @@ class CTIGalRequirementWriter():
     def report_bad_data(self):
 
         # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue.Parameter = "-1"
+        self.requirement_object.MeasuredValue.Parameter = "ERROR: NaN in slope calculation."
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
@@ -143,7 +143,7 @@ class CTIGalRequirementWriter():
     def report_zero_slope_err(self):
 
         # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue.Parameter = "ERROR: Zero slope"
+        self.requirement_object.MeasuredValue.Parameter = "ERROR: Zero slope."
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 

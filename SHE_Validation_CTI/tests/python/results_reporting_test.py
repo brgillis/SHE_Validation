@@ -87,7 +87,6 @@ class TestCase:
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
         # Figure out the index for LensMC Global test results and save it for each check
-        test_case_list = exp_product_list[0].Data.ValidationTestList
         test_case_index = 0
         for method in constants.methods:
             if not method == "LensMC":
@@ -98,12 +97,12 @@ class TestCase:
                     test_case_index += 1
                     continue
 
-                LensMC_global_test_case_index = test_case_index
+                lensmc_global_test_case_index = test_case_index
 
                 break
 
         # Exposure 0 - slope pass and intercept pass. Do most detailed checks here
-        exp_test_result = exp_product_list[0].Data.ValidationTestList[LensMC_global_test_case_index]
+        exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == "PASSED"
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -132,6 +131,57 @@ class TestCase:
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
         assert f"Maximum allowed intercept_z = {constants.intercept_fail_sigma}\n" in exp_intercept_info_string
         assert f"Result: PASSED\n" in exp_intercept_info_string
+
+        # Exposure 1 - slope fail and intercept pass
+        exp_test_result = exp_product_list[1].Data.ValidationTestList[lensmc_global_test_case_index]
+        assert exp_test_result.GlobalResult == "FAILED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == str(15. / 2.)
+        assert requirement_object.ValidationResult == "FAILED"
+
+        # Exposure 2 - slope pass and intercept fail
+        exp_test_result = exp_product_list[2].Data.ValidationTestList[lensmc_global_test_case_index]
+        assert exp_test_result.GlobalResult == "PASSED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == str(3. / 2.)
+        assert requirement_object.ValidationResult == "PASSED"
+
+        # Exposure 3 - slope fail and intercept fail
+        exp_test_result = exp_product_list[3].Data.ValidationTestList[lensmc_global_test_case_index]
+        assert exp_test_result.GlobalResult == "FAILED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == str(15. / 2.)
+        assert requirement_object.ValidationResult == "FAILED"
+
+        # Exposure 4 - zero slope_err and zero intercept_err
+        exp_test_result = exp_product_list[4].Data.ValidationTestList[lensmc_global_test_case_index]
+        assert exp_test_result.GlobalResult == "FAILED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == "ERROR: Zero slope."
+        assert requirement_object.ValidationResult == "FAILED"
+
+        exp_slope_info_string = exp_info.Parameter[0].StringValue
+        assert "Test failed due to zero self.slope error.\n" in exp_slope_info_string
+
+        # Exposure 5 - NaN data
+        exp_test_result = exp_product_list[5].Data.ValidationTestList[lensmc_global_test_case_index]
+        assert exp_test_result.GlobalResult == "FAILED"
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.MeasuredValue.Parameter == "ERROR: NaN in slope calculation."
+        assert requirement_object.ValidationResult == "FAILED"
+
+        exp_slope_info_string = exp_info.Parameter[0].StringValue
+        assert "Test failed due to NaN regression results for self.slope.\n" in exp_slope_info_string
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
