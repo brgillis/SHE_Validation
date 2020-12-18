@@ -169,7 +169,7 @@ class TestCase:
         assert requirement_object.ValidationResult == "FAILED"
 
         exp_slope_info_string = exp_info.Parameter[0].StringValue
-        assert "Test failed due to zero self.slope error.\n" in exp_slope_info_string
+        assert "Test failed due to zero slope error.\n" in exp_slope_info_string
 
         # Exposure 5 - NaN data
         exp_test_result = exp_product_list[5].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -181,7 +181,7 @@ class TestCase:
         assert requirement_object.ValidationResult == "FAILED"
 
         exp_slope_info_string = exp_info.Parameter[0].StringValue
-        assert "Test failed due to NaN regression results for self.slope.\n" in exp_slope_info_string
+        assert "Test failed due to NaN regression results for slope.\n" in exp_slope_info_string
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)

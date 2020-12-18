@@ -134,9 +134,9 @@ class CTIGalRequirementWriter():
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
-        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
+        # Add a supplementary info key for each of the slope and intercept, reporting details
 
-        self.add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for self.slope.\n")
+        self.add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for slope.\n")
 
         return
 
@@ -147,9 +147,9 @@ class CTIGalRequirementWriter():
 
         self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
 
-        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
+        # Add a supplementary info key for each of the slope and intercept, reporting details
 
-        self.add_supplementary_info(extra_slope_message="Test failed due to zero self.slope error.\n",)
+        self.add_supplementary_info(extra_slope_message="Test failed due to zero slope error.\n",)
 
         return
 
