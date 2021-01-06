@@ -32,7 +32,7 @@ from SHE_Validation_CTI.constants.cti_gal_default_config import SLOPE_FAIL_SIGMA
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
-from SHE_Validation_CTI.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,

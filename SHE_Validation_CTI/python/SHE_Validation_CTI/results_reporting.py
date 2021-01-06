@@ -32,7 +32,7 @@ from .constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_S
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
-from .constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from .table_formats.regression_results import tf as rr_tf
 
 

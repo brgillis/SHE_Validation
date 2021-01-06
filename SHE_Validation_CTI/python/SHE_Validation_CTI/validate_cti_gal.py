@@ -38,7 +38,7 @@ from SHE_PPT.table_utility import is_in_format
 
 from . import __version__
 from .constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
-from .constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results

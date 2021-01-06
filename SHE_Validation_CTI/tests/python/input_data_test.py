@@ -32,7 +32,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf

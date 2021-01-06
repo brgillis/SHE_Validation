@@ -28,7 +28,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 import numpy as np
 
-from .constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from .table_formats.cti_gal_object_data import tf as cgod_tf
 from .table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 

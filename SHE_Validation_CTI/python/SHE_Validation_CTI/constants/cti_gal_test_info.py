@@ -22,7 +22,7 @@ __updated__ = "2021-01-06"
 
 from collections import namedtuple
 
-from .shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
+from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
 
 
 # Metadata about the requirement
