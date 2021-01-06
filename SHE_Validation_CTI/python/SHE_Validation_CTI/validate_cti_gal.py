@@ -93,14 +93,14 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the table for each method
     d_shear_estimate_tables = {}
-    for method in constants.methods:
+    for method in constants.METHODS:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
             d_shear_estimate_tables[method] = shear_measurements_table
-            if not is_in_format(shear_measurements_table, constants.d_shear_estimation_method_table_formats[method], strict=False):
+            if not is_in_format(shear_measurements_table, constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 d_shear_estimate_tables[method] = None
@@ -133,7 +133,7 @@ def run_validate_cti_gal_from_args(args):
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product,
-                                                                         num_tests=constants.num_method_cti_gal_test_cases)
+                                                                         num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
@@ -158,7 +158,7 @@ def run_validate_cti_gal_from_args(args):
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product),
-                                                                     num_tests=constants.num_method_cti_gal_test_cases)
+                                                                     num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None

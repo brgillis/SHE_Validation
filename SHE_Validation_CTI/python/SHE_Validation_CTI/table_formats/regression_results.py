@@ -80,7 +80,7 @@ class SheRegressionResultsFormat(object):
 
         # Set up separate result columns for each shear estimation method
 
-        for method in constants.methods:
+        for method in constants.METHODS:
 
             upper_method = method.upper()
 

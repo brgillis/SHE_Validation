@@ -68,7 +68,7 @@ def calculate_regression_results(object_data_table: table.Table,
     readout_dist_data = object_data_table[cgod_tf.readout_dist]
 
     # Perform a regression for each method
-    for method in constants.methods:
+    for method in constants.METHODS:
 
         # Get required data
         g1_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]

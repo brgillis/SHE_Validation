@@ -88,7 +88,7 @@ class SheCtiGalObjectDataFormat(object):
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in constants.d_shear_estimation_method_table_formats:
+        for method in constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS:
 
             upper_method = method.upper()
 

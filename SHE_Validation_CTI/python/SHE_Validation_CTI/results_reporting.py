@@ -79,7 +79,7 @@ class CTIGalRequirementWriter():
                 setattr(self, f"{prop}_pass", False)
             else:
                 setattr(self, f"{prop}_z", np.abs(getattr(self, prop) / getattr(self, f"{prop}_err")))
-                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < constants.slope_fail_sigma)
+                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < constants.SLOPE_FAIL_SIGMA)
 
             if getattr(self, f"{prop}_pass"):
                 setattr(self, f"{prop}_result", "PASSED")
@@ -111,7 +111,7 @@ class CTIGalRequirementWriter():
                                                           f"slope = {self.slope}\n" +
                                                           f"slope_err = {self.slope_err}\n" +
                                                           f"slope_z = {self.slope_z}\n" +
-                                                          f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" +
+                                                          f"Maximum allowed slope_z = {constants.SLOPE_FAIL_SIGMA}\n" +
                                                           f"Result: {self.slope_result}\n")
 
         intercept_supplementary_info_parameter.Key = "INTERCEPT_INFO"
@@ -122,7 +122,7 @@ class CTIGalRequirementWriter():
                                                               f"intercept_err = {self.intercept_err}\n" +
                                                               f"intercept_z = {self.intercept_z}\n" +
                                                               f"Maximum allowed intercept_z = " +
-                                                              f"{constants.intercept_fail_sigma}\n" +
+                                                              f"{constants.INTERCEPT_FAIL_SIGMA}\n" +
                                                               f"Result: {self.intercept_result}\n")
 
         return
@@ -202,19 +202,19 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     test_case_index = 0
 
-    for method in constants.methods:
-        for test_case in constants.cti_gal_test_cases:
+    for method in constants.METHODS:
+        for test_case in constants.CTI_GAL_TEST_CASES:
             test_object = test_result_product.Data.ValidationTestList[test_case_index]
 
             # Fill in metadata about the test
-            test_object.TestId = constants.cti_gal_test_case_info[test_case].id + "-" + method
-            test_object.TestDescription = constants.cti_gal_test_case_info[test_case].description
+            test_object.TestId = constants.CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
+            test_object.TestDescription = constants.CTI_GAL_TEST_CASE_INFO[test_case].description
 
             requirement_object = test_object.ValidatedRequirements.Requirement[0]
 
-            requirement_object.Id = constants.cti_gal_requirement_id
+            requirement_object.Id = constants.CTI_GAL_REQUIREMENT_ID
 
-            requirement_object.MeasuredValue.Parameter = constants.cti_gal_parameter
+            requirement_object.MeasuredValue.Parameter = constants.CTI_GAL_PARAMETER
 
             if test_case == "Global" and method_data_exists:
 

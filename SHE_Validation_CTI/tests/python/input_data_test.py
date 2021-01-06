@@ -92,7 +92,7 @@ class TestCase:
     def test_get_raw_cti_gal_object_data(self):
 
         # Read in the mock shear estimates
-        lmcm_tf = constants.d_shear_estimation_method_table_formats["LensMC"]
+        lmcm_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
         lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
         d_shear_estimates_tables = {"KSB": None,
                                     "LensMC": lensmc_shear_estimates_table,

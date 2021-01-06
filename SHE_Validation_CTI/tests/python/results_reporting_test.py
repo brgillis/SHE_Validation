@@ -76,7 +76,7 @@ class TestCase:
             exp_row[getattr(rr_tf, "intercept_err_LensMC")] = exp_results.intercept_err
 
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests=constants.num_method_cti_gal_test_cases)
+                num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
@@ -88,11 +88,11 @@ class TestCase:
 
         # Figure out the index for LensMC Global test results and save it for each check
         test_case_index = 0
-        for method in constants.methods:
+        for method in constants.METHODS:
             if not method == "LensMC":
-                test_case_index += constants.num_cti_gal_test_cases
+                test_case_index += constants.NUM_CTI_GAL_TEST_CASES
                 continue
-            for test_case in constants.cti_gal_test_cases:
+            for test_case in constants.CTI_GAL_TEST_CASES:
                 if not test_case == "Global":
                     test_case_index += 1
                     continue
@@ -120,7 +120,7 @@ class TestCase:
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" in exp_slope_info_string
+        assert f"Maximum allowed slope_z = {constants.SLOPE_FAIL_SIGMA}\n" in exp_slope_info_string
         assert f"Result: PASSED\n" in exp_slope_info_string
 
         assert exp_info.Parameter[1].Key == "INTERCEPT_INFO"
@@ -130,7 +130,7 @@ class TestCase:
         assert f"intercept = {0.}\n" in exp_intercept_info_string
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
-        assert f"Maximum allowed intercept_z = {constants.intercept_fail_sigma}\n" in exp_intercept_info_string
+        assert f"Maximum allowed intercept_z = {constants.INTERCEPT_FAIL_SIGMA}\n" in exp_intercept_info_string
         assert f"Result: PASSED\n" in exp_intercept_info_string
 
         # Exposure 1 - slope fail and intercept pass
@@ -189,7 +189,7 @@ class TestCase:
         obs_row = obs_results_table[0]
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests=constants.num_method_cti_gal_test_cases)
+            num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
@@ -200,12 +200,12 @@ class TestCase:
 
         # Check metadata for all test cases
         test_case_index = 0
-        for method in constants.methods:
-            for test_case in constants.cti_gal_test_cases:
+        for method in constants.METHODS:
+            for test_case in constants.CTI_GAL_TEST_CASES:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-                assert constants.cti_gal_test_case_info[test_case].id in obs_test_result.TestId
+                assert constants.CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
-                assert obs_test_result.TestDescription == constants.cti_gal_test_case_info[test_case].description
+                assert obs_test_result.TestDescription == constants.CTI_GAL_TEST_CASE_INFO[test_case].description
 
                 # Check that the product indeed reports no data
                 assert obs_test_result.GlobalResult == "PASSED"

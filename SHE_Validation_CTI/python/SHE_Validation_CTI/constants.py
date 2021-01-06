@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal validation
 """
 
-__updated__ = "2020-12-17"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,18 +23,19 @@ __updated__ = "2020-12-17"
 from collections import namedtuple
 
 # Metadata about the requirement
-cti_gal_requirement_id = "R-SHE-CAL-F-140"
-cti_gal_requirement_description = "Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma)."
-cti_gal_parameter = ("Z-value for slope of g1_image versus distance from readout register compared to expectation " +
+CTI_GAL_REQUIREMENT_ID = "R-SHE-CAL-F-140"
+CTI_GAL_REQUIREMENT_DESCRIPTION = "Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma)."
+CTI_GAL_PARAMETER = ("Z-value for slope of g1_image versus distance from readout register compared to expectation " +
                      "of zero.")
 
 # Metadata about the test
-cti_gal_test_id = "T-SHE-000010-CTI-gal"
-cti_gal_test_description = "Linear dependence of galaxy ellipticity with read-out register distance (slope)."
+CTI_GAL_TEST_ID = "T-SHE-000010-CTI-gal"
+CTI_GAL_TEST_DESCRIPTION = "Linear dependence of galaxy ellipticity with read-out register distance (slope)."
 
+# Define a namedtuple class to store id and description info for each test case
 TestCaseInfo = namedtuple("TestCaseInfo", ["id", "description"])
 
-cti_gal_test_case_info = {"Global": TestCaseInfo("T-SHE-000010-CTI-gal", "Linear dependence of residual galaxy " +
+CTI_GAL_TEST_CASE_INFO = {"Global": TestCaseInfo("T-SHE-000010-CTI-gal", "Linear dependence of residual galaxy " +
                                                  "ellipticity with read-out register distance (slope) unbinned."),
                           "SNR": TestCaseInfo("TC-SHE-100028-CTI-gal-SNR", "Linear dependence of residual galaxy " +
                                               "ellipticity with read-out register distance (slope) in bins of SNR " +
@@ -52,26 +53,26 @@ cti_gal_test_case_info = {"Global": TestCaseInfo("T-SHE-000010-CTI-gal", "Linear
                                                 "ellipticity with read-out register distance (slope) in bins of " +
                                                 "observation epoch"), }
 
-cti_gal_test_cases = cti_gal_test_case_info.keys()
+CTI_GAL_TEST_CASES = CTI_GAL_TEST_CASE_INFO.keys()
 
-num_cti_gal_test_cases = len(cti_gal_test_cases)
+NUM_CTI_GAL_TEST_CASES = len(CTI_GAL_TEST_CASES)
 
 # Failure thresholds - these will likely be set in the configuration file in the future
-slope_fail_sigma = 5
-intercept_fail_sigma = 5
+SLOPE_FAIL_SIGMA = 5
+INTERCEPT_FAIL_SIGMA = 5
 
 from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 
-d_shear_estimation_method_table_formats = {"KSB": ksbm_tf,
+D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS = {"KSB": ksbm_tf,
                                            "REGAUSS": regm_tf,
                                            "MomentsML": mmlm_tf,
                                            "LensMC": lmcm_tf}
 
-methods = d_shear_estimation_method_table_formats.keys()
+METHODS = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.keys()
 
-num_methods = len(methods)
+NUM_METHODS = len(METHODS)
 
-num_method_cti_gal_test_cases = num_methods * num_cti_gal_test_cases
+NUM_METHOD_CTI_GAL_TEST_CASES = NUM_METHODS * NUM_CTI_GAL_TEST_CASES

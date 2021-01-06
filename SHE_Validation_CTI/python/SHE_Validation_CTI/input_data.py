@@ -82,7 +82,7 @@ class PositionInfo(object):
             self.exposure_shear_info = {}
 
             if world_shear_info is not None:
-                for method in constants.methods:
+                for method in constants.METHODS:
 
                     method_world_shear_info = world_shear_info[method]
 
@@ -99,7 +99,7 @@ class PositionInfo(object):
                                                                  weight=method_world_shear_info.weight)
 
             else:
-                for method in constants.methods:
+                for method in constants.METHODS:
                     self.exposure_shear_info[method] = ShearInfo()
 
         else:  # Default initialize
@@ -113,7 +113,7 @@ class PositionInfo(object):
             self.quadrant = "X"
 
             self.exposure_shear_info = {}
-            for method in constants.methods:
+            for method in constants.METHODS:
                 self.exposure_shear_info[method] = ShearInfo()
 
 
@@ -138,7 +138,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
     s_object_ids = set()
 
-    for method in constants.methods:
+    for method in constants.METHODS:
 
         # Check if the table exists for this method
         shear_estimate_table = shear_estimate_tables[method]
@@ -146,7 +146,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             continue
 
         # Update the set with the Object ID column from the table
-        sem_tf = constants.d_shear_estimation_method_table_formats[method]
+        sem_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         s_object_ids.update(shear_estimate_table[sem_tf.ID])
 
         # Set up the table to use the ID as an index
@@ -174,13 +174,13 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                            num_exposures=len(ministamp_stack.exposures))
 
             # Set the shear info for each method
-            for method in constants.methods:
+            for method in constants.METHODS:
                 shear_estimate_table = shear_estimate_tables[method]
                 if shear_estimate_table is None:
                     object_data.world_shear_info[method] = ShearInfo()
                     continue
 
-                sem_tf = constants.d_shear_estimation_method_table_formats[method]
+                sem_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
                 object_row = shear_estimate_table.loc[object_id]
 
@@ -206,7 +206,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
     finally:
         # Make sure to remove the indices from the tables
-        for method in constants.methods:
+        for method in constants.METHODS:
             shear_estimate_table = shear_estimate_tables[method]
             if shear_estimate_table is None:
                 continue
@@ -248,7 +248,7 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
             row[cgod_tf.det_iy] = position_info.det_iy
 
             # Fill in data for each shear estimate method
-            for method in constants.methods:
+            for method in constants.METHODS:
 
                 exposure_shear_info = position_info.exposure_shear_info[method]
 
