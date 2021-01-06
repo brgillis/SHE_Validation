@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,6 +28,10 @@ import pytest
 from SHE_PPT import products
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI import constants
+from SHE_Validation_CTI.constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_INFO,
+                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
+from SHE_Validation_CTI.constants.shear_estimation_methods import METHODS
 from SHE_Validation_CTI.results_reporting import fill_cti_gal_validation_results
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 import numpy as np
@@ -76,7 +80,7 @@ class TestCase:
             exp_row[getattr(rr_tf, "intercept_err_LensMC")] = exp_results.intercept_err
 
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
+                num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
@@ -88,11 +92,11 @@ class TestCase:
 
         # Figure out the index for LensMC Global test results and save it for each check
         test_case_index = 0
-        for method in constants.METHODS:
+        for method in METHODS:
             if not method == "LensMC":
-                test_case_index += constants.NUM_CTI_GAL_TEST_CASES
+                test_case_index += NUM_CTI_GAL_TEST_CASES
                 continue
-            for test_case in constants.CTI_GAL_TEST_CASES:
+            for test_case in CTI_GAL_TEST_CASES:
                 if not test_case == "Global":
                     test_case_index += 1
                     continue
@@ -120,7 +124,7 @@ class TestCase:
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert f"Maximum allowed slope_z = {constants.SLOPE_FAIL_SIGMA}\n" in exp_slope_info_string
+        assert f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" in exp_slope_info_string
         assert f"Result: PASSED\n" in exp_slope_info_string
 
         assert exp_info.Parameter[1].Key == "INTERCEPT_INFO"
@@ -130,7 +134,7 @@ class TestCase:
         assert f"intercept = {0.}\n" in exp_intercept_info_string
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
-        assert f"Maximum allowed intercept_z = {constants.INTERCEPT_FAIL_SIGMA}\n" in exp_intercept_info_string
+        assert f"Maximum allowed intercept_z = {INTERCEPT_FAIL_SIGMA}\n" in exp_intercept_info_string
         assert f"Result: PASSED\n" in exp_intercept_info_string
 
         # Exposure 1 - slope fail and intercept pass
@@ -189,7 +193,7 @@ class TestCase:
         obs_row = obs_results_table[0]
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
+            num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
@@ -200,12 +204,12 @@ class TestCase:
 
         # Check metadata for all test cases
         test_case_index = 0
-        for method in constants.METHODS:
-            for test_case in constants.CTI_GAL_TEST_CASES:
+        for method in METHODS:
+            for test_case in CTI_GAL_TEST_CASES:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-                assert constants.CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
+                assert CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
-                assert obs_test_result.TestDescription == constants.CTI_GAL_TEST_CASE_INFO[test_case].description
+                assert obs_test_result.TestDescription == CTI_GAL_TEST_CASE_INFO[test_case].description
 
                 # Check that the product indeed reports no data
                 assert obs_test_result.GlobalResult == "PASSED"

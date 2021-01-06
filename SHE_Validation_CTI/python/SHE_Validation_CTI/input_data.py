@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -34,6 +34,9 @@ from SHE_PPT.telescope_coords import get_vis_quadrant
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 import numpy as np
+
+from .constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+
 
 logger = getLogger(__name__)
 
@@ -82,7 +85,7 @@ class PositionInfo(object):
             self.exposure_shear_info = {}
 
             if world_shear_info is not None:
-                for method in constants.METHODS:
+                for method in METHODS:
 
                     method_world_shear_info = world_shear_info[method]
 
@@ -99,7 +102,7 @@ class PositionInfo(object):
                                                                  weight=method_world_shear_info.weight)
 
             else:
-                for method in constants.METHODS:
+                for method in METHODS:
                     self.exposure_shear_info[method] = ShearInfo()
 
         else:  # Default initialize
@@ -113,7 +116,7 @@ class PositionInfo(object):
             self.quadrant = "X"
 
             self.exposure_shear_info = {}
-            for method in constants.METHODS:
+            for method in METHODS:
                 self.exposure_shear_info[method] = ShearInfo()
 
 
@@ -138,7 +141,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
     s_object_ids = set()
 
-    for method in constants.METHODS:
+    for method in METHODS:
 
         # Check if the table exists for this method
         shear_estimate_table = shear_estimate_tables[method]
@@ -146,7 +149,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             continue
 
         # Update the set with the Object ID column from the table
-        sem_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         s_object_ids.update(shear_estimate_table[sem_tf.ID])
 
         # Set up the table to use the ID as an index
@@ -174,13 +177,13 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                            num_exposures=len(ministamp_stack.exposures))
 
             # Set the shear info for each method
-            for method in constants.METHODS:
+            for method in METHODS:
                 shear_estimate_table = shear_estimate_tables[method]
                 if shear_estimate_table is None:
                     object_data.world_shear_info[method] = ShearInfo()
                     continue
 
-                sem_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+                sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
                 object_row = shear_estimate_table.loc[object_id]
 
@@ -206,7 +209,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
     finally:
         # Make sure to remove the indices from the tables
-        for method in constants.METHODS:
+        for method in METHODS:
             shear_estimate_table = shear_estimate_tables[method]
             if shear_estimate_table is None:
                 continue
@@ -248,7 +251,7 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
             row[cgod_tf.det_iy] = position_info.det_iy
 
             # Fill in data for each shear estimate method
-            for method in constants.METHODS:
+            for method in METHODS:
 
                 exposure_shear_info = position_info.exposure_shear_info[method]
 

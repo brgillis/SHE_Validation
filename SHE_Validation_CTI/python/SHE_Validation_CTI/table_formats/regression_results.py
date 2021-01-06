@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2020-12-16"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,7 @@ from astropy import table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
-from SHE_Validation_CTI import constants
+from ..constants.shear_estimation_methods import METHODS
 
 
 fits_version = "8.0"
@@ -80,7 +80,7 @@ class SheRegressionResultsFormat(object):
 
         # Set up separate result columns for each shear estimation method
 
-        for method in constants.METHODS:
+        for method in METHODS:
 
             upper_method = method.upper()
 

@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,6 +41,9 @@ from SHE_Validation_CTI.data_processing import add_readout_register_distance, ca
 from SHE_Validation_CTI.input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from SHE_Validation_CTI.results_reporting import fill_cti_gal_validation_results
 from SHE_Validation_CTI.table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
+
+from .constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
+from .constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 
 
 logger = getLogger(__name__)
@@ -93,14 +96,14 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the table for each method
     d_shear_estimate_tables = {}
-    for method in constants.METHODS:
+    for method in METHODS:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
             d_shear_estimate_tables[method] = shear_measurements_table
-            if not is_in_format(shear_measurements_table, constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method], strict=False):
+            if not is_in_format(shear_measurements_table, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method], strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 d_shear_estimate_tables[method] = None
@@ -133,7 +136,7 @@ def run_validate_cti_gal_from_args(args):
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product,
-                                                                         num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                                         num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
@@ -158,7 +161,7 @@ def run_validate_cti_gal_from_args(args):
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product),
-                                                                     num_tests=constants.NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                                     num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None

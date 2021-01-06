@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,7 +30,6 @@ from ElementsServices.DataSync import DataSync
 from SHE_PPT import mdb
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
-from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf

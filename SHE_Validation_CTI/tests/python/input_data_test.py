@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,6 +32,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import constants
+from SHE_Validation_CTI.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
@@ -92,7 +93,7 @@ class TestCase:
     def test_get_raw_cti_gal_object_data(self):
 
         # Read in the mock shear estimates
-        lmcm_tf = constants.D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
+        lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
         lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
         d_shear_estimates_tables = {"KSB": None,
                                     "LensMC": lensmc_shear_estimates_table,

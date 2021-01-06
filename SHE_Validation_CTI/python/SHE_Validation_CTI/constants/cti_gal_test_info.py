@@ -1,8 +1,8 @@
-""" @file constants.py
+""" @file cti_gal_default_config.py
 
     Created 15 Dec 2020
 
-    Constants relating to CTI-Gal validation
+    Default configuration values, for if nothing is passed at command-line or in the pipeline config
 """
 
 __updated__ = "2021-01-06"
@@ -21,6 +21,13 @@ __updated__ = "2021-01-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from collections import namedtuple
+
+from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
+from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
+from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
+from .shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
+
 
 # Metadata about the requirement
 CTI_GAL_REQUIREMENT_ID = "R-SHE-CAL-F-140"
@@ -57,22 +64,4 @@ CTI_GAL_TEST_CASES = CTI_GAL_TEST_CASE_INFO.keys()
 
 NUM_CTI_GAL_TEST_CASES = len(CTI_GAL_TEST_CASES)
 
-# Failure thresholds - these will likely be set in the configuration file in the future
-SLOPE_FAIL_SIGMA = 5
-INTERCEPT_FAIL_SIGMA = 5
-
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
-
-D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS = {"KSB": ksbm_tf,
-                                           "REGAUSS": regm_tf,
-                                           "MomentsML": mmlm_tf,
-                                           "LensMC": lmcm_tf}
-
-METHODS = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.keys()
-
-NUM_METHODS = len(METHODS)
-
-NUM_METHOD_CTI_GAL_TEST_CASES = NUM_METHODS * NUM_CTI_GAL_TEST_CASES
+NUM_METHOD_CTI_GAL_TEST_CASES = NUM_SHEAR_ESTIMATION_METHODS * NUM_CTI_GAL_TEST_CASES

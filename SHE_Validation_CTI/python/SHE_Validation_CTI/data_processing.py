@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,6 +30,7 @@ from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 import numpy as np
+from .constants.shear_estimation_methods import METHODS
 
 
 logger = getLogger(__name__)
@@ -68,7 +69,7 @@ def calculate_regression_results(object_data_table: table.Table,
     readout_dist_data = object_data_table[cgod_tf.readout_dist]
 
     # Perform a regression for each method
-    for method in constants.METHODS:
+    for method in METHODS:
 
         # Get required data
         g1_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]

@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,6 +29,11 @@ from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
+
+from .constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
+from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
+                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_INFO,)
+from .constants.shear_estimation_methods import METHODS
 
 
 logger = getLogger(__name__)
@@ -79,7 +84,7 @@ class CTIGalRequirementWriter():
                 setattr(self, f"{prop}_pass", False)
             else:
                 setattr(self, f"{prop}_z", np.abs(getattr(self, prop) / getattr(self, f"{prop}_err")))
-                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < constants.SLOPE_FAIL_SIGMA)
+                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < SLOPE_FAIL_SIGMA)
 
             if getattr(self, f"{prop}_pass"):
                 setattr(self, f"{prop}_result", "PASSED")
@@ -111,7 +116,7 @@ class CTIGalRequirementWriter():
                                                           f"slope = {self.slope}\n" +
                                                           f"slope_err = {self.slope_err}\n" +
                                                           f"slope_z = {self.slope_z}\n" +
-                                                          f"Maximum allowed slope_z = {constants.SLOPE_FAIL_SIGMA}\n" +
+                                                          f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" +
                                                           f"Result: {self.slope_result}\n")
 
         intercept_supplementary_info_parameter.Key = "INTERCEPT_INFO"
@@ -122,7 +127,7 @@ class CTIGalRequirementWriter():
                                                               f"intercept_err = {self.intercept_err}\n" +
                                                               f"intercept_z = {self.intercept_z}\n" +
                                                               f"Maximum allowed intercept_z = " +
-                                                              f"{constants.INTERCEPT_FAIL_SIGMA}\n" +
+                                                              f"{INTERCEPT_FAIL_SIGMA}\n" +
                                                               f"Result: {self.intercept_result}\n")
 
         return
@@ -202,19 +207,19 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     test_case_index = 0
 
-    for method in constants.METHODS:
-        for test_case in constants.CTI_GAL_TEST_CASES:
+    for method in METHODS:
+        for test_case in CTI_GAL_TEST_CASES:
             test_object = test_result_product.Data.ValidationTestList[test_case_index]
 
             # Fill in metadata about the test
-            test_object.TestId = constants.CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
-            test_object.TestDescription = constants.CTI_GAL_TEST_CASE_INFO[test_case].description
+            test_object.TestId = CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
+            test_object.TestDescription = CTI_GAL_TEST_CASE_INFO[test_case].description
 
             requirement_object = test_object.ValidatedRequirements.Requirement[0]
 
-            requirement_object.Id = constants.CTI_GAL_REQUIREMENT_ID
+            requirement_object.Id = CTI_GAL_REQUIREMENT_ID
 
-            requirement_object.MeasuredValue.Parameter = constants.CTI_GAL_PARAMETER
+            requirement_object.MeasuredValue.Parameter = CTI_GAL_PARAMETER
 
             if test_case == "Global" and method_data_exists:
 
