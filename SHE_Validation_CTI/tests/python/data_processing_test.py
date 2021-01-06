@@ -36,10 +36,10 @@ from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf
 import numpy as np
 
 
-test_data_location = "SHE_PPT_8_5"
+TEST_DATA_LOCATION = "SHE_PPT_8_5"
 
 # Input data filenames
-mdb_filename = "sample_mdb-SC8.xml"
+MDB_FILENAME = "sample_mdb-SC8.xml"
 
 
 class TestCase:
@@ -55,7 +55,7 @@ class TestCase:
         sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
         sync_mdb.download()
         qualified_mdb_filename = sync_mdb.absolutePath(
-            os.path.join(test_data_location, mdb_filename))
+            os.path.join(TEST_DATA_LOCATION, MDB_FILENAME))
         assert os.path.isfile(
             qualified_mdb_filename), f"Cannot find file: {qualified_mdb_filename}"
 

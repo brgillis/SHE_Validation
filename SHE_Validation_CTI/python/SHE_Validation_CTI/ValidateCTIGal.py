@@ -32,7 +32,7 @@ from SHE_PPT.utility import get_arguments_string
 from . import __version__
 from .validate_cti_gal import run_validate_cti_gal_from_args
 
-profiling_filename = "validate_cti_gal.prof"
+PROFILING_FILENAME = "validate_cti_gal.prof"
 
 logger = log.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def defineSpecificProgramOptions():
     # Optional input arguments (cannot be used in pipeline)
 
     parser.add_argument('--profile', action="store_true",
-                        help=f'If set, will output profiling data to {profiling_filename}')
+                        help=f'If set, will output profiling data to {PROFILING_FILENAME}')
 
     parser.add_argument('--dry_run', action="store_true",
                         help=f'If set, will only read in input data and output dummy output data products')
@@ -116,7 +116,7 @@ def mainMethod(args):
         cProfile.runctx("run_validate_cti_gal_from_args(args)", {},
                         {"run_validate_cti_gal_from_args": run_validate_cti_gal_from_args,
                          "args": args},
-                        filename=profiling_filename)
+                        filename=PROFILING_FILENAME)
     else:
         run_validate_cti_gal_from_args(args)
 

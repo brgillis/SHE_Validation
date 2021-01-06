@@ -40,14 +40,13 @@ from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
-test_data_location = "SHE_PPT_8_5"
+TEST_DATA_LOCATION = "SHE_PPT_8_5"
 
 # Input data filenames
 
-vis_calibrated_frames_filename = "vis_calibrated_frames.json"
-mer_final_catalogs_filename = "mer_final_catalogs.json"
-lensmc_measurements_filename = "mock_lensmc_measurements.fits"
-mdb_filename = "sample_mdb-SC8.xml"
+VIS_CALIBRATED_FRAME_LISTFILE_FILENAME = "vis_calibrated_frames.json"
+MER_FINAL_CATALOG_LISTFILE_FILENAME = "mer_final_catalogs.json"
+LENSMC_MEASUREMENTS_TABLE_FILENAME = "mock_lensmc_measurements.fits"
 
 
 class TestCase:
@@ -59,15 +58,11 @@ class TestCase:
     @classmethod
     def setup_class(cls):
 
-        # Download the MDB from WebDAV
-        sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
-        sync_mdb.download()
-
         # Download the data stack files from WebDAV
         sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
         sync_datastack.download()
         qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(test_data_location, vis_calibrated_frames_filename))
+            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
         assert os.path.isfile(
             qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
 
@@ -76,8 +71,8 @@ class TestCase:
         cls.logdir = os.path.join(cls.workdir, "logs")
 
         # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=vis_calibrated_frames_filename,
-                                            detections_listfile_filename=mer_final_catalogs_filename,
+        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                            detections_listfile_filename=MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                             workdir=cls.workdir,
                                             clean_detections=False,
                                             memmap=True,
@@ -94,7 +89,8 @@ class TestCase:
 
         # Read in the mock shear estimates
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
-        lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
+        lensmc_shear_estimates_table = Table.read(os.path.join(
+            self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
         d_shear_estimates_tables = {"KSB": None,
                                     "LensMC": lensmc_shear_estimates_table,
                                     "MomentsML": None,
