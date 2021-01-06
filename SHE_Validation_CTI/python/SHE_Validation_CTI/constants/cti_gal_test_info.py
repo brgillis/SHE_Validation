@@ -22,10 +22,6 @@ __updated__ = "2021-01-06"
 
 from collections import namedtuple
 
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from .shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
 
 
@@ -50,29 +46,29 @@ CTI_GAL_TEST_CASE_SIZE = "Size"
 CTI_GAL_TEST_CASE_EPOCH = "Epoch"
 
 D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: TestCaseInfo("T-SHE-000010-CTI-gal",
-                                                                 "Linear dependence of " +
-                                                                 "residual galaxy ellipticity with read-out " +
-                                                                 "register distance (slope) unbinned."),
-                          CTI_GAL_TEST_CASE_SNR: TestCaseInfo("TC-SHE-100028-CTI-gal-SNR",
-                                                              "Linear dependence of " +
-                                                              "residual galaxy ellipticity with read-out register " +
-                                                              "distance (slope) in bins of SNR of galaxies."),
-                          CTI_GAL_TEST_CASE_BG: TestCaseInfo("TC-SHE-100029-CTI-gal-bg",
-                                                             "Linear dependence of residual galaxy ellipticity with " +
-                                                             "read-out register distance (slope) in bins of sky " +
-                                                             "background levels."),
-                          CTI_GAL_TEST_CASE_COLOUR: TestCaseInfo("TC-SHE-100030-CTI-gal-col",
-                                                                 "Linear dependence of residual galaxy " +
-                                                                 "ellipticity with read-out register distance " +
-                                                                 "(slope) in bins of colour of galaxies."),
-                          CTI_GAL_TEST_CASE_SIZE: TestCaseInfo("TC-SHE-100031-CTI-gal-size",
-                                                               "Linear dependence of residual galaxy ellipticity " +
-                                                               "with read-out register distance (slope) in bins of " +
-                                                               "size of galaxies."),
-                          CTI_GAL_TEST_CASE_EPOCH: TestCaseInfo("TC-SHE-100032-CTI-gal-epoch",
-                                                                "Linear dependence of residual galaxy ellipticity " +
-                                                                "with read-out register distance (slope) in bins of " +
-                                                                "observation epoch"), }
+                                                                   "Linear dependence of " +
+                                                                   "residual galaxy ellipticity with read-out " +
+                                                                   "register distance (slope) unbinned."),
+                            CTI_GAL_TEST_CASE_SNR: TestCaseInfo("TC-SHE-100028-CTI-gal-SNR",
+                                                                "Linear dependence of " +
+                                                                "residual galaxy ellipticity with read-out register " +
+                                                                "distance (slope) in bins of SNR of galaxies."),
+                            CTI_GAL_TEST_CASE_BG: TestCaseInfo("TC-SHE-100029-CTI-gal-bg",
+                                                               "Linear dependence of residual galaxy ellipticity with " +
+                                                               "read-out register distance (slope) in bins of sky " +
+                                                               "background levels."),
+                            CTI_GAL_TEST_CASE_COLOUR: TestCaseInfo("TC-SHE-100030-CTI-gal-col",
+                                                                   "Linear dependence of residual galaxy " +
+                                                                   "ellipticity with read-out register distance " +
+                                                                   "(slope) in bins of colour of galaxies."),
+                            CTI_GAL_TEST_CASE_SIZE: TestCaseInfo("TC-SHE-100031-CTI-gal-size",
+                                                                 "Linear dependence of residual galaxy ellipticity " +
+                                                                 "with read-out register distance (slope) in bins of " +
+                                                                 "size of galaxies."),
+                            CTI_GAL_TEST_CASE_EPOCH: TestCaseInfo("TC-SHE-100032-CTI-gal-epoch",
+                                                                  "Linear dependence of residual galaxy ellipticity " +
+                                                                  "with read-out register distance (slope) in bins of " +
+                                                                  "observation epoch"), }
 
 CTI_GAL_TEST_CASES = D_CTI_GAL_TEST_CASE_INFO.keys()
 
