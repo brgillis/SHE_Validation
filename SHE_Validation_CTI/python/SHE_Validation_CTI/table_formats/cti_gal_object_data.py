@@ -32,8 +32,8 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 
 
-fits_version = "8.0"
-fits_def = "she.ctiGalObjectData"
+FITS_VERSION = "8.0"
+FITS_DEF = "she.ctiGalObjectData"
 
 logger = getLogger(__name__)
 
@@ -45,8 +45,8 @@ class SheCtiGalObjectDataMeta(object):
 
     def __init__(self):
 
-        self.__version__ = fits_version
-        self.table_format = fits_def
+        self.__version__ = FITS_VERSION
+        self.table_format = FITS_DEF
 
         # Table metadata labels
         self.fits_version = fits_version_label
@@ -131,7 +131,7 @@ def make_cti_gal_object_data_table_header():
     header = OrderedDict()
 
     header[tf.m.fits_version] = tf.__version__
-    header[tf.m.fits_def] = fits_def
+    header[tf.m.fits_def] = FITS_DEF
 
     return header
 

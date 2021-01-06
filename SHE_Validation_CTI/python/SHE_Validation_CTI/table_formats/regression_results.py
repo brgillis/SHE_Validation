@@ -32,8 +32,8 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 
 
-fits_version = "8.0"
-fits_def = "she.regressionResults"
+FITS_VERSION = "8.0"
+FITS_DEF = "she.regressionResults"
 
 logger = getLogger(__name__)
 
@@ -45,8 +45,8 @@ class SheRegressionResultsMeta(object):
 
     def __init__(self):
 
-        self.__version__ = fits_version
-        self.table_format = fits_def
+        self.__version__ = FITS_VERSION
+        self.table_format = FITS_DEF
 
         # Table metadata labels
         self.fits_version = fits_version_label
@@ -118,7 +118,7 @@ def make_regression_results_table_header(product_type: str = None):
     header = OrderedDict()
 
     header[tf.m.fits_version] = tf.__version__
-    header[tf.m.fits_def] = fits_def
+    header[tf.m.fits_def] = FITS_DEF
     header[tf.m.product_type] = product_type
 
     return header
