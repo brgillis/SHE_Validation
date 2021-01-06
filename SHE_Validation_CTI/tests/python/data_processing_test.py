@@ -28,18 +28,13 @@ import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_PPT import mdb
+from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 import numpy as np
-
-
-TEST_DATA_LOCATION = "SHE_PPT_8_5"
-
-# Input data filenames
-MDB_FILENAME = "sample_mdb-SC8.xml"
 
 
 class TestCase:
@@ -52,10 +47,10 @@ class TestCase:
     def setup_class(cls):
 
         # Download the MDB from WebDAV
-        sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
+        sync_mdb = DataSync(SYNC_CONF, TEST_FILES_MDB)
         sync_mdb.download()
         qualified_mdb_filename = sync_mdb.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, MDB_FILENAME))
+            os.path.join(TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME))
         assert os.path.isfile(
             qualified_mdb_filename), f"Cannot find file: {qualified_mdb_filename}"
 

@@ -28,6 +28,9 @@ import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         LENSMC_MEASUREMENTS_TABLE_FILENAME)
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -40,15 +43,6 @@ from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
-TEST_DATA_LOCATION = "SHE_PPT_8_5"
-
-# Input data filenames
-
-VIS_CALIBRATED_FRAME_LISTFILE_FILENAME = "vis_calibrated_frames.json"
-MER_FINAL_CATALOG_LISTFILE_FILENAME = "mer_final_catalogs.json"
-LENSMC_MEASUREMENTS_TABLE_FILENAME = "mock_lensmc_measurements.fits"
-
-
 class TestCase:
     """
 
@@ -59,7 +53,7 @@ class TestCase:
     def setup_class(cls):
 
         # Download the data stack files from WebDAV
-        sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
+        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
         sync_datastack.download()
         qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
             os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))

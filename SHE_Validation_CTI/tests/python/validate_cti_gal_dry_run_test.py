@@ -26,20 +26,15 @@ import time
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                         MER_FINAL_CATALOG_LISTFILE_FILENAME, LENSMC_MEASUREMENTS_TABLE_FILENAME,
+                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
-
-TEST_DATA_LOCATION = "SHE_PPT_8_5"
-
-# Input data filenames
-
-VIS_CALIBRATED_FRAME_LISTFILE_FILENAME = "vis_calibrated_frames.json"
-MER_FINAL_CATALOG_LISTFILE_FILENAME = "mer_final_catalogs.json"
-SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME = "she_validated_measurements.xml"
-MDB_FILENAME = "sample_mdb-SC8.xml"
 
 # Output data filenames
 
@@ -56,7 +51,7 @@ class Args(object):
         self.mer_final_catalog_listfile = MER_FINAL_CATALOG_LISTFILE_FILENAME
         self.she_validated_measurements_product = SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
         self.pipeline_config = None
-        self.mdb = MDB_FILENAME
+        self.mdb = MDB_PRODUCT_FILENAME
 
         self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
         self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
