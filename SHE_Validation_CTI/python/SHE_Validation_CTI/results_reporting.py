@@ -32,11 +32,38 @@ import numpy as np
 
 from .constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
-                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_INFO,)
+                                          CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+                                          D_CTI_GAL_TEST_CASE_INFO,)
 from .constants.shear_estimation_methods import METHODS
 
-
 logger = getLogger(__name__)
+
+# Define constants for various messages
+
+RESULT_PASS = "PASSED"
+RESULT_FAIL = "FAILED"
+
+COMMENT_LEVEL_INFO = "INFO"
+COMMENT_LEVEL_WARNING = "WARNING"
+COMMENT_MULTIPLE = "Multiple notes; see SupplementaryInformation."
+
+INFO_MULTIPLE = COMMENT_LEVEL_INFO + ": " + COMMENT_MULTIPLE
+
+WARNING_TEST_NOT_RUN = "WARNING: Test not run."
+WARNING_MULTIPLE = COMMENT_LEVEL_WARNING + ": " + COMMENT_MULTIPLE
+
+KEY_REASON = "REASON"
+KEY_SLOPE_INFO = "SLOPE_INFO"
+KEY_INTERCEPT_INFO = "INTERCEPT_INFO"
+
+DESC_REASON = "Why the test was not run."
+DESC_SLOPE_INFO = "Information about the test on slope of g1_image versus readout distance."
+DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versus readout distance."
+
+MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
+MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
+MSG_NO_DATA = "No data is available for this test."
+MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
 
 
 def report_test_not_run(requirement_object,
@@ -44,13 +71,13 @@ def report_test_not_run(requirement_object,
     """ Fills in the data model with the fact that a test was not run and the reason.
     """
 
-    requirement_object.MeasuredValue.Parameter = "WARNING: Test not run."
-    requirement_object.ValidationResult = "PASSED"
-    requirement_object.Comment = "WARNING: Test not run."
+    requirement_object.MeasuredValue.Parameter = WARNING_TEST_NOT_RUN
+    requirement_object.ValidationResult = RESULT_PASS
+    requirement_object.Comment = WARNING_TEST_NOT_RUN
 
     supplementary_info_parameter = requirement_object.SupplementaryInformation.Parameter[0]
-    supplementary_info_parameter.Key = "REASON"
-    supplementary_info_parameter.Description = "Why the test was not run."
+    supplementary_info_parameter.Key = KEY_REASON
+    supplementary_info_parameter.Description = DESC_REASON
     supplementary_info_parameter.StringValue = reason
 
     return
@@ -78,7 +105,7 @@ class CTIGalRequirementWriter():
             if np.isnan(getattr(self, prop)) or np.isnan(getattr(self, f"{prop}_err")):
                 setattr(self, f"{prop}_z", np.NaN)
                 setattr(self, f"{prop}_pass", False)
-                setattr(self, f"{prop}_result", "FAILED")
+                setattr(self, f"{prop}_result", RESULT_FAIL)
             elif getattr(self, f"{prop}_err") == 0.:
                 setattr(self, f"{prop}_z", np.NaN)
                 setattr(self, f"{prop}_pass", False)
@@ -87,9 +114,9 @@ class CTIGalRequirementWriter():
                 setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < SLOPE_FAIL_SIGMA)
 
             if getattr(self, f"{prop}_pass"):
-                setattr(self, f"{prop}_result", "PASSED")
+                setattr(self, f"{prop}_result", RESULT_PASS)
             else:
-                setattr(self, f"{prop}_result", "FAILED")
+                setattr(self, f"{prop}_result", RESULT_FAIL)
 
         return
 
@@ -109,9 +136,8 @@ class CTIGalRequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = [slope_supplementary_info_parameter,
                                                                       intercept_supplementary_info_parameter]
 
-        slope_supplementary_info_parameter.Key = "SLOPE_INFO"
-        slope_supplementary_info_parameter.Description = ("Information about the test on slope of g1_image " +
-                                                          "versus readout distance.")
+        slope_supplementary_info_parameter.Key = KEY_SLOPE_INFO
+        slope_supplementary_info_parameter.Description = DESC_SLOPE_INFO
         slope_supplementary_info_parameter.StringValue = (extra_slope_message +
                                                           f"slope = {self.slope}\n" +
                                                           f"slope_err = {self.slope_err}\n" +
@@ -119,9 +145,8 @@ class CTIGalRequirementWriter():
                                                           f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" +
                                                           f"Result: {self.slope_result}\n")
 
-        intercept_supplementary_info_parameter.Key = "INTERCEPT_INFO"
-        intercept_supplementary_info_parameter.Description = ("Information about the test on intercept of " +
-                                                              "g1_image versus readout distance.")
+        intercept_supplementary_info_parameter.Key = KEY_INTERCEPT_INFO
+        intercept_supplementary_info_parameter.Description = DESC_INTERCEPT_INFO
         intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
                                                               f"intercept = {self.intercept}\n" +
                                                               f"intercept_err = {self.intercept_err}\n" +
@@ -137,11 +162,10 @@ class CTIGalRequirementWriter():
         # Report -1 as the measured value for this test
         self.requirement_object.MeasuredValue.Value.FloatValue = -1.0
 
-        self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
+        self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-
-        self.add_supplementary_info(extra_slope_message="Test failed due to NaN regression results for slope.\n")
+        self.add_supplementary_info(extra_slope_message=MSG_NAN_SLOPE)
 
         return
 
@@ -150,11 +174,11 @@ class CTIGalRequirementWriter():
         # Report -2 as the measured value for this test
         self.requirement_object.MeasuredValue.Value.FloatValue = -2.0
 
-        self.requirement_object.Comment = "WARNING: Multiple notes; see SupplementaryInformation."
+        self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
 
-        self.add_supplementary_info(extra_slope_message="Test failed due to zero slope error.\n",)
+        self.add_supplementary_info(extra_slope_message=MSG_ZERO_SLOPE_ERR,)
 
         return
 
@@ -165,11 +189,11 @@ class CTIGalRequirementWriter():
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
-            comment_level = "WARNING"
+            comment_level = COMMENT_LEVEL_WARNING
         else:
-            comment_level = "INFO"
+            comment_level = COMMENT_LEVEL_INFO
 
-        self.requirement_object.Comment = f"{comment_level}: Multiple notes; see SupplementaryInformation."
+        self.requirement_object.Comment = f"{comment_level}: " + COMMENT_MULTIPLE
 
         # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
 
@@ -181,7 +205,7 @@ class CTIGalRequirementWriter():
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue.Parameter = "Slope Z-value"
+        self.requirement_object.MeasuredValue.Parameter = CTI_GAL_PARAMETER
 
         # Check for data quality issues and report as proper if found
         if (np.isnan([self.slope, self.slope_err]).any() or
@@ -212,8 +236,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             test_object = test_result_product.Data.ValidationTestList[test_case_index]
 
             # Fill in metadata about the test
-            test_object.TestId = CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
-            test_object.TestDescription = CTI_GAL_TEST_CASE_INFO[test_case].description
+            test_object.TestId = D_CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
+            test_object.TestDescription = D_CTI_GAL_TEST_CASE_INFO[test_case].description
 
             requirement_object = test_object.ValidatedRequirements.Requirement[0]
 
@@ -221,7 +245,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             requirement_object.MeasuredValue.Parameter = CTI_GAL_PARAMETER
 
-            if test_case == "Global" and method_data_exists:
+            if test_case == CTI_GAL_TEST_CASE_GLOBAL and method_data_exists:
 
                 requirement_writer = CTIGalRequirementWriter(requirement_object,
                                                              slope=regression_results_row[getattr(
@@ -235,15 +259,15 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
                 requirement_writer.report_data()
 
-            elif test_case == "Global" and not method_data_exists:
+            elif test_case == CTI_GAL_TEST_CASE_GLOBAL and not method_data_exists:
                 # Report that the test wasn't run due to a lack of data
                 report_test_not_run(requirement_object,
-                                    reason="No data is available for this test.")
+                                    reason=MSG_NO_DATA)
 
             else:
                 # Report that the test wasn't run due to it not yet being implemented
                 report_test_not_run(requirement_object,
-                                    reason="This test has not yet been implemented.")
+                                    reason=MSG_NOT_IMPLEMENTED)
 
             test_object.GlobalResult = requirement_object.ValidationResult
 
