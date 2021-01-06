@@ -25,8 +25,6 @@ from copy import deepcopy
 from astropy import table
 
 from SHE_PPT.logging import getLogger
-from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
@@ -35,6 +33,8 @@ from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAME
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
 from .constants.shear_estimation_methods import METHODS
+from .table_formats.regression_results import tf as rr_tf
+
 
 logger = getLogger(__name__)
 

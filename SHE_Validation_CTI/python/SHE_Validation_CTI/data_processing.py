@@ -26,11 +26,11 @@ from astropy import table
 from SHE_PPT import mdb
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
-from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
-from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 import numpy as np
+
 from .constants.shear_estimation_methods import METHODS
+from .table_formats.cti_gal_object_data import tf as cgod_tf
+from .table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
 
 
 logger = getLogger(__name__)

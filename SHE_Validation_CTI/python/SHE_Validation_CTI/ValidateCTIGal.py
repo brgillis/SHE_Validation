@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -29,8 +29,8 @@ import argparse
 from SHE_PPT import logging as log
 from SHE_PPT.utility import get_arguments_string
 
-import SHE_Validation
-from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
+from . import __version__
+from .validate_cti_gal import run_validate_cti_gal_from_args
 
 profiling_filename = "validate_cti_gal.prof"
 
@@ -106,7 +106,7 @@ def mainMethod(args):
     logger.info('# Entering ValidateCTIGal mainMethod()')
     logger.info('#')
 
-    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_ValidateCTIGal",
+    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + __version__ + " SHE_Validation_ValidateCTIGal",
                                     store_true=["profile", "dry_run"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)

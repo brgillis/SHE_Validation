@@ -31,11 +31,10 @@ from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.telescope_coords import get_vis_quadrant
-from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 import numpy as np
 
 from .constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from .table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
 
 
 logger = getLogger(__name__)
