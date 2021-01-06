@@ -24,13 +24,13 @@ __updated__ = "2021-01-06"
 from astropy import table
 
 from SHE_PPT import mdb
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 import numpy as np
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from .table_formats.cti_gal_object_data import tf as cgod_tf
-from .table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
+from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 
 
 logger = getLogger(__name__)
@@ -45,11 +45,11 @@ def add_readout_register_distance(object_data_table: table.Table):
     det_size_y = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
     det_split_y = det_size_y / 2
 
-    y_pos = object_data_table[cgod_tf.y]
+    y_pos = object_data_table[CGOD_TF.y]
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    readout_distance_column = table.Column(name=cgod_tf.readout_dist, data=readout_distance_data)
+    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
 
     object_data_table.add_column(readout_distance_column)
 
@@ -66,25 +66,25 @@ def calculate_regression_results(object_data_table: table.Table,
     regression_results_table = initialise_regression_results_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
-    readout_dist_data = object_data_table[cgod_tf.readout_dist]
+    readout_dist_data = object_data_table[CGOD_TF.readout_dist]
 
     # Perform a regression for each method
     for method in METHODS:
 
         # Get required data
-        g1_data = object_data_table[getattr(cgod_tf, f"g1_image_{method}")]
-        weight_data = object_data_table[getattr(cgod_tf, f"weight_{method}")]
+        g1_data = object_data_table[getattr(CGOD_TF, f"g1_image_{method}")]
+        weight_data = object_data_table[getattr(CGOD_TF, f"weight_{method}")]
 
         tot_weight = np.nansum(weight_data)
 
         # If there's no weight, skip the regression and output NaN for all values
         if not tot_weight > 0.:
-            rr_row[getattr(rr_tf, f"weight_{method}")] = 0.
-            rr_row[getattr(rr_tf, f"slope_{method}")] = np.NaN
-            rr_row[getattr(rr_tf, f"intercept_{method}")] = np.NaN
-            rr_row[getattr(rr_tf, f"slope_err_{method}")] = np.NaN
-            rr_row[getattr(rr_tf, f"intercept_err_{method}")] = np.NaN
-            rr_row[getattr(rr_tf, f"slope_intercept_covar_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"weight_{method}")] = 0.
+            rr_row[getattr(RR_TF, f"slope_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_err_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_err_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_intercept_covar_{method}")] = np.NaN
             continue
 
         # Get a mask for the data where the weight is > 0 and not NaN
@@ -101,11 +101,11 @@ def calculate_regression_results(object_data_table: table.Table,
                                                     masked_g1_err_data[~bad_data_mask])
 
         # Save the results in the output table
-        rr_row[getattr(rr_tf, f"weight_{method}")] = tot_weight
-        rr_row[getattr(rr_tf, f"slope_{method}")] = linregress_results.slope
-        rr_row[getattr(rr_tf, f"intercept_{method}")] = linregress_results.intercept
-        rr_row[getattr(rr_tf, f"slope_err_{method}")] = linregress_results.slope_err
-        rr_row[getattr(rr_tf, f"intercept_err_{method}")] = linregress_results.intercept_err
-        rr_row[getattr(rr_tf, f"slope_intercept_covar_{method}")] = linregress_results.slope_intercept_covar
+        rr_row[getattr(RR_TF, f"weight_{method}")] = tot_weight
+        rr_row[getattr(RR_TF, f"slope_{method}")] = linregress_results.slope
+        rr_row[getattr(RR_TF, f"intercept_{method}")] = linregress_results.intercept
+        rr_row[getattr(RR_TF, f"slope_err_{method}")] = linregress_results.slope_err
+        rr_row[getattr(RR_TF, f"intercept_err_{method}")] = linregress_results.intercept_err
+        rr_row[getattr(RR_TF, f"slope_intercept_covar_{method}")] = linregress_results.slope_intercept_covar
 
     return regression_results_table

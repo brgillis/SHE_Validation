@@ -26,6 +26,7 @@ from typing import Dict, List
 from astropy import table
 
 from SHE_PPT import shear_utility
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -33,8 +34,7 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.telescope_coords import get_vis_quadrant
 import numpy as np
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from .table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
+from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
 logger = getLogger(__name__)
@@ -234,29 +234,29 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
 
         # Initialise the table with one row for each object
         object_data_table = initialise_cti_gal_object_data_table(size=num_objects,
-                                                                 optional_columns=[cgod_tf.quadrant])
+                                                                 optional_columns=[CGOD_TF.quadrant])
 
         # Fill in the data for each object
         for object, row in zip(raw_object_data_list, object_data_table):
 
             position_info = object.position_info[exp_index]
 
-            row[cgod_tf.ID] = object.ID
+            row[CGOD_TF.ID] = object.ID
 
-            row[cgod_tf.x] = position_info.x_pix
-            row[cgod_tf.y] = position_info.y_pix
+            row[CGOD_TF.x] = position_info.x_pix
+            row[CGOD_TF.y] = position_info.y_pix
 
-            row[cgod_tf.det_ix] = position_info.det_ix
-            row[cgod_tf.det_iy] = position_info.det_iy
+            row[CGOD_TF.det_ix] = position_info.det_ix
+            row[CGOD_TF.det_iy] = position_info.det_iy
 
             # Fill in data for each shear estimate method
             for method in METHODS:
 
                 exposure_shear_info = position_info.exposure_shear_info[method]
 
-                row[getattr(cgod_tf, f"g1_image_{method}")] = exposure_shear_info.g1
-                row[getattr(cgod_tf, f"g2_image_{method}")] = exposure_shear_info.g2
-                row[getattr(cgod_tf, f"weight_{method}")] = exposure_shear_info.weight
+                row[getattr(CGOD_TF, f"g1_image_{method}")] = exposure_shear_info.g1
+                row[getattr(CGOD_TF, f"g2_image_{method}")] = exposure_shear_info.g2
+                row[getattr(CGOD_TF, f"weight_{method}")] = exposure_shear_info.weight
 
         l_object_data_tables[exp_index] = object_data_table
 

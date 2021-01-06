@@ -27,15 +27,15 @@ from astropy.table import Table
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import constants
-from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
@@ -202,14 +202,14 @@ class TestCase:
 
             for object_data, row in zip(raw_object_data_list, object_data_table):
 
-                assert object_data.ID == row[cgod_tf.ID]
-                assert np.isclose(object_data.position_info[exp_index].x_pix, row[cgod_tf.x])
-                assert np.isclose(object_data.position_info[exp_index].y_pix, row[cgod_tf.y])
+                assert object_data.ID == row[CGOD_TF.ID]
+                assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
+                assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,
-                                  row[getattr(cgod_tf, "g1_image_LensMC")])
+                                  row[getattr(CGOD_TF, "g1_image_LensMC")])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g2,
-                                  row[getattr(cgod_tf, "g2_image_LensMC")])
+                                  row[getattr(CGOD_TF, "g2_image_LensMC")])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].weight,
-                                  row[getattr(cgod_tf, "weight_LensMC")])
+                                  row[getattr(CGOD_TF, "weight_LensMC")])
 
         return

@@ -102,10 +102,10 @@ class SheRegressionResultsFormat(object):
 
 
 # Define an instance of this object that can be imported
-regression_results_table_format = SheRegressionResultsFormat()
+REGRESSION_RESULTS_TABLE_FORMAT = SheRegressionResultsFormat()
 
 # And a convenient alias for it
-tf = regression_results_table_format
+TF = REGRESSION_RESULTS_TABLE_FORMAT
 
 
 def make_regression_results_table_header(product_type: str = None):
@@ -117,9 +117,9 @@ def make_regression_results_table_header(product_type: str = None):
 
     header = OrderedDict()
 
-    header[tf.m.fits_version] = tf.__version__
-    header[tf.m.fits_def] = FITS_DEF
-    header[tf.m.product_type] = product_type
+    header[TF.m.fits_version] = TF.__version__
+    header[TF.m.fits_def] = FITS_DEF
+    header[TF.m.product_type] = product_type
 
     return header
 
@@ -141,13 +141,13 @@ def initialise_regression_results_table(optional_columns: List[str] = None,
     else:
         # Check all optional columns are valid
         for colname in optional_columns:
-            if colname not in tf.all:
+            if colname not in TF.all:
                 raise ValueError("Invalid optional column name: " + colname)
 
-    regression_results_table = init_table(tf, optional_columns=optional_columns, init_cols=init_cols, size=size)
+    regression_results_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
 
     regression_results_table.meta = make_regression_results_table_header(product_type=product_type)
 
-    assert(is_in_format(regression_results_table, tf, verbose=True))
+    assert(is_in_format(regression_results_table, TF, verbose=True))
 
     return regression_results_table

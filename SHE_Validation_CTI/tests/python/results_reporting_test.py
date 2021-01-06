@@ -26,13 +26,13 @@ import os
 import pytest
 
 from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
-from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
@@ -40,7 +40,7 @@ from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_result
                                                   KEY_REASON, KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
                                                   DESC_REASON, DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
                                                   MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR, MSG_NO_DATA, MSG_NOT_IMPLEMENTED)
-from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 import numpy as np
 
 
@@ -81,10 +81,10 @@ class TestCase:
         exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_row = exp_results_table[exp_index]
-            exp_row[getattr(rr_tf, "slope_LensMC")] = exp_results.slope
-            exp_row[getattr(rr_tf, "slope_err_LensMC")] = exp_results.slope_err
-            exp_row[getattr(rr_tf, "intercept_LensMC")] = exp_results.intercept
-            exp_row[getattr(rr_tf, "intercept_err_LensMC")] = exp_results.intercept_err
+            exp_row[getattr(RR_TF, "slope_LensMC")] = exp_results.slope
+            exp_row[getattr(RR_TF, "slope_err_LensMC")] = exp_results.slope_err
+            exp_row[getattr(RR_TF, "intercept_LensMC")] = exp_results.intercept
+            exp_row[getattr(RR_TF, "intercept_err_LensMC")] = exp_results.intercept_err
 
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
                 num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)

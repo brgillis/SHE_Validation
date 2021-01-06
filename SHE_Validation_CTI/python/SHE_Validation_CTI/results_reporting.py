@@ -24,6 +24,7 @@ from copy import deepcopy
 
 from astropy import table
 
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
@@ -32,8 +33,7 @@ from .constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_S
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from .table_formats.regression_results import tf as rr_tf
+from .table_formats.regression_results import TF as RR_TF
 
 
 logger = getLogger(__name__)
@@ -249,13 +249,13 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
                 requirement_writer = CTIGalRequirementWriter(requirement_object,
                                                              slope=regression_results_row[getattr(
-                                                                 rr_tf, f"slope_{method}")],
+                                                                 RR_TF, f"slope_{method}")],
                                                              slope_err=regression_results_row[getattr(
-                                                                 rr_tf, f"slope_err_{method}")],
+                                                                 RR_TF, f"slope_err_{method}")],
                                                              intercept=regression_results_row[getattr(
-                                                                 rr_tf, f"intercept_{method}")],
+                                                                 RR_TF, f"intercept_{method}")],
                                                              intercept_err=regression_results_row[getattr(
-                                                                 rr_tf, f"intercept_err_{method}")])
+                                                                 RR_TF, f"intercept_err_{method}")])
 
                 requirement_writer.report_data()
 

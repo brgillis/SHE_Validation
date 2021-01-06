@@ -115,10 +115,10 @@ class SheCtiGalObjectDataFormat(object):
 
 
 # Define an instance of this object that can be imported
-cti_gal_object_data_table_format = SheCtiGalObjectDataFormat()
+CTI_GAL_OBJECT_DATA_TABLE_FORMAT = SheCtiGalObjectDataFormat()
 
 # And a convient alias for it
-tf = cti_gal_object_data_table_format
+TF = CTI_GAL_OBJECT_DATA_TABLE_FORMAT
 
 
 def make_cti_gal_object_data_table_header():
@@ -130,8 +130,8 @@ def make_cti_gal_object_data_table_header():
 
     header = OrderedDict()
 
-    header[tf.m.fits_version] = tf.__version__
-    header[tf.m.fits_def] = FITS_DEF
+    header[TF.m.fits_version] = TF.__version__
+    header[TF.m.fits_def] = FITS_DEF
 
     return header
 
@@ -152,13 +152,13 @@ def initialise_cti_gal_object_data_table(optional_columns: List[str] = None,
     else:
         # Check all optional columns are valid
         for colname in optional_columns:
-            if colname not in tf.all:
+            if colname not in TF.all:
                 raise ValueError("Invalid optional column name: " + colname)
 
-    cti_gal_object_data_table = init_table(tf, optional_columns=optional_columns, init_cols=init_cols, size=size)
+    cti_gal_object_data_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
 
     cti_gal_object_data_table.meta = make_cti_gal_object_data_table_header()
 
-    assert(is_in_format(cti_gal_object_data_table, tf, verbose=True))
+    assert(is_in_format(cti_gal_object_data_table, TF, verbose=True))
 
     return cti_gal_object_data_table

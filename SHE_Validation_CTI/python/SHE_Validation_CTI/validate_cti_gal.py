@@ -28,6 +28,7 @@ from astropy import table
 from SHE_PPT import mdb
 from SHE_PPT import products
 from SHE_PPT import telescope_coords
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
@@ -38,11 +39,10 @@ from SHE_PPT.table_utility import is_in_format
 
 from . import __version__
 from .constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
-from .table_formats.regression_results import tf as cgrr_tf, initialise_regression_results_table
+from .table_formats.regression_results import initialise_regression_results_table
 
 
 logger = getLogger(__name__)
