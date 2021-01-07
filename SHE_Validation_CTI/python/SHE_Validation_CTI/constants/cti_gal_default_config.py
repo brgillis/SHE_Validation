@@ -23,5 +23,5 @@ __updated__ = "2021-01-07"
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
 # Config keys and default values
-CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5,
-                          AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5}
+CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
+                          AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.}
