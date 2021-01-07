@@ -39,7 +39,7 @@ from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 
 from . import __version__
-from .constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
+from .constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
 from .constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
@@ -65,9 +65,12 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Complete!")
 
     # Load the configuration, and convert values in it to the proper type
-    qualified_pipeline_config_filename = join(args.workdir, args.pipeline_config)
-    logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
-    pipeline_config = read_analysis_config(qualified_pipeline_config_filename,
+    if args.pipeline_config is None:
+        logger.info("No pipeline_config provided; default values will be used.")
+    else:
+        qualified_pipeline_config_filename = join(args.workdir, args.pipeline_config)
+        logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
+    pipeline_config = read_analysis_config(args.pipeline_config,
                                            workdir=args.workdir,
                                            cline_args=None,
                                            defaults=CTI_GAL_DEFAULT_CONFIG)

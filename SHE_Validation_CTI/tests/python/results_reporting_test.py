@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-01-07"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,8 +28,9 @@ import pytest
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import _make_config_from_defaults
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
+from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
@@ -52,6 +53,10 @@ class TestCase:
 
     @classmethod
     def setup_class(cls):
+
+        # Make a pipeline_config using the default values
+        cls.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,
+                                                         defaults=CTI_GAL_DEFAULT_CONFIG)
 
         return
 
@@ -91,6 +96,7 @@ class TestCase:
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
+                                            pipeline_config=self.pipeline_config,
                                             method_data_exists=True)
 
             exp_product_list[exp_index] = exp_product
@@ -130,7 +136,9 @@ class TestCase:
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" in exp_slope_info_string
+        assert (f"Maximum allowed slope_z = " +
+                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]}\n"
+                in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
         assert exp_info.Parameter[1].Key == KEY_INTERCEPT_INFO
@@ -139,7 +147,9 @@ class TestCase:
         assert f"intercept = {0.}\n" in exp_intercept_info_string
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
-        assert f"Maximum allowed intercept_z = {INTERCEPT_FAIL_SIGMA}\n" in exp_intercept_info_string
+        assert ("Maximum allowed intercept_z = " +
+                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]}\n"
+                in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
         # Exposure 1 - slope fail and intercept pass
@@ -202,6 +212,7 @@ class TestCase:
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
+                                        pipeline_config=self.pipeline_config,
                                         method_data_exists=False)
 
         # Check that the product validates its binding
