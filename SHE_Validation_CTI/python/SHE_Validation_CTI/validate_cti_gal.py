@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-01-07"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,12 +32,14 @@ from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATI
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import read_analysis_config
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 
 from . import __version__
+from .constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
 from .constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
@@ -56,11 +58,23 @@ def run_validate_cti_gal_from_args(args):
     # Load in the files in turn to make sure there aren't any issues with them.
 
     # Load the MDB
-    logger.info("Loading MDB.")
     qualified_mdb_filename = join(args.workdir, args.mdb)
+    logger.info(f"Loading MDB from {qualified_mdb_filename}.")
     mdb.init(qualified_mdb_filename)
     telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
     logger.info("Complete!")
+
+    # Load the configuration, and convert values in it to the proper type
+    qualified_pipeline_config_filename = join(args.workdir, args.pipeline_config)
+    logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
+    pipeline_config = read_analysis_config(qualified_pipeline_config_filename,
+                                           workdir=args.workdir,
+                                           cline_args=None,
+                                           defaults=CTI_GAL_DEFAULT_CONFIG)
+    pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value] = float(
+        pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value])
+    pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value] = float(
+        pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
 
     # Load the image data as a SHEFrameStack
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
@@ -174,11 +188,13 @@ def run_validate_cti_gal_from_args(args):
         for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table, l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
                                             regression_results_row=exposure_regression_results_row,
+                                            pipeline_config=pipeline_config,
                                             method_data_exists=method_data_exists)
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
                                         regression_results_row=observation_regression_results_table[0],
+                                        pipeline_config=pipeline_config,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile

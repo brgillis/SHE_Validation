@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-01-07"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,6 @@ from SHE_PPT.logging import getLogger
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
-from .constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
@@ -92,13 +91,17 @@ class CTIGalRequirementWriter():
                  slope: float,
                  slope_err: float,
                  intercept: float,
-                 intercept_err: float,):
+                 intercept_err: float,
+                 slope_fail_sigma: float,
+                 intercept_fail_sigma: float):
 
         self.requirement_object = requirement_object
         self.slope = slope
         self.slope_err = slope_err
         self.intercept = intercept
         self.intercept_err = intercept_err
+        self.slope_fail_sigma = slope_fail_sigma
+        self.intercept_fail_sigma = intercept_fail_sigma
 
         # Calculate some values for both the slope and intercept
         for prop in ("slope", "intercept"):
@@ -111,7 +114,7 @@ class CTIGalRequirementWriter():
                 setattr(self, f"{prop}_pass", False)
             else:
                 setattr(self, f"{prop}_z", np.abs(getattr(self, prop) / getattr(self, f"{prop}_err")))
-                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < SLOPE_FAIL_SIGMA)
+                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < getattr(self, f"{prop}_fail_sigma"))
 
             if getattr(self, f"{prop}_pass"):
                 setattr(self, f"{prop}_result", RESULT_PASS)
@@ -142,7 +145,7 @@ class CTIGalRequirementWriter():
                                                           f"slope = {self.slope}\n" +
                                                           f"slope_err = {self.slope_err}\n" +
                                                           f"slope_z = {self.slope_z}\n" +
-                                                          f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" +
+                                                          f"Maximum allowed slope_z = {self.slope_fail_sigma}\n" +
                                                           f"Result: {self.slope_result}\n")
 
         intercept_supplementary_info_parameter.Key = KEY_INTERCEPT_INFO
@@ -152,7 +155,7 @@ class CTIGalRequirementWriter():
                                                               f"intercept_err = {self.intercept_err}\n" +
                                                               f"intercept_z = {self.intercept_z}\n" +
                                                               f"Maximum allowed intercept_z = " +
-                                                              f"{INTERCEPT_FAIL_SIGMA}\n" +
+                                                              f"{self.intercept_fail_sigma}\n" +
                                                               f"Result: {self.intercept_result}\n")
 
         return
@@ -221,6 +224,7 @@ class CTIGalRequirementWriter():
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row: table.Row,
+                                    pipeline_config: Dict[str, Any],
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -255,7 +259,11 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                              intercept=regression_results_row[getattr(
                                                                  RR_TF, f"intercept_{method}")],
                                                              intercept_err=regression_results_row[getattr(
-                                                                 RR_TF, f"intercept_err_{method}")])
+                                                                 RR_TF, f"intercept_err_{method}")],
+                                                             slope_fail_sigma=pipeline_config[
+                                                                 AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value],
+                                                             intercept_fail_sigma=pipeline_config[
+                                                                 AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
 
                 requirement_writer.report_data()
 
