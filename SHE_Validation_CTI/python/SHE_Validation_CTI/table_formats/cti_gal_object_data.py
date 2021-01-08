@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,14 +26,14 @@ from typing import List
 
 from astropy import table
 
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
-from SHE_Validation_CTI import constants
 
 
-fits_version = "8.0"
-fits_def = "she.ctiGalObjectData"
+FITS_VERSION = "8.0"
+FITS_DEF = "she.ctiGalObjectData"
 
 logger = getLogger(__name__)
 
@@ -45,8 +45,8 @@ class SheCtiGalObjectDataMeta(object):
 
     def __init__(self):
 
-        self.__version__ = fits_version
-        self.table_format = fits_def
+        self.__version__ = FITS_VERSION
+        self.table_format = FITS_DEF
 
         # Table metadata labels
         self.fits_version = fits_version_label
@@ -88,7 +88,7 @@ class SheCtiGalObjectDataFormat(object):
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in constants.d_shear_estimation_method_table_formats:
+        for method in METHODS:
 
             upper_method = method.upper()
 
@@ -115,10 +115,10 @@ class SheCtiGalObjectDataFormat(object):
 
 
 # Define an instance of this object that can be imported
-cti_gal_object_data_table_format = SheCtiGalObjectDataFormat()
+CTI_GAL_OBJECT_DATA_TABLE_FORMAT = SheCtiGalObjectDataFormat()
 
 # And a convient alias for it
-tf = cti_gal_object_data_table_format
+TF = CTI_GAL_OBJECT_DATA_TABLE_FORMAT
 
 
 def make_cti_gal_object_data_table_header():
@@ -130,8 +130,8 @@ def make_cti_gal_object_data_table_header():
 
     header = OrderedDict()
 
-    header[tf.m.fits_version] = tf.__version__
-    header[tf.m.fits_def] = fits_def
+    header[TF.m.fits_version] = TF.__version__
+    header[TF.m.fits_def] = FITS_DEF
 
     return header
 
@@ -152,13 +152,13 @@ def initialise_cti_gal_object_data_table(optional_columns: List[str] = None,
     else:
         # Check all optional columns are valid
         for colname in optional_columns:
-            if colname not in tf.all:
+            if colname not in TF.all:
                 raise ValueError("Invalid optional column name: " + colname)
 
-    cti_gal_object_data_table = init_table(tf, optional_columns=optional_columns, init_cols=init_cols, size=size)
+    cti_gal_object_data_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
 
     cti_gal_object_data_table.meta = make_cti_gal_object_data_table_header()
 
-    assert(is_in_format(cti_gal_object_data_table, tf, verbose=True))
+    assert(is_in_format(cti_gal_object_data_table, TF, verbose=True))
 
     return cti_gal_object_data_table

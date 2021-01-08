@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,10 +26,21 @@ import os
 import pytest
 
 from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.results_reporting import fill_cti_gal_validation_results
-from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf, initialise_regression_results_table
+from SHE_Validation_CTI.constants.cti_gal_default_config import SLOPE_FAIL_SIGMA, INTERCEPT_FAIL_SIGMA
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+                                                            CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
+                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
+from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
+                                                  RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
+                                                  COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
+                                                  INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
+                                                  KEY_REASON, KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
+                                                  DESC_REASON, DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
+                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR, MSG_NO_DATA, MSG_NOT_IMPLEMENTED)
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 import numpy as np
 
 
@@ -70,13 +81,13 @@ class TestCase:
         exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_row = exp_results_table[exp_index]
-            exp_row[getattr(rr_tf, "slope_LensMC")] = exp_results.slope
-            exp_row[getattr(rr_tf, "slope_err_LensMC")] = exp_results.slope_err
-            exp_row[getattr(rr_tf, "intercept_LensMC")] = exp_results.intercept
-            exp_row[getattr(rr_tf, "intercept_err_LensMC")] = exp_results.intercept_err
+            exp_row[getattr(RR_TF, "slope_LensMC")] = exp_results.slope
+            exp_row[getattr(RR_TF, "slope_err_LensMC")] = exp_results.slope_err
+            exp_row[getattr(RR_TF, "intercept_LensMC")] = exp_results.intercept
+            exp_row[getattr(RR_TF, "intercept_err_LensMC")] = exp_results.intercept_err
 
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests=constants.num_method_cti_gal_test_cases)
+                num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
@@ -88,12 +99,12 @@ class TestCase:
 
         # Figure out the index for LensMC Global test results and save it for each check
         test_case_index = 0
-        for method in constants.methods:
+        for method in METHODS:
             if not method == "LensMC":
-                test_case_index += constants.num_cti_gal_test_cases
+                test_case_index += NUM_CTI_GAL_TEST_CASES
                 continue
-            for test_case in constants.cti_gal_test_cases:
-                if not test_case == "Global":
+            for test_case in CTI_GAL_TEST_CASES:
+                if not test_case == CTI_GAL_TEST_CASE_GLOBAL:
                     test_case_index += 1
                     continue
 
@@ -103,93 +114,91 @@ class TestCase:
 
         # Exposure 0 - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "PASSED"
+        assert exp_test_result.GlobalResult == RESULT_PASS
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
-        assert requirement_object.MeasuredValue.Parameter == "Slope Z-value"
+        assert requirement_object.Comment == INFO_MULTIPLE
+        assert requirement_object.MeasuredValue.Parameter == CTI_GAL_PARAMETER
         assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
-        assert requirement_object.ValidationResult == "PASSED"
+        assert requirement_object.ValidationResult == RESULT_PASS
 
         exp_info = requirement_object.SupplementaryInformation
 
-        assert exp_info.Parameter[0].Key == "SLOPE_INFO"
-        assert exp_info.Parameter[0].Description == ("Information about the test on slope of g1_image " +
-                                                     "versus readout distance.")
+        assert exp_info.Parameter[0].Key == KEY_SLOPE_INFO
+        assert exp_info.Parameter[0].Description == DESC_SLOPE_INFO
         exp_slope_info_string = exp_info.Parameter[0].StringValue
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert f"Maximum allowed slope_z = {constants.slope_fail_sigma}\n" in exp_slope_info_string
-        assert f"Result: PASSED\n" in exp_slope_info_string
+        assert f"Maximum allowed slope_z = {SLOPE_FAIL_SIGMA}\n" in exp_slope_info_string
+        assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
-        assert exp_info.Parameter[1].Key == "INTERCEPT_INFO"
-        assert exp_info.Parameter[1].Description == ("Information about the test on intercept of " +
-                                                     "g1_image versus readout distance.")
+        assert exp_info.Parameter[1].Key == KEY_INTERCEPT_INFO
+        assert exp_info.Parameter[1].Description == DESC_INTERCEPT_INFO
         exp_intercept_info_string = exp_info.Parameter[1].StringValue
         assert f"intercept = {0.}\n" in exp_intercept_info_string
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
-        assert f"Maximum allowed intercept_z = {constants.intercept_fail_sigma}\n" in exp_intercept_info_string
-        assert f"Result: PASSED\n" in exp_intercept_info_string
+        assert f"Maximum allowed intercept_z = {INTERCEPT_FAIL_SIGMA}\n" in exp_intercept_info_string
+        assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
         # Exposure 1 - slope fail and intercept pass
         exp_test_result = exp_product_list[1].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "FAILED"
+        assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
-        assert requirement_object.ValidationResult == "FAILED"
+        assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 2 - slope pass and intercept fail
         exp_test_result = exp_product_list[2].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "PASSED"
+        assert exp_test_result.GlobalResult == RESULT_PASS
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.Comment == WARNING_MULTIPLE
         assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
-        assert requirement_object.ValidationResult == "PASSED"
+        assert requirement_object.ValidationResult == RESULT_PASS
 
         # Exposure 3 - slope fail and intercept fail
         exp_test_result = exp_product_list[3].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "FAILED"
+        assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "INFO: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
-        assert requirement_object.ValidationResult == "FAILED"
+        assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 4 - zero slope_err and zero intercept_err
         exp_test_result = exp_product_list[4].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "FAILED"
+        assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.Comment == WARNING_MULTIPLE
         assert requirement_object.MeasuredValue.Value.FloatValue == -2.0
-        assert requirement_object.ValidationResult == "FAILED"
+        assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
-        assert "Test failed due to zero slope error.\n" in exp_slope_info_string
+        assert MSG_ZERO_SLOPE_ERR in exp_slope_info_string
 
         # Exposure 5 - NaN data
         exp_test_result = exp_product_list[5].Data.ValidationTestList[lensmc_global_test_case_index]
-        assert exp_test_result.GlobalResult == "FAILED"
+        assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == "WARNING: Multiple notes; see SupplementaryInformation."
+        assert requirement_object.Comment == WARNING_MULTIPLE
         assert requirement_object.MeasuredValue.Value.FloatValue == -1.0
-        assert requirement_object.ValidationResult == "FAILED"
+        assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
-        assert "Test failed due to NaN regression results for slope.\n" in exp_slope_info_string
+        assert MSG_NAN_SLOPE in exp_slope_info_string
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
         obs_row = obs_results_table[0]
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests=constants.num_method_cti_gal_test_cases)
+            num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
@@ -200,23 +209,23 @@ class TestCase:
 
         # Check metadata for all test cases
         test_case_index = 0
-        for method in constants.methods:
-            for test_case in constants.cti_gal_test_cases:
+        for method in METHODS:
+            for test_case in CTI_GAL_TEST_CASES:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-                assert constants.cti_gal_test_case_info[test_case].id in obs_test_result.TestId
+                assert D_CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
-                assert obs_test_result.TestDescription == constants.cti_gal_test_case_info[test_case].description
+                assert obs_test_result.TestDescription == D_CTI_GAL_TEST_CASE_INFO[test_case].description
 
                 # Check that the product indeed reports no data
-                assert obs_test_result.GlobalResult == "PASSED"
-                assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == "WARNING: Test not run."
+                assert obs_test_result.GlobalResult == RESULT_PASS
+                assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == WARNING_TEST_NOT_RUN
                 obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
-                assert obs_info.Parameter[0].Key == "REASON"
-                assert obs_info.Parameter[0].Description == "Why the test was not run."
-                if test_case == "Global":
-                    assert obs_info.Parameter[0].StringValue == "No data is available for this test."
+                assert obs_info.Parameter[0].Key == KEY_REASON
+                assert obs_info.Parameter[0].Description == DESC_REASON
+                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+                    assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
                 else:
-                    assert obs_info.Parameter[0].StringValue == "This test has not yet been implemented."
+                    assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
 
                 test_case_index += 1
 

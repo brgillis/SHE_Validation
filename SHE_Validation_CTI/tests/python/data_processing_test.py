@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,19 +28,13 @@ import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_PPT import mdb
+from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
-from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf, initialise_cti_gal_object_data_table
-from SHE_Validation_CTI.table_formats.regression_results import tf as rr_tf
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 import numpy as np
-
-
-test_data_location = "SHE_PPT_8_5"
-
-# Input data filenames
-mdb_filename = "sample_mdb-SC8.xml"
 
 
 class TestCase:
@@ -53,10 +47,10 @@ class TestCase:
     def setup_class(cls):
 
         # Download the MDB from WebDAV
-        sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
+        sync_mdb = DataSync(SYNC_CONF, TEST_FILES_MDB)
         sync_mdb.download()
         qualified_mdb_filename = sync_mdb.absolutePath(
-            os.path.join(test_data_location, mdb_filename))
+            os.path.join(TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME))
         assert os.path.isfile(
             qualified_mdb_filename), f"Cannot find file: {qualified_mdb_filename}"
 
@@ -82,13 +76,13 @@ class TestCase:
         # Make some mock data
         mock_y_data = np.array([-100., 0., 500., 1000., 2000., 3000., 4000., 5000.], dtype='>f4')
 
-        mock_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.y: mock_y_data})
+        mock_data_table = initialise_cti_gal_object_data_table(init_cols={CGOD_TF.y: mock_y_data})
 
         # Run the function
         add_readout_register_distance(mock_data_table)
 
         # Check the results are as expected
-        ro_dist = mock_data_table[cgod_tf.readout_dist]
+        ro_dist = mock_data_table[CGOD_TF.readout_dist]
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
@@ -120,9 +114,9 @@ class TestCase:
         g1_data[-lnan - lzero:-lzero] = np.NaN
         weight_data[-lzero:] = 0
 
-        object_data_table = initialise_cti_gal_object_data_table(init_cols={cgod_tf.weight_LensMC: weight_data,
-                                                                            cgod_tf.readout_dist: readout_dist_data,
-                                                                            cgod_tf.g1_image_LensMC: g1_data})
+        object_data_table = initialise_cti_gal_object_data_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
+                                                                            CGOD_TF.readout_dist: readout_dist_data,
+                                                                            CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
@@ -130,23 +124,23 @@ class TestCase:
 
         # Check the results
 
-        assert regression_results_table.meta[rr_tf.m.product_type] == "EXP"
+        assert regression_results_table.meta[RR_TF.m.product_type] == "EXP"
         assert len(regression_results_table) == 1
 
         rr_row = regression_results_table[0]
 
-        assert rr_row[rr_tf.weight_KSB] == 0
-        assert np.isnan(rr_row[rr_tf.slope_KSB])
+        assert rr_row[RR_TF.weight_KSB] == 0
+        assert np.isnan(rr_row[RR_TF.slope_KSB])
 
         readout_dist_mean = np.mean(readout_dist_data[:l])
         ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean)**2))
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data[:l]**2) / l)
 
-        assert rr_row[rr_tf.weight_LensMC] == l / g1_err**2
-        assert np.isclose(rr_row[rr_tf.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
-        assert np.isclose(rr_row[rr_tf.slope_err_LensMC], ex_slope_err, rtol=0.1)
-        assert np.isclose(rr_row[rr_tf.intercept_LensMC], b, atol=sigmal_tol * ex_intercept_err)
-        assert np.isclose(rr_row[rr_tf.intercept_err_LensMC], ex_intercept_err, rtol=0.1)
-        assert np.isclose(rr_row[rr_tf.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
+        assert rr_row[RR_TF.weight_LensMC] == l / g1_err**2
+        assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
+        assert np.isclose(rr_row[RR_TF.slope_err_LensMC], ex_slope_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.intercept_LensMC], b, atol=sigmal_tol * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept_err_LensMC], ex_intercept_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         return

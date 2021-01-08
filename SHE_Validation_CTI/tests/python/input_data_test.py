@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,6 +27,10 @@ from astropy.table import Table
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         LENSMC_MEASUREMENTS_TABLE_FILENAME)
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -34,19 +38,9 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import tf as cgod_tf
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
-
-
-test_data_location = "SHE_PPT_8_5"
-
-# Input data filenames
-
-vis_calibrated_frames_filename = "vis_calibrated_frames.json"
-mer_final_catalogs_filename = "mer_final_catalogs.json"
-lensmc_measurements_filename = "mock_lensmc_measurements.fits"
-mdb_filename = "sample_mdb-SC8.xml"
 
 
 class TestCase:
@@ -58,15 +52,11 @@ class TestCase:
     @classmethod
     def setup_class(cls):
 
-        # Download the MDB from WebDAV
-        sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
-        sync_mdb.download()
-
         # Download the data stack files from WebDAV
-        sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
+        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
         sync_datastack.download()
         qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(test_data_location, vis_calibrated_frames_filename))
+            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
         assert os.path.isfile(
             qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
 
@@ -75,8 +65,8 @@ class TestCase:
         cls.logdir = os.path.join(cls.workdir, "logs")
 
         # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=vis_calibrated_frames_filename,
-                                            detections_listfile_filename=mer_final_catalogs_filename,
+        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                            detections_listfile_filename=MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                             workdir=cls.workdir,
                                             clean_detections=False,
                                             memmap=True,
@@ -92,8 +82,9 @@ class TestCase:
     def test_get_raw_cti_gal_object_data(self):
 
         # Read in the mock shear estimates
-        lmcm_tf = constants.d_shear_estimation_method_table_formats["LensMC"]
-        lensmc_shear_estimates_table = Table.read(os.path.join(self.workdir, "data", lensmc_measurements_filename))
+        lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
+        lensmc_shear_estimates_table = Table.read(os.path.join(
+            self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
         d_shear_estimates_tables = {"KSB": None,
                                     "LensMC": lensmc_shear_estimates_table,
                                     "MomentsML": None,
@@ -205,14 +196,14 @@ class TestCase:
 
             for object_data, row in zip(raw_object_data_list, object_data_table):
 
-                assert object_data.ID == row[cgod_tf.ID]
-                assert np.isclose(object_data.position_info[exp_index].x_pix, row[cgod_tf.x])
-                assert np.isclose(object_data.position_info[exp_index].y_pix, row[cgod_tf.y])
+                assert object_data.ID == row[CGOD_TF.ID]
+                assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
+                assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,
-                                  row[getattr(cgod_tf, "g1_image_LensMC")])
+                                  row[getattr(CGOD_TF, "g1_image_LensMC")])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g2,
-                                  row[getattr(cgod_tf, "g2_image_LensMC")])
+                                  row[getattr(CGOD_TF, "g2_image_LensMC")])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].weight,
-                                  row[getattr(cgod_tf, "weight_LensMC")])
+                                  row[getattr(CGOD_TF, "weight_LensMC")])
 
         return

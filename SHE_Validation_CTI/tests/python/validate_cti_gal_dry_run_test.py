@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2020-12-18"
+__updated__ = "2021-01-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,25 +26,20 @@ import time
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                         MER_FINAL_CATALOG_LISTFILE_FILENAME, LENSMC_MEASUREMENTS_TABLE_FILENAME,
+                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
-test_data_location = "SHE_PPT_8_5"
-
-# Input data filenames
-
-vis_calibrated_frames_filename = "vis_calibrated_frames.json"
-mer_final_catalogs_filename = "mer_final_catalogs.json"
-she_validated_measurements_filename = "she_validated_measurements.xml"
-mdb_filename = "sample_mdb-SC8.xml"
-
 # Output data filenames
 
-she_observation_validation_test_results_filename = "she_observation_validation_test_results.xml"
-she_exposure_validation_test_results_filename = "she_exposure_validation_test_results.json"
+SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
+SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
 
 class Args(object):
@@ -52,14 +47,14 @@ class Args(object):
     """
 
     def __init__(self):
-        self.vis_calibrated_frame_listfile = vis_calibrated_frames_filename
-        self.mer_final_catalog_listfile = mer_final_catalogs_filename
-        self.she_validated_measurements_product = she_validated_measurements_filename
+        self.vis_calibrated_frame_listfile = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME
+        self.mer_final_catalog_listfile = MER_FINAL_CATALOG_LISTFILE_FILENAME
+        self.she_validated_measurements_product = SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
         self.pipeline_config = None
-        self.mdb = mdb_filename
+        self.mdb = MDB_PRODUCT_FILENAME
 
-        self.she_observation_validation_test_results_product = she_observation_validation_test_results_filename
-        self.she_exposure_validation_test_results_listfile = she_exposure_validation_test_results_filename
+        self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
+        self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
 
         self.profile = False
         self.dry_run = True
@@ -85,7 +80,7 @@ class TestCase:
         sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
         sync_datastack.download()
         qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(test_data_location, vis_calibrated_frames_filename))
+            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
         assert os.path.isfile(
             qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
 
