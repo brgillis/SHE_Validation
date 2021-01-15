@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-01-07"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,6 +20,8 @@ __updated__ = "2021-01-06"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# Failure thresholds - these will likely be set in the configuration file in the future
-SLOPE_FAIL_SIGMA = 5
-INTERCEPT_FAIL_SIGMA = 5
+from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+
+# Config keys and default values
+CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
+                          AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.}

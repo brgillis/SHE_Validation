@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-01-07"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,9 +32,14 @@ from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_D
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import write_analysis_config
+from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
+
+# Pipeline config filename
+PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
 
 # Output data filenames
 
@@ -93,10 +98,19 @@ class TestCase:
         cls.args.workdir = cls.workdir
         cls.args.logdir = cls.logdir
 
+        # Write the pipeline config we'll be using
+        write_analysis_config(config_dict={AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 4.,
+                                           AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 10.},
+                              config_filename=PIPELINE_CONFIG_FILENAME,
+                              workdir=cls.args.workdir)
+
         return
 
     @classmethod
     def teardown_class(cls):
+
+        # Delete the pipeline config file
+        os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
 
         return
 
@@ -104,6 +118,7 @@ class TestCase:
 
         # Ensure this is a dry run
         self.args.dry_run = True
+        self.args.pipeline_config = None
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
@@ -115,8 +130,9 @@ class TestCase:
             this should be skipped.
         """
 
-        # Ensure this is not a dry run
+        # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
+        self.args.pipeline_config = PIPELINE_CONFIG_FILENAME
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
