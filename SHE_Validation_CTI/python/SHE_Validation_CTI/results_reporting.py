@@ -81,7 +81,6 @@ def report_test_not_run(requirement_object,
     supplementary_info_parameter.Description = DESC_REASON
     supplementary_info_parameter.StringValue = reason
 
-    return
 
 
 class CTIGalRequirementWriter():
@@ -106,7 +105,7 @@ class CTIGalRequirementWriter():
         self.intercept_fail_sigma = intercept_fail_sigma
 
         # Calculate some values for both the slope and intercept
-        for prop in ("slope", "intercept"):
+        for prop in "slope", "intercept":
             if np.isnan(getattr(self, prop)) or np.isnan(getattr(self, f"{prop}_err")):
                 setattr(self, f"{prop}_z", np.NaN)
                 setattr(self, f"{prop}_pass", False)
@@ -123,7 +122,6 @@ class CTIGalRequirementWriter():
             else:
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
-        return
 
     def add_supplementary_info(self,
                                extra_slope_message: str ="",
@@ -160,7 +158,6 @@ class CTIGalRequirementWriter():
                                                               f"{self.intercept_fail_sigma}\n" +
                                                               f"Result: {self.intercept_result}\n")
 
-        return
 
     def report_bad_data(self):
 
@@ -172,7 +169,6 @@ class CTIGalRequirementWriter():
         # Add a supplementary info key for each of the slope and intercept, reporting details
         self.add_supplementary_info(extra_slope_message=MSG_NAN_SLOPE)
 
-        return
 
     def report_zero_slope_err(self):
 
@@ -185,7 +181,6 @@ class CTIGalRequirementWriter():
 
         self.add_supplementary_info(extra_slope_message=MSG_ZERO_SLOPE_ERR,)
 
-        return
 
     def report_good_data(self):
 
@@ -204,7 +199,6 @@ class CTIGalRequirementWriter():
 
         self.add_supplementary_info()
 
-        return
 
     def report_data(self):
 
@@ -221,7 +215,6 @@ class CTIGalRequirementWriter():
         else:
             self.report_good_data()
 
-        return
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -283,4 +276,3 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             test_case_index += 1
 
-    return
