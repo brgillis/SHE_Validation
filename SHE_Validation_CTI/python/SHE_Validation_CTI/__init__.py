@@ -22,5 +22,4 @@ __updated__ = "2020-12-15"
 
 from SHE_Validation.__init__ import *
 
-__name__ = 'SHE_Validation_CTI'
 __description__ = 'Python package for unit tests relating to CTI.'
