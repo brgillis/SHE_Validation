@@ -35,7 +35,6 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import read_analysis_config
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.she_measurements import tf as sm_tf
 from SHE_PPT.table_utility import is_in_format
 
 from . import __version__
@@ -129,7 +128,7 @@ def run_validate_cti_gal_from_args(args):
 
     # Log a warning if no data from any method and set a flag for
     # later code to refer to
-    if all(value == None for value in d_shear_estimate_tables.values()):
+    if all(value is None for value in d_shear_estimate_tables.values()):
         logger.warning("No method has any data associated with it.")
         method_data_exists = False
     else:
@@ -138,8 +137,8 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Complete!")
 
     if not args.dry_run:
-        exposure_regression_results_table, observation_regression_results_table = validate_cti_gal(data_stack=data_stack,
-                                                                                                   shear_estimate_tables=d_shear_estimate_tables)
+        exposure_regression_results_table, observation_regression_results_table = \
+            validate_cti_gal(data_stack=data_stack,shear_estimate_tables=d_shear_estimate_tables)
 
     # Set up output product
 
@@ -168,10 +167,12 @@ def run_validate_cti_gal_from_args(args):
         l_exp_test_result_filename.append(exp_test_result_filename)
 
         # Check the obs_ids are all the same (important below)
-        if (obs_id_check == -1):  # First time
-            obs_id_check = obs_id  # Store the value in obs_id_check
+        # First time
+        if obs_id_check == -1:  
+            # Store the value in obs_id_check
+            obs_id_check = obs_id  
         else:
-            if (obs_id_check != obs_id):
+            if obs_id_check != obs_id:
                 logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
@@ -201,7 +202,8 @@ def run_validate_cti_gal_from_args(args):
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
-    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product, l_exp_test_result_filename):
+    for exp_test_result_product, exp_test_result_filename in \
+     zip(l_exp_test_result_product, l_exp_test_result_filename):
         write_xml_product(exp_test_result_product, exp_test_result_filename, workdir=args.workdir)
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
@@ -218,7 +220,6 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Execution complete.")
 
-    return
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,
