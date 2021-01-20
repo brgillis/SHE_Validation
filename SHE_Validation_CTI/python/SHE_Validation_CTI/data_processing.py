@@ -53,7 +53,7 @@ def add_readout_register_distance(object_data_table: table.Table):
 
     object_data_table.add_column(readout_distance_column)
 
-    return
+
 
 
 def calculate_regression_results(object_data_table: table.Table,
@@ -78,7 +78,7 @@ def calculate_regression_results(object_data_table: table.Table,
         tot_weight = np.nansum(weight_data)
 
         # If there's no weight, skip the regression and output NaN for all values
-        if not tot_weight > 0.:
+        if tot_weight <= 0.:
             rr_row[getattr(RR_TF, f"weight_{method}")] = 0.
             rr_row[getattr(RR_TF, f"slope_{method}")] = np.NaN
             rr_row[getattr(RR_TF, f"intercept_{method}")] = np.NaN
