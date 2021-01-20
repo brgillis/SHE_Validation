@@ -66,7 +66,8 @@ def defineSpecificProgramOptions():
     parser.add_argument("--pipeline_config", default=None, type=str,
                         help="INPUT: Pipeline-wide configuration file.")
 
-    parser.add_argument('--mdb', type=str, default=None,  # Use default to allow simple running with default values
+# Use default to allow simple running with default values
+    parser.add_argument('--mdb', type=str, default=None,  
                         help='INPUT: Mission Database .xml file')
 
     # Output arguments
