@@ -159,6 +159,6 @@ def initialise_cti_gal_object_data_table(optional_columns: List[str] = None,
 
     cti_gal_object_data_table.meta = make_cti_gal_object_data_table_header()
 
-    assert(is_in_format(cti_gal_object_data_table, TF, verbose=True))
+    assert is_in_format(cti_gal_object_data_table, TF, verbose=True)
 
     return cti_gal_object_data_table
