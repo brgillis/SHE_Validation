@@ -55,9 +55,9 @@ class SheRegressionResultsMeta(object):
 
         # Store the less-used comments in a dict
         self.comments = OrderedDict(((self.fits_version, None),
-                                     (self.fits_def, None),
-                                     (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)")
-                                     ))
+                                (self.fits_def, None),
+                                (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)")
+                                ))
 
         # A list of columns in the desired order
         self.all = list(self.comments.keys())
@@ -148,6 +148,6 @@ def initialise_regression_results_table(optional_columns: List[str] = None,
 
     regression_results_table.meta = make_regression_results_table_header(product_type=product_type)
 
-    assert(is_in_format(regression_results_table, TF, verbose=True))
+    assert is_in_format(regression_results_table, TF, verbose=True)
 
     return regression_results_table
