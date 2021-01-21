@@ -32,6 +32,5 @@ __maintainer__ = "Rob Blake"
 __email__ = "rpb@roe.ac.uk"
 __status__ = 'Development'
 
-__name__ = 'SHE_Validation'
 __description__ = 'Elements project for validation tests within PF-SHE.'
 __url__ = 'https://gitlab.euclid-sgs.uk/PF-SHE/SHE_Validation'

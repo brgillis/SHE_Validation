@@ -66,13 +66,14 @@ def defineSpecificProgramOptions():
     parser.add_argument("--pipeline_config", default=None, type=str,
                         help="INPUT: Pipeline-wide configuration file.")
 
-    parser.add_argument('--mdb', type=str, default=None,  # Use default to allow simple running with default values
+# Use default to allow simple running with default values
+    parser.add_argument('--mdb', type=str, default=None,  
                         help='INPUT: Mission Database .xml file')
 
     # Output arguments
 
     parser.add_argument('--she_observation_validation_test_results_product', type=str,
-                        help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
+                    help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
 
     parser.add_argument('--she_exposure_validation_test_results_listfile', type=str,
                         help='OUTPUT: Desired filename of output .json listfile for exposure validation test results')

@@ -54,9 +54,9 @@ D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: TestCaseInfo("T-SHE-000010
                                                                 "residual galaxy ellipticity with read-out register " +
                                                                 "distance (slope) in bins of SNR of galaxies."),
                             CTI_GAL_TEST_CASE_BG: TestCaseInfo("TC-SHE-100029-CTI-gal-bg",
-                                                               "Linear dependence of residual galaxy ellipticity with " +
-                                                               "read-out register distance (slope) in bins of sky " +
-                                                               "background levels."),
+                                                            "Linear dependence of residual galaxy ellipticity with " +
+                                                            "read-out register distance (slope) in bins of sky " +
+                                                            "background levels."),
                             CTI_GAL_TEST_CASE_COLOUR: TestCaseInfo("TC-SHE-100030-CTI-gal-col",
                                                                    "Linear dependence of residual galaxy " +
                                                                    "ellipticity with read-out register distance " +
@@ -66,9 +66,9 @@ D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: TestCaseInfo("T-SHE-000010
                                                                  "with read-out register distance (slope) in bins of " +
                                                                  "size of galaxies."),
                             CTI_GAL_TEST_CASE_EPOCH: TestCaseInfo("TC-SHE-100032-CTI-gal-epoch",
-                                                                  "Linear dependence of residual galaxy ellipticity " +
-                                                                  "with read-out register distance (slope) in bins of " +
-                                                                  "observation epoch"), }
+                                                                "Linear dependence of residual galaxy ellipticity " +
+                                                                "with read-out register distance (slope) in bins of " +
+                                                                "observation epoch"), }
 
 CTI_GAL_TEST_CASES = D_CTI_GAL_TEST_CASE_INFO.keys()
 

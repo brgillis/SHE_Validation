@@ -104,7 +104,8 @@ class PositionInfo(object):
                 for method in METHODS:
                     self.exposure_shear_info[method] = ShearInfo()
 
-        else:  # Default initialize
+        # Default initialize
+        else:  
 
             self.x_pix = np.NaN
             self.y_pix = np.NaN
@@ -125,11 +126,13 @@ class SingleObjectData(object):
                  num_exposures: int = 1,
                  ):
         self.ID = ID
+
         # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
-        self.world_shear_info = {}  # To be filled with objects of type ShearInfo, with method names as keys
+        
+        # To be filled with objects of type ShearInfo, with method names as keys
+        self.world_shear_info = {}  
 
-        return
 
 
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
