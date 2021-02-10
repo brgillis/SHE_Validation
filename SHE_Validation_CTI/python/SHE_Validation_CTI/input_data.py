@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-02-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,11 +27,11 @@ from astropy import table
 
 from SHE_PPT import shear_utility
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.detector import get_vis_quadrant
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-from SHE_PPT.telescope_coords import get_vis_quadrant
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
@@ -105,7 +105,7 @@ class PositionInfo(object):
                     self.exposure_shear_info[method] = ShearInfo()
 
         # Default initialize
-        else:  
+        else:
 
             self.x_pix = np.NaN
             self.y_pix = np.NaN
@@ -129,10 +129,9 @@ class SingleObjectData(object):
 
         # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
-        
-        # To be filled with objects of type ShearInfo, with method names as keys
-        self.world_shear_info = {}  
 
+        # To be filled with objects of type ShearInfo, with method names as keys
+        self.world_shear_info = {}
 
 
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,

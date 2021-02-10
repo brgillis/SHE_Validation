@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-01-07"
+__updated__ = "2021-02-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,9 +25,9 @@ from typing import Dict
 
 from astropy import table
 
+from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT import products
-from SHE_PPT import telescope_coords
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
@@ -138,7 +138,7 @@ def run_validate_cti_gal_from_args(args):
 
     if not args.dry_run:
         exposure_regression_results_table, observation_regression_results_table = \
-            validate_cti_gal(data_stack=data_stack,shear_estimate_tables=d_shear_estimate_tables)
+            validate_cti_gal(data_stack=data_stack, shear_estimate_tables=d_shear_estimate_tables)
 
     # Set up output product
 
@@ -168,9 +168,9 @@ def run_validate_cti_gal_from_args(args):
 
         # Check the obs_ids are all the same (important below)
         # First time
-        if obs_id_check == -1:  
+        if obs_id_check == -1:
             # Store the value in obs_id_check
-            obs_id_check = obs_id  
+            obs_id_check = obs_id
         else:
             if obs_id_check != obs_id:
                 logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
@@ -203,7 +203,7 @@ def run_validate_cti_gal_from_args(args):
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in \
-     zip(l_exp_test_result_product, l_exp_test_result_filename):
+            zip(l_exp_test_result_product, l_exp_test_result_filename):
         write_xml_product(exp_test_result_product, exp_test_result_filename, workdir=args.workdir)
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
@@ -219,7 +219,6 @@ def run_validate_cti_gal_from_args(args):
                 join(args.workdir, args.she_observation_validation_test_results_product))
 
     logger.info("Execution complete.")
-
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,
