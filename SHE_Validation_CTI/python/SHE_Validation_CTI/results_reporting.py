@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-01-07"
+__updated__ = "2021-02-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -72,7 +72,7 @@ def report_test_not_run(requirement_object,
     """ Fills in the data model with the fact that a test was not run and the reason.
     """
 
-    requirement_object.MeasuredValue.Parameter = WARNING_TEST_NOT_RUN
+    requirement_object.MeasuredValue[0].Parameter = WARNING_TEST_NOT_RUN
     requirement_object.ValidationResult = RESULT_PASS
     requirement_object.Comment = WARNING_TEST_NOT_RUN
 
@@ -80,7 +80,6 @@ def report_test_not_run(requirement_object,
     supplementary_info_parameter.Key = KEY_REASON
     supplementary_info_parameter.Description = DESC_REASON
     supplementary_info_parameter.StringValue = reason
-
 
 
 class CTIGalRequirementWriter():
@@ -122,7 +121,6 @@ class CTIGalRequirementWriter():
             else:
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
-
     def add_supplementary_info(self,
                                extra_slope_message: str ="",
                                extra_intercept_message: str =""):
@@ -158,22 +156,20 @@ class CTIGalRequirementWriter():
                                                               f"{self.intercept_fail_sigma}\n" +
                                                               f"Result: {self.intercept_result}\n")
 
-
     def report_bad_data(self):
 
         # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue.Value.FloatValue = -1.0
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = -1.0
 
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         self.add_supplementary_info(extra_slope_message=MSG_NAN_SLOPE)
 
-
     def report_zero_slope_err(self):
 
         # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue.Value.FloatValue = -2.0
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = -2.0
 
         self.requirement_object.Comment = WARNING_MULTIPLE
 
@@ -181,11 +177,10 @@ class CTIGalRequirementWriter():
 
         self.add_supplementary_info(extra_slope_message=MSG_ZERO_SLOPE_ERR,)
 
-
     def report_good_data(self):
 
         # Report the self.slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue.Value.FloatValue = self.slope_z
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = self.slope_z
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
@@ -199,12 +194,11 @@ class CTIGalRequirementWriter():
 
         self.add_supplementary_info()
 
-
     def report_data(self):
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue.Parameter = CTI_GAL_PARAMETER
+        self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
         # Check for data quality issues and report as proper if found
         if (np.isnan([self.slope, self.slope_err]).any() or
@@ -214,7 +208,6 @@ class CTIGalRequirementWriter():
             self.report_zero_slope_err()
         else:
             self.report_good_data()
-
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -242,7 +235,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             requirement_object.Id = CTI_GAL_REQUIREMENT_ID
 
-            requirement_object.MeasuredValue.Parameter = CTI_GAL_PARAMETER
+            requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
             if test_case == CTI_GAL_TEST_CASE_GLOBAL and method_data_exists:
 
@@ -275,4 +268,3 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             test_object.GlobalResult = requirement_object.ValidationResult
 
             test_case_index += 1
-

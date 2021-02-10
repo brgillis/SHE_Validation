@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-01-07"
+__updated__ = "2021-02-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -124,8 +124,8 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue.Parameter == CTI_GAL_PARAMETER
-        assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
+        assert requirement_object.MeasuredValue[0].Parameter == CTI_GAL_PARAMETER
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == RESULT_PASS
 
         exp_info = requirement_object.SupplementaryInformation
@@ -158,7 +158,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 2 - slope pass and intercept fail
@@ -167,7 +167,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == WARNING_MULTIPLE
-        assert requirement_object.MeasuredValue.Value.FloatValue == 3. / 2.
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == RESULT_PASS
 
         # Exposure 3 - slope fail and intercept fail
@@ -176,7 +176,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue.Value.FloatValue == 15. / 2.
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 4 - zero slope_err and zero intercept_err
@@ -185,7 +185,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == WARNING_MULTIPLE
-        assert requirement_object.MeasuredValue.Value.FloatValue == -2.0
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == -2.0
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
@@ -197,7 +197,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == WARNING_MULTIPLE
-        assert requirement_object.MeasuredValue.Value.FloatValue == -1.0
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == -1.0
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
