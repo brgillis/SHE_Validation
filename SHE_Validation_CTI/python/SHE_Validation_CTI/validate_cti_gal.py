@@ -36,12 +36,14 @@ from SHE_PPT.pipeline_utility import read_analysis_config
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
+import numpy as np
 
 from . import __version__
 from .constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
                                           CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
-                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE)
+                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE,
+                                          CTI_GAL_TEST_CASES)
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -95,13 +97,13 @@ def run_validate_cti_gal_from_args(args):
     bin_limits = {}
     for test_case_label in CTI_GAL_TEST_CASES:
         bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
-        if bins_limits_key is None:
+        if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
             bin_limits[test_case_label] = FAILSAFE_BIN_LIMITS
             continue
         bin_limits_string = pipeline_config[bin_limits_key]
         try:
-            bin_limits_list = map(float, bin_limits_string.strip().split())
+            bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
             # Sort bin limits ascending
             np.sort(bin_limits_array)
