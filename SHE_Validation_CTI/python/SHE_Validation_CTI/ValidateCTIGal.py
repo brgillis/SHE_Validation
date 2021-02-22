@@ -31,7 +31,10 @@ from SHE_PPT import logging as log
 from SHE_PPT.utility import get_arguments_string
 
 from . import __version__
-from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION
+from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_ARGS
+from .constants.cti_gal_test_info import (D_CTI_GAL_TEST_CASE_INFO,
+                                          CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
+                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE)
 from .validate_cti_gal import run_validate_cti_gal_from_args
 
 
@@ -89,18 +92,23 @@ def defineSpecificProgramOptions():
     parser.add_argument('--dry_run', action="store_true",
                         help=f'If set, will only read in input data and output dummy output data products')
 
-    parser.add_argument('--snr_bin_limits', type=str, default=None,
+    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SNR].bins_cline_arg, type=str, default=None,
                         help="The bin limits for the SNR test case, expressed as a string of space-separated float " +
                         "values. If used, overrides values in the pipeline_config file.")
 
-    parser.add_argument('--bg_bin_limits', type=str, default=None,
+    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_BG].bins_cline_arg, type=str, default=None,
                         help="The bin limits for the background level test case, expressed as a string of " +
                         f"space-separated float values in units of {BACKGROUND_LEVEL_UNITS}. If used, overrides " +
                         "values in the pipeline_config file.")
 
-    parser.add_argument('--colour_bin_limits', type=str, default=None,
+    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR].bins_cline_arg, type=str, default=None,
                         help="The bin limits for the colour test case, expressed as a string of space-separated " +
                         f"float values, expressing colour as {COLOUR_DEFINITION}. If used, overrides values in the " +
+                        "pipeline_config file.")
+
+    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SIZE].bins_cline_arg, type=str, default=None,
+                        help="The bin limits for the size test case, expressed as a string of space-separated " +
+                        f"float values, expressing size as {SIZE_DEFINITION}. If used, overrides values in the " +
                         "pipeline_config file.")
 
     # Arguments needed by the pipeline runner
