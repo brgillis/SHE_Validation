@@ -27,8 +27,8 @@ __updated__ = "2021-02-22"
 
 import argparse
 
+from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.utility import get_arguments_string
 
 from . import __version__
 from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_ARGS
