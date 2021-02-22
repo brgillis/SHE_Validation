@@ -50,6 +50,7 @@ D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: TestCaseInfo("T-SHE-000010
                                                                    "Linear dependence of " +
                                                                    "residual galaxy ellipticity with read-out " +
                                                                    "register distance (slope) unbinned.",
+                                                                   None,
                                                                    None),
                             CTI_GAL_TEST_CASE_SNR: TestCaseInfo("TC-SHE-100028-CTI-gal-SNR",
                                                                 "Linear dependence of " +

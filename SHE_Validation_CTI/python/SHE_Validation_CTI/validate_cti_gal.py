@@ -72,14 +72,14 @@ def run_validate_cti_gal_from_args(args):
         qualified_pipeline_config_filename = join(args.workdir, args.pipeline_config)
         logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
 
-    bin_limits_cline_args = {AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: getattr(args,
-                                                                                  D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SNR]),
-                             AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: getattr(args,
-                                                                                 D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_BG]),
-                             AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: getattr(args,
-                                                                                     D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR]),
-                             AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value: getattr(args,
-                                                                                   D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SIZE]), }
+    bin_limits_cline_args = {AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value:
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SNR].bins_cline_arg),
+                             AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value:
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_BG].bins_cline_arg),
+                             AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR].bins_cline_arg),
+                             AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value:
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SIZE].bins_cline_arg), }
 
     pipeline_config = read_analysis_config(args.pipeline_config,
                                            workdir=args.workdir,
