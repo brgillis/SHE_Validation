@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-01-07"
+__updated__ = "2021-02-22"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,4 +24,12 @@ from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
 # Config keys and default values
 CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
-                          AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.}
+                          AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.,
+                          AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "-1e99 5 10 20 40 1e99",
+                          # Background level in units of ADU/pixel
+                          AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "-1e99 1e99",
+                          # Colour in ...
+                          AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 1e99",
+                          }
+
+FAILSAFE_BIN_LIMITS = "-1e99 1e99"
