@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-02-22"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -26,11 +26,14 @@ __updated__ = "2021-01-06"
 #
 
 import argparse
+
 from SHE_PPT import logging as log
 from SHE_PPT.utility import get_arguments_string
 
 from . import __version__
+from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION
 from .validate_cti_gal import run_validate_cti_gal_from_args
+
 
 PROFILING_FILENAME = "validate_cti_gal.prof"
 
@@ -66,14 +69,14 @@ def defineSpecificProgramOptions():
     parser.add_argument("--pipeline_config", default=None, type=str,
                         help="INPUT: Pipeline-wide configuration file.")
 
-# Use default to allow simple running with default values
-    parser.add_argument('--mdb', type=str, default=None,  
+    # Use default to allow simple running with default values
+    parser.add_argument('--mdb', type=str, default=None,
                         help='INPUT: Mission Database .xml file')
 
     # Output arguments
 
     parser.add_argument('--she_observation_validation_test_results_product', type=str,
-                    help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
+                        help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
 
     parser.add_argument('--she_exposure_validation_test_results_listfile', type=str,
                         help='OUTPUT: Desired filename of output .json listfile for exposure validation test results')
@@ -85,6 +88,20 @@ def defineSpecificProgramOptions():
 
     parser.add_argument('--dry_run', action="store_true",
                         help=f'If set, will only read in input data and output dummy output data products')
+
+    parser.add_argument('--snr_bin_limits', type=str, default=None,
+                        help="The bin limits for the SNR test case, expressed as a string of space-separated float " +
+                        "values. If used, overrides values in the pipeline_config file.")
+
+    parser.add_argument('--bg_bin_limits', type=str, default=None,
+                        help="The bin limits for the background level test case, expressed as a string of " +
+                        f"space-separated float values in units of {BACKGROUND_LEVEL_UNITS}. If used, overrides " +
+                        "values in the pipeline_config file.")
+
+    parser.add_argument('--colour_bin_limits', type=str, default=None,
+                        help="The bin limits for the colour test case, expressed as a string of space-separated " +
+                        f"float values, expressing colour as {COLOUR_DEFINITION}. If used, overrides values in the " +
+                        "pipeline_config file.")
 
     # Arguments needed by the pipeline runner
     parser.add_argument('--workdir', type=str, default=".")

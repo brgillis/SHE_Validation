@@ -22,13 +22,14 @@ __updated__ = "2021-02-22"
 
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
+BACKGROUND_LEVEL_UNITS = "ADU/pixel"
+COLOUR_DEFINITION = "..."
+
 # Config keys and default values
 CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "-1e99 5 10 20 40 1e99",
-                          # Background level in units of ADU/pixel
                           AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "-1e99 1e99",
-                          # Colour in ...
                           AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 1e99",
                           }
 
