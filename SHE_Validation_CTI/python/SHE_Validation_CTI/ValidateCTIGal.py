@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-02-22"
+__updated__ = "2021-02-24"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -31,7 +31,7 @@ from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
 
 from . import __version__
-from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_ARGS
+from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_DEFINITION
 from .constants.cti_gal_test_info import (D_CTI_GAL_TEST_CASE_INFO,
                                           CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
                                           CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE)
