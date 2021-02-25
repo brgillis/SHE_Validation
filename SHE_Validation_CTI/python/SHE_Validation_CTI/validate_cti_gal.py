@@ -41,9 +41,8 @@ import numpy as np
 from . import __version__
 from .constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
-                                          CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
-                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE,
-                       b                   CTI_GAL_TEST_CASES)
+                                          CTI_GAL_TEST_CASE_GLOBAL, CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
+                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE, CTI_GAL_TEST_CASES)
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -173,10 +172,12 @@ def run_validate_cti_gal_from_args(args):
 
     # Run the validation
     if not args.dry_run:
-        exposure_regression_results_table, observation_regression_results_table = \
-            validate_cti_gal(data_stack=data_stack,
-                             shear_estimate_tables=d_shear_estimate_tables,
-                             bin_limits=bin_limits)
+        d_regression_results_tables = validate_cti_gal(data_stack=data_stack,
+                                                       shear_estimate_tables=d_shear_estimate_tables,
+                                                       bin_limits=bin_limits)
+
+        exposure_regression_results_table, observation_regression_results_table = d_regression_results_tables[
+            CTI_GAL_TEST_CASE_GLOBAL]
 
     # Set up output product
 
