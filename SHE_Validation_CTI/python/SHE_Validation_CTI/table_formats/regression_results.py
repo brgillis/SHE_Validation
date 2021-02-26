@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-02-25"
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,12 +24,11 @@ __updated__ = "2021-02-25"
 from collections import OrderedDict
 from typing import List
 
-from astropy import table
-
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from astropy import table
 
 from ..constants.cti_gal_default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
 from ..constants.cti_gal_test_info import CTI_GAL_TEST_CASE_GLOBAL
@@ -62,7 +61,10 @@ class SheRegressionResultsMeta(object):
         # Store the less-used comments in a dict
         self.comments = OrderedDict(((self.fits_version, None),
                                      (self.fits_def, None),
-                                     (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)")
+                                     (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)"),
+                                     (self.test_case, None),
+                                     (self.bin_limit_min, None),
+                                     (self.bin_limit_max, None),
                                      ))
 
         # A list of columns in the desired order

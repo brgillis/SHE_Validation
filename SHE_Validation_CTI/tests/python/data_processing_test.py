@@ -113,9 +113,9 @@ class TestCase:
 
         # Set mock snr, bg, colour, and size values to test different bins
 
-        indices = np.indices(ltot, dtype=int,)
-        zeros = np.zeros(ltot, dtype=float)
-        ones = np.ones(ltot, dtype=float)
+        indices = np.indices((ltot,), dtype=int,)[0]
+        zeros = np.zeros(ltot, dtype='>f4')
+        ones = np.ones(ltot, dtype='>f4')
 
         snr_data = np.where(indices % 2 < 1, ones, zeros)
         bg_data = np.where(indices % 4 < 2, ones, zeros)
