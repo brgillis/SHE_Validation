@@ -4,6 +4,22 @@
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
+from typing import Dict, List
+
+from SHE_PPT import shear_utility
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.detector import get_vis_quadrant
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import ccdid_label
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy import table
+
+from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_EXPOSURES
+import numpy as np
+
+from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+
 
 __updated__ = "2021-02-26"
 
@@ -19,22 +35,6 @@ __updated__ = "2021-02-26"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-
-from typing import Dict, List
-
-from SHE_PPT import shear_utility
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.detector import get_vis_quadrant
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-from astropy import table
-
-import numpy as np
-
-from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
 # The size for the stamp used for calculating the background level
@@ -274,6 +274,11 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
         object_data_table = initialise_cti_gal_object_data_table(size=num_objects,
                                                                  optional_columns=[CGOD_TF.quadrant,
                                                                                    CGOD_TF.snr,
+                                                                                   CGOD_TF.bg_0,
+                                                                                   CGOD_TF.bg_1,
+                                                                                   CGOD_TF.bg_2,
+                                                                                   CGOD_TF.bg_3,
+                                                                                   CGOD_TF.bg_mean,
                                                                                    CGOD_TF.colour,
                                                                                    CGOD_TF.size,
                                                                                    ])
@@ -294,6 +299,19 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
             row[CGOD_TF.snr] = object_data.snr
             row[CGOD_TF.colour] = object_data.colour
             row[CGOD_TF.size] = object_data.size
+
+            for exp_index, bg_level in enumerate(object_data.background_level):
+
+                # Check we don't have more exposures than supported
+                if exp_index > NUM_EXPOSURES:
+                    logger.warning(f"Only {NUM_EXPOSURES} exposures are supported for background level test.")
+
+                if bg_level is not None:
+                    row[getattr(CGOD_TF, f"bg_{exp_index}")] = bg_level
+                else:
+                    row[getattr(CGOD_TF, f"bg_{exp_index}")] = -99
+
+            row[CGOD_TF.bg_mean] = object_data.mean_background_level
 
             # Fill in data for each shear estimate method
             for method in METHODS:
