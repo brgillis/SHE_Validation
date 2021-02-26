@@ -143,7 +143,7 @@ class SingleObjectData(object):
 
         if data_stack is not None:
 
-            detections_row = data_stack.detections_catalogue.loc[mfc_tf.ID]
+            detections_row = data_stack.detections_catalogue.loc[ID]
 
             self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
             self.colour = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUX_NIR_STACK_APER]
@@ -153,8 +153,9 @@ class SingleObjectData(object):
             stamp_stack = data_stack.extract_galaxy_stack(ID, width=BG_STAMP_SIZE)
             for exp_index, exp_image in enumerate(stamp_stack.exposures):
                 if exp_image is not None:
-                    unmasked_background_data = exp_image.background_map * ~exp_image.boolmask()
-                    self.background_level[exp_index] = unmasked_background_data.mean()
+                    unmasked_background_data = exp_image.background_map[~exp_image.boolmask]
+                    if len(unmasked_background_data) > 0:
+                        self.background_level[exp_index] = unmasked_background_data.mean()
 
             # Calculate the mean background level of all valid exposures
             self.mean_background_level = np.mean(self.background_level[self.background_level != None])
