@@ -4,6 +4,7 @@
 
     Unit tests of the input_data.py module
 """
+from copy import deepcopy
 
 __updated__ = "2021-02-26"
 
@@ -71,6 +72,9 @@ class TestCase:
                                             clean_detections=False,
                                             memmap=True,
                                             mode='denywrite')
+
+        # Set up some expected values
+        cls.ex_bg_level = 45.71
 
         return
 
@@ -167,25 +171,36 @@ class TestCase:
         dg2_dexp = 0.02
         dweight_dexp = 1
 
-        for ID, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((1, 128, 129, 0.1, 0.3, 10,
+        ID_0 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+        ID_1 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+
+        for ID, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((ID_0, 128, 129, 0.1, 0.3, 10,
                                                                       100., 10., 200., 50),
-                                                                     (2, 2000, 2000, -0.1, 0.2, 11,
+                                                                     (ID_1, 2000, 2000, -0.1, 0.2, 11,
                                                                       150., 20., 150., 100)):
 
+            data_stack_copy = deepcopy(self.data_stack)
+
+            detections_row = data_stack_copy.detections_catalogue.loc[ID]
+
             # Set up a mock detections row using a dictionary
-            mock_detections_row = {mfc_tf.FLUX_VIS_APER: fvis,
-                                   mfc_tf.FLUXERR_VIS_APER: fvis_err,
-                                   mfc_tf.FLUX_NIR_STACK_APER: fnir,
-                                   mfc_tf.SEGMENTATION_AREA: area}
+            detections_row[mfc_tf.FLUX_VIS_APER] = fvis
+            detections_row[mfc_tf.FLUXERR_VIS_APER] = fvis_err
+            detections_row[mfc_tf.FLUX_NIR_STACK_APER] = fnir
+            detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
             object_data = SingleObjectData(ID=ID,
                                            num_exposures=num_exposures,
-                                           detections_row=mock_detections_row)
+                                           data_stack=data_stack_copy)
 
             # Check that SNR, Colour, and Size are as expected
             assert np.isclose(object_data.snr, fvis / fvis_err)
             assert np.isclose(object_data.colour, fvis / fnir)
             assert np.isclose(object_data.size, area)
+
+            for bg_level in object_data.background_level:
+                assert np.isclose(bg_level, self.ex_bg_level)
+            assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
 
             object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
                                                                g2=g2,

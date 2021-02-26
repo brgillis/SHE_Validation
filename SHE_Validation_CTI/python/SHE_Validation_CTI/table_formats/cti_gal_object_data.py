@@ -13,10 +13,8 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 from astropy import table
 
-from SHE_Validation_CTI.constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS,\
-    COLOUR_DEFINITION, SIZE_DEFINITION
-from SHE_Validation_CTI.constants.cti_gal_test_info import CTI_GAL_TEST_CASES,\
-    D_CTI_GAL_TEST_CASE_INFO
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
+                                                            D_CTI_GAL_TEST_CASE_INFO)
 
 
 __updated__ = "2021-02-26"
