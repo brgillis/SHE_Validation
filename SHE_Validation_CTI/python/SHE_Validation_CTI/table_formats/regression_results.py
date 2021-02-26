@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,12 +24,14 @@ __updated__ = "2021-01-06"
 from collections import OrderedDict
 from typing import List
 
-from astropy import table
-
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from astropy import table
+
+from ..constants.cti_gal_default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
+from ..constants.cti_gal_test_info import CTI_GAL_TEST_CASE_GLOBAL
 
 
 FITS_VERSION = "8.0"
@@ -52,12 +54,18 @@ class SheRegressionResultsMeta(object):
         self.fits_version = fits_version_label
         self.fits_def = fits_def_label
         self.product_type = "PRODTYPE"
+        self.test_case = "TESTCASE"
+        self.bin_limit_min = "BIN_MIN"
+        self.bin_limit_max = "BIN_MAX"
 
         # Store the less-used comments in a dict
         self.comments = OrderedDict(((self.fits_version, None),
-                                (self.fits_def, None),
-                                (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)")
-                                ))
+                                     (self.fits_def, None),
+                                     (self.product_type, "Whether this is a test of an observation (OBS) or exposure (EXP)"),
+                                     (self.test_case, None),
+                                     (self.bin_limit_min, None),
+                                     (self.bin_limit_max, None),
+                                     ))
 
         # A list of columns in the desired order
         self.all = list(self.comments.keys())
@@ -108,7 +116,10 @@ REGRESSION_RESULTS_TABLE_FORMAT = SheRegressionResultsFormat()
 TF = REGRESSION_RESULTS_TABLE_FORMAT
 
 
-def make_regression_results_table_header(product_type: str = None):
+def make_regression_results_table_header(product_type: str = None,
+                                         test_case: str = CTI_GAL_TEST_CASE_GLOBAL,
+                                         bin_limit_min: float = DEFAULT_BIN_LIMIT_MIN,
+                                         bin_limit_max: float = DEFAULT_BIN_LIMIT_MAX):
     """
         @brief Generate a header for a Regression Results table.
 
@@ -119,7 +130,11 @@ def make_regression_results_table_header(product_type: str = None):
 
     header[TF.m.fits_version] = TF.__version__
     header[TF.m.fits_def] = FITS_DEF
+
     header[TF.m.product_type] = product_type
+    header[TF.m.test_case] = test_case
+    header[TF.m.bin_limit_min] = bin_limit_min
+    header[TF.m.bin_limit_max] = bin_limit_max
 
     return header
 
