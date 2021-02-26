@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,10 +23,6 @@ __updated__ = "2021-01-06"
 import os
 import time
 
-from astropy.table import Table
-import pytest
-
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
@@ -35,6 +31,10 @@ from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy.table import Table
+import pytest
+
+from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
@@ -167,10 +167,26 @@ class TestCase:
         dg2_dexp = 0.02
         dweight_dexp = 1
 
-        for ID, x, y, g1, g2, weight in ((1, 128, 129, 0.1, 0.3, 10),
-                                         (2, 2000, 2000, -0.1, 0.2, 11)):
+        for ID, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((1, 128, 129, 0.1, 0.3, 10,
+                                                                      100., 10., 200., 50),
+                                                                     (2, 2000, 2000, -0.1, 0.2, 11,
+                                                                      150., 20., 150., 100)):
+
+            # Set up a mock detections row using a dictionary
+            mock_detections_row = {mfc_tf.FLUX_VIS_APER: fvis,
+                                   mfc_tf.FLUXERR_VIS_APER: fvis_err,
+                                   mfc_tf.FLUX_NIR_STACK_APER: fnir,
+                                   mfc_tf.SEGMENTATION_AREA: area}
+
             object_data = SingleObjectData(ID=ID,
-                                           num_exposures=num_exposures)
+                                           num_exposures=num_exposures,
+                                           detections_row=mock_detections_row)
+
+            # Check that SNR, Colour, and Size are as expected
+            assert np.isclose(object_data.snr, fvis / fvis_err)
+            assert np.isclose(object_data.colour, fvis / fnir)
+            assert np.isclose(object_data.size, area)
+
             object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
                                                                g2=g2,
                                                                weight=weight)
@@ -197,6 +213,11 @@ class TestCase:
             for object_data, row in zip(raw_object_data_list, object_data_table):
 
                 assert object_data.ID == row[CGOD_TF.ID]
+
+                assert np.isclose(object_data.snr, row[CGOD_TF.snr])
+                assert np.isclose(object_data.colour, row[CGOD_TF.colour])
+                assert np.isclose(object_data.size, row[CGOD_TF.size])
+
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,
