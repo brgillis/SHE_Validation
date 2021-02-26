@@ -136,7 +136,7 @@ class SingleObjectData(object):
 
         if detections_row is not None:
             self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
-            self.colour = detections_row[mfc_tf.FLUX_VIS_APER] - detections_row[mfc_tf.FLUXERR_NISP_APER]
+            self.colour = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUX_NIR_STACK_APER]
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
         else:
             self.snr = None
@@ -206,8 +206,8 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                                                  weight=object_row[sem_tf.weight])
 
             # Get the object's world position from the detections catalog
-            ra = detections_row.loc[object_id][mfc_tf.gal_x_world]
-            dec = detections_row.loc[object_id][mfc_tf.gal_y_world]
+            ra = detections_row[mfc_tf.gal_x_world]
+            dec = detections_row[mfc_tf.gal_y_world]
 
             # Set the position info for each exposure
             for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
