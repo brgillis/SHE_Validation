@@ -73,6 +73,9 @@ class TestCase:
                                             memmap=True,
                                             mode='denywrite')
 
+        # Set up some expected values
+        cls.ex_bg_level = 45.71
+
         return
 
     @classmethod
@@ -194,6 +197,10 @@ class TestCase:
             assert np.isclose(object_data.snr, fvis / fvis_err)
             assert np.isclose(object_data.colour, fvis / fnir)
             assert np.isclose(object_data.size, area)
+
+            for bg_level in object_data.background_level:
+                assert np.isclose(bg_level, self.ex_bg_level)
+            assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
 
             object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
                                                                g2=g2,
