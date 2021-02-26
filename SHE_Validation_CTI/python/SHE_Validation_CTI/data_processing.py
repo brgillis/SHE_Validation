@@ -14,7 +14,8 @@ from astropy import table
 
 from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
-                                                            D_CTI_GAL_TEST_CASE_INFO)
+                                                            D_CTI_GAL_TEST_CASE_INFO,
+                                                            CTI_GAL_TEST_CASE_EPOCH)
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
@@ -75,8 +76,11 @@ def calculate_regression_results(object_data_table: table.Table,
 
     # Get an array of good indices based on the test_case and bin_limits
     if test_case == CTI_GAL_TEST_CASE_GLOBAL:
-        # Set all to true
+        # Set all to True
         rows_in_bin = np.ones(len(object_data_table), dtype=bool)
+    elif test_case == CTI_GAL_TEST_CASE_EPOCH:
+        # Not yet implemented, so set all to False
+        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
     else:
         # Get the column name of this property from the table format and check it exists
         colname = getattr(CGOD_TF, D_CTI_GAL_TEST_CASE_INFO[test_case].name)
