@@ -13,9 +13,7 @@ from SHE_PPT.math import linregress_with_errors
 from astropy import table
 
 from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL, CTI_GAL_TEST_CASE_BG,
-                                                            CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SNR,
-                                                            CTI_GAL_TEST_CASE_SIZE,
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
                                                             D_CTI_GAL_TEST_CASE_INFO)
 import numpy as np
 
