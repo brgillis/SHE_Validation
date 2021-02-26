@@ -37,6 +37,9 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
+# The size for the stamp used for calculating the background level
+BG_STAMP_SIZE = 128
+
 logger = getLogger(__name__)
 
 
@@ -124,7 +127,7 @@ class SingleObjectData(object):
     def __init__(self,
                  ID: int = None,
                  num_exposures: int = 1,
-                 detections_row: table.Row = None
+                 data_stack: SHEFrameStack = None,
                  ):
         self.ID = ID
 
@@ -134,14 +137,33 @@ class SingleObjectData(object):
         # To be filled with objects of type ShearInfo, with method names as keys
         self.world_shear_info = {}
 
-        if detections_row is not None:
+        # Get info from the data_stack if possible
+
+        self.background_level = [None] * num_exposures
+
+        if data_stack is not None:
+
+            detections_row = data_stack.detections_catalogue.loc[mfc_tf.ID]
+
             self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
             self.colour = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUX_NIR_STACK_APER]
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
+
+            # Get the background level from the mean of a stamp around the object
+            stamp_stack = data_stack.extract_galaxy_stack(ID, width=BG_STAMP_SIZE)
+            for exp_index, exp_image in enumerate(stamp_stack.exposures):
+                if exp_image is not None:
+                    unmasked_background_data = exp_image.background_map * ~exp_image.boolmask()
+                    self.background_level[exp_index] = unmasked_background_data.mean()
+
+            # Calculate the mean background level of all valid exposures
+            self.mean_background_level = np.mean(self.background_level[self.background_level != None])
+
         else:
             self.snr = None
             self.colour = None
             self.size = None
+            self.mean_background_level = None
 
 
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
@@ -188,7 +210,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
             object_data = SingleObjectData(ID=object_id,
                                            num_exposures=len(ministamp_stack.exposures),
-                                           detections_row=detections_row)
+                                           data_stack=data_stack)
 
             # Set the shear info for each method
             for method in METHODS:
