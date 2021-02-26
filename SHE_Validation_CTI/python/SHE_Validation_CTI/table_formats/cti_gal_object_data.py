@@ -14,9 +14,7 @@ from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_p
 from astropy import table
 
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
-                                                            D_CTI_GAL_TEST_CASE_INFO,
-                                                            CTI_GAL_TEST_CASE_BG,
-                                                            NUM_EXPOSURES)
+                                                            D_CTI_GAL_TEST_CASE_INFO)
 
 
 __updated__ = "2021-02-26"
@@ -94,15 +92,7 @@ class SheCtiGalObjectDataFormat(object):
         for test_case in CTI_GAL_TEST_CASES:
             name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
             comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
-            # Special handling for background level, which differs between exposures
-            if test_case == CTI_GAL_TEST_CASE_BG:
-                for exp_index in range(NUM_EXPOSURES):
-                    setattr(self, f"{name}_{exp_index}", set_column_properties(
-                        self, f"{name.upper()}_{exp_index}", comment=comment, is_optional=True))
-                setattr(self, f"{name}_mean", set_column_properties(
-                    self, f"{name.upper()}_mean", comment=comment, is_optional=True))
-            else:
-                setattr(self, name, set_column_properties(self, name.upper(), comment=comment, is_optional=True))
+            setattr(self, name, set_column_properties(self, name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
 
