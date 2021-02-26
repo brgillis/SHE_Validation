@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-02-25"
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,4 +37,5 @@ CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
 
 DEFAULT_BIN_LIMIT_MIN = -1e99
 DEFAULT_BIN_LIMIT_MAX = 1e99
+DEFAULT_BIN_LIMITS = (DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX)
 FAILSAFE_BIN_LIMITS = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
