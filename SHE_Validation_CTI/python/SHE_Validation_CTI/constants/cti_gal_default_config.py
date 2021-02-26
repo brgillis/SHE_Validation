@@ -23,8 +23,8 @@ __updated__ = "2021-02-26"
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
 BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "..."
-SIZE_DEFINITION = "..."
+COLOUR_DEFINITION = "FLUX_VIS_APER/FLUX_NIR_STACK_APER"
+SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 # Config keys and default values
 CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
