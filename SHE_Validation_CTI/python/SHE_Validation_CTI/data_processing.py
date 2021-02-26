@@ -55,9 +55,11 @@ def add_readout_register_distance(object_data_table: table.Table):
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
-
-    object_data_table.add_column(readout_distance_column)
+    if CGOD_TF.readout_dist in object_data_table.colnames:
+        object_data_table[CGOD_TF.readout_dist] = readout_distance_data
+    else:
+        readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
+        object_data_table.add_column(readout_distance_column)
 
 
 def calculate_regression_results(object_data_table: table.Table,
