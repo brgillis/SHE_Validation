@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-02-10"
+__updated__ = "2021-03-01"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,14 +23,16 @@ __updated__ = "2021-02-10"
 from copy import deepcopy
 from typing import Dict, Any
 
-from astropy import table
-
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from astropy import table
+import scipy.stats
+
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
+from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
@@ -65,6 +67,80 @@ MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
 MSG_NO_DATA = "No data is available for this test."
 MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
+
+
+class FailSigmaCalculator():
+    """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
+    """
+
+    def __init__(self,
+                 pipeline_config: Dict[str, str],
+                 d_bin_limits: Dict[str, str]):
+
+        self.slope_fail_sigma = pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
+        self.intercept_fail_sigma = pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]
+        self.fail_sigma_scaling = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value]
+
+        self.num_test_cases = len(d_bin_limits)
+        self.d_num_bins = {}
+        self.num_test_case_bins = 0
+        for test_case in d_bin_limits:
+            self.d_num_bins[test_case] = len(d_bin_limits[test_case]) - 1
+            self.num_test_case_bins += self.d_num_bins[test_case]
+
+        self._d_scaled_slope_sigma = None
+        self._d_scaled_intercept_sigma = None
+
+    @property
+    def d_scaled_slope_sigma(self):
+        if self._d_scaled_slope_sigma is None:
+            self._d_scaled_slope_sigma = self._calculate_d_scaled_sigma(self.slope_fail_sigma)
+        return self._d_scaled_slope_sigma
+
+    @property
+    def d_scaled_intercept_sigma(self):
+        if self._scaled_intercept_sigma is None:
+            self._scaled_intercept_sigma = self._calculate_d_scaled_sigma(self.intercept_fail_sigma)
+        return self._d_scaled_intercept_sigma
+
+    def _calculate_d_scaled_sigma(self, base_sigma: float):
+
+        d_scaled_sigma = {}
+
+        for test_case in self.d_num_bins:
+
+            # Get the number of tries depending on scaling type
+            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
+                num_tries = 1
+            elif self.fail_sigma_scaling == FailSigmaScaling.BIN_SCALE.value:
+                num_tries = self.d_num_bins[test_case]
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE.value:
+                num_tries = self.num_test_cases
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS_SCALE.value:
+                num_tries = self.num_test_case_bins
+            else:
+                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
+
+            d_scaled_sigma[test_case] = self._calculate_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                                num_tries=num_tries)
+
+        return d_scaled_sigma
+
+    @classmethod
+    def _calculate_scaled_sigma_from_tries(cls,
+                                           base_sigma: float,
+                                           num_tries: int):
+        # To avoid numeric error, don't calculate if num_tries==1
+        if num_tries == 1:
+            return base_sigma
+
+        p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
+        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
+
+
+def _determine_fail_sigma_from_tries(base_fail_sigma: float,
+                                     num_tries: int,):
+    pass
 
 
 def report_test_not_run(requirement_object,
@@ -213,6 +289,7 @@ class CTIGalRequirementWriter():
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row: table.Row,
                                     pipeline_config: Dict[str, Any],
+                                    d_bin_limits: Dict[str, np.ndarray],
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
