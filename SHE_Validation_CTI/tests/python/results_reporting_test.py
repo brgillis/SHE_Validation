@@ -4,6 +4,33 @@
 
     Unit tests of the results_reporting.py module
 """
+from collections import namedtuple
+from copy import deepcopy
+import os
+
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import _make_config_from_defaults
+import pytest
+
+from SHE_Validation_CTI import constants
+from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
+    FAILSAFE_BIN_LIMITS, FailSigmaScaling
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+                                                            CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
+                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
+from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
+                                                  RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
+                                                  COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
+                                                  INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
+                                                  KEY_REASON, KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
+                                                  DESC_REASON, DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
+                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
+                                                  FailSigmaCalculator)
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
+import numpy as np
+
 
 __updated__ = "2021-03-01"
 
@@ -19,31 +46,6 @@ __updated__ = "2021-03-01"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-from collections import namedtuple
-import os
-
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import _make_config_from_defaults
-import pytest
-
-from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
-    FAILSAFE_BIN_LIMITS
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
-                                                            CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
-from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
-                                                  RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
-                                                  COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
-                                                  INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
-                                                  KEY_REASON, KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
-                                                  DESC_REASON, DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
-                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR, MSG_NO_DATA, MSG_NOT_IMPLEMENTED)
-from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
-import numpy as np
 
 
 class TestCase:
@@ -77,6 +79,55 @@ class TestCase:
 
     @classmethod
     def teardown_class(cls):
+
+        return
+
+    def test_fail_sigma_scaling(self):
+
+        base_slope_fail_sigma = self.pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
+        base_intercept_fail_sigma = self.pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
+
+        # Make a copy of the pipeline config so we can test with different input
+        test_pipeline_config = deepcopy(self.pipeline_config)
+
+        # Test with no scaling - all sigma should be unchanged
+        test_pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
+        ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       d_bin_limits=self.d_bin_limits)
+
+        for test_case in CTI_GAL_TEST_CASES:
+            assert np.isclose(ns_fail_sigma_calculator.d_scaled_slope_sigma[test_case], base_slope_fail_sigma)
+            assert np.isclose(ns_fail_sigma_calculator.d_scaled_intercept_sigma[test_case], base_intercept_fail_sigma)
+
+        # Test with other scaling types, and check that the fail sigmas increase with number of tries
+
+        test_pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.BIN_SCALE.value
+        bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        d_bin_limits=self.d_bin_limits)
+        test_pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.TEST_CASE_SCALE.value
+        tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       d_bin_limits=self.d_bin_limits)
+        test_pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.TEST_CASE_BINS_SCALE.value
+        tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        d_bin_limits=self.d_bin_limits)
+
+        for test_case in CTI_GAL_TEST_CASES:
+
+            assert bin_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >= base_slope_fail_sigma
+            assert bin_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >= base_intercept_fail_sigma
+
+            assert tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case] > base_slope_fail_sigma
+            assert tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] > base_intercept_fail_sigma
+
+            assert (tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >
+                    bin_fail_sigma_calculator.d_scaled_slope_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >
+                    bin_fail_sigma_calculator.d_scaled_intercept_sigma[test_case])
+
+            assert (tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >
+                    tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >
+                    tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case])
 
         return
 

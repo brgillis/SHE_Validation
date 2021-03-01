@@ -99,8 +99,8 @@ class FailSigmaCalculator():
 
     @property
     def d_scaled_intercept_sigma(self):
-        if self._scaled_intercept_sigma is None:
-            self._scaled_intercept_sigma = self._calculate_d_scaled_sigma(self.intercept_fail_sigma)
+        if self._d_scaled_intercept_sigma is None:
+            self._d_scaled_intercept_sigma = self._calculate_d_scaled_sigma(self.intercept_fail_sigma)
         return self._d_scaled_intercept_sigma
 
     def _calculate_d_scaled_sigma(self, base_sigma: float):
