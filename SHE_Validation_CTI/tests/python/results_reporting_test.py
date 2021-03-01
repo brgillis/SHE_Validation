@@ -111,7 +111,14 @@ class TestCase:
         tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                         d_bin_limits=self.d_bin_limits)
 
+        first_tc_slope_fail_sigma = None
+        first_tc_intercept_fail_sigma = None
+        first_tcb_slope_fail_sigma = None
+        first_tcb_intercept_fail_sigma = None
+
         for test_case in CTI_GAL_TEST_CASES:
+
+            # Check that they increase with increasing number of bins
 
             assert bin_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >= base_slope_fail_sigma
             assert bin_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >= base_intercept_fail_sigma
@@ -128,6 +135,22 @@ class TestCase:
                     tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case])
             assert (tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >
                     tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case])
+
+            # Check that all test_cases and test_case_bins fail sigma are equal between test cases
+            if first_tc_slope_fail_sigma is None:
+                first_tc_slope_fail_sigma = tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case]
+                first_tc_intercept_fail_sigma = tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+                first_tcb_slope_fail_sigma = tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case]
+                first_tcb_intercept_fail_sigma = tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+            else:
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case],
+                                  first_tc_slope_fail_sigma)
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case],
+                                  first_tc_intercept_fail_sigma)
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case],
+                                  first_tcb_slope_fail_sigma)
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case],
+                                  first_tcb_intercept_fail_sigma)
 
         return
 
