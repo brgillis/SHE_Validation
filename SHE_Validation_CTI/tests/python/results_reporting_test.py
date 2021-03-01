@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-02-10"
+__updated__ = "2021-03-01"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,14 +23,15 @@ __updated__ = "2021-02-10"
 from collections import namedtuple
 import os
 
-import pytest
-
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import _make_config_from_defaults
+import pytest
+
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
+from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
+    FAILSAFE_BIN_LIMITS
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
@@ -57,6 +58,20 @@ class TestCase:
         # Make a pipeline_config using the default values
         cls.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,
                                                          defaults=CTI_GAL_DEFAULT_CONFIG)
+
+        # Make a dictionary of bin limits
+        cls.d_bin_limits = {}
+        for test_case in CTI_GAL_TEST_CASES:
+            bins_config_key = D_CTI_GAL_TEST_CASE_INFO[test_case].bins_config_key
+            if bins_config_key is None:
+                bin_limits_string = FAILSAFE_BIN_LIMITS
+            else:
+                bin_limits_string = CTI_GAL_DEFAULT_CONFIG[bins_config_key]
+
+            bin_limits_list = list(map(float, bin_limits_string.strip().split()))
+            bin_limits_array = np.array(bin_limits_list, dtype=float)
+
+            cls.d_bin_limits[test_case] = bin_limits_array
 
         return
 
@@ -97,6 +112,7 @@ class TestCase:
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row=exp_row,
                                             pipeline_config=self.pipeline_config,
+                                            d_bin_limits=self.d_bin_limits,
                                             method_data_exists=True)
 
             exp_product_list[exp_index] = exp_product
@@ -213,6 +229,7 @@ class TestCase:
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row=obs_row,
                                         pipeline_config=self.pipeline_config,
+                                        d_bin_limits=self.d_bin_limits,
                                         method_data_exists=False)
 
         # Check that the product validates its binding
