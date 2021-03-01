@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-02-25"
+__updated__ = "2021-03-01"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,9 +23,6 @@ __updated__ = "2021-02-25"
 from os.path import join
 from typing import Dict
 
-from astropy import table
-
-from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
@@ -36,10 +33,14 @@ from SHE_PPT.pipeline_utility import read_analysis_config
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
+from astropy import table
+
+from EL_CoordsUtils import telescope_coords
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS
+from .constants.cti_gal_default_config import (AnalysisConfigKeys, FailSigmaScaling,
+                                               CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS)
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
                                           CTI_GAL_TEST_CASE_GLOBAL, CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
                                           CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE, CTI_GAL_TEST_CASES)
@@ -86,6 +87,16 @@ def run_validate_cti_gal_from_args(args):
                                            workdir=args.workdir,
                                            cline_args=bin_limits_cline_args,
                                            defaults=CTI_GAL_DEFAULT_CONFIG)
+
+    # Check that the fail sigma scaling is in the enum (silently convert to lower case)
+    fail_sigma_scaling_lower = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value].lower()
+    if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
+        err_string = (f"Fail sigma scaling option {pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value]}" +
+                      " is not recognized. Allowed options are:")
+        for allowed_option in FailSigmaScaling:
+            err_string += "\n  " + allowed_option.value
+        raise ValueError(err_string)
+    pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
 
     # Convert to expected data types
     pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value] = float(
@@ -231,7 +242,8 @@ def run_validate_cti_gal_from_args(args):
     if not args.dry_run:
 
         # Fill in each exposure product in turn with results
-        for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table, l_exp_test_result_product):
+        for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table,
+                                                                            l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
                                             regression_results_row=exposure_regression_results_row,
                                             pipeline_config=pipeline_config,
@@ -244,8 +256,8 @@ def run_validate_cti_gal_from_args(args):
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
-    for exp_test_result_product, exp_test_result_filename in \
-            zip(l_exp_test_result_product, l_exp_test_result_filename):
+    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
+                                                                 l_exp_test_result_filename):
         write_xml_product(exp_test_result_product, exp_test_result_filename, workdir=args.workdir)
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
