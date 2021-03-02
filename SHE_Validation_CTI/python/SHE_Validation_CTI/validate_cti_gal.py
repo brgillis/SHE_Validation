@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-03-01"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -186,12 +186,10 @@ def run_validate_cti_gal_from_args(args):
 
     # Run the validation
     if not args.dry_run:
-        d_regression_results_tables = validate_cti_gal(data_stack=data_stack,
-                                                       shear_estimate_tables=d_shear_estimate_tables,
-                                                       d_bin_limits=d_bin_limits)
-
-        exposure_regression_results_table, observation_regression_results_table = d_regression_results_tables[
-            CTI_GAL_TEST_CASE_GLOBAL][0]
+        (d_exposure_regression_results_tables,
+         d_observation_regression_results_tables) = validate_cti_gal(data_stack=data_stack,
+                                                                     shear_estimate_tables=d_shear_estimate_tables,
+                                                                     d_bin_limits=d_bin_limits)
 
     # Set up output product
 
@@ -241,18 +239,21 @@ def run_validate_cti_gal_from_args(args):
     # Fill in the products with the results
     if not args.dry_run:
 
+        # Get the regression results tables for this test case
+
         # Fill in each exposure product in turn with results
-        for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table,
-                                                                            l_exp_test_result_product):
+        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
-                                            regression_results_row=exposure_regression_results_row,
+                                            regression_results_row_index=product_index,
+                                            d_regression_results_tables=d_exposure_regression_results_tables,
                                             pipeline_config=pipeline_config,
                                             d_bin_limits=d_bin_limits,
                                             method_data_exists=method_data_exists)
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
-                                        regression_results_row=observation_regression_results_table[0],
+                                        regression_results_row_index=0,
+                                        d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=pipeline_config,
                                         d_bin_limits=d_bin_limits,
                                         method_data_exists=method_data_exists)
@@ -293,7 +294,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     l_object_data_table = sort_raw_object_data_into_table(raw_object_data_list=l_raw_object_data)
 
     # Loop over each test case, filling in results tables for each and adding them to the results dict
-    d_regression_results_tables = {}
+    d_exposure_regression_results_tables = {}
+    d_observation_regression_results_tables = {}
 
     for test_case in d_bin_limits:
 
@@ -302,7 +304,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         # Double check we have at least one bin
         assert(num_bins >= 1)
 
-        l_test_case_regression_results_tables = [None] * num_bins
+        l_test_case_exposure_regression_results_tables = [None] * num_bins
+        l_test_case_observation_regression_results_tables = [None] * num_bins
 
         for bin_index in range(num_bins):
 
@@ -331,11 +334,12 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                 bin_limits=test_case_bin_limits[
                                                                                     bin_index:bin_index + 2])
 
-            l_test_case_regression_results_tables[bin_index] = (
-                exposure_regression_results_table, observation_regression_results_table)
+            l_test_case_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
+            l_test_case_observation_regression_results_tables[bin_index] = observation_regression_results_table
 
         # Fill in the results of this test case in the output dict
-        d_regression_results_tables[test_case] = l_test_case_regression_results_tables
+        d_exposure_regression_results_tables[test_case] = l_test_case_exposure_regression_results_tables
+        d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
 
     # And we're done here, so return the results
-    return d_regression_results_tables
+    return d_exposure_regression_results_tables, d_observation_regression_results_tables

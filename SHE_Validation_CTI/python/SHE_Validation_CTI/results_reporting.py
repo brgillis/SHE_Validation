@@ -4,8 +4,28 @@
 
     Utility functions for CTI-Gal validation, for reporting results.
 """
+from copy import deepcopy
+from typing import Dict, Any, List, Tuple
 
-__updated__ = "2021-03-01"
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from astropy import table
+import scipy.stats
+from sklearn import pipeline
+
+from SHE_Validation_CTI.constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
+from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
+import numpy as np
+
+from .constants.cti_gal_default_config import FailSigmaScaling
+from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
+                                          CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+                                          D_CTI_GAL_TEST_CASE_INFO,)
+from .table_formats.regression_results import TF as RR_TF
+
+
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,24 +39,6 @@ __updated__ = "2021-03-01"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-from copy import deepcopy
-from typing import Dict, Any
-
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from astropy import table
-import scipy.stats
-
-from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
-from .constants.cti_gal_default_config import FailSigmaScaling
-from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
-                                          CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
-                                          D_CTI_GAL_TEST_CASE_INFO,)
-from .table_formats.regression_results import TF as RR_TF
 
 
 logger = getLogger(__name__)
@@ -164,37 +166,70 @@ class CTIGalRequirementWriter():
 
     def __init__(self,
                  requirement_object,
-                 slope: float,
-                 slope_err: float,
-                 intercept: float,
-                 intercept_err: float,
+                 l_slope: List[float],
+                 l_slope_err: List[float],
+                 l_intercept: List[float],
+                 l_intercept_err: List[float],
+                 l_bin_limits: List[float],
                  slope_fail_sigma: float,
                  intercept_fail_sigma: float):
 
         self.requirement_object = requirement_object
-        self.slope = slope
-        self.slope_err = slope_err
-        self.intercept = intercept
-        self.intercept_err = intercept_err
+        self.l_slope = np.array(l_slope)
+        self.l_slope_err = np.array(l_slope_err)
+        self.l_intercept = np.array(l_intercept)
+        self.l_intercept_err = np.array(l_intercept_err)
+        if l_bin_limits is None:
+            self.l_bin_limits = None
+        else:
+            self.l_bin_limits = np.array(l_bin_limits)
         self.slope_fail_sigma = slope_fail_sigma
         self.intercept_fail_sigma = intercept_fail_sigma
 
+        self.num_bins = len(l_slope)
+
         # Calculate some values for both the slope and intercept
         for prop in "slope", "intercept":
-            if np.isnan(getattr(self, prop)) or np.isnan(getattr(self, f"{prop}_err")):
-                setattr(self, f"{prop}_z", np.NaN)
-                setattr(self, f"{prop}_pass", False)
-                setattr(self, f"{prop}_result", RESULT_FAIL)
-            elif getattr(self, f"{prop}_err") == 0.:
-                setattr(self, f"{prop}_z", np.NaN)
-                setattr(self, f"{prop}_pass", False)
-            else:
-                setattr(self, f"{prop}_z", np.abs(getattr(self, prop) / getattr(self, f"{prop}_err")))
-                setattr(self, f"{prop}_pass", getattr(self, f"{prop}_z") < getattr(self, f"{prop}_fail_sigma"))
 
-            if getattr(self, f"{prop}_pass"):
+            # Init each z, pass, and result as empy lists
+
+            l_prop_z = np.empty(self.num_bins, dtype=float)
+            setattr(self, f"l_{prop}_z", l_prop_z)
+
+            l_prop_pass = np.empty(self.num_bins, dtype=bool)
+            setattr(self, f"l_{prop}_pass", l_prop_pass)
+
+            l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
+            setattr(self, f"l_{prop}_result", l_prop_result)
+
+            l_prop_good_data = np.empty(self.num_bins, dtype=bool)
+
+            for bin_index in range(self.num_bins):
+                if np.isnan(getattr(self, f"l_{prop}")[bin_index]) or np.isnan(getattr(self, f"l_{prop}_err")[bin_index]):
+                    l_prop_z[bin_index] = np.NaN
+                    l_prop_pass[bin_index] = False
+                    l_prop_good_data[bin_index] = False
+                else:
+                    if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
+                        l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}")[
+                                                     bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                    else:
+                        l_prop_z[bin_index] = np.NaN
+                    l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
+                    l_prop_good_data[bin_index] = True
+
+                if l_prop_pass[bin_index]:
+                    l_prop_result[bin_index] = RESULT_PASS
+                else:
+                    l_prop_result[bin_index] = RESULT_FAIL
+
+            # Pass if there's at least some good data, and all good data passes
+            if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data[bin_index])) and
+                    not np.all(~l_prop_good_data[bin_index])):
+                setattr(self, f"{prop}_pass", True)
                 setattr(self, f"{prop}_result", RESULT_PASS)
             else:
+                setattr(self, f"{prop}_pass", False)
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
     def add_supplementary_info(self,
@@ -213,24 +248,29 @@ class CTIGalRequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = [slope_supplementary_info_parameter,
                                                                       intercept_supplementary_info_parameter]
 
+        # Set up result messages for each bin, for both the slope and intercept
+        messages = {"slope": extra_slope_message + "\n",
+                    "intercept": extra_intercept_message + "\n"}
+        for prop in messages:
+            for bin_index in range(self.num_bins):
+
+                if self.l_bin_limits is not None:
+                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index][0]}\n" +
+                                       f"bin_max = {self.l_bin_limits[bin_index][1]}\n")
+
+                messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
+                                   f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
+                                   f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
+                                   f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
+                                   f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
+
         slope_supplementary_info_parameter.Key = KEY_SLOPE_INFO
         slope_supplementary_info_parameter.Description = DESC_SLOPE_INFO
-        slope_supplementary_info_parameter.StringValue = (extra_slope_message +
-                                                          f"slope = {self.slope}\n" +
-                                                          f"slope_err = {self.slope_err}\n" +
-                                                          f"slope_z = {self.slope_z}\n" +
-                                                          f"Maximum allowed slope_z = {self.slope_fail_sigma}\n" +
-                                                          f"Result: {self.slope_result}\n")
+        slope_supplementary_info_parameter.StringValue = messages["slope"]
 
         intercept_supplementary_info_parameter.Key = KEY_INTERCEPT_INFO
         intercept_supplementary_info_parameter.Description = DESC_INTERCEPT_INFO
-        intercept_supplementary_info_parameter.StringValue = (extra_intercept_message +
-                                                              f"intercept = {self.intercept}\n" +
-                                                              f"intercept_err = {self.intercept_err}\n" +
-                                                              f"intercept_z = {self.intercept_z}\n" +
-                                                              f"Maximum allowed intercept_z = " +
-                                                              f"{self.intercept_fail_sigma}\n" +
-                                                              f"Result: {self.intercept_result}\n")
+        intercept_supplementary_info_parameter.StringValue = messages["intercept"]
 
     def report_bad_data(self):
 
@@ -255,8 +295,8 @@ class CTIGalRequirementWriter():
 
     def report_good_data(self):
 
-        # Report the self.slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = self.slope_z
+        # Report the maximum slope_z as the measured value for this test
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = np.max(self.l_slope_z)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
@@ -266,7 +306,7 @@ class CTIGalRequirementWriter():
 
         self.requirement_object.Comment = f"{comment_level}: " + COMMENT_MULTIPLE
 
-        # Add a supplementary info key for each of the self.slope and self.intercept, reporting details
+        # Add a supplementary info key for each of the slope and intercept, reporting details
 
         self.add_supplementary_info()
 
@@ -277,17 +317,18 @@ class CTIGalRequirementWriter():
         self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
         # Check for data quality issues and report as proper if found
-        if (np.isnan([self.slope, self.slope_err]).any() or
-                np.isinf([self.slope, self.slope_err]).any()):
+        if (np.logical_or(np.isnan(self.l_slope), np.isinf(self.l_slope)).all() or
+                np.logical_or(np.isnan(self.l_slope_err), np.isinf(self.l_slope_err)).all()):
             self.report_bad_data()
-        elif self.slope_err == 0.:
+        elif np.all(self.l_slope_err == 0.):
             self.report_zero_slope_err()
         else:
             self.report_good_data()
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
-                                    regression_results_row: table.Row,
+                                    regression_results_row_index: int,
+                                    d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[str, Any],
                                     d_bin_limits: Dict[str, np.ndarray],
                                     method_data_exists: bool = True):
@@ -295,14 +336,27 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
         test_result_product with the results of this validation test.
     """
 
+    # Set up a calculator object for scaled fail sigmas
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
+                                                d_bin_limits=d_bin_limits)
+
     # The results of this each test will be stored in an item of the ValidationTestList.
-    # We'll iterate over the methods and test cases and fill in each in turn
+    # We'll iterate over the methods, test cases, and bins, and fill in each in turn
 
     test_case_index = 0
 
     for method in METHODS:
         for test_case in CTI_GAL_TEST_CASES:
+
+            l_test_case_bins = d_bin_limits[test_case]
+            num_bins = len(l_test_case_bins) - 1
+
+            slope_fail_sigma = fail_sigma_calculator.d_scaled_slope_sigma[test_case]
+            intercept_fail_sigma = fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+
             test_object = test_result_product.Data.ValidationTestList[test_case_index]
+
+            l_test_case_regression_results_tables = d_regression_results_tables[test_case]
 
             # Fill in metadata about the test
             test_object.TestId = D_CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
@@ -314,33 +368,50 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
-            if test_case == CTI_GAL_TEST_CASE_GLOBAL and method_data_exists:
+            if method_data_exists and test_case != CTI_GAL_TEST_CASE_EPOCH:
+
+                # Sort the data out from the tables
+
+                l_slope = [None] * num_bins
+                l_slope_err = [None] * num_bins
+                l_intercept = [None] * num_bins
+                l_intercept_err = [None] * num_bins
+                l_bin_limits = [None] * num_bins
+
+                for (bin_index,
+                     bin_test_case_regression_results_table) in enumerate(l_test_case_regression_results_tables):
+
+                    regression_results_row = bin_test_case_regression_results_table[regression_results_row_index]
+
+                    l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
+                    l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
+                    l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
+                    l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method}")]
+                    l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
+
+                # For the global case, override the bin limits with None
+                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+                    l_bin_limits = None
 
                 requirement_writer = CTIGalRequirementWriter(requirement_object,
-                                                             slope=regression_results_row[getattr(
-                                                                 RR_TF, f"slope_{method}")],
-                                                             slope_err=regression_results_row[getattr(
-                                                                 RR_TF, f"slope_err_{method}")],
-                                                             intercept=regression_results_row[getattr(
-                                                                 RR_TF, f"intercept_{method}")],
-                                                             intercept_err=regression_results_row[getattr(
-                                                                 RR_TF, f"intercept_err_{method}")],
-                                                             slope_fail_sigma=pipeline_config[
-                                                                 AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value],
-                                                             intercept_fail_sigma=pipeline_config[
-                                                                 AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
+                                                             l_slope=l_slope,
+                                                             l_slope_err=l_slope_err,
+                                                             l_intercept=l_intercept,
+                                                             l_intercept_err=l_intercept_err,
+                                                             l_bin_limits=l_bin_limits,
+                                                             slope_fail_sigma=slope_fail_sigma,
+                                                             intercept_fail_sigma=intercept_fail_sigma)
 
                 requirement_writer.report_data()
 
-            elif test_case == CTI_GAL_TEST_CASE_GLOBAL and not method_data_exists:
-                # Report that the test wasn't run due to a lack of data
-                report_test_not_run(requirement_object,
-                                    reason=MSG_NO_DATA)
-
-            else:
+            elif test_case == CTI_GAL_TEST_CASE_EPOCH:
                 # Report that the test wasn't run due to it not yet being implemented
                 report_test_not_run(requirement_object,
                                     reason=MSG_NOT_IMPLEMENTED)
+            else:
+                # Report that the test wasn't run due to a lack of data
+                report_test_not_run(requirement_object,
+                                    reason=MSG_NO_DATA)
 
             test_object.GlobalResult = requirement_object.ValidationResult
 
