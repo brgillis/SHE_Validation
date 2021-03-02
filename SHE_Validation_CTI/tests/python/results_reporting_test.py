@@ -173,6 +173,14 @@ class TestCase:
 
         # Set up mock input data and fill the products for each set of possible results
         exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
+
+        d_exp_results_tables = {}
+        for test_case in CTI_GAL_TEST_CASES:
+            if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+                d_exp_results_tables[test_case] = [exp_results_table]
+            else:
+                d_exp_results_tables[test_case] = []
+
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_row = exp_results_table[exp_index]
             exp_row[getattr(RR_TF, "slope_LensMC")] = exp_results.slope
@@ -184,7 +192,8 @@ class TestCase:
                 num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
-                                            regression_results_row=exp_row,
+                                            regression_results_row_index=exp_index,
+                                            d_regression_results_tables=d_regression_results_tables,
                                             pipeline_config=self.pipeline_config,
                                             d_bin_limits=self.d_bin_limits,
                                             method_data_exists=True)
