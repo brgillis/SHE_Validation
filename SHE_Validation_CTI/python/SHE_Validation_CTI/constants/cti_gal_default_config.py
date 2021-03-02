@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-03-01"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,7 @@ from enum import Enum
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
 BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "FLUX_VIS_APER/FLUX_NIR_STACK_APER"
+COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
 SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 
@@ -45,7 +45,7 @@ CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_BINS_SCALE.value,
                           AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
                           AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "0 33 66 100 150 200 400 1e99",
-                          AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 1e99",
+                          AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
                           AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
                           }
 

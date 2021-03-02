@@ -6,7 +6,7 @@
 """
 from copy import deepcopy
 
-__updated__ = "2021-02-26"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -195,7 +195,7 @@ class TestCase:
 
             # Check that SNR, Colour, and Size are as expected
             assert np.isclose(object_data.snr, fvis / fvis_err)
-            assert np.isclose(object_data.colour, fvis / fnir)
+            assert np.isclose(object_data.colour, 2.5 * np.log10(fvis / fnir))
             assert np.isclose(object_data.size, area)
 
             for bg_level in object_data.background_level:

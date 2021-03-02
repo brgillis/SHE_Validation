@@ -20,7 +20,7 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
-__updated__ = "2021-02-26"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -144,8 +144,17 @@ class SingleObjectData(object):
 
             detections_row = data_stack.detections_catalogue.loc[ID]
 
-            self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
-            self.colour = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUX_NIR_STACK_APER]
+            if detections_row[mfc_tf.FLUXERR_VIS_APER] == 0.:
+                self.snr = np.NaN
+            else:
+                self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
+
+            if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
+                self.colour = np.NaN
+            else:
+                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
+                                             detections_row[mfc_tf.FLUX_NIR_STACK_APER])
+
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
 
             # Get the background level from the mean of a stamp around the object
