@@ -35,7 +35,8 @@ from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKe
     FAILSAFE_BIN_LIMITS, FailSigmaScaling
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES,
+                                                            CTI_GAL_TEST_CASE_EPOCH)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
@@ -60,6 +61,7 @@ class TestCase:
         # Make a pipeline_config using the default values
         cls.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,
                                                          defaults=CTI_GAL_DEFAULT_CONFIG)
+        cls.pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
 
         # Make a dictionary of bin limits
         cls.d_bin_limits = {}
@@ -176,10 +178,8 @@ class TestCase:
 
         d_exp_results_tables = {}
         for test_case in CTI_GAL_TEST_CASES:
-            if test_case == CTI_GAL_TEST_CASE_GLOBAL:
-                d_exp_results_tables[test_case] = [exp_results_table]
-            else:
-                d_exp_results_tables[test_case] = []
+            num_bins = len(self.d_bin_limits[test_case]) - 1
+            d_exp_results_tables[test_case] = [exp_results_table] * num_bins
 
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_row = exp_results_table[exp_index]
@@ -193,7 +193,7 @@ class TestCase:
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row_index=exp_index,
-                                            d_regression_results_tables=d_regression_results_tables,
+                                            d_regression_results_tables=d_exp_results_tables,
                                             pipeline_config=self.pipeline_config,
                                             d_bin_limits=self.d_bin_limits,
                                             method_data_exists=True)
@@ -309,8 +309,14 @@ class TestCase:
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
+        d_obs_results_tables = {}
+        for test_case in CTI_GAL_TEST_CASES:
+            num_bins = len(self.d_bin_limits[test_case]) - 1
+            d_obs_results_tables[test_case] = [obs_results_table] * num_bins
+
         fill_cti_gal_validation_results(test_result_product=obs_product,
-                                        regression_results_row=obs_row,
+                                        regression_results_row_index=exp_index,
+                                        d_regression_results_tables=d_obs_results_tables,
                                         pipeline_config=self.pipeline_config,
                                         d_bin_limits=self.d_bin_limits,
                                         method_data_exists=False)
@@ -333,10 +339,10 @@ class TestCase:
                 obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
                 assert obs_info.Parameter[0].Key == KEY_REASON
                 assert obs_info.Parameter[0].Description == DESC_REASON
-                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
-                    assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
-                else:
+                if test_case == CTI_GAL_TEST_CASE_EPOCH:
                     assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
+                else:
+                    assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
 
                 test_case_index += 1
 

@@ -166,19 +166,23 @@ class CTIGalRequirementWriter():
 
     def __init__(self,
                  requirement_object,
-                 l_slope: float,
-                 l_slope_err: float,
-                 l_intercept: float,
-                 l_intercept_err: float,
-                 l_bin_limits: Tuple[float, float],
+                 l_slope: List[float],
+                 l_slope_err: List[float],
+                 l_intercept: List[float],
+                 l_intercept_err: List[float],
+                 l_bin_limits: List[float],
                  slope_fail_sigma: float,
                  intercept_fail_sigma: float):
 
         self.requirement_object = requirement_object
-        self.l_slope = l_slope
-        self.l_slope_err = l_slope_err
-        self.l_intercept = l_intercept
-        self.l_intercept_err = l_intercept_err
+        self.l_slope = np.array(l_slope)
+        self.l_slope_err = np.array(l_slope_err)
+        self.l_intercept = np.array(l_intercept)
+        self.l_intercept_err = np.array(l_intercept_err)
+        if l_bin_limits is None:
+            self.l_bin_limits = None
+        else:
+            self.l_bin_limits = np.array(l_bin_limits)
         self.slope_fail_sigma = slope_fail_sigma
         self.intercept_fail_sigma = intercept_fail_sigma
 
@@ -188,18 +192,26 @@ class CTIGalRequirementWriter():
         for prop in "slope", "intercept":
 
             # Init each z, pass, and result as empy lists
-            l_prop_z = setattr(self, f"l_{prop}_z", [None] * self.num_bins)
-            l_prop_pass = setattr(self, f"l_{prop}_pass", [None] * self.num_bins)
-            l_prop_good_data = [None] * self.num_bins
-            l_prop_result = setattr(self, f"l_{prop}_result", [None] * self.num_bins)
+
+            l_prop_z = np.empty(self.num_bins, dtype=float)
+            setattr(self, f"l_{prop}_z", l_prop_z)
+
+            l_prop_pass = np.empty(self.num_bins, dtype=bool)
+            setattr(self, f"l_{prop}_pass", l_prop_pass)
+
+            l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
+            setattr(self, f"l_{prop}_result", l_prop_result)
+
+            l_prop_good_data = np.empty(self.num_bins, dtype=bool)
 
             for bin_index in range(self.num_bins):
-                if np.isnan(getattr(self, prop)) or np.isnan(getattr(self, f"{prop}_err")):
+                if np.isnan(getattr(self, f"l_{prop}")[bin_index]) or np.isnan(getattr(self, f"l_{prop}_err")[bin_index]):
                     l_prop_z[bin_index] = np.NaN
                     l_prop_pass[bin_index] = False
                     l_prop_good_data[bin_index] = False
                 else:
-                    l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}") / getattr(self, f"l_{prop}_err"))
+                    l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}")[
+                                                 bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
                     l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
                     l_prop_good_data[bin_index] = True
 
@@ -211,8 +223,10 @@ class CTIGalRequirementWriter():
             # Pass if there's at least some good data, and all good data passes
             if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data[bin_index])) and
                     not np.all(~l_prop_good_data[bin_index])):
+                setattr(self, f"{prop}_pass", True)
                 setattr(self, f"{prop}_result", RESULT_PASS)
             else:
+                setattr(self, f"{prop}_pass", False)
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
     def add_supplementary_info(self,
@@ -237,14 +251,14 @@ class CTIGalRequirementWriter():
         for prop in messages:
             for bin_index in range(self.num_bins):
 
-                if self.self.l_bin_limits is not None:
-                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index]}\n" +
-                                       f"bin_max = {self.l_bin_limits[bin_index+1]}\n")
+                if self.l_bin_limits is not None:
+                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index][0]}\n" +
+                                       f"bin_max = {self.l_bin_limits[bin_index][1]}\n")
 
                 messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
                                    f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
                                    f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self,f'l_{prop}_fail_sigma')[bin_index]}\n" +
+                                   f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
                                    f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
 
         slope_supplementary_info_parameter.Key = KEY_SLOPE_INFO
@@ -358,12 +372,14 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                 l_slope = [None] * num_bins
                 l_slope_err = [None] * num_bins
                 l_intercept = [None] * num_bins
-                l_intercept_err = [None] * num_bins,
+                l_intercept_err = [None] * num_bins
                 l_bin_limits = [None] * num_bins
 
                 for (bin_index,
                      bin_test_case_regression_results_table) in enumerate(l_test_case_regression_results_tables):
-                    regression_results_row = bin_test_case_regression_results_table[0][regression_results_row_index]
+
+                    regression_results_row = bin_test_case_regression_results_table[regression_results_row_index]
+
                     l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
                     l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
                     l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
