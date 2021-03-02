@@ -239,29 +239,24 @@ def run_validate_cti_gal_from_args(args):
     # Fill in the products with the results
     if not args.dry_run:
 
-        # Loop over test cases and bins
-        for test_case in CTI_GAL_TEST_CASES:
+        # Get the regression results tables for this test case
 
-            # Get the regression results tables for this test case
-            l_test_case_exposure_regression_results_tables = d_exposure_regression_results_tables[test_case]
-            l_test_case_observation_regression_results_tables = d_observation_regression_results_tables[test_case]
-
-            # Fill in each exposure product in turn with results
-            for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
-                fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
-                                                regression_results_row_index=product_index,
-                                                l_regression_results_tables=l_test_case_exposure_regression_results_tables,
-                                                pipeline_config=pipeline_config,
-                                                d_bin_limits=d_bin_limits,
-                                                method_data_exists=method_data_exists)
-
-            # And fill in the observation product
-            fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
-                                            regression_results_row_index=0,
-                                            l_regression_results_tables=l_test_case_observation_regression_results_tables,
+        # Fill in each exposure product in turn with results
+        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
+            fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
+                                            regression_results_row_index=product_index,
+                                            d_regression_results_tables=d_exposure_regression_results_tables,
                                             pipeline_config=pipeline_config,
                                             d_bin_limits=d_bin_limits,
                                             method_data_exists=method_data_exists)
+
+        # And fill in the observation product
+        fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
+                                        regression_results_row_index=0,
+                                        d_regression_results_tables=d_observation_regression_results_tables,
+                                        pipeline_config=pipeline_config,
+                                        d_bin_limits=d_bin_limits,
+                                        method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
