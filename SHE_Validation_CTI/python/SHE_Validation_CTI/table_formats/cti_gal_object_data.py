@@ -4,8 +4,20 @@
 
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
+from collections import OrderedDict
+from typing import List
 
-__updated__ = "2021-01-06"
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import fits_version_label, fits_def_label
+from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from astropy import table
+
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
+                                                            D_CTI_GAL_TEST_CASE_INFO)
+
+
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,16 +32,6 @@ __updated__ = "2021-01-06"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-
-from collections import OrderedDict
-from typing import List
-
-from astropy import table
-
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import fits_version_label, fits_def_label
-from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 
 
 FITS_VERSION = "8.0"
@@ -85,6 +87,12 @@ class SheCtiGalObjectDataFormat(object):
 
         self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
         self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
+
+        # Data we might bin by
+        for test_case in CTI_GAL_TEST_CASES:
+            name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
+            comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
+            setattr(self, name, set_column_properties(self, name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
 

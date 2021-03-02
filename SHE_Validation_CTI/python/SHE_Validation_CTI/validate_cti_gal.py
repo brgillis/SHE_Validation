@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-02-22"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,9 +23,6 @@ __updated__ = "2021-02-22"
 from os.path import join
 from typing import Dict
 
-from astropy import table
-
-from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
@@ -36,14 +33,17 @@ from SHE_PPT.pipeline_utility import read_analysis_config
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
+from astropy import table
+
+from EL_CoordsUtils import telescope_coords
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS
+from .constants.cti_gal_default_config import (AnalysisConfigKeys, FailSigmaScaling,
+                                               CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS)
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
-                                          CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
-                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE,
-                                          CTI_GAL_TEST_CASES)
+                                          CTI_GAL_TEST_CASE_GLOBAL, CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
+                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE, CTI_GAL_TEST_CASES)
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -88,18 +88,28 @@ def run_validate_cti_gal_from_args(args):
                                            cline_args=bin_limits_cline_args,
                                            defaults=CTI_GAL_DEFAULT_CONFIG)
 
+    # Check that the fail sigma scaling is in the enum (silently convert to lower case)
+    fail_sigma_scaling_lower = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value].lower()
+    if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
+        err_string = (f"Fail sigma scaling option {pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value]}" +
+                      " is not recognized. Allowed options are:")
+        for allowed_option in FailSigmaScaling:
+            err_string += "\n  " + allowed_option.value
+        raise ValueError(err_string)
+    pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
+
     # Convert to expected data types
     pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value] = float(
         pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value])
     pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value] = float(
         pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
 
-    bin_limits = {}
+    d_bin_limits = {}
     for test_case_label in CTI_GAL_TEST_CASES:
         bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            bin_limits[test_case_label] = FAILSAFE_BIN_LIMITS
+            d_bin_limits[test_case_label] = FAILSAFE_BIN_LIMITS
             continue
         bin_limits_string = pipeline_config[bin_limits_key]
         try:
@@ -107,12 +117,15 @@ def run_validate_cti_gal_from_args(args):
             bin_limits_array = np.array(bin_limits_list, dtype=float)
             # Sort bin limits ascending
             np.sort(bin_limits_array)
+            if not len(bin_limits_array) >= 2:
+                raise ValueError("At least two bin limits must be provided.")
         except ValueError as e:
             logger.warning(f"Cannot interpret bin limits \"{bin_limits_string}\" for {test_case_label} - " +
                            f"must be list of floats separated by whitespace. Failsafe limits " +
-                           f"({FAILSAFE_BIN_LIMITS}) will be used.")
-            bin_limits_array = FAILSAFE_BIN_LIMITS
-        bin_limits[test_case_label] = bin_limits_array
+                           f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
+            bin_limits_list = list(map(float, FAILSAFE_BIN_LIMITS.strip().split()))
+            bin_limits_array = np.array(bin_limits_list, dtype=float)
+        d_bin_limits[test_case_label] = bin_limits_array
 
     # Load the image data as a SHEFrameStack
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
@@ -171,10 +184,12 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Complete!")
 
+    # Run the validation
     if not args.dry_run:
-        exposure_regression_results_table, observation_regression_results_table = \
-            validate_cti_gal(data_stack=data_stack,
-                             shear_estimate_tables=d_shear_estimate_tables)
+        (d_exposure_regression_results_tables,
+         d_observation_regression_results_tables) = validate_cti_gal(data_stack=data_stack,
+                                                                     shear_estimate_tables=d_shear_estimate_tables,
+                                                                     d_bin_limits=d_bin_limits)
 
     # Set up output product
 
@@ -224,22 +239,28 @@ def run_validate_cti_gal_from_args(args):
     # Fill in the products with the results
     if not args.dry_run:
 
+        # Get the regression results tables for this test case
+
         # Fill in each exposure product in turn with results
-        for exposure_regression_results_row, exp_test_result_product in zip(exposure_regression_results_table, l_exp_test_result_product):
+        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
-                                            regression_results_row=exposure_regression_results_row,
+                                            regression_results_row_index=product_index,
+                                            d_regression_results_tables=d_exposure_regression_results_tables,
                                             pipeline_config=pipeline_config,
+                                            d_bin_limits=d_bin_limits,
                                             method_data_exists=method_data_exists)
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
-                                        regression_results_row=observation_regression_results_table[0],
+                                        regression_results_row_index=0,
+                                        d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=pipeline_config,
+                                        d_bin_limits=d_bin_limits,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
-    for exp_test_result_product, exp_test_result_filename in \
-            zip(l_exp_test_result_product, l_exp_test_result_filename):
+    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
+                                                                 l_exp_test_result_filename):
         write_xml_product(exp_test_result_product, exp_test_result_filename, workdir=args.workdir)
     qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
     write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
@@ -258,7 +279,8 @@ def run_validate_cti_gal_from_args(args):
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,
-                     shear_estimate_tables: Dict[str, table.Table]):
+                     shear_estimate_tables: Dict[str, table.Table],
+                     d_bin_limits: Dict[str, np.ndarray]):
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
@@ -271,24 +293,53 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # Now sort the raw data into tables (one for each exposure)
     l_object_data_table = sort_raw_object_data_into_table(raw_object_data_list=l_raw_object_data)
 
-    # We'll now loop over the table for each exposure, eventually getting regression results for each
+    # Loop over each test case, filling in results tables for each and adding them to the results dict
+    d_exposure_regression_results_tables = {}
+    d_observation_regression_results_tables = {}
 
-    exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
+    for test_case in d_bin_limits:
 
-    for object_data_table in l_object_data_table:
+        test_case_bin_limits = d_bin_limits[test_case]
+        num_bins = len(test_case_bin_limits) - 1
+        # Double check we have at least one bin
+        assert(num_bins >= 1)
 
-        # We'll need to calculate the distance from the readout register, so add columns for that as well
-        add_readout_register_distance(object_data_table=object_data_table)
+        l_test_case_exposure_regression_results_tables = [None] * num_bins
+        l_test_case_observation_regression_results_tables = [None] * num_bins
 
-        # Calculate the results of the regression and add it to the results table
-        exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table)[0]
-        exposure_regression_results_table.add_row(exposure_regression_results_row)
+        for bin_index in range(num_bins):
 
-    # With the exposures done, we'll now do a test for the observation as a whole on a merged table
-    merged_object_table = table.vstack(tables=l_object_data_table)
+            # We'll now loop over the table for each exposure, eventually getting regression results for each
 
-    observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
-                                                                        product_type="OBS")
+            exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
+
+            for object_data_table in l_object_data_table:
+
+                # We'll need to calculate the distance from the readout register, so add columns for that as well
+                add_readout_register_distance(object_data_table=object_data_table)
+
+                # Calculate the results of the regression and add it to the results table
+                exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
+                                                                               test_case=test_case,
+                                                                               bin_limits=test_case_bin_limits[
+                                                                                   bin_index:bin_index + 2])[0]
+                exposure_regression_results_table.add_row(exposure_regression_results_row)
+
+            # With the exposures done, we'll now do a test for the observation as a whole on a merged table
+            merged_object_table = table.vstack(tables=l_object_data_table)
+
+            observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                                product_type="OBS",
+                                                                                test_case=test_case,
+                                                                                bin_limits=test_case_bin_limits[
+                                                                                    bin_index:bin_index + 2])
+
+            l_test_case_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
+            l_test_case_observation_regression_results_tables[bin_index] = observation_regression_results_table
+
+        # Fill in the results of this test case in the output dict
+        d_exposure_regression_results_tables[test_case] = l_test_case_exposure_regression_results_tables
+        d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
 
     # And we're done here, so return the results
-    return exposure_regression_results_table, observation_regression_results_table
+    return d_exposure_regression_results_tables, d_observation_regression_results_tables

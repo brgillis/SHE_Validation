@@ -4,8 +4,23 @@
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
+from typing import Dict, List
 
-__updated__ = "2021-02-10"
+from SHE_PPT import shear_utility
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.detector import get_vis_quadrant
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import ccdid_label
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy import table
+
+import numpy as np
+
+from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+
+
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,21 +36,8 @@ __updated__ = "2021-02-10"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from typing import Dict, List
-
-from astropy import table
-
-from SHE_PPT import shear_utility
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.detector import get_vis_quadrant
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-import numpy as np
-
-from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
-
+# The size for the stamp used for calculating the background level
+BG_STAMP_SIZE = 128
 
 logger = getLogger(__name__)
 
@@ -124,6 +126,7 @@ class SingleObjectData(object):
     def __init__(self,
                  ID: int = None,
                  num_exposures: int = 1,
+                 data_stack: SHEFrameStack = None,
                  ):
         self.ID = ID
 
@@ -132,6 +135,44 @@ class SingleObjectData(object):
 
         # To be filled with objects of type ShearInfo, with method names as keys
         self.world_shear_info = {}
+
+        # Get info from the data_stack if possible
+
+        self.background_level = [None] * num_exposures
+
+        if data_stack is not None:
+
+            detections_row = data_stack.detections_catalogue.loc[ID]
+
+            if detections_row[mfc_tf.FLUXERR_VIS_APER] == 0.:
+                self.snr = np.NaN
+            else:
+                self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
+
+            if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
+                self.colour = np.NaN
+            else:
+                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
+                                             detections_row[mfc_tf.FLUX_NIR_STACK_APER])
+
+            self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
+
+            # Get the background level from the mean of a stamp around the object
+            stamp_stack = data_stack.extract_galaxy_stack(ID, width=BG_STAMP_SIZE)
+            for exp_index, exp_image in enumerate(stamp_stack.exposures):
+                if exp_image is not None:
+                    unmasked_background_data = exp_image.background_map[~exp_image.boolmask]
+                    if len(unmasked_background_data) > 0:
+                        self.background_level[exp_index] = unmasked_background_data.mean()
+
+            # Calculate the mean background level of all valid exposures
+            self.mean_background_level = np.mean(self.background_level[self.background_level != None])
+
+        else:
+            self.snr = None
+            self.colour = None
+            self.size = None
+            self.mean_background_level = None
 
 
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
@@ -174,8 +215,11 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                 logger.warning(f"Object {object_id} is outside the observation.")
                 continue
 
+            detections_row = data_stack.detections_catalogue.loc[object_id]
+
             object_data = SingleObjectData(ID=object_id,
-                                           num_exposures=len(ministamp_stack.exposures))
+                                           num_exposures=len(ministamp_stack.exposures),
+                                           data_stack=data_stack)
 
             # Set the shear info for each method
             for method in METHODS:
@@ -193,8 +237,8 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                                                  weight=object_row[sem_tf.weight])
 
             # Get the object's world position from the detections catalog
-            ra = data_stack.detections_catalogue.loc[object_id][mfc_tf.gal_x_world]
-            dec = data_stack.detections_catalogue.loc[object_id][mfc_tf.gal_y_world]
+            ra = detections_row[mfc_tf.gal_x_world]
+            dec = detections_row[mfc_tf.gal_y_world]
 
             # Set the position info for each exposure
             for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
@@ -236,20 +280,35 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
 
         # Initialise the table with one row for each object
         object_data_table = initialise_cti_gal_object_data_table(size=num_objects,
-                                                                 optional_columns=[CGOD_TF.quadrant])
+                                                                 optional_columns=[CGOD_TF.quadrant,
+                                                                                   CGOD_TF.snr,
+                                                                                   CGOD_TF.bg,
+                                                                                   CGOD_TF.colour,
+                                                                                   CGOD_TF.size,
+                                                                                   ])
 
         # Fill in the data for each object
-        for object, row in zip(raw_object_data_list, object_data_table):
+        for object_data, row in zip(raw_object_data_list, object_data_table):
 
-            position_info = object.position_info[exp_index]
+            position_info = object_data.position_info[exp_index]
 
-            row[CGOD_TF.ID] = object.ID
+            row[CGOD_TF.ID] = object_data.ID
 
             row[CGOD_TF.x] = position_info.x_pix
             row[CGOD_TF.y] = position_info.y_pix
 
             row[CGOD_TF.det_ix] = position_info.det_ix
             row[CGOD_TF.det_iy] = position_info.det_iy
+
+            row[CGOD_TF.snr] = object_data.snr
+            row[CGOD_TF.colour] = object_data.colour
+            row[CGOD_TF.size] = object_data.size
+
+            bg_level = object_data.background_level[exp_index]
+            if bg_level is not None:
+                row[CGOD_TF.bg] = bg_level
+            else:
+                row[CGOD_TF.bg] = -99
 
             # Fill in data for each shear estimate method
             for method in METHODS:

@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-02-22"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,19 +20,36 @@ __updated__ = "2021-02-22"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from enum import Enum
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
 BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "..."
-SIZE_DEFINITION = "..."
+COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
+SIZE_DEFINITION = "Area of segmentation map (pixels)"
+
+
+class FailSigmaScaling(Enum):
+    NO_SCALE = "none"
+    BIN_SCALE = "bins"
+    TEST_CASE_SCALE = "test_cases"
+    TEST_CASE_BINS_SCALE = "test_case_bins"
+
+    @classmethod
+    def is_allowed_value(cls, value):
+        return value in [item.value for item in cls]
+
 
 # Config keys and default values
 CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.,
-                          AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "-1e99 5 10 20 40 1e99",
-                          AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "-1e99 1e99",
-                          AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 1e99",
-                          AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value: "-1e99 1e99",
+                          AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_BINS_SCALE.value,
+                          AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
+                          AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "0 33 66 100 150 200 400 1e99",
+                          AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
+                          AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
                           }
 
-FAILSAFE_BIN_LIMITS = "-1e99 1e99"
+DEFAULT_BIN_LIMIT_MIN = -1e99
+DEFAULT_BIN_LIMIT_MAX = 1e99
+DEFAULT_BIN_LIMITS = (DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX)
+FAILSAFE_BIN_LIMITS = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"

@@ -4,8 +4,9 @@
 
     Unit tests of the input_data.py module
 """
+from copy import deepcopy
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-03-02"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,10 +24,6 @@ __updated__ = "2021-01-06"
 import os
 import time
 
-from astropy.table import Table
-import pytest
-
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
@@ -35,6 +32,10 @@ from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy.table import Table
+import pytest
+
+from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
@@ -71,6 +72,9 @@ class TestCase:
                                             clean_detections=False,
                                             memmap=True,
                                             mode='denywrite')
+
+        # Set up some expected values
+        cls.ex_bg_level = 45.71
 
         return
 
@@ -167,10 +171,37 @@ class TestCase:
         dg2_dexp = 0.02
         dweight_dexp = 1
 
-        for ID, x, y, g1, g2, weight in ((1, 128, 129, 0.1, 0.3, 10),
-                                         (2, 2000, 2000, -0.1, 0.2, 11)):
+        ID_0 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+        ID_1 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+
+        for ID, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((ID_0, 128, 129, 0.1, 0.3, 10,
+                                                                      100., 10., 200., 50),
+                                                                     (ID_1, 2000, 2000, -0.1, 0.2, 11,
+                                                                      150., 20., 150., 100)):
+
+            data_stack_copy = deepcopy(self.data_stack)
+
+            detections_row = data_stack_copy.detections_catalogue.loc[ID]
+
+            # Set up a mock detections row using a dictionary
+            detections_row[mfc_tf.FLUX_VIS_APER] = fvis
+            detections_row[mfc_tf.FLUXERR_VIS_APER] = fvis_err
+            detections_row[mfc_tf.FLUX_NIR_STACK_APER] = fnir
+            detections_row[mfc_tf.SEGMENTATION_AREA] = area
+
             object_data = SingleObjectData(ID=ID,
-                                           num_exposures=num_exposures)
+                                           num_exposures=num_exposures,
+                                           data_stack=data_stack_copy)
+
+            # Check that SNR, Colour, and Size are as expected
+            assert np.isclose(object_data.snr, fvis / fvis_err)
+            assert np.isclose(object_data.colour, 2.5 * np.log10(fvis / fnir))
+            assert np.isclose(object_data.size, area)
+
+            for bg_level in object_data.background_level:
+                assert np.isclose(bg_level, self.ex_bg_level)
+            assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
+
             object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
                                                                g2=g2,
                                                                weight=weight)
@@ -197,6 +228,11 @@ class TestCase:
             for object_data, row in zip(raw_object_data_list, object_data_table):
 
                 assert object_data.ID == row[CGOD_TF.ID]
+
+                assert np.isclose(object_data.snr, row[CGOD_TF.snr])
+                assert np.isclose(object_data.colour, row[CGOD_TF.colour])
+                assert np.isclose(object_data.size, row[CGOD_TF.size])
+
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,

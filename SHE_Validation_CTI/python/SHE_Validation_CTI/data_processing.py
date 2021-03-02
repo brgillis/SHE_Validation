@@ -4,8 +4,25 @@
 
     Utility functions for CTI-Gal validation, for processing the data.
 """
+from typing import Tuple
 
-__updated__ = "2021-01-06"
+from SHE_PPT import mdb
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import linregress_with_errors
+from astropy import table
+
+from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
+                                                            D_CTI_GAL_TEST_CASE_INFO,
+                                                            CTI_GAL_TEST_CASE_EPOCH)
+import numpy as np
+
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
+from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
+
+
+__updated__ = "2021-02-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,18 +36,6 @@ __updated__ = "2021-01-06"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-
-from astropy import table
-
-from SHE_PPT import mdb
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import linregress_with_errors
-import numpy as np
-
-from .table_formats.cti_gal_object_data import TF as CGOD_TF
-from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 
 
 logger = getLogger(__name__)
@@ -49,15 +54,17 @@ def add_readout_register_distance(object_data_table: table.Table):
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
-
-    object_data_table.add_column(readout_distance_column)
-
-
+    if CGOD_TF.readout_dist in object_data_table.colnames:
+        object_data_table[CGOD_TF.readout_dist] = readout_distance_data
+    else:
+        readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
+        object_data_table.add_column(readout_distance_column)
 
 
 def calculate_regression_results(object_data_table: table.Table,
-                                 product_type: str = "UNKNOWN"):
+                                 product_type: str = "UNKNOWN",
+                                 test_case: str = CTI_GAL_TEST_CASE_GLOBAL,
+                                 bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
@@ -66,14 +73,33 @@ def calculate_regression_results(object_data_table: table.Table,
     regression_results_table = initialise_regression_results_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
-    readout_dist_data = object_data_table[CGOD_TF.readout_dist]
+
+    # Get an array of good indices based on the test_case and bin_limits
+    if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+        # Set all to True
+        rows_in_bin = np.ones(len(object_data_table), dtype=bool)
+    elif test_case == CTI_GAL_TEST_CASE_EPOCH:
+        # Not yet implemented, so set all to False
+        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
+    else:
+        # Get the column name of this property from the table format and check it exists
+        colname = getattr(CGOD_TF, D_CTI_GAL_TEST_CASE_INFO[test_case].name)
+        if not colname in object_data_table.colnames:
+            raise ValueError(f"Column {colname} is not preset in object_data_table - make sure it's added earlier " +
+                             "in the code.")
+        column = object_data_table[colname]
+        rows_in_bin = np.logical_and(column >= bin_limits[0], column < bin_limits[1])
+
+    object_data_table_in_bin = object_data_table[rows_in_bin]
+
+    readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
 
     # Perform a regression for each method
     for method in METHODS:
 
         # Get required data
-        g1_data = object_data_table[getattr(CGOD_TF, f"g1_image_{method}")]
-        weight_data = object_data_table[getattr(CGOD_TF, f"weight_{method}")]
+        g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method}")]
+        weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method}")]
 
         tot_weight = np.nansum(weight_data)
 
