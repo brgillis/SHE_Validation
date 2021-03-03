@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,6 +29,14 @@ SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 
 class FailSigmaScaling(Enum):
+    """ Enum to list allowed command-line values to describe how to scale failure threshold. All values are
+        case-insensitive
+
+        none: Use failure thresholds without any modification
+        bins: Scale failure thresholds based on the number of bins for each test case individually
+        test_cases: Scale failure thresholds based on the number of test cases
+        test_case_bins: Scale failure thresholds based on the total number of bins, across all test cases
+    """
     NO_SCALE = "none"
     BIN_SCALE = "bins"
     TEST_CASE_SCALE = "test_cases"

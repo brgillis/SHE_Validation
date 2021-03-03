@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-02-24"
+__updated__ = "2021-03-03"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -27,8 +27,9 @@ __updated__ = "2021-02-24"
 
 import argparse
 
-from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
+
+from EL_PythonUtils.utilities import get_arguments_string
 
 from . import __version__
 from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_DEFINITION
@@ -79,7 +80,8 @@ def defineSpecificProgramOptions():
     # Output arguments
 
     parser.add_argument('--she_observation_validation_test_results_product', type=str,
-                        help='OUTPUT: Desired filename of output .xml data product for observation validation test results')
+                        help='OUTPUT: Desired filename of output .xml data product for observation validation test ' +
+                        'results')
 
     parser.add_argument('--she_exposure_validation_test_results_listfile', type=str,
                         help='OUTPUT: Desired filename of output .json listfile for exposure validation test results')
@@ -101,7 +103,8 @@ def defineSpecificProgramOptions():
                         f"space-separated float values in units of {BACKGROUND_LEVEL_UNITS}. If used, overrides " +
                         "values in the pipeline_config file.")
 
-    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR].bins_cline_arg, type=str, default=None,
+    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR].bins_cline_arg, type=str,
+                        default=None,
                         help="The bin limits for the colour test case, expressed as a string of space-separated " +
                         f"float values, expressing colour as {COLOUR_DEFINITION}. If used, overrides values in the " +
                         "pipeline_config file.")
