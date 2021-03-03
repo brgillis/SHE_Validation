@@ -65,8 +65,8 @@ D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: TestCaseInfo("T-SHE-000010
                             CTI_GAL_TEST_CASE_SNR: TestCaseInfo("TC-SHE-100028-CTI-gal-SNR",
                                                                 ("Linear dependence of " +
                                                                  "residual galaxy ellipticity with read-out register " +
-                                                                 "distance (slope) in bins of SNR of galaxies.",
-                                                                 "snr_bin_limits"),
+                                                                 "distance (slope) in bins of SNR of galaxies."),
+                                                                "snr_bin_limits",
                                                                 AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value,
                                                                 "snr",
                                                                 None,),
