@@ -174,14 +174,14 @@ class TestCase:
         ID_0 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
         ID_1 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
 
-        for ID, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((ID_0, 128, 129, 0.1, 0.3, 10,
-                                                                      100., 10., 200., 50),
-                                                                     (ID_1, 2000, 2000, -0.1, 0.2, 11,
-                                                                      150., 20., 150., 100)):
+        for object_id, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((ID_0, 128, 129, 0.1, 0.3, 10,
+                                                                             100., 10., 200., 50),
+                                                                            (ID_1, 2000, 2000, -0.1, 0.2, 11,
+                                                                             150., 20., 150., 100)):
 
             data_stack_copy = deepcopy(self.data_stack)
 
-            detections_row = data_stack_copy.detections_catalogue.loc[ID]
+            detections_row = data_stack_copy.detections_catalogue.loc[object_id]
 
             # Set up a mock detections row using a dictionary
             detections_row[mfc_tf.FLUX_VIS_APER] = fvis
@@ -189,7 +189,7 @@ class TestCase:
             detections_row[mfc_tf.FLUX_NIR_STACK_APER] = fnir
             detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
-            object_data = SingleObjectData(ID=ID,
+            object_data = SingleObjectData(object_id=object_id,
                                            num_exposures=num_exposures,
                                            data_stack=data_stack_copy)
 

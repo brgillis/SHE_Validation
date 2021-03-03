@@ -151,7 +151,7 @@ class SingleObjectData():
 
         if data_stack is not None:
 
-            detections_row = data_stack.detections_catalogue.loc[ID]
+            detections_row = data_stack.detections_catalogue.loc[object_id]
 
             if detections_row[mfc_tf.FLUXERR_VIS_APER] == 0.:
                 self.snr = np.NaN
@@ -167,7 +167,7 @@ class SingleObjectData():
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
 
             # Get the background level from the mean of a stamp around the object
-            stamp_stack = data_stack.extract_galaxy_stack(ID, width=BG_STAMP_SIZE)
+            stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE)
             for exp_index, exp_image in enumerate(stamp_stack.exposures):
                 if exp_image is not None:
                     unmasked_background_data = exp_image.background_map[~exp_image.boolmask]
