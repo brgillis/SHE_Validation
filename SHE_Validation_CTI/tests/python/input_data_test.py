@@ -6,7 +6,7 @@
 """
 from copy import deepcopy
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -103,9 +103,9 @@ class TestCase:
         assert len(raw_cti_gal_object_data) == len(lensmc_shear_estimates_table)
 
         # Order of IDs isn't guaranteed, so we have to check that we have the right IDs in a roundabout way
-        assert raw_cti_gal_object_data[0].ID in lensmc_shear_estimates_table[lmcm_tf.ID]
-        assert raw_cti_gal_object_data[1].ID in lensmc_shear_estimates_table[lmcm_tf.ID]
-        assert raw_cti_gal_object_data[0].ID != raw_cti_gal_object_data[1].ID
+        assert raw_cti_gal_object_data[0].id in lensmc_shear_estimates_table[lmcm_tf.ID]
+        assert raw_cti_gal_object_data[1].id in lensmc_shear_estimates_table[lmcm_tf.ID]
+        assert raw_cti_gal_object_data[0].id != raw_cti_gal_object_data[1].id
 
         lensmc_shear_estimates_table.add_index(lmcm_tf.ID)
 
@@ -113,7 +113,7 @@ class TestCase:
         for object_data in raw_cti_gal_object_data:
 
             # Get the corresponding LensMC row for this object
-            lmcm_row = lensmc_shear_estimates_table.loc[object_data.ID]
+            lmcm_row = lensmc_shear_estimates_table.loc[object_data.id]
 
             # Check that the world shear info is correct
 
@@ -127,10 +127,10 @@ class TestCase:
             assert np.isnan(object_data.world_shear_info["REGAUSS"].g1)
 
             # Check the shear info for each exposure
-            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.ID, width=1)
+            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width=1)
 
-            ra = self.data_stack.detections_catalogue.loc[object_data.ID][mfc_tf.gal_x_world]
-            dec = self.data_stack.detections_catalogue.loc[object_data.ID][mfc_tf.gal_y_world]
+            ra = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_x_world]
+            dec = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_y_world]
 
             num_exposures = len(ministamp_stack.exposures)
             for exp_index in range(num_exposures):
@@ -227,7 +227,7 @@ class TestCase:
 
             for object_data, row in zip(raw_object_data_list, object_data_table):
 
-                assert object_data.ID == row[CGOD_TF.ID]
+                assert object_data.id == row[CGOD_TF.ID]
 
                 assert np.isclose(object_data.snr, row[CGOD_TF.snr])
                 assert np.isclose(object_data.colour, row[CGOD_TF.colour])
