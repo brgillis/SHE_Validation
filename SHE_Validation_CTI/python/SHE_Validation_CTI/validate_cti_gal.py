@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -42,8 +42,9 @@ from . import __version__
 from .constants.cti_gal_default_config import (AnalysisConfigKeys, FailSigmaScaling,
                                                CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS)
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
-                                          CTI_GAL_TEST_CASE_GLOBAL, CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
-                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE, CTI_GAL_TEST_CASES)
+                                          CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
+                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE,
+                                          CTI_GAL_TEST_CASES)
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -117,7 +118,7 @@ def run_validate_cti_gal_from_args(args):
             bin_limits_array = np.array(bin_limits_list, dtype=float)
             # Sort bin limits ascending
             np.sort(bin_limits_array)
-            if not len(bin_limits_array) >= 2:
+            if len(bin_limits_array) < 2:
                 raise ValueError("At least two bin limits must be provided.")
         except ValueError as e:
             logger.warning(f"Cannot interpret bin limits \"{bin_limits_string}\" for {test_case_label} - " +
@@ -167,7 +168,9 @@ def run_validate_cti_gal_from_args(args):
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
             d_shear_estimate_tables[method] = shear_measurements_table
-            if not is_in_format(shear_measurements_table, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method], strict=False):
+            if not is_in_format(shear_measurements_table,
+                                D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method],
+                                strict=False):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 d_shear_estimate_tables[method] = None
@@ -302,7 +305,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         test_case_bin_limits = d_bin_limits[test_case]
         num_bins = len(test_case_bin_limits) - 1
         # Double check we have at least one bin
-        assert(num_bins >= 1)
+        assert num_bins >= 1
 
         l_test_case_exposure_regression_results_tables = [None] * num_bins
         l_test_case_observation_regression_results_tables = [None] * num_bins

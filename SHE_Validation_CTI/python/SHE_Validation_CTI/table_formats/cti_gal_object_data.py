@@ -13,11 +13,11 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 from astropy import table
 
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
-                                                            D_CTI_GAL_TEST_CASE_INFO)
+from ..constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
+                                           D_CTI_GAL_TEST_CASE_INFO)
 
 
-__updated__ = "2021-02-26"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -40,7 +40,7 @@ FITS_DEF = "she.ctiGalObjectData"
 logger = getLogger(__name__)
 
 
-class SheCtiGalObjectDataMeta(object):
+class SheCtiGalObjectDataMeta():
     """
         @brief A class defining the metadata for CTI-Gal Object Data tables.
     """
@@ -63,7 +63,7 @@ class SheCtiGalObjectDataMeta(object):
         self.all = list(self.comments.keys())
 
 
-class SheCtiGalObjectDataFormat(object):
+class SheCtiGalObjectDataFormat():
     """
         @brief A class defining the format for CTI-Gal Object Data tables. Only the cti_gal_object_data_table_format
                instance of this should generally be accessed, and it should not be changed.

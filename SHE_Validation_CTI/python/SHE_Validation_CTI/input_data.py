@@ -20,7 +20,7 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -42,7 +42,10 @@ BG_STAMP_SIZE = 128
 logger = getLogger(__name__)
 
 
-class ShearInfo(object):
+class ShearInfo():
+    """Simple data class to store required shear information.
+    """
+
     def __init__(self,
                  g1: float = np.NaN,
                  g2: float = np.NaN,
@@ -52,7 +55,10 @@ class ShearInfo(object):
         self.weight = weight
 
 
-class PositionInfo(object):
+class PositionInfo():
+    """ Class to store all data related to the position of an object across multiple exposures.
+    """
+
     def __init__(self, stamp=None,
                  world_shear_info=None,
                  ra=None,
@@ -122,13 +128,16 @@ class PositionInfo(object):
                 self.exposure_shear_info[method] = ShearInfo()
 
 
-class SingleObjectData(object):
+class SingleObjectData():
+    """ Class to store the required information for a single object in the catalogue.
+    """
+
     def __init__(self,
-                 ID: int = None,
+                 object_id: int = None,
                  num_exposures: int = 1,
                  data_stack: SHEFrameStack = None,
                  ):
-        self.ID = ID
+        self.id = object_id
 
         # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
@@ -166,7 +175,7 @@ class SingleObjectData(object):
                         self.background_level[exp_index] = unmasked_background_data.mean()
 
             # Calculate the mean background level of all valid exposures
-            self.mean_background_level = np.mean(self.background_level[self.background_level != None])
+            self.mean_background_level = np.mean(self.background_level[self.background_level is not None])
 
         else:
             self.snr = None
@@ -178,6 +187,8 @@ class SingleObjectData(object):
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                                 shear_estimate_tables: Dict[str, table.Table]
                                 ):
+    """ Get a list of raw object data out of the data stack and shear estimates tables.
+    """
 
     # Start by getting a set of all object ids, merging from all methods tables
 
@@ -217,7 +228,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
             detections_row = data_stack.detections_catalogue.loc[object_id]
 
-            object_data = SingleObjectData(ID=object_id,
+            object_data = SingleObjectData(object_id=object_id,
                                            num_exposures=len(ministamp_stack.exposures),
                                            data_stack=data_stack)
 
@@ -292,7 +303,7 @@ def sort_raw_object_data_into_table(raw_object_data_list: List[SingleObjectData]
 
             position_info = object_data.position_info[exp_index]
 
-            row[CGOD_TF.ID] = object_data.ID
+            row[CGOD_TF.ID] = object_data.id
 
             row[CGOD_TF.x] = position_info.x_pix
             row[CGOD_TF.y] = position_info.y_pix

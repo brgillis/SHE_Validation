@@ -4,6 +4,7 @@
 
     Utility functions for CTI-Gal validation, for processing the data.
 """
+
 from typing import Tuple
 
 from SHE_PPT import mdb
@@ -12,17 +13,17 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 from astropy import table
 
-from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
-                                                            D_CTI_GAL_TEST_CASE_INFO,
-                                                            CTI_GAL_TEST_CASE_EPOCH)
 import numpy as np
 
+from .constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
+from .constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
+                                          D_CTI_GAL_TEST_CASE_INFO,
+                                          CTI_GAL_TEST_CASE_EPOCH)
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 
 
-__updated__ = "2021-02-26"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

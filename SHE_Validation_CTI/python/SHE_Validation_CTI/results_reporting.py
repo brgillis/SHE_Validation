@@ -5,16 +5,14 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 from copy import deepcopy
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 from astropy import table
 import scipy.stats
-from sklearn import pipeline
 
-from SHE_Validation_CTI.constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
@@ -22,10 +20,11 @@ from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
                                           CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                           D_CTI_GAL_TEST_CASE_INFO,)
+from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -140,11 +139,6 @@ class FailSigmaCalculator():
         return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
-def _determine_fail_sigma_from_tries(base_fail_sigma: float,
-                                     num_tries: int,):
-    pass
-
-
 def report_test_not_run(requirement_object,
                         reason="Unspecified reason."):
     """ Fills in the data model with the fact that a test was not run and the reason.
@@ -205,7 +199,8 @@ class CTIGalRequirementWriter():
             l_prop_good_data = np.empty(self.num_bins, dtype=bool)
 
             for bin_index in range(self.num_bins):
-                if np.isnan(getattr(self, f"l_{prop}")[bin_index]) or np.isnan(getattr(self, f"l_{prop}_err")[bin_index]):
+                if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
+                        np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
                     l_prop_z[bin_index] = np.NaN
                     l_prop_pass[bin_index] = False
                     l_prop_good_data[bin_index] = False
