@@ -24,7 +24,7 @@ On Euclid data by cross-correlating corrected galaxy ellipticity in image coordi
 
 Linear dependence of PSF ellipticity with read-out register distance (slope).
 
-#### Rational
+#### Rationale
 
 Residual CTI is expected to leave a trail along the Readout direction of the CCD, which will induce an ellipticity signal as a function of distance from the Readout Register. The absolute value of this is degenerate with other effects, so the test is to measure the gradient of the ellipticity as a function of distance from the Readout Register, which would indicate a residual CTI. Note this is not a strong test (compared to eg a chi^2 fit of the PSF), but is a sanity test of the PSF at the Catalogue Level.
 
@@ -39,10 +39,10 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 1. Each SNR sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
 1. The average difference between the Model PSF ellipticity and simulated Stellar image ellipticity calculated, with error. 
 1. The linear regression of the slope of the differential ellipticity as a function of readout distance is estimated, with error. 
-1. The sloped and its error are compare to a threshold [TBD].
+1. The slope and its error are compare to a threshold [TBD - Presently using z=5].
 1. If slope or error is larger than threshold, flag Observation. 
 1. Results are stored.
-1. Results are collated Globally and compared to Simulated distributions. [TBC] 
+1. Results are collated Globally and compared to Simulated distributions. [TBD] 
 1. Need to be able to plot results and fit Locally and Globally.
 1. Summary Statistics and Figures are produced.
 
@@ -58,10 +58,10 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 1. Each Sky Background Level sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
 1. The average difference between the Model Sky Background Level ellipticity and simulated Stellar image ellipticity calculated, with error. 
 1. The linear regression of the slope of the differential ellipticity as a function of readout distance is estimated, with error. 
-1. The sloped and its error are compare to a threshold [TBD].
+1. The slope and its error are compare to a threshold [TBD - currently z=5].
 1. If slope or error is larger than threshold, flag Observation. 
 1. Results are stored.
-1. Results are collated Globally and compared to Simulated distributions. [TBC] 
+1. Results are collated Globally and compared to Simulated distributions. [TBD] 
 1. Need to be able to plot results and fit Locally and Globally.
 1. Summary Statistics and Figures are produced.
 
@@ -140,34 +140,23 @@ Linear dependence of residual galaxy ellipticity with read-out register distance
 ##### Test Procedure: 
 1. This process is carried out on real and simulated Euclid Observations. 
 1. This test is carried out per Observation. 
-1. Galaxies are binned by SNR over the range [TBD] with bin intervals of [TBD]. [Note: what sample of galaxies?]
-1. Each SNR sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
-1. The average galaxy ellipticity per bin in estimated with error. 
-1. The linear regression of the slope of the ellipticity as a function of readout distance is estimated, with error. 
-1. The sloped and its error are compare to a threshold [TBD].
-1. If slope or error is larger than threshold, flag Observation. 
-1. Results are stored.
-1. Results are collated Globally and compared to Simulated distributions. [TBC] 
+1. Galaxies are binned by SNR over the range [TBD] with bin intervals of [TBD].
+   [TBD: what sample of galaxies? Currently all with measurements.]
+1. A linear regression with error is performed of the e1 component of measured ellipticity (in detector coordinates) versus
+   distance from readout register.
+1. The z-value of the slope and intercept estimates are compared to an expected value of 0 is compared to a threshold
+   [TBD, currently 5].
+1. If the z-value of the slope is larger than the threshold for any bin with valid data, flag test case as failed. 
+1. If the z-value of the intercept is larger than the threshold for any bin with valid data, note a warning in the output -
+   This doesn't indicate a CTI issue, but does indicate something else is likely going wrong. 
+1. Results are stored and uploaded to the EAS.
+1. Results are collated Globally and compared to Simulated distributions. [TBD] 
 1. Need to be able to plot results and fit Locally and Globally.
 1. Summary Statistics and Figures are produced.
 
 #### Test Case : TC-SHE-100029-CTI-gal-bg
 
-Linear dependence of residual galaxy ellipticity with read-out register distance (slope) in bins of Sky Background Levels.
-
-##### Test Procedure: 
-1. This process is carried out on real and simulated Euclid Observations. 
-1. This test is carried out per Observation. 
-1. Galaxies are binned by Sky Background Level over the range [TBD] with bin intervals of [TBD]. [Note: what sample of galaxies?]
-1. Each Sky Background Level sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
-1. The average galaxy ellipticity per bin in estimated with error. 
-1. The linear regression of the slope of the ellipticity as a function of readout distance is estimated, with error. 
-1. The sloped and its error are compare to a threshold [TBD].
-1. If slope or error is larger than threshold, flag Observation. 
-1. Results are stored.
-1. Results are collated Globally and compared to Simulated distributions. [TBC] 
-1. Need to be able to plot results and fit Locally and Globally.
-1. Summary Statistics and Figures are produced.
+As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by sky background level.
 
 #### Test Case : TC-SHE-100030-CTI-gal-col
 
@@ -180,6 +169,9 @@ As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by galaxy size.
 #### Test Case : TC-SHE-100032-CTI-gal-epoch
 
 As for TC-SHE-100028-CTI-gal-SNR with SNR replaced by Observation Epoch.
+
+TBD how to run this. At present this test is run at the end of each run of the Shear Analysis pipeline, which tests
+one observation at a time, so there's no way to bin by observation.
 
 ### Input Data
 
