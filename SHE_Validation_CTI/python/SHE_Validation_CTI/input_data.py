@@ -20,7 +20,7 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -175,7 +175,7 @@ class SingleObjectData():
                         self.background_level[exp_index] = unmasked_background_data.mean()
 
             # Calculate the mean background level of all valid exposures
-            self.mean_background_level = np.mean(self.background_level[self.background_level is not None])
+            self.mean_background_level = np.mean(self.background_level[np.array(self.background_level) is not None])
 
         else:
             self.snr = None
