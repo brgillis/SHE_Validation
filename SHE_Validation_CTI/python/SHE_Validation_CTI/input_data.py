@@ -176,8 +176,9 @@ class SingleObjectData():
 
             # Calculate the mean background level of all valid exposures
             bg_array = np.array(self.background_level)
-            if bg_array.sum() > 0:
-                self.mean_background_level = bg_array[bg_array != None].mean()
+            valid_bg = bg_array != None
+            if valid_bg.sum() > 0:
+                self.mean_background_level = bg_array[valid_bg].mean()
             else:
                 # No data, so set -99 for mean background level
                 self.mean_background_level = -99
