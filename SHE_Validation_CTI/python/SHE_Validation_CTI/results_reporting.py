@@ -24,7 +24,7 @@ from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -291,7 +291,7 @@ class CTIGalRequirementWriter():
     def report_good_data(self):
 
         # Report the maximum slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = np.max(self.l_slope_z)
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = np.nanmax(self.l_slope_z)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
