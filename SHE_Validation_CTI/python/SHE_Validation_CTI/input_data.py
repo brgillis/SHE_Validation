@@ -175,7 +175,8 @@ class SingleObjectData():
                         self.background_level[exp_index] = unmasked_background_data.mean()
 
             # Calculate the mean background level of all valid exposures
-            self.mean_background_level = np.mean(self.background_level[np.array(self.background_level) == None])
+            bg_array = np.array(self.background_level)
+            self.mean_background_level = bg_array[bg_array != None].mean()
 
         else:
             self.snr = None
