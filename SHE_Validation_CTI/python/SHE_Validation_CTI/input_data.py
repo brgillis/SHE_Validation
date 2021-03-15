@@ -20,7 +20,7 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
-__updated__ = "2021-03-05"
+__updated__ = "2021-03-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -249,9 +249,15 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
                 object_row = shear_estimate_table.loc[object_id]
 
+                # Check FIT_FLAGS==0 for this object. If not, set weight to 0
+                if object_row[sem_tf.fit_flags] == 0:
+                    object_weight = object_row[sem_tf.weight]
+                else:
+                    object_weight = 0
+
                 object_data.world_shear_info[method] = ShearInfo(g1=object_row[sem_tf.g1],
                                                                  g2=object_row[sem_tf.g2],
-                                                                 weight=object_row[sem_tf.weight])
+                                                                 weight=object_weight)
 
             # Get the object's world position from the detections catalog
             ra = detections_row[mfc_tf.gal_x_world]
