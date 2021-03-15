@@ -24,7 +24,7 @@ from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
-__updated__ = "2021-03-05"
+__updated__ = "2021-03-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -219,8 +219,8 @@ class CTIGalRequirementWriter():
                     l_prop_result[bin_index] = RESULT_FAIL
 
             # Pass if there's at least some good data, and all good data passes
-            if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data[bin_index])) and
-                    not np.all(~l_prop_good_data[bin_index])):
+            if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and
+                    not np.all(~l_prop_good_data)):
                 setattr(self, f"{prop}_pass", True)
                 setattr(self, f"{prop}_result", RESULT_PASS)
             else:
