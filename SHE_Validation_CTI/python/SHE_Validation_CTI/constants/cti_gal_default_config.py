@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -52,7 +52,7 @@ CTI_GAL_DEFAULT_CONFIG = {AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.,
                           AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_BINS_SCALE.value,
                           AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
-                          AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "0 33 66 100 150 200 400 1e99",
+                          AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value: "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99",
                           AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
                           AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
                           }
