@@ -9,6 +9,7 @@ from typing import Dict, List
 from SHE_PPT import shear_utility
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.detector import get_vis_quadrant
+from SHE_PPT.flags import is_flagged_failure
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -20,7 +21,7 @@ import numpy as np
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
 
-__updated__ = "2021-03-05"
+__updated__ = "2021-03-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -249,9 +250,15 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
 
                 object_row = shear_estimate_table.loc[object_id]
 
+                # Check the object isn't flagged as a failure
+                if not is_flagged_failure(object_row[sem_tf.fit_flags]):
+                    object_weight = object_row[sem_tf.weight]
+                else:
+                    object_weight = 0
+
                 object_data.world_shear_info[method] = ShearInfo(g1=object_row[sem_tf.g1],
                                                                  g2=object_row[sem_tf.g2],
-                                                                 weight=object_row[sem_tf.weight])
+                                                                 weight=object_weight)
 
             # Get the object's world position from the detections catalog
             ra = detections_row[mfc_tf.gal_x_world]
