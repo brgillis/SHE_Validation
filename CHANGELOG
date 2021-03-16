@@ -6,14 +6,15 @@ Changes in v0.1
 API Changes
 -----------
 
-- Added task SHE_Validation_ValidateCTIGal to perform CTI-Gal validation test (Under construction)
+- Added task SHE_Validation_ValidateCTIGal to perform CTI-Gal validation test.
+
 
 Dependency Changes
 ------------------
 
 - Initialised to use EDEN 2.1
-- Depends on SHE_PPT 8.6, inheriting dependencies on Elements 5.10.0,
-  ST_DataModelBindings 8.0.3, and ST_DataModelTools 8.0.3
+- Depends on SHE_PPT 8.7, inheriting dependencies on ST_DataModelBindings 8.0.5, ST_DataModelTools 8.0.5,
+  EL_Utils 1.1.0, and Elements 5.12.0
 
 Deprecated Features
 -------------------
@@ -26,9 +27,25 @@ Bug Fixes
 New Features
 ------------
 
+- SHE_Validation_ValidateCTIGal task now includes test cases:
+  - Global (all objects in one bin, not an official test case but a useful check)
+  - SNR
+  - Background level
+  - Colour
+  - Size
+
 
 New Config Features
 -------------------
+
+- New configuration options available via SHE_PPT to configure behaviour of SHE_Validation_ValidateCTIGal:
+  - SHE_Validation_ValidateCTIGal_slope_fail_sigma
+  - SHE_Validation_ValidateCTIGal_intercept_fail_sigma
+  - SHE_Validation_ValidateCTIGal_fail_sigma_scaling
+  - SHE_Validation_ValidateCTIGal_snr_bin_limits
+  - SHE_Validation_ValidateCTIGal_bg_bin_limits
+  - SHE_Validation_ValidateCTIGal_colour_bin_limits
+  - SHE_Validation_ValidateCTIGal_size_bin_limits
 
 
 Miscellaneous
