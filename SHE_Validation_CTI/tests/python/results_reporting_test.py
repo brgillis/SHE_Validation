@@ -230,8 +230,6 @@ class TestCase:
 
                 test_case_index += 1
 
-                break
-
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
@@ -276,6 +274,8 @@ class TestCase:
 
         exp_info = requirement_object.SupplementaryInformation
         exp_slope_info_string = exp_info.Parameter[0].StringValue
+
+        # Check for good bin data
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
@@ -284,14 +284,14 @@ class TestCase:
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
-        exp_intercept_info_string = exp_info.Parameter[1].StringValue
-        assert f"intercept = {0.}\n" in exp_intercept_info_string
-        assert f"intercept_err = {2.}\n" in exp_intercept_info_string
-        assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
-        assert ("Maximum allowed intercept_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]}\n"
-                in exp_intercept_info_string)
-        assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
+        # Check for bad bin data
+        assert f"slope = nan\n" in exp_slope_info_string
+        assert f"slope_err = nan\n" in exp_slope_info_string
+        assert f"slope_z = nan\n" in exp_slope_info_string
+        assert (f"Maximum allowed slope_z = " +
+                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]}\n"
+                in exp_slope_info_string)
+        assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
         # Exposure 1 - slope fail and intercept pass
         exp_test_result = exp_product_list[1].Data.ValidationTestList[lensmc_global_test_case_index]
