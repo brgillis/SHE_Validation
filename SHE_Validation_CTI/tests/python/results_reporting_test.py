@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -183,10 +183,10 @@ class TestCase:
 
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_row = exp_results_table[exp_index]
-            exp_row[getattr(RR_TF, "slope_LensMC")] = exp_results.slope
-            exp_row[getattr(RR_TF, "slope_err_LensMC")] = exp_results.slope_err
-            exp_row[getattr(RR_TF, "intercept_LensMC")] = exp_results.intercept
-            exp_row[getattr(RR_TF, "intercept_err_LensMC")] = exp_results.intercept_err
+            exp_row[RR_TF.slope_LensMC] = exp_results.slope
+            exp_row[RR_TF.slope_err_LensMC] = exp_results.slope_err
+            exp_row[RR_TF.intercept_LensMC] = exp_results.intercept
+            exp_row[RR_TF.intercept_err_LensMC] = exp_results.intercept_err
 
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
                 num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
