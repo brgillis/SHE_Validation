@@ -203,14 +203,11 @@ class TestCase:
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
         # Figure out the index for LensMC Global test results and save it for each check
-        test_case_index = 0
-        for method in METHODS:
+        for test_case_index, method in enumerate(METHODS):
             if not method == "LensMC":
-                test_case_index += NUM_CTI_GAL_TEST_CASES
                 continue
             for test_case in CTI_GAL_TEST_CASES:
                 if not test_case == CTI_GAL_TEST_CASE_GLOBAL:
-                    test_case_index += 1
                     continue
 
                 lensmc_global_test_case_index = test_case_index
