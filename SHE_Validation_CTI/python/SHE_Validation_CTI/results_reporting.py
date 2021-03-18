@@ -318,7 +318,7 @@ class CTIGalRequirementWriter():
                                    np.isinf(self.l_slope),
                                    np.isnan(self.l_slope_err),
                                    np.isinf(self.l_slope_err),
-                                   self.l_slope_err == 0.)):
+                                   self.l_slope_err == 0.)).all():
             self.report_bad_data()
         else:
             self.report_good_data()
