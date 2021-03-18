@@ -304,7 +304,6 @@ class TestCase:
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
-        obs_row = obs_results_table[0]
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
