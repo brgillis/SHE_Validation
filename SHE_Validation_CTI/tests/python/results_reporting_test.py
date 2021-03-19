@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-03-02"
+__updated__ = "2021-03-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -36,7 +36,8 @@ from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKe
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES,
-                                                            CTI_GAL_TEST_CASE_EPOCH)
+                                                            CTI_GAL_TEST_CASE_EPOCH,
+                                                            CTI_GAL_TEST_CASE_COLOUR)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
@@ -174,20 +175,33 @@ class TestCase:
         exp_product_list = [None] * num_exposures
 
         # Set up mock input data and fill the products for each set of possible results
-        exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
+        base_exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
 
         d_exp_results_tables = {}
         for test_case in CTI_GAL_TEST_CASES:
             num_bins = len(self.d_bin_limits[test_case]) - 1
-            d_exp_results_tables[test_case] = [exp_results_table] * num_bins
+            d_exp_results_tables[test_case] = [None] * num_bins
+            for bin_index in range(num_bins):
+                exp_results_table = deepcopy(base_exp_results_table)
+                d_exp_results_tables[test_case][bin_index] = exp_results_table
 
+                # Set up data for each test case
+                for exp_index, exp_results in enumerate(exp_results_list):
+                    exp_row = exp_results_table[exp_index]
+                    # To test handling of empty bins, set bin_index 2 to NaN, otherwise normal data
+                    if bin_index == 2:
+                        exp_row[RR_TF.slope_LensMC] = np.NaN
+                        exp_row[RR_TF.slope_err_LensMC] = np.NaN
+                        exp_row[RR_TF.intercept_LensMC] = np.NaN
+                        exp_row[RR_TF.intercept_err_LensMC] = np.NaN
+                    else:
+                        exp_row[RR_TF.slope_LensMC] = exp_results.slope
+                        exp_row[RR_TF.slope_err_LensMC] = exp_results.slope_err
+                        exp_row[RR_TF.intercept_LensMC] = exp_results.intercept
+                        exp_row[RR_TF.intercept_err_LensMC] = exp_results.intercept_err
+
+        # Set up the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):
-            exp_row = exp_results_table[exp_index]
-            exp_row[getattr(RR_TF, "slope_LensMC")] = exp_results.slope
-            exp_row[getattr(RR_TF, "slope_err_LensMC")] = exp_results.slope_err
-            exp_row[getattr(RR_TF, "intercept_LensMC")] = exp_results.intercept
-            exp_row[getattr(RR_TF, "intercept_err_LensMC")] = exp_results.intercept_err
-
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
                 num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
@@ -202,22 +216,21 @@ class TestCase:
 
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
-        # Figure out the index for LensMC Global test results and save it for each check
+        # Figure out the index for LensMC Global and Colour test results and save it for each check
         test_case_index = 0
         for method in METHODS:
             if not method == "LensMC":
                 test_case_index += NUM_CTI_GAL_TEST_CASES
                 continue
             for test_case in CTI_GAL_TEST_CASES:
-                if not test_case == CTI_GAL_TEST_CASE_GLOBAL:
-                    test_case_index += 1
-                    continue
+                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+                    lensmc_global_test_case_index = test_case_index
+                elif test_case == CTI_GAL_TEST_CASE_COLOUR:
+                    lensmc_colour_test_case_index = test_case_index
 
-                lensmc_global_test_case_index = test_case_index
+                test_case_index += 1
 
-                break
-
-        # Exposure 0 - slope pass and intercept pass. Do most detailed checks here
+        # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
 
@@ -250,6 +263,35 @@ class TestCase:
                 f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]}\n"
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
+
+        # Exposure 0 Colour - slope pass and intercept pass for all bins except index 2
+        exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_colour_test_case_index]
+        assert exp_test_result.GlobalResult == RESULT_PASS
+
+        requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == INFO_MULTIPLE
+        assert requirement_object.ValidationResult == RESULT_PASS
+
+        exp_info = requirement_object.SupplementaryInformation
+        exp_slope_info_string = exp_info.Parameter[0].StringValue
+
+        # Check for good bin data
+        assert f"slope = {3.}\n" in exp_slope_info_string
+        assert f"slope_err = {2.}\n" in exp_slope_info_string
+        assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
+        assert (f"Maximum allowed slope_z = " +
+                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]}\n"
+                in exp_slope_info_string)
+        assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
+
+        # Check for bad bin data
+        assert f"slope = nan\n" in exp_slope_info_string
+        assert f"slope_err = nan\n" in exp_slope_info_string
+        assert f"slope_z = nan\n" in exp_slope_info_string
+        assert (f"Maximum allowed slope_z = " +
+                f"{CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]}\n"
+                in exp_slope_info_string)
+        assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
         # Exposure 1 - slope fail and intercept pass
         exp_test_result = exp_product_list[1].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -304,7 +346,6 @@ class TestCase:
 
         # With the observation, test saying we have no data
         obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
-        obs_row = obs_results_table[0]
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)

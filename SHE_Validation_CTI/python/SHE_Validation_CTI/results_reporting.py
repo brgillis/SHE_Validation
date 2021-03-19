@@ -24,7 +24,7 @@ from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
-__updated__ = "2021-03-15"
+__updated__ = "2021-03-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -206,8 +206,8 @@ class CTIGalRequirementWriter():
                     l_prop_good_data[bin_index] = False
                 else:
                     if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
-                        l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}")[
-                                                     bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                        l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}")[bin_index] /
+                                                     getattr(self, f"l_{prop}_err")[bin_index])
                     else:
                         l_prop_z[bin_index] = np.NaN
                     l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
@@ -312,11 +312,14 @@ class CTIGalRequirementWriter():
         self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
         # Check for data quality issues and report as proper if found
-        if (np.logical_or(np.isnan(self.l_slope), np.isinf(self.l_slope)).all() or
-                np.logical_or(np.isnan(self.l_slope_err), np.isinf(self.l_slope_err)).all()):
-            self.report_bad_data()
-        elif np.all(self.l_slope_err == 0.):
+        if np.all(self.l_slope_err == 0.):
             self.report_zero_slope_err()
+        elif np.logical_or.reduce((np.isnan(self.l_slope),
+                                   np.isinf(self.l_slope),
+                                   np.isnan(self.l_slope_err),
+                                   np.isinf(self.l_slope_err),
+                                   self.l_slope_err == 0.)).all():
+            self.report_bad_data()
         else:
             self.report_good_data()
 
