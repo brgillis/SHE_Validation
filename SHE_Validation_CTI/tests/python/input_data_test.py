@@ -37,7 +37,7 @@ import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearInfo,
+from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearEstimate,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
@@ -202,20 +202,20 @@ class TestCase:
                 assert np.isclose(bg_level, self.ex_bg_level)
             assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
 
-            object_data.world_shear_info["LensMC"] = ShearInfo(g1=g1,
-                                                               g2=g2,
-                                                               weight=weight)
-            object_data.world_shear_info["KSB"] = ShearInfo()
-            object_data.world_shear_info["MomentsML"] = ShearInfo()
-            object_data.world_shear_info["REGAUSS"] = ShearInfo()
+            object_data.world_shear_info["LensMC"] = ShearEstimate(g1=g1,
+                                                                   g2=g2,
+                                                                   weight=weight)
+            object_data.world_shear_info["KSB"] = ShearEstimate()
+            object_data.world_shear_info["MomentsML"] = ShearEstimate()
+            object_data.world_shear_info["REGAUSS"] = ShearEstimate()
 
             for exp_index in range(num_exposures):
                 position_info = PositionInfo()
                 position_info.x_pix = x + dx_dexp * exp_index
                 position_info.y_pix = y + dy_dexp * exp_index
-                position_info.exposure_shear_info["LensMC"] = ShearInfo(g1=g1 + dg1_dexp * exp_index,
-                                                                        g2=g2 + dg2_dexp * exp_index,
-                                                                        weight=weight + dweight_dexp * exp_index)
+                position_info.exposure_shear_info["LensMC"] = ShearEstimate(g1=g1 + dg1_dexp * exp_index,
+                                                                            g2=g2 + dg2_dexp * exp_index,
+                                                                            weight=weight + dweight_dexp * exp_index)
                 object_data.position_info[exp_index] = position_info
 
             raw_object_data_list.append(object_data)
