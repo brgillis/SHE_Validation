@@ -4,22 +4,6 @@
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
-from typing import Dict, List
-
-from SHE_PPT import shear_utility
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.detector import get_vis_quadrant
-from SHE_PPT.flags import is_flagged_failure
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-from astropy import table
-
-import numpy as np
-
-from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
-
 
 __updated__ = "2021-03-15"
 
@@ -36,8 +20,24 @@ __updated__ = "2021-03-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 # The size for the stamp used for calculating the background level
+
+from typing import Dict, List
+
+from SHE_PPT import shear_utility
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.detector import get_vis_quadrant
+from SHE_PPT.flags import is_flagged_failure
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import ccdid_label
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy import table
+
+import numpy as np
+
+from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+
 BG_STAMP_SIZE = 128
 
 logger = getLogger(__name__)
@@ -48,9 +48,9 @@ class ShearInfo():
     """
 
     def __init__(self,
-                 g1: float = np.NaN,
-                 g2: float = np.NaN,
-                 weight: float = 0):
+                 g1: float=np.NaN,
+                 g2: float=np.NaN,
+                 weight: float=0):
         self.g1 = g1
         self.g2 = g2
         self.weight = weight
@@ -134,9 +134,9 @@ class SingleObjectData():
     """
 
     def __init__(self,
-                 object_id: int = None,
-                 num_exposures: int = 1,
-                 data_stack: SHEFrameStack = None,
+                 object_id: int=None,
+                 num_exposures: int=1,
+                 data_stack: SHEFrameStack=None,
                  ):
         self.id = object_id
 
@@ -162,7 +162,7 @@ class SingleObjectData():
             if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
                 self.colour = np.NaN
             else:
-                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
+                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] / 
                                              detections_row[mfc_tf.FLUX_NIR_STACK_APER])
 
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
