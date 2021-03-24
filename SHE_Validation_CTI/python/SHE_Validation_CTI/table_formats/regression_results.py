@@ -31,7 +31,7 @@ from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_p
 from astropy import table
 
 from ..constants.cti_gal_default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
-from ..constants.cti_gal_test_info import CTI_GAL_TEST_CASE_GLOBAL
+from ..constants.cti_gal_test_info import CtiGalTestCases
 
 
 FITS_VERSION = "8.0"
@@ -118,7 +118,7 @@ TF = REGRESSION_RESULTS_TABLE_FORMAT
 
 
 def make_regression_results_table_header(product_type: str = None,
-                                         test_case: str = CTI_GAL_TEST_CASE_GLOBAL,
+                                         test_case: str = CtiGalTestCases.GLOBAL,
                                          bin_limit_min: float = DEFAULT_BIN_LIMIT_MIN,
                                          bin_limit_max: float = DEFAULT_BIN_LIMIT_MAX):
     """

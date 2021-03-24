@@ -20,14 +20,15 @@ __updated__ = "2021-03-03"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from collections import namedtuple
+from enum import Enum
 
 from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from SHE_Validation.test_info import TestCaseInfo
 
+from SHE_Validation.test_info import TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, \
     COLOUR_DEFINITION, SIZE_DEFINITION
+
 
 # Metadata about the requirement
 CTI_GAL_REQUIREMENT_ID = "R-SHE-CAL-F-140"
@@ -39,12 +40,17 @@ CTI_GAL_PARAMETER = ("Z-value for slope of g1_image versus distance from readout
 CTI_GAL_TEST_ID = "T-SHE-000010-CTI-gal"
 CTI_GAL_TEST_DESCRIPTION = "Linear dependence of galaxy ellipticity with read-out register distance (slope)."
 
-CTI_GAL_TEST_CASE_GLOBAL = "Global"
-CTI_GAL_TEST_CASE_SNR = "SNR"
-CTI_GAL_TEST_CASE_BG = "Background level"
-CTI_GAL_TEST_CASE_COLOUR = "Colour"
-CTI_GAL_TEST_CASE_SIZE = "Size"
-CTI_GAL_TEST_CASE_EPOCH = "Epoch"
+
+class CtiGalTestCases(Enum):
+    """ Enum of test cases for this test.
+    """
+    GLOBAL = "Global"
+    SNR = "SNR"
+    BG = "Background level"
+    COLOUR = "Colour"
+    SIZE = "Size"
+    EPOCH = "Epoch"
+
 
 CTI_GAL_TEST_CASE_GLOBAL_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
                                              description=("Linear dependence of " +
@@ -96,15 +102,15 @@ CTI_GAL_TEST_CASE_EPOCH_INFO = TestCaseInfo(test_case_id="TC-SHE-100032-CTI-gal-
                                             comment=None)
 
 # Create a dict of the test case info
-D_CTI_GAL_TEST_CASE_INFO = {CTI_GAL_TEST_CASE_GLOBAL: CTI_GAL_TEST_CASE_GLOBAL_INFO,
-                            CTI_GAL_TEST_CASE_SNR: CTI_GAL_TEST_CASE_SNR_INFO,
-                            CTI_GAL_TEST_CASE_BG: CTI_GAL_TEST_CASE_BG_INFO,
-                            CTI_GAL_TEST_CASE_COLOUR: CTI_GAL_TEST_CASE_COLOUR_INFO,
-                            CTI_GAL_TEST_CASE_SIZE: CTI_GAL_TEST_CASE_SIZE_INFO,
-                            CTI_GAL_TEST_CASE_EPOCH: CTI_GAL_TEST_CASE_EPOCH_INFO, }
+D_CTI_GAL_TEST_CASE_INFO = {CtiGalTestCases.GLOBAL: CTI_GAL_TEST_CASE_GLOBAL_INFO,
+                            CtiGalTestCases.SNR: CTI_GAL_TEST_CASE_SNR_INFO,
+                            CtiGalTestCases.BG: CTI_GAL_TEST_CASE_BG_INFO,
+                            CtiGalTestCases.COLOUR: CTI_GAL_TEST_CASE_COLOUR_INFO,
+                            CtiGalTestCases.SIZE: CTI_GAL_TEST_CASE_SIZE_INFO,
+                            CtiGalTestCases.EPOCH: CTI_GAL_TEST_CASE_EPOCH_INFO, }
 
 CTI_GAL_TEST_CASES = D_CTI_GAL_TEST_CASE_INFO.keys()
 
-NUM_CTI_GAL_TEST_CASES = len(CTI_GAL_TEST_CASES)
+NUM_CTI_GAL_TEST_CASES = len(CtiGalTestCases)
 
 NUM_METHOD_CTI_GAL_TEST_CASES = NUM_SHEAR_ESTIMATION_METHODS * NUM_CTI_GAL_TEST_CASES

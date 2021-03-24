@@ -42,9 +42,7 @@ from . import __version__
 from .constants.cti_gal_default_config import (AnalysisConfigKeys, FailSigmaScaling,
                                                CTI_GAL_DEFAULT_CONFIG, FAILSAFE_BIN_LIMITS)
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
-                                          CTI_GAL_TEST_CASE_SNR, CTI_GAL_TEST_CASE_BG,
-                                          CTI_GAL_TEST_CASE_COLOUR, CTI_GAL_TEST_CASE_SIZE,
-                                          CTI_GAL_TEST_CASES)
+                                          CtiGalTestCases)
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -76,13 +74,13 @@ def run_validate_cti_gal_from_args(args):
         logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
 
     bin_limits_cline_args = {AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SNR].bins_cline_arg),
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
                              AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_BG].bins_cline_arg),
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
                              AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_COLOUR].bins_cline_arg),
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
                              AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CTI_GAL_TEST_CASE_SIZE].bins_cline_arg), }
+                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
 
     pipeline_config = read_analysis_config(args.pipeline_config,
                                            workdir=args.workdir,
@@ -106,7 +104,7 @@ def run_validate_cti_gal_from_args(args):
         pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
 
     d_bin_limits = {}
-    for test_case_label in CTI_GAL_TEST_CASES:
+    for test_case_label in CtiGalTestCases:
         bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
@@ -174,7 +172,6 @@ def run_validate_cti_gal_from_args(args):
                 logger.warning("Shear estimates table from " +
                                join(args.workdir, filename) + " is in invalid format.")
                 d_shear_estimate_tables[method] = None
-                continue
         else:
             d_shear_estimate_tables[method] = None
 

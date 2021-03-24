@@ -76,8 +76,6 @@ class TestCase:
         # Set up some expected values
         cls.ex_bg_level = 45.71
 
-        return
-
     @classmethod
     def teardown_class(cls):
 
@@ -241,5 +239,3 @@ class TestCase:
                                   row[getattr(CGOD_TF, "g2_image_LensMC")])
                 assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].weight,
                                   row[getattr(CGOD_TF, "weight_LensMC")])
-
-        return

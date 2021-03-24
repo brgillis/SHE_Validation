@@ -31,8 +31,8 @@ from astropy import table
 import pytest
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_test_info import CTI_GAL_TEST_CASES,\
-    CTI_GAL_TEST_CASE_EPOCH, CTI_GAL_TEST_CASE_GLOBAL
+from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases,\
+    CtiGalTestCases.EPOCH, CtiGalTestCases.GLOBAL
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
@@ -139,7 +139,7 @@ class TestCase:
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
                                                                 product_type="EXP",
-                                                                test_case=CTI_GAL_TEST_CASE_GLOBAL,)
+                                                                test_case=CtiGalTestCases.GLOBAL,)
 
         # Check the results
 
@@ -163,8 +163,8 @@ class TestCase:
         assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
-        for test_case in CTI_GAL_TEST_CASES:
-            if test_case == CTI_GAL_TEST_CASE_GLOBAL or test_case == CTI_GAL_TEST_CASE_EPOCH:
+        for test_case in CtiGalTestCases:
+            if test_case == CtiGalTestCases.GLOBAL or test_case == CtiGalTestCases.EPOCH:
                 continue
             for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,

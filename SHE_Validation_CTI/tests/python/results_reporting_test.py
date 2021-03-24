@@ -33,11 +33,11 @@ import pytest
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
     FAILSAFE_BIN_LIMITS, FailSigmaScaling
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases, CtiGalTestCases.GLOBAL,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES,
-                                                            CTI_GAL_TEST_CASE_EPOCH,
-                                                            CTI_GAL_TEST_CASE_COLOUR)
+                                                            CtiGalTestCases.EPOCH,
+                                                            CtiGalTestCases.COLOUR)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
@@ -66,7 +66,7 @@ class TestCase:
 
         # Make a dictionary of bin limits
         cls.d_bin_limits = {}
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
             bins_config_key = D_CTI_GAL_TEST_CASE_INFO[test_case].bins_config_key
             if bins_config_key is None:
                 bin_limits_string = FAILSAFE_BIN_LIMITS
@@ -98,7 +98,7 @@ class TestCase:
         ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                        d_bin_limits=self.d_bin_limits)
 
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
             assert np.isclose(ns_fail_sigma_calculator.d_scaled_slope_sigma[test_case], base_slope_fail_sigma)
             assert np.isclose(ns_fail_sigma_calculator.d_scaled_intercept_sigma[test_case], base_intercept_fail_sigma)
 
@@ -119,7 +119,7 @@ class TestCase:
         first_tcb_slope_fail_sigma = None
         first_tcb_intercept_fail_sigma = None
 
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
 
             # Check that they increase with increasing number of bins
 
@@ -178,7 +178,7 @@ class TestCase:
         base_exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
 
         d_exp_results_tables = {}
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
             num_bins = len(self.d_bin_limits[test_case]) - 1
             d_exp_results_tables[test_case] = [None] * num_bins
             for bin_index in range(num_bins):
@@ -222,10 +222,10 @@ class TestCase:
             if not method == "LensMC":
                 test_case_index += NUM_CTI_GAL_TEST_CASES
                 continue
-            for test_case in CTI_GAL_TEST_CASES:
-                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+            for test_case in CtiGalTestCases:
+                if test_case == CtiGalTestCases.GLOBAL:
                     lensmc_global_test_case_index = test_case_index
-                elif test_case == CTI_GAL_TEST_CASE_COLOUR:
+                elif test_case == CtiGalTestCases.COLOUR:
                     lensmc_colour_test_case_index = test_case_index
 
                 test_case_index += 1
@@ -351,7 +351,7 @@ class TestCase:
             num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
 
         d_obs_results_tables = {}
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
             num_bins = len(self.d_bin_limits[test_case]) - 1
             d_obs_results_tables[test_case] = [obs_results_table] * num_bins
 
@@ -368,7 +368,7 @@ class TestCase:
         # Check metadata for all test cases
         test_case_index = 0
         for method in METHODS:
-            for test_case in CTI_GAL_TEST_CASES:
+            for test_case in CtiGalTestCases:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
                 assert D_CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
@@ -380,7 +380,7 @@ class TestCase:
                 obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
                 assert obs_info.Parameter[0].Key == KEY_REASON
                 assert obs_info.Parameter[0].Description == DESC_REASON
-                if test_case == CTI_GAL_TEST_CASE_EPOCH:
+                if test_case == CtiGalTestCases.EPOCH:
                     assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
                 else:
                     assert obs_info.Parameter[0].StringValue == MSG_NO_DATA

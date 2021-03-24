@@ -34,7 +34,7 @@ from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import write_analysis_config
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
-from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CTI_GAL_TEST_CASES
+from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
@@ -59,7 +59,7 @@ class Args(object):
         self.pipeline_config = None
         self.mdb = MDB_PRODUCT_FILENAME
 
-        for test_case_label in CTI_GAL_TEST_CASES:
+        for test_case_label in CtiGalTestCases:
             bin_limits_cline_arg = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_cline_arg
             if bin_limits_cline_arg is not None:
                 setattr(self, bin_limits_cline_arg,

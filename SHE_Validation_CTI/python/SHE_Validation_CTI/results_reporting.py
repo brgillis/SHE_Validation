@@ -18,9 +18,8 @@ import numpy as np
 
 from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
-                                          CTI_GAL_TEST_CASES, CTI_GAL_TEST_CASE_GLOBAL,
+                                          CTI_GAL_TEST_CASES, CtiGalTestCases,
                                           D_CTI_GAL_TEST_CASE_INFO,)
-from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
@@ -366,7 +365,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
 
-            if method_data_exists and test_case != CTI_GAL_TEST_CASE_EPOCH:
+            if method_data_exists and test_case != CtiGalTestCases.EPOCH:
 
                 # Sort the data out from the tables
 
@@ -388,7 +387,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                     l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
                 # For the global case, override the bin limits with None
-                if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+                if test_case == CtiGalTestCases.GLOBAL:
                     l_bin_limits = None
 
                 requirement_writer = CTIGalRequirementWriter(requirement_object,
@@ -402,7 +401,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
                 requirement_writer.report_data()
 
-            elif test_case == CTI_GAL_TEST_CASE_EPOCH:
+            elif test_case == CtiGalTestCases.EPOCH:
                 # Report that the test wasn't run due to it not yet being implemented
                 report_test_not_run(requirement_object,
                                     reason=MSG_NOT_IMPLEMENTED)
