@@ -4,9 +4,8 @@
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
-from copy import deepcopy
 
-__updated__ = "2021-03-15"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,6 +22,7 @@ __updated__ = "2021-03-15"
 
 # The size for the stamp used for calculating the background level
 
+from copy import deepcopy
 from typing import Dict, List
 
 from SHE_PPT import shear_utility
@@ -148,7 +148,7 @@ class SingleObjectData():
             if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
                 self.colour = np.NaN
             else:
-                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] / 
+                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
                                              detections_row[mfc_tf.FLUX_NIR_STACK_APER])
 
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]

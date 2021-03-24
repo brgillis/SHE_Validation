@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-24"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

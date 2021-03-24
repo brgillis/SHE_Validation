@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,6 +23,7 @@ __updated__ = "2021-03-03"
 from os.path import join
 from typing import Dict
 
+from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
@@ -35,7 +36,6 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
-from EL_CoordsUtils import telescope_coords
 import numpy as np
 
 from . import __version__
