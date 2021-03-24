@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2021-02-26"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -31,8 +31,7 @@ from astropy import table
 import pytest
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases,\
-    CtiGalTestCases.EPOCH, CtiGalTestCases.GLOBAL
+from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF

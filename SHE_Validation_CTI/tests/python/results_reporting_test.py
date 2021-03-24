@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-03-18"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -33,11 +33,9 @@ import pytest
 from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
     FAILSAFE_BIN_LIMITS, FailSigmaScaling
-from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases, CtiGalTestCases.GLOBAL,
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases,
                                                             CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES,
-                                                            CtiGalTestCases.EPOCH,
-                                                            CtiGalTestCases.COLOUR)
+                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
                                                   COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
