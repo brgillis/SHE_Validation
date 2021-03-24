@@ -33,7 +33,7 @@ from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValida
 import numpy as np
 
 from .constants.cti_gal_default_config import FailSigmaScaling
-from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_ID, CTI_GAL_PARAMETER,
+from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
                                           CTI_GAL_TEST_CASES, CtiGalTestCases,
                                           D_CTI_GAL_TEST_CASE_INFO,)
 from .table_formats.regression_results import TF as RR_TF
@@ -307,7 +307,7 @@ class CTIGalRequirementWriter():
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
+        self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
 
         # Check for data quality issues and report as proper if found
         if np.all(self.l_slope_err == 0.):
@@ -360,9 +360,9 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
             requirement_object = test_object.ValidatedRequirements.Requirement[0]
 
-            requirement_object.Id = CTI_GAL_REQUIREMENT_ID
+            requirement_object.Id = CTI_GAL_REQUIREMENT_INFO.id
 
-            requirement_object.MeasuredValue[0].Parameter = CTI_GAL_PARAMETER
+            requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
 
             if method_data_exists and test_case != CtiGalTestCases.EPOCH:
 

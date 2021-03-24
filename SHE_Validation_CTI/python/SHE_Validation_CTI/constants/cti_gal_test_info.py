@@ -25,20 +25,22 @@ from enum import Enum
 from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 
-from SHE_Validation.test_info import TestCaseInfo
+from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_default_config import (BACKGROUND_LEVEL_UNITS,
                                                                  COLOUR_DEFINITION, SIZE_DEFINITION)
 
 
 # Metadata about the requirement
-CTI_GAL_REQUIREMENT_ID = "R-SHE-CAL-F-140"
-CTI_GAL_REQUIREMENT_DESCRIPTION = "Residual of CTI to galaxy multiplicative bias mu <5x10-4 (1-sigma)."
-CTI_GAL_PARAMETER = ("Z-value for slope of g1_image versus distance from readout register compared to expectation " +
-                     "of zero.")
+CTI_GAL_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-140",
+                                           description=("Residual of CTI to galaxy multiplicative bias mu <5x10-4 " +
+                                                        "(1-sigma)."),
+                                           parameter=("Z-value for slope of g1_image versus distance from readout " +
+                                                      "register compared to expectation of zero."))
 
 # Metadata about the test
-CTI_GAL_TEST_ID = "T-SHE-000010-CTI-gal"
-CTI_GAL_TEST_DESCRIPTION = "Linear dependence of galaxy ellipticity with read-out register distance (slope)."
+CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
+                             description=("Linear dependence of galaxy ellipticity with read-out register distance " +
+                                          "(slope)."))
 
 
 class CtiGalTestCases(Enum):

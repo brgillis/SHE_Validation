@@ -34,7 +34,7 @@ from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
     FAILSAFE_BIN_LIMITS, FailSigmaScaling
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases,
-                                                            CTI_GAL_PARAMETER, D_CTI_GAL_TEST_CASE_INFO,
+                                                            CTI_GAL_REQUIREMENT_INFO, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
@@ -234,7 +234,7 @@ class TestCase:
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue[0].Parameter == CTI_GAL_PARAMETER
+        assert requirement_object.MeasuredValue[0].Parameter == CTI_GAL_REQUIREMENT_INFO.parameter
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == RESULT_PASS
 
