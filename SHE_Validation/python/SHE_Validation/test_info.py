@@ -5,7 +5,7 @@
     Common (base) classes for information about tests, test cases, and requirements
 """
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,6 +20,62 @@ __updated__ = "2021-03-03"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
+
+
+class RequirementInfo():
+    """ Common class for info about a requirement.
+    """
+
+    def __init__(self,
+                 requirement_id=None,
+                 description=None,
+                 parameter=None,):
+
+        self._requirement_id = requirement_id
+        self._description = description
+        self._parameter = parameter
+
+    @property
+    def requirement_id(self):
+        return self._requirement_id
+
+    @property
+    def id(self):
+        # Alias to requirement_id
+        return self._requirement_id
+
+    @property
+    def description(self):
+        return self._description
+
+    @property
+    def parameter(self):
+        return self._parameter
+
+
+class TestInfo():
+    """ Common class for info about a test.
+    """
+
+    def __init__(self,
+                 test_id=None,
+                 description=None,):
+
+        self._test_id = test_id
+        self._description = description
+
+    @property
+    def test_id(self):
+        return self._test_id
+
+    @property
+    def id(self):
+        # Alias to test_id
+        return self._test_id
+
+    @property
+    def description(self):
+        return self._description
 
 
 class TestCaseInfo():
