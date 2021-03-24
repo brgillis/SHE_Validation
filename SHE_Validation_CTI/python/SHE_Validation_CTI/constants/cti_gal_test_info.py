@@ -74,7 +74,7 @@ CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal
                                              description=("Linear dependence of residual galaxy " +
                                                           "ellipticity with read-out register distance " +
                                                           "(slope) in bins of colour of galaxies."),
-                                             "colour_bin_limits",
+                                             bins_cline_arg="colour_bin_limits",
                                              bins_config_key=AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value,
                                              name="colour",
                                              comment=COLOUR_DEFINITION)
