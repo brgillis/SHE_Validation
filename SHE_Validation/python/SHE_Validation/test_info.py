@@ -46,6 +46,11 @@ class TestCaseInfo():
         return self._test_case_id
 
     @property
+    def id(self):
+        # Alias to test_case_id
+        return self._test_case_id
+
+    @property
     def description(self):
         return self._description
 
