@@ -2,7 +2,7 @@
 elements_subdir(SHE_Validation_CTI)
 
 # Declare Elements module dependencies
-elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(ElementsKernel SHE_Validation)
 
 # Instruction for Python module installation
 elements_install_python_modules()
