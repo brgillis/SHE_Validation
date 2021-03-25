@@ -17,6 +17,8 @@ Bug Fixes
 
 New Features
 ------------
+- Added common classes for TestInfo, TestCaseInfo, and RequirementInfo to SHE_Validation.test_info
+- Added common base classes for writing test results to SHE_Validation.results_writer
 
 New Config Features
 -------------------
@@ -24,6 +26,9 @@ New Config Features
 Miscellaneous
 -------------
 - Updating to use AllowedEnum and ShearEstimate classes from SHE_PPT
+- CTI-Gal test cases now expressed as Enum
+- CTI-Gal now uses common classes TestInfo, TestCaseInfo, and RequirementInfo
+- CTI-Gal now uses common base classes for writing test results
 
 
 
