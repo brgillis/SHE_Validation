@@ -4,8 +4,24 @@
 
     Utility functions for CTI-Gal validation, for reporting results.
 """
+
+__updated__ = "2021-03-25"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from copy import deepcopy
-from typing import Dict, Any, List, Union
+from typing import Dict, List,  Any, Callable, Tuple
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
@@ -24,26 +40,9 @@ import numpy as np
 
 from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
-                                          CtiGalTestCases, CtiGalTestCases,
+                                          CtiGalTestCases,
                                           D_CTI_GAL_TEST_CASE_INFO,)
 from .table_formats.regression_results import TF as RR_TF
-
-
-__updated__ = "2021-03-25"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 
 logger = getLogger(__name__)
 
@@ -93,11 +92,11 @@ class FailSigmaCalculator():
             self._d_scaled_intercept_sigma = self._calc_d_scaled_sigma(self.intercept_fail_sigma)
         return self._d_scaled_intercept_sigma
 
-    def _calc_d_scaled_sigma(self, base_sigma: float):
+    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
 
         d_scaled_sigma = {}
 
-        for test_case in self.d_num_bins:
+        for test_case in CtiGalTestCases:
 
             # Get the number of tries depending on scaling type
             if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
@@ -119,7 +118,7 @@ class FailSigmaCalculator():
     @classmethod
     def _calc_scaled_sigma_from_tries(cls,
                                       base_sigma: float,
-                                      num_tries: int):
+                                      num_tries: int) -> float:
         # To avoid numeric error, don't calculate if num_tries==1
         if num_tries == 1:
             return base_sigma
@@ -133,8 +132,8 @@ class CtiGalRequirementWriter(RequirementWriter):
     """
 
     def _get_slope_intercept_info(self,
-                                  extra_slope_message: str ="",
-                                  extra_intercept_message: str =""):
+                                  extra_slope_message: str = "",
+                                  extra_intercept_message: str = "") -> Tuple[SupplementaryInfo, SupplementaryInfo]:
 
         # Check the extra messages and make sure they end in a linebreak
         if extra_slope_message != "" and extra_slope_message[-1:] != "\n":
@@ -186,7 +185,7 @@ class CtiGalRequirementWriter(RequirementWriter):
         self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self,
-                         measured_value):
+                         measured_value: float):
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
@@ -200,7 +199,8 @@ class CtiGalRequirementWriter(RequirementWriter):
                                  warning=warning,
                                  l_supplementary_info=l_supplementary_info)
 
-    def _calc_test_results(self, prop: str):
+    def _calc_test_results(self,
+                           prop: str):
         """ Calculate the test results for either the slope or intercept.
         """
 
@@ -241,7 +241,7 @@ class CtiGalRequirementWriter(RequirementWriter):
             setattr(self, f"{prop}_result", RESULT_FAIL)
 
     def write(self,
-              report_method=None,
+              report_method: Callable[[Any], None] = None,
               have_data: bool = False,
               l_slope: List[float] = None,
               l_slope_err: List[float] = None,
@@ -250,7 +250,7 @@ class CtiGalRequirementWriter(RequirementWriter):
               l_bin_limits: List[float] = None,
               slope_fail_sigma: float = None,
               intercept_fail_sigma: float = None,
-              report_kwargs=None):
+              report_kwargs: Dict[str, Any] = None) -> str:
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
@@ -322,7 +322,7 @@ class CtiGalTestCaseWriter(TestCaseWriter):
 
     def _init_requirement_writer(self,
                                  requirement_object,
-                                 requirement_info):
+                                 requirement_info) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
         return CtiGalRequirementWriter(requirement_object=requirement_object,
@@ -355,10 +355,14 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         return CtiGalTestCaseWriter(*args, **kwargs)
 
     def _get_method_info(self,
-                         method,
-                         test_case,
-                         l_test_case_bins,
-                         l_test_case_regression_results_tables):
+                         method: str,
+                         test_case: str,
+                         l_test_case_bins: List[float],
+                         l_test_case_regression_results_tables: List[table.Table]) -> Tuple[List[float],
+                                                                                            List[float],
+                                                                                            List[float],
+                                                                                            List[float],
+                                                                                            List[List[float]]]:
         """ Sort the data out from the tables for this method.
         """
 

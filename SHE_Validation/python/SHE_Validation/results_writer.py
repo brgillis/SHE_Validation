@@ -22,7 +22,7 @@ __updated__ = "2021-03-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import List, Union
+from typing import List, Union, Dict, Any, Callable
 
 from SHE_PPT.logging import getLogger
 from future.builtins.misc import isinstance
@@ -145,8 +145,8 @@ class RequirementWriter():
         self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
 
     def report_good_data(self,
-                         measured_value=-99.,
-                         warning=False,
+                         measured_value: float = -99.,
+                         warning: bool = False,
                          l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
@@ -166,7 +166,7 @@ class RequirementWriter():
         self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
 
     def report_test_not_run(self,
-                            reason="Unspecified reason."):
+                            reason: str = "Unspecified reason."):
         """ Fills in the data model with the fact that a test was not run and the reason.
         """
 
@@ -180,9 +180,9 @@ class RequirementWriter():
         supplementary_info_parameter.StringValue = reason
 
     def write(self,
-              result=RESULT_PASS,
-              report_method=None,
-              report_kwargs=None):
+              result: str = RESULT_PASS,
+              report_method: Callable[[Any], None] = None,
+              report_kwargs: Dict[str, Any] = None) -> str:
         """ Reports data in the data model object for one or more items, modifying self._requirement_object.
 
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
@@ -212,7 +212,7 @@ class TestCaseWriter():
     def __init__(self,
                  test_case_object,
                  test_case_info: TestCaseInfo,
-                 num_requirements=None,
+                 num_requirements: int = None,
                  l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None):
 
         if (num_requirements is None) == (l_requirement_info is None):
@@ -349,12 +349,13 @@ class ValidationResultsWriter():
     def l_test_case_objects(self):
         return self._l_test_case_objects
 
-    def _init_test_case_writer(self, *args, **kwargs):
+    def _init_test_case_writer(self, *args, **kwargs) -> TestCaseWriter:
         """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
         """
         return TestCaseWriter(*args, **kwargs)
 
-    def add_test_case_writer(self, test_case_writer: TestCaseWriter):
+    def add_test_case_writer(self,
+                             test_case_writer: TestCaseWriter):
         self._l_test_case_writers.append(test_case_writer)
         self.l_test_case_objects.append(test_case_writer.test_case_object)
 
