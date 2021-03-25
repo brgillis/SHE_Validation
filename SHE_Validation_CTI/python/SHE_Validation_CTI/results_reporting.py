@@ -83,7 +83,7 @@ class FailSigmaCalculator():
     @property
     def d_scaled_slope_sigma(self):
         if self._d_scaled_slope_sigma is None:
-            self._d_scaled_slope_sigma = self._calculate_d_scaled_sigma(self.slope_fail_sigma)
+            self._d_scaled_slope_sigma = self._calc_d_scaled_sigma(self.slope_fail_sigma)
         return self._d_scaled_slope_sigma
 
     @property
@@ -132,17 +132,105 @@ class CtiGalRequirementWriter(RequirementWriter):
     """
 
     def __init__(self,
-                 requirement_object,
-                 l_slope: List[float],
-                 l_slope_err: List[float],
-                 l_intercept: List[float],
-                 l_intercept_err: List[float],
-                 l_bin_limits: List[float],
-                 slope_fail_sigma: float,
-                 intercept_fail_sigma: float):
+                 requirement_object,):
 
         super().__init__(requirement_object=requirement_object,
                          requirement_info=CTI_GAL_REQUIREMENT_INFO)
+
+    def _get_slope_intercept_info(self,
+                                  extra_slope_message: str ="",
+                                  extra_intercept_message: str =""):
+
+        # Check the extra messages and make sure they end in a linebreak
+        if extra_slope_message != "" and extra_slope_message[-1:] != "\n":
+            extra_slope_message = extra_slope_message + "\n"
+        if extra_intercept_message != "" and extra_intercept_message[-1:] != "\n":
+            extra_intercept_message = extra_intercept_message + "\n"
+
+        # Set up result messages for each bin, for both the slope and intercept
+        messages = {"slope": extra_slope_message + "\n",
+                    "intercept": extra_intercept_message + "\n"}
+        for prop in messages:
+            for bin_index in range(self.num_bins):
+
+                if self.l_bin_limits is not None:
+                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index][0]}\n" +
+                                       f"bin_max = {self.l_bin_limits[bin_index][1]}\n")
+
+                messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
+                                   f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
+                                   f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
+                                   f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
+                                   f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
+
+        slope_supplementary_info = SupplementaryInfo(key=KEY_SLOPE_INFO,
+                                                     description=DESC_SLOPE_INFO,
+                                                     message=messages["slope"])
+
+        intercept_supplementary_info = SupplementaryInfo(key=KEY_INTERCEPT_INFO,
+                                                         description=DESC_INTERCEPT_INFO,
+                                                         message=messages["intercept"])
+
+        return slope_supplementary_info, intercept_supplementary_info
+
+    def report_bad_data(self):
+
+        # Add a supplementary info key for each of the slope and intercept, reporting details
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
+        super().report_bad_data(l_supplementary_info)
+
+    def report_zero_slope_err(self):
+
+        # Report -2 as the measured value for this test
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = -2.0
+
+        self.requirement_object.Comment = WARNING_MULTIPLE
+
+        # Add a supplementary info key for each of the slope and intercept, reporting details
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_ZERO_SLOPE_ERR)
+        self.add_supplementary_info(l_supplementary_info)
+
+    def report_good_data(self,
+                         measured_value):
+
+        measured_value = measured_value
+
+        # If the slope passes but the intercept doesn't, we should raise a warning
+        if self.slope_pass and not self.intercept_pass:
+            warning = True
+        else:
+            warning = False
+
+        # Add a supplementary info key for each of the slope and intercept, reporting details
+        l_supplementary_info = self._get_slope_intercept_info()
+        super().report_good_data(measured_value=measured_value,
+                                 warning=warning,
+                                 l_supplementary_info=l_supplementary_info)
+
+    def write(self,
+              report_method=None,
+              have_data: bool = False,
+              l_slope: List[float] = None,
+              l_slope_err: List[float] = None,
+              l_intercept: List[float] = None,
+              l_intercept_err: List[float] = None,
+              l_bin_limits: List[float] = None,
+              slope_fail_sigma: float = None,
+              intercept_fail_sigma: float = None,
+              report_kwargs=None):
+
+        # Default to reporting good data if we're not told otherwise
+        if report_method is None:
+            report_method = self.report_bad_data
+
+        # Default to empty dict for report_kwargs
+        if report_kwargs is None:
+            report_kwargs = {}
+
+        # If we don't have data, report with the provided method and return
+        if not have_data:
+            report_method(**report_kwargs)
+            return
 
         self.l_slope = np.array(l_slope)
         self.l_slope_err = np.array(l_slope_err)
@@ -202,78 +290,6 @@ class CtiGalRequirementWriter(RequirementWriter):
                 setattr(self, f"{prop}_pass", False)
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
-    def _get_slope_intercept_info(self,
-                                  extra_slope_message: str ="",
-                                  extra_intercept_message: str =""):
-
-        # Check the extra messages and make sure they end in a linebreak
-        if extra_slope_message != "" and extra_slope_message[-1:] != "\n":
-            extra_slope_message = extra_slope_message + "\n"
-        if extra_intercept_message != "" and extra_intercept_message[-1:] != "\n":
-            extra_intercept_message = extra_intercept_message + "\n"
-
-        # Set up result messages for each bin, for both the slope and intercept
-        messages = {"slope": extra_slope_message + "\n",
-                    "intercept": extra_intercept_message + "\n"}
-        for prop in messages:
-            for bin_index in range(self.num_bins):
-
-                if self.l_bin_limits is not None:
-                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index][0]}\n" +
-                                       f"bin_max = {self.l_bin_limits[bin_index][1]}\n")
-
-                messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
-                                   f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
-                                   f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
-                                   f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
-
-        slope_supplementary_info = SupplementaryInfo(key=KEY_SLOPE_INFO,
-                                                     description=DESC_SLOPE_INFO,
-                                                     message=messages["slope"])
-
-        intercept_supplementary_info = SupplementaryInfo(key=KEY_INTERCEPT_INFO,
-                                                         description=DESC_INTERCEPT_INFO,
-                                                         message=messages["intercept"])
-
-        return slope_supplementary_info, intercept_supplementary_info
-
-    def report_bad_data(self):
-
-        # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
-        super().report_bad_data(l_supplementary_info)
-
-    def report_zero_slope_err(self):
-
-        # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = -2.0
-
-        self.requirement_object.Comment = WARNING_MULTIPLE
-
-        # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
-        self.add_supplementary_info(l_supplementary_info)
-
-    def report_good_data(self):
-
-        # Report the maximum slope_z as the measured value for this test
-        measured_value = np.nanmax(self.l_slope_z)
-
-        # If the slope passes but the intercept doesn't, we should raise a warning
-        if self.slope_pass and not self.intercept_pass:
-            warning = True
-        else:
-            warning = False
-
-        # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info()
-        super().report_good_data(measured_value=measured_value,
-                                 warning=warning,
-                                 l_supplementary_info=l_supplementary_info)
-
-    def write(self):
-
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
         self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
@@ -281,17 +297,23 @@ class CtiGalRequirementWriter(RequirementWriter):
         # Check for data quality issues and report as proper if found
         if np.all(self.l_slope_err == 0.):
             report_method = self.report_zero_slope_err
+            extra_report_kwargs = {}
         elif np.logical_or.reduce((np.isnan(self.l_slope),
                                    np.isinf(self.l_slope),
                                    np.isnan(self.l_slope_err),
                                    np.isinf(self.l_slope_err),
                                    self.l_slope_err == 0.)).all():
             report_method = self.report_bad_data
+            extra_report_kwargs = {}
         else:
             report_method = self.report_good_data
 
+            # Report the maximum slope_z as the measured value for this test
+            extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
+
         super().write(result=self.slope_result,
-                      report_method=report_method,)
+                      report_method=report_method,
+                      report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
 class CtiGalTestCaseWriter(TestCaseWriter):
@@ -359,6 +381,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             requirement_object.Id = CTI_GAL_REQUIREMENT_INFO.id
 
             requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
+            requirement_writer = CtiGalRequirementWriter(requirement_object)
 
             if method_data_exists and test_case != CtiGalTestCases.EPOCH:
 
@@ -386,30 +409,33 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                     l_bin_limits = None
 
                 requirement_writer = CtiGalRequirementWriter(requirement_object,
-                                                             l_slope=l_slope,
-                                                             l_slope_err=l_slope_err,
-                                                             l_intercept=l_intercept,
-                                                             l_intercept_err=l_intercept_err,
-                                                             l_bin_limits=l_bin_limits,
-                                                             slope_fail_sigma=slope_fail_sigma,
-                                                             intercept_fail_sigma=intercept_fail_sigma)
+                                                             )
 
-                report_method = requirement_writer.report_data
+                report_method = None
                 report_kwargs = {}
+                write_kwargs = {"have_data": True,
+                                "l_slope": l_slope,
+                                "l_slope_err": l_slope_err,
+                                "l_intercept": l_intercept,
+                                "l_intercept_err": l_intercept_err,
+                                "l_bin_limits": l_bin_limits,
+                                "slope_fail_sigma": slope_fail_sigma,
+                                "intercept_fail_sigma": intercept_fail_sigma}
 
             elif test_case == CtiGalTestCases.EPOCH:
                 # Report that the test wasn't run due to it not yet being implemented
-                requirement_writer = CtiGalRequirementWriter(requirement_object)
                 report_method = requirement_writer.report_test_not_run
                 report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
+                write_kwargs = {}
             else:
                 # Report that the test wasn't run due to a lack of data
-                requirement_writer = CtiGalRequirementWriter(requirement_object)
                 report_method = requirement_writer.report_test_not_run
                 report_kwargs = {"reason": MSG_NO_DATA}
+                write_kwargs = {}
 
             requirement_writer.write(report_method=report_method,
-                                     **report_kwargs)
+                                     report_kwargs=report_kwargs,
+                                     **write_kwargs,)
 
             test_object.GlobalResult = requirement_object.ValidationResult
 

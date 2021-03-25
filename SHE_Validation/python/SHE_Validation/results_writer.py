@@ -22,17 +22,12 @@ __updated__ = "2021-03-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, Any, List, Union
+from typing import List, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from astropy import table
 from future.builtins.misc import isinstance
-import scipy.stats
 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
 
 from .test_info import RequirementInfo, TestCaseInfo
 
@@ -51,7 +46,7 @@ INFO_MULTIPLE = COMMENT_LEVEL_INFO + ": " + COMMENT_MULTIPLE
 
 WARNING_TEST_NOT_RUN = "WARNING: Test not run."
 WARNING_MULTIPLE = COMMENT_LEVEL_WARNING + ": " + COMMENT_MULTIPLE
-WARNING_BAD_DATA = "Bad data; see SupplementaryInformation"
+WARNING_BAD_DATA = "WARNING: Bad data; see SupplementaryInformation"
 
 KEY_REASON = "REASON"
 KEY_INFO = "INFO"
@@ -187,8 +182,7 @@ class RequirementWriter():
     def write(self,
               result=RESULT_PASS,
               report_method=None,
-              *args,
-              **kwargs):
+              report_kwargs=None):
         """ Reports data in the data model object for one or more items, modifying self._requirement_object.
 
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
@@ -197,12 +191,16 @@ class RequirementWriter():
         if report_method is None:
             report_method = self.report_good_data
 
+        # Default to empty dict for report_kwargs
+        if report_kwargs is None:
+            report_kwargs = {}
+
         # Report the result based on whether or not the slope passed.
         self.requirement_object.Id = self.requirement_info.id
         self.requirement_object.ValidationResult = result
         self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
 
-        report_method(self, *args, **kwargs)
+        report_method(**report_kwargs)
 
 
 class TestCaseWriter():

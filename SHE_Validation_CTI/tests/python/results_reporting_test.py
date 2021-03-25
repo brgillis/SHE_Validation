@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-03-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,19 +30,21 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import _make_config_from_defaults
 import pytest
 
+from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
+                                           COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
+                                           INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
+                                           KEY_REASON, DESC_NOT_RUN_REASON, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
+                                           WARNING_BAD_DATA,)
 from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,\
-    FAILSAFE_BIN_LIMITS, FailSigmaScaling
+from SHE_Validation_CTI.constants.cti_gal_default_config import (AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG,
+                                                                 FAILSAFE_BIN_LIMITS, FailSigmaScaling)
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases,
                                                             CTI_GAL_REQUIREMENT_INFO, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
-                                                  RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
-                                                  COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
-                                                  INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
-                                                  KEY_REASON, KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
-                                                  DESC_REASON, DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
-                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
+                                                  KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
+                                                  DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
+                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
                                                   FailSigmaCalculator)
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 import numpy as np
@@ -335,7 +337,7 @@ class TestCase:
         assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == WARNING_MULTIPLE
+        assert requirement_object.Comment == WARNING_BAD_DATA
         assert requirement_object.MeasuredValue[0].Value.FloatValue == -1.0
         assert requirement_object.ValidationResult == RESULT_FAIL
 
@@ -377,7 +379,7 @@ class TestCase:
                 assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == WARNING_TEST_NOT_RUN
                 obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
                 assert obs_info.Parameter[0].Key == KEY_REASON
-                assert obs_info.Parameter[0].Description == DESC_REASON
+                assert obs_info.Parameter[0].Description == DESC_NOT_RUN_REASON
                 if test_case == CtiGalTestCases.EPOCH:
                     assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
                 else:
