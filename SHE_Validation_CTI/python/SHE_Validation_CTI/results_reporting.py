@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 from copy import deepcopy
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
@@ -126,35 +126,6 @@ class FailSigmaCalculator():
 
         p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
         return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
-
-
-class CtiGalValidationResultsWriter(ValidationResultsWriter):
-
-    def _init_test_case_writer(self, *args, **kwargs):
-        """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
-        """
-        return CtiGalTestCaseWriter(*args, **kwargs)
-
-
-class CtiGalTestCaseWriter(TestCaseWriter):
-
-    def __init__(self,
-                 test_case_object,
-                 test_case_info: TestCaseInfo):
-        """ We override __init__ since we'll be using a known set of requirement info.
-        """
-
-        super().__init__(test_case_object,
-                         test_case_info,
-                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
-
-    def _init_requirement_writer(self,
-                                 requirement_object,
-                                 requirement_info):
-        """ We override the _init_requirement_writer method to create a writer of the inherited type.
-        """
-        return CtiGalRequirementWriter(requirement_object=requirement_object,
-                                       requirement_info=requirement_info)
 
 
 class CtiGalRequirementWriter(RequirementWriter):
@@ -340,6 +311,138 @@ class CtiGalRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
+class CtiGalTestCaseWriter(TestCaseWriter):
+
+    def __init__(self,
+                 test_case_object,
+                 test_case_info: TestCaseInfo):
+        """ We override __init__ since we'll be using a known set of requirement info.
+        """
+
+        super().__init__(test_case_object,
+                         test_case_info,
+                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
+
+    def _init_requirement_writer(self,
+                                 requirement_object,
+                                 requirement_info):
+        """ We override the _init_requirement_writer method to create a writer of the inherited type.
+        """
+        return CtiGalRequirementWriter(requirement_object=requirement_object,
+                                       requirement_info=requirement_info)
+
+
+class CtiGalValidationResultsWriter(ValidationResultsWriter):
+
+    def __init__(self,
+                 test_object: dpdSheValidationTestResults,
+                 regression_results_row_index: int,
+                 d_regression_results_tables: Dict[str, List[table.Table]],
+                 fail_sigma_calculator: FailSigmaCalculator,
+                 d_bin_limits: Dict[str, np.ndarray],
+                 method_data_exists: bool = True,):
+
+        super().__init__(test_object=test_object,
+                         num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES,
+                         l_test_case_info=None)
+
+        self.regression_results_row_index = regression_results_row_index
+        self.d_regression_results_tables = d_regression_results_tables
+        self.fail_sigma_calculator = fail_sigma_calculator
+        self.d_bin_limits = d_bin_limits
+        self.method_data_exists = method_data_exists
+
+    def _init_test_case_writer(self, *args, **kwargs):
+        """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
+        """
+        return CtiGalTestCaseWriter(*args, **kwargs)
+
+    def write_test_case_objects(self):
+        """ Writes all data for each requirement subobject, modifying self._test_object.
+        """
+        # The results of this each test will be stored in an item of the ValidationTestList.
+        # We'll iterate over the methods, test cases, and bins, and fill in each in turn
+
+        test_case_index = 0
+
+        for method in METHODS:
+            for test_case in CTI_GAL_TEST_CASES:
+
+                l_test_case_bins = self.d_bin_limits[test_case]
+                num_bins = len(l_test_case_bins) - 1
+
+                slope_fail_sigma = self.fail_sigma_calculator.d_scaled_slope_sigma[test_case]
+                intercept_fail_sigma = self.fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+
+                test_case_writer = self.l_test_case_writers[test_case_index]
+
+                # Use a modified test case info object to describe this test, clarifying it's
+                # just for this method
+                test_case_info = deepcopy(D_CTI_GAL_TEST_CASE_INFO[test_case])
+                test_case_info._test_case_id = test_case_info.id + "-" + method
+
+                test_case_writer._test_case_info = test_case_info
+
+                l_test_case_regression_results_tables = self.d_regression_results_tables[test_case]
+
+                # Fill in metadata about the test
+
+                requirement_writer = test_case_writer.l_requirement_writers[0]
+
+                if self.method_data_exists and test_case != CtiGalTestCases.EPOCH:
+
+                    # Sort the data out from the tables
+
+                    l_slope = [None] * num_bins
+                    l_slope_err = [None] * num_bins
+                    l_intercept = [None] * num_bins
+                    l_intercept_err = [None] * num_bins
+                    l_bin_limits = [None] * num_bins
+
+                    for (bin_index,
+                         bin_test_case_regression_results_table) in enumerate(l_test_case_regression_results_tables):
+
+                        regression_results_row = bin_test_case_regression_results_table[self.regression_results_row_index]
+
+                        l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
+                        l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
+                        l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
+                        l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method}")]
+                        l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
+
+                    # For the global case, override the bin limits with None
+                    if test_case == CtiGalTestCases.GLOBAL:
+                        l_bin_limits = None
+
+                    report_method = None
+                    report_kwargs = {}
+                    write_kwargs = {"have_data": True,
+                                    "l_slope": l_slope,
+                                    "l_slope_err": l_slope_err,
+                                    "l_intercept": l_intercept,
+                                    "l_intercept_err": l_intercept_err,
+                                    "l_bin_limits": l_bin_limits,
+                                    "slope_fail_sigma": slope_fail_sigma,
+                                    "intercept_fail_sigma": intercept_fail_sigma}
+
+                elif test_case == CtiGalTestCases.EPOCH:
+                    # Report that the test wasn't run due to it not yet being implemented
+                    report_method = requirement_writer.report_test_not_run
+                    report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
+                    write_kwargs = {}
+                else:
+                    # Report that the test wasn't run due to a lack of data
+                    report_method = requirement_writer.report_test_not_run
+                    report_kwargs = {"reason": MSG_NO_DATA}
+                    write_kwargs = {}
+
+                test_case_writer.write(report_method=report_method,
+                                       report_kwargs=report_kwargs,
+                                       **write_kwargs,)
+
+                test_case_index += 1
+
+
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
@@ -350,92 +453,16 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
         test_result_product with the results of this validation test.
     """
 
-    # Initialize a test results writer
-    test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
-                                                        num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES)
-
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
                                                 d_bin_limits=d_bin_limits)
 
-    # The results of this each test will be stored in an item of the ValidationTestList.
-    # We'll iterate over the methods, test cases, and bins, and fill in each in turn
+    # Initialize a test results writer
+    test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
+                                                        regression_results_row_index=regression_results_row_index,
+                                                        d_regression_results_tables=d_regression_results_tables,
+                                                        fail_sigma_calculator=fail_sigma_calculator,
+                                                        d_bin_limits=d_bin_limits,
+                                                        method_data_exists=method_data_exists)
 
-    test_case_index = 0
-
-    for method in METHODS:
-        for test_case in CTI_GAL_TEST_CASES:
-
-            l_test_case_bins = d_bin_limits[test_case]
-            num_bins = len(l_test_case_bins) - 1
-
-            slope_fail_sigma = fail_sigma_calculator.d_scaled_slope_sigma[test_case]
-            intercept_fail_sigma = fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
-
-            test_case_writer = test_results_writer.l_test_case_writers[test_case_index]
-
-            # Use a modified test case info object to describe this test, clarifying it's
-            # just for this method
-            test_case_info = deepcopy(D_CTI_GAL_TEST_CASE_INFO[test_case])
-            test_case_info._test_case_id = test_case_info.id + "-" + method
-
-            test_case_writer._test_case_info = test_case_info
-
-            l_test_case_regression_results_tables = d_regression_results_tables[test_case]
-
-            # Fill in metadata about the test
-
-            requirement_writer = test_case_writer.l_requirement_writers[0]
-
-            if method_data_exists and test_case != CtiGalTestCases.EPOCH:
-
-                # Sort the data out from the tables
-
-                l_slope = [None] * num_bins
-                l_slope_err = [None] * num_bins
-                l_intercept = [None] * num_bins
-                l_intercept_err = [None] * num_bins
-                l_bin_limits = [None] * num_bins
-
-                for (bin_index,
-                     bin_test_case_regression_results_table) in enumerate(l_test_case_regression_results_tables):
-
-                    regression_results_row = bin_test_case_regression_results_table[regression_results_row_index]
-
-                    l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
-                    l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
-                    l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
-                    l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method}")]
-                    l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
-
-                # For the global case, override the bin limits with None
-                if test_case == CtiGalTestCases.GLOBAL:
-                    l_bin_limits = None
-
-                report_method = None
-                report_kwargs = {}
-                write_kwargs = {"have_data": True,
-                                "l_slope": l_slope,
-                                "l_slope_err": l_slope_err,
-                                "l_intercept": l_intercept,
-                                "l_intercept_err": l_intercept_err,
-                                "l_bin_limits": l_bin_limits,
-                                "slope_fail_sigma": slope_fail_sigma,
-                                "intercept_fail_sigma": intercept_fail_sigma}
-
-            elif test_case == CtiGalTestCases.EPOCH:
-                # Report that the test wasn't run due to it not yet being implemented
-                report_method = requirement_writer.report_test_not_run
-                report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
-                write_kwargs = {}
-            else:
-                # Report that the test wasn't run due to a lack of data
-                report_method = requirement_writer.report_test_not_run
-                report_kwargs = {"reason": MSG_NO_DATA}
-                write_kwargs = {}
-
-            test_case_writer.write(report_method=report_method,
-                                   report_kwargs=report_kwargs,
-                                   **write_kwargs,)
-
-            test_case_index += 1
+    test_results_writer.write()
