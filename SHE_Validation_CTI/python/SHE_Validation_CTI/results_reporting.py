@@ -18,6 +18,7 @@ from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter,
                                            WARNING_MULTIPLE,
                                            MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
 from SHE_Validation.test_info import TestCaseInfo
+from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
@@ -125,6 +126,35 @@ class FailSigmaCalculator():
 
         p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
         return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
+
+
+class CtiGalValidationResultsWriter(ValidationResultsWriter):
+
+    def _init_test_case_writer(self, *args, **kwargs):
+        """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
+        """
+        return CtiGalTestCaseWriter(*args, **kwargs)
+
+
+class CtiGalTestCaseWriter(TestCaseWriter):
+
+    def __init__(self,
+                 test_case_object,
+                 test_case_info: TestCaseInfo):
+        """ We override __init__ since we'll be using a known set of requirement info.
+        """
+
+        super().__init__(test_case_object,
+                         test_case_info,
+                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
+
+    def _init_requirement_writer(self,
+                                 requirement_object,
+                                 requirement_info):
+        """ We override the _init_requirement_writer method to create a writer of the inherited type.
+        """
+        return CtiGalRequirementWriter(requirement_object=requirement_object,
+                                       requirement_info=requirement_info)
 
 
 class CtiGalRequirementWriter(RequirementWriter):
@@ -310,27 +340,6 @@ class CtiGalRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
-class CtiGalTestCaseWriter(TestCaseWriter):
-
-    def __init__(self,
-                 test_case_object,
-                 test_case_info: TestCaseInfo):
-        """ We override __init__ since we'll be using a known set of requirement info.
-        """
-
-        super().__init__(test_case_object,
-                         test_case_info,
-                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
-
-    def _init_requirement_writer(self,
-                                 requirement_object,
-                                 requirement_info):
-        """ We override the _init_requirement_writer method to create a writer of the inherited type.
-        """
-        return CtiGalRequirementWriter(requirement_object=requirement_object,
-                                       requirement_info=requirement_info)
-
-
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
@@ -342,7 +351,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     """
 
     # Initialize a test results writer
-    test_results_writer = ValidationResultsWriter(test_object=test_result_product)
+    test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
+                                                        num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES)
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
@@ -362,15 +372,14 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             slope_fail_sigma = fail_sigma_calculator.d_scaled_slope_sigma[test_case]
             intercept_fail_sigma = fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
 
-            test_case_object = test_result_product.Data.ValidationTestList[test_case_index]
+            test_case_writer = test_results_writer.l_test_case_writers[test_case_index]
 
             # Use a modified test case info object to describe this test, clarifying it's
             # just for this method
             test_case_info = deepcopy(D_CTI_GAL_TEST_CASE_INFO[test_case])
             test_case_info._test_case_id = test_case_info.id + "-" + method
 
-            test_case_writer = CtiGalTestCaseWriter(test_case_object=test_case_object,
-                                                    test_case_info=test_case_info)
+            test_case_writer._test_case_info = test_case_info
 
             l_test_case_regression_results_tables = d_regression_results_tables[test_case]
 

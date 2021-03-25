@@ -263,13 +263,10 @@ class TestCaseWriter():
     def l_requirement_objects(self):
         return self._l_requirement_objects
 
-    def _init_requirement_writer(self,
-                                 requirement_object,
-                                 requirement_info):
+    def _init_requirement_writer(self, *args, **kwargs):
         """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
         """
-        return RequirementWriter(requirement_object=requirement_object,
-                                 requirement_info=requirement_info)
+        return RequirementWriter(*args, **kwargs)
 
     def write_meta(self):
         """ Fill in metadata about the test case, modifying self._test_case_object.
@@ -304,17 +301,41 @@ class ValidationResultsWriter():
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
-                 l_test_case_writers: Union[TestCaseWriter, List[TestCaseWriter]] = None):
+                 num_test_cases: int = 1,
+                 l_test_case_info: Union[TestCaseInfo, List[TestCaseInfo]] = None):
+
+        if (num_test_cases is None) == (l_test_case_info is None):
+            raise ValueError("Exactly one of num_test_cases or l_test_case_info must be provided " +
+                             "to ValidationResultsWriter().")
 
         self._test_object = test_object
 
+        base_test_case_object = self.test_object.Data.ValidationTestList[0]
+
         # Init l_test_case_writers always as a list
-        if l_test_case_writers is None:
-            self._l_test_case_writers = []
-        elif isinstance(l_test_case_writers, TestCaseWriter):
-            self._l_test_case_writers = [l_test_case_writers]
+
+        if isinstance(l_test_case_info, TestCaseInfo):
+            l_test_case_info = [l_test_case_info]
+
+        elif l_test_case_info is not None:
+            num_test_cases = len(l_test_case_info)
+
         else:
-            self._l_test_case_writers = l_test_case_writers
+            l_test_case_info = [None] * num_test_cases
+
+        # Initialise test case objects and writers
+        self._l_test_case_objects = [None] * num_test_cases
+        self._l_test_case_writers = [None] * num_test_cases
+
+        for i, test_case_info in enumerate(l_test_case_info):
+
+            test_case_object = deepcopy(base_test_case_object)
+            self.l_test_case_writers[i] = self._init_test_case_writer(test_case_object=test_case_object,
+                                                                      test_case_info=test_case_info)
+
+            self.l_test_case_objects[i] = test_case_object
+
+        self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
     @property
     def test_object(self):
@@ -324,8 +345,18 @@ class ValidationResultsWriter():
     def l_test_case_writers(self):
         return self._l_test_case_writers
 
+    @property
+    def l_test_case_objects(self):
+        return self._l_test_case_objects
+
+    def _init_test_case_writer(self, *args, **kwargs):
+        """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
+        """
+        return TestCaseWriter(*args, **kwargs)
+
     def add_test_case_writer(self, test_case_writer: TestCaseWriter):
         self._l_test_case_writers.append(test_case_writer)
+        self.l_test_case_objects.append(test_case_writer.test_case_object)
 
     def write_meta(self):
         """ Fill in metadata about the test, modifying self._test_object.
