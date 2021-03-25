@@ -131,12 +131,6 @@ class CtiGalRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single CTI-Gal requirement
     """
 
-    def __init__(self,
-                 requirement_object,):
-
-        super().__init__(requirement_object=requirement_object,
-                         requirement_info=CTI_GAL_REQUIREMENT_INFO)
-
     def _get_slope_intercept_info(self,
                                   extra_slope_message: str ="",
                                   extra_intercept_message: str =""):
@@ -230,7 +224,7 @@ class CtiGalRequirementWriter(RequirementWriter):
         # If we don't have data, report with the provided method and return
         if not have_data:
             report_method(**report_kwargs)
-            return
+            return RESULT_PASS
 
         self.l_slope = np.array(l_slope)
         self.l_slope_err = np.array(l_slope_err)
@@ -311,9 +305,9 @@ class CtiGalRequirementWriter(RequirementWriter):
             # Report the maximum slope_z as the measured value for this test
             extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
 
-        super().write(result=self.slope_result,
-                      report_method=report_method,
-                      report_kwargs={**report_kwargs, **extra_report_kwargs},)
+        return super().write(result=self.slope_result,
+                             report_method=report_method,
+                             report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
 class CtiGalTestCaseWriter(TestCaseWriter):
@@ -368,20 +362,21 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
             slope_fail_sigma = fail_sigma_calculator.d_scaled_slope_sigma[test_case]
             intercept_fail_sigma = fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
 
-            test_object = test_result_product.Data.ValidationTestList[test_case_index]
+            test_case_object = test_result_product.Data.ValidationTestList[test_case_index]
+
+            # Use a modified test case info object to describe this test, clarifying it's
+            # just for this method
+            test_case_info = deepcopy(D_CTI_GAL_TEST_CASE_INFO[test_case])
+            test_case_info._test_case_id = test_case_info.id + "-" + method
+
+            test_case_writer = CtiGalTestCaseWriter(test_case_object=test_case_object,
+                                                    test_case_info=test_case_info)
 
             l_test_case_regression_results_tables = d_regression_results_tables[test_case]
 
             # Fill in metadata about the test
-            test_object.TestId = D_CTI_GAL_TEST_CASE_INFO[test_case].id + "-" + method
-            test_object.TestDescription = D_CTI_GAL_TEST_CASE_INFO[test_case].description
 
-            requirement_object = test_object.ValidatedRequirements.Requirement[0]
-
-            requirement_object.Id = CTI_GAL_REQUIREMENT_INFO.id
-
-            requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
-            requirement_writer = CtiGalRequirementWriter(requirement_object)
+            requirement_writer = test_case_writer.l_requirement_writers[0]
 
             if method_data_exists and test_case != CtiGalTestCases.EPOCH:
 
@@ -408,9 +403,6 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                 if test_case == CtiGalTestCases.GLOBAL:
                     l_bin_limits = None
 
-                requirement_writer = CtiGalRequirementWriter(requirement_object,
-                                                             )
-
                 report_method = None
                 report_kwargs = {}
                 write_kwargs = {"have_data": True,
@@ -433,10 +425,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                 report_kwargs = {"reason": MSG_NO_DATA}
                 write_kwargs = {}
 
-            requirement_writer.write(report_method=report_method,
-                                     report_kwargs=report_kwargs,
-                                     **write_kwargs,)
-
-            test_object.GlobalResult = requirement_object.ValidationResult
+            test_case_writer.write(report_method=report_method,
+                                   report_kwargs=report_kwargs,
+                                   **write_kwargs,)
 
             test_case_index += 1

@@ -202,6 +202,8 @@ class RequirementWriter():
 
         report_method(**report_kwargs)
 
+        return self.requirement_object.ValidationResult
+
 
 class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
@@ -210,34 +212,40 @@ class TestCaseWriter():
     def __init__(self,
                  test_case_object,
                  test_case_info: TestCaseInfo,
+                 num_requirements=None,
                  l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None):
+
+        if (num_requirements is None) == (l_requirement_info is None):
+            raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
+                             "to TestCaseWriter().")
 
         self._test_case_object = test_case_object
         self._test_case_info = test_case_info
 
         # Init l_requirement_writers always as a list
-        if l_requirement_info is None:
-            self._l_requirement_writers = []
 
-        elif isinstance(l_requirement_info, RequirementInfo):
+        if isinstance(l_requirement_info, RequirementInfo):
             requirement_object = test_case_object.ValidatedRequirements.Requirement[0]
             self._l_requirement_writers = [self._init_requirement_writer(requirement_object=requirement_object,
                                                                          requirement_info=l_requirement_info)]
 
         else:
 
-            self._l_requirement_writers = [None] * len(l_requirement_info)
-            l_requirement_objects = [None] * len(l_requirement_info)
+            if l_requirement_info is not None:
+                num_requirements = len(l_requirement_info)
+
+            self._l_requirement_writers = [None] * num_requirements
+            self._l_requirement_objects = [None] * num_requirements
             base_requirement_object = test_case_object.ValidatedRequirements.Requirement[0]
 
             for i, requirement_info in enumerate(l_requirement_info):
 
                 requirement_object = deepcopy(base_requirement_object)
-                l_requirement_objects[i] = requirement_object
-                self._l_requirement_writers[i] = self._init_requirement_writer(requirement_object=requirement_object,
-                                                                               requirement_info=requirement_info)
+                self.l_requirement_objects[i] = requirement_object
+                self.l_requirement_writers[i] = self._init_requirement_writer(requirement_object=requirement_object,
+                                                                              requirement_info=requirement_info)
 
-            test_case_object.ValidatedRequirements.Requirement = l_requirement_objects
+            test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
     @property
     def test_case_object(self):
@@ -250,6 +258,10 @@ class TestCaseWriter():
     @property
     def l_requirement_writers(self):
         return self._l_requirement_writers
+
+    @property
+    def l_requirement_objects(self):
+        return self._l_requirement_objects
 
     def _init_requirement_writer(self,
                                  requirement_object,
@@ -265,18 +277,25 @@ class TestCaseWriter():
         self.test_case_object.TestId = self.test_case_info.id
         self.test_case_object.TestDescription = self.test_case_info.description
 
-    def write_requirement_objects(self):
+    def write_requirement_objects(self, *args, **kwargs):
         """ Writes all data for each requirement subobject, modifying self._test_case_object.
         """
+        all_requirements_pass = True
         for requirement_writer in self.l_requirement_writers:
-            requirement_writer.write()
+            requirement_result = requirement_writer.write(*args, **kwargs)
+            all_requirements_pass = all_requirements_pass and (requirement_result == RESULT_PASS)
 
-    def write(self):
+        if all_requirements_pass:
+            self.test_case_object.GlobalResult = RESULT_PASS
+        else:
+            self.test_case_object.GlobalResult = RESULT_FAIL
+
+    def write(self, *args, **kwargs):
         """ Fills in metadata of the test case object and writes all data for each requirement subobject, modifying
             self._test_case_object.
         """
         self.write_meta()
-        self.write_requirement_objects()
+        self.write_requirement_objects(*args, **kwargs)
 
 
 class ValidationResultsWriter():
