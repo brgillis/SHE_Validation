@@ -4,8 +4,31 @@
 
     Utility functions for CTI-Gal validation, for reporting results.
 """
+from copy import deepcopy
+from typing import Dict, Any, List
 
-__updated__ = "2021-03-24"
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from astropy import table
+import scipy.stats
+
+from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, TestCaseWriter,
+                                           ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
+                                           WARNING_MULTIPLE,
+                                           MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
+from SHE_Validation.test_info import TestCaseInfo
+from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
+import numpy as np
+
+from .constants.cti_gal_default_config import FailSigmaScaling
+from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
+                                          CTI_GAL_TEST_CASES, CtiGalTestCases,
+                                          D_CTI_GAL_TEST_CASE_INFO,)
+from .table_formats.regression_results import TF as RR_TF
+
+
+__updated__ = "2021-03-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,52 +43,19 @@ __updated__ = "2021-03-24"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
-from typing import Dict, Any, List
-
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from astropy import table
-import scipy.stats
-
-from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
-from .constants.cti_gal_default_config import FailSigmaScaling
-from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
-                                          CTI_GAL_TEST_CASES, CtiGalTestCases,
-                                          D_CTI_GAL_TEST_CASE_INFO,)
-from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
 # Define constants for various messages
 
-RESULT_PASS = "PASSED"
-RESULT_FAIL = "FAILED"
-
-COMMENT_LEVEL_INFO = "INFO"
-COMMENT_LEVEL_WARNING = "WARNING"
-COMMENT_MULTIPLE = "Multiple notes; see SupplementaryInformation."
-
-INFO_MULTIPLE = COMMENT_LEVEL_INFO + ": " + COMMENT_MULTIPLE
-
-WARNING_TEST_NOT_RUN = "WARNING: Test not run."
-WARNING_MULTIPLE = COMMENT_LEVEL_WARNING + ": " + COMMENT_MULTIPLE
-
-KEY_REASON = "REASON"
 KEY_SLOPE_INFO = "SLOPE_INFO"
 KEY_INTERCEPT_INFO = "INTERCEPT_INFO"
 
-DESC_REASON = "Why the test was not run."
 DESC_SLOPE_INFO = "Information about the test on slope of g1_image versus readout distance."
 DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versus readout distance."
 
 MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
-MSG_NO_DATA = "No data is available for this test."
-MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
 
 
 class FailSigmaCalculator():
@@ -99,10 +89,10 @@ class FailSigmaCalculator():
     @property
     def d_scaled_intercept_sigma(self):
         if self._d_scaled_intercept_sigma is None:
-            self._d_scaled_intercept_sigma = self._calculate_d_scaled_sigma(self.intercept_fail_sigma)
+            self._d_scaled_intercept_sigma = self._calc_d_scaled_sigma(self.intercept_fail_sigma)
         return self._d_scaled_intercept_sigma
 
-    def _calculate_d_scaled_sigma(self, base_sigma: float):
+    def _calc_d_scaled_sigma(self, base_sigma: float):
 
         d_scaled_sigma = {}
 
@@ -120,15 +110,15 @@ class FailSigmaCalculator():
             else:
                 raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
 
-            d_scaled_sigma[test_case] = self._calculate_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                                num_tries=num_tries)
+            d_scaled_sigma[test_case] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                           num_tries=num_tries)
 
         return d_scaled_sigma
 
     @classmethod
-    def _calculate_scaled_sigma_from_tries(cls,
-                                           base_sigma: float,
-                                           num_tries: int):
+    def _calc_scaled_sigma_from_tries(cls,
+                                      base_sigma: float,
+                                      num_tries: int):
         # To avoid numeric error, don't calculate if num_tries==1
         if num_tries == 1:
             return base_sigma
@@ -137,23 +127,8 @@ class FailSigmaCalculator():
         return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
-def report_test_not_run(requirement_object,
-                        reason="Unspecified reason."):
-    """ Fills in the data model with the fact that a test was not run and the reason.
-    """
-
-    requirement_object.MeasuredValue[0].Parameter = WARNING_TEST_NOT_RUN
-    requirement_object.ValidationResult = RESULT_PASS
-    requirement_object.Comment = WARNING_TEST_NOT_RUN
-
-    supplementary_info_parameter = requirement_object.SupplementaryInformation.Parameter[0]
-    supplementary_info_parameter.Key = KEY_REASON
-    supplementary_info_parameter.Description = DESC_REASON
-    supplementary_info_parameter.StringValue = reason
-
-
-class CTIGalRequirementWriter():
-    """ Class for managing reporting of results for a single CTI-Gal test case.
+class CtiGalRequirementWriter(RequirementWriter):
+    """ Class for managing reporting of results for a single CTI-Gal requirement
     """
 
     def __init__(self,
@@ -166,7 +141,9 @@ class CTIGalRequirementWriter():
                  slope_fail_sigma: float,
                  intercept_fail_sigma: float):
 
-        self.requirement_object = requirement_object
+        super().__init__(requirement_object=requirement_object,
+                         requirement_info=CTI_GAL_REQUIREMENT_INFO)
+
         self.l_slope = np.array(l_slope)
         self.l_slope_err = np.array(l_slope_err)
         self.l_intercept = np.array(l_intercept)
@@ -225,21 +202,15 @@ class CTIGalRequirementWriter():
                 setattr(self, f"{prop}_pass", False)
                 setattr(self, f"{prop}_result", RESULT_FAIL)
 
-    def add_supplementary_info(self,
-                               extra_slope_message: str ="",
-                               extra_intercept_message: str =""):
+    def _get_slope_intercept_info(self,
+                                  extra_slope_message: str ="",
+                                  extra_intercept_message: str =""):
 
         # Check the extra messages and make sure they end in a linebreak
         if extra_slope_message != "" and extra_slope_message[-1:] != "\n":
             extra_slope_message = extra_slope_message + "\n"
         if extra_intercept_message != "" and extra_intercept_message[-1:] != "\n":
             extra_intercept_message = extra_intercept_message + "\n"
-
-        slope_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
-        intercept_supplementary_info_parameter = deepcopy(slope_supplementary_info_parameter)
-
-        self.requirement_object.SupplementaryInformation.Parameter = [slope_supplementary_info_parameter,
-                                                                      intercept_supplementary_info_parameter]
 
         # Set up result messages for each bin, for both the slope and intercept
         messages = {"slope": extra_slope_message + "\n",
@@ -257,23 +228,21 @@ class CTIGalRequirementWriter():
                                    f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
                                    f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
 
-        slope_supplementary_info_parameter.Key = KEY_SLOPE_INFO
-        slope_supplementary_info_parameter.Description = DESC_SLOPE_INFO
-        slope_supplementary_info_parameter.StringValue = messages["slope"]
+        slope_supplementary_info = SupplementaryInfo(key=KEY_SLOPE_INFO,
+                                                     description=DESC_SLOPE_INFO,
+                                                     message=messages["slope"])
 
-        intercept_supplementary_info_parameter.Key = KEY_INTERCEPT_INFO
-        intercept_supplementary_info_parameter.Description = DESC_INTERCEPT_INFO
-        intercept_supplementary_info_parameter.StringValue = messages["intercept"]
+        intercept_supplementary_info = SupplementaryInfo(key=KEY_INTERCEPT_INFO,
+                                                         description=DESC_INTERCEPT_INFO,
+                                                         message=messages["intercept"])
+
+        return slope_supplementary_info, intercept_supplementary_info
 
     def report_bad_data(self):
 
-        # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = -1.0
-
-        self.requirement_object.Comment = WARNING_MULTIPLE
-
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        self.add_supplementary_info(extra_slope_message=MSG_NAN_SLOPE)
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
+        super().report_bad_data(l_supplementary_info)
 
     def report_zero_slope_err(self):
 
@@ -283,27 +252,27 @@ class CTIGalRequirementWriter():
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-
-        self.add_supplementary_info(extra_slope_message=MSG_ZERO_SLOPE_ERR,)
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
+        self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self):
 
         # Report the maximum slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = np.nanmax(self.l_slope_z)
+        measured_value = np.nanmax(self.l_slope_z)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
-            comment_level = COMMENT_LEVEL_WARNING
+            warning = True
         else:
-            comment_level = COMMENT_LEVEL_INFO
-
-        self.requirement_object.Comment = f"{comment_level}: " + COMMENT_MULTIPLE
+            warning = False
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
+        l_supplementary_info = self._get_slope_intercept_info()
+        super().report_good_data(measured_value=measured_value,
+                                 warning=warning,
+                                 l_supplementary_info=l_supplementary_info)
 
-        self.add_supplementary_info()
-
-    def report_data(self):
+    def write(self):
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
@@ -311,15 +280,39 @@ class CTIGalRequirementWriter():
 
         # Check for data quality issues and report as proper if found
         if np.all(self.l_slope_err == 0.):
-            self.report_zero_slope_err()
+            report_method = self.report_zero_slope_err
         elif np.logical_or.reduce((np.isnan(self.l_slope),
                                    np.isinf(self.l_slope),
                                    np.isnan(self.l_slope_err),
                                    np.isinf(self.l_slope_err),
                                    self.l_slope_err == 0.)).all():
-            self.report_bad_data()
+            report_method = self.report_bad_data
         else:
-            self.report_good_data()
+            report_method = self.report_good_data
+
+        super().write(result=self.slope_result,
+                      report_method=report_method,)
+
+
+class CtiGalTestCaseWriter(TestCaseWriter):
+
+    def __init__(self,
+                 test_case_object,
+                 test_case_info: TestCaseInfo):
+        """ We override __init__ since we'll be using a known set of requirement info.
+        """
+
+        super().__init__(test_case_object,
+                         test_case_info,
+                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
+
+    def _init_requirement_writer(self,
+                                 requirement_object,
+                                 requirement_info):
+        """ We override the _init_requirement_writer method to create a writer of the inherited type.
+        """
+        return CtiGalRequirementWriter(requirement_object=requirement_object,
+                                       requirement_info=requirement_info)
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -331,6 +324,9 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
     """
+
+    # Initialize a test results writer
+    test_results_writer = ValidationResultsWriter(test_object=test_result_product)
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
@@ -389,7 +385,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                 if test_case == CtiGalTestCases.GLOBAL:
                     l_bin_limits = None
 
-                requirement_writer = CTIGalRequirementWriter(requirement_object,
+                requirement_writer = CtiGalRequirementWriter(requirement_object,
                                                              l_slope=l_slope,
                                                              l_slope_err=l_slope_err,
                                                              l_intercept=l_intercept,
@@ -398,16 +394,22 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                              slope_fail_sigma=slope_fail_sigma,
                                                              intercept_fail_sigma=intercept_fail_sigma)
 
-                requirement_writer.report_data()
+                report_method = requirement_writer.report_data
+                report_kwargs = {}
 
             elif test_case == CtiGalTestCases.EPOCH:
                 # Report that the test wasn't run due to it not yet being implemented
-                report_test_not_run(requirement_object,
-                                    reason=MSG_NOT_IMPLEMENTED)
+                requirement_writer = CtiGalRequirementWriter(requirement_object)
+                report_method = requirement_writer.report_test_not_run
+                report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
             else:
                 # Report that the test wasn't run due to a lack of data
-                report_test_not_run(requirement_object,
-                                    reason=MSG_NO_DATA)
+                requirement_writer = CtiGalRequirementWriter(requirement_object)
+                report_method = requirement_writer.report_test_not_run
+                report_kwargs = {"reason": MSG_NO_DATA}
+
+            requirement_writer.write(report_method=report_method,
+                                     **report_kwargs)
 
             test_object.GlobalResult = requirement_object.ValidationResult
 

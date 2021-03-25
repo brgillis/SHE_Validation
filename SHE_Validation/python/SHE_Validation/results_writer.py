@@ -4,23 +4,9 @@
 
     (Base) classes for writing out results of validation tests
 """
-from copy import deepcopy
-from typing import Dict, Any, List, Union
-
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from astropy import table
-from future.builtins.misc import isinstance
-import scipy.stats
-
-from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
-from .test_info import RequirementInfo, TestCaseInfo
 
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-03-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -35,6 +21,20 @@ __updated__ = "2021-03-24"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
+from typing import Dict, Any, List, Union
+
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from astropy import table
+from future.builtins.misc import isinstance
+import scipy.stats
+
+from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
+import numpy as np
+
+from .test_info import RequirementInfo, TestCaseInfo
 
 logger = getLogger(__name__)
 
@@ -186,13 +186,16 @@ class RequirementWriter():
 
     def write(self,
               result=RESULT_PASS,
-              report_method=self.report_good_data,
+              report_method=None,
               *args,
               **kwargs):
         """ Reports data in the data model object for one or more items, modifying self._requirement_object.
 
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
         """
+
+        if report_method is None:
+            report_method = self.report_good_data
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.Id = self.requirement_info.id
@@ -220,8 +223,8 @@ class TestCaseWriter():
 
         elif isinstance(l_requirement_info, RequirementInfo):
             requirement_object = test_case_object.ValidatedRequirements.Requirement[0]
-            self._l_requirement_writers = [RequirementWriter(requirement_object=requirement_object,
-                                                             requirement_info=l_requirement_info)]
+            self._l_requirement_writers = [self._init_requirement_writer(requirement_object=requirement_object,
+                                                                         requirement_info=l_requirement_info)]
 
         else:
 
@@ -233,8 +236,8 @@ class TestCaseWriter():
 
                 requirement_object = deepcopy(base_requirement_object)
                 l_requirement_objects[i] = requirement_object
-                self._l_requirement_writers[i] = RequirementWriter(requirement_object=requirement_object,
-                                                                   requirement_info=requirement_info)
+                self._l_requirement_writers[i] = self._init_requirement_writer(requirement_object=requirement_object,
+                                                                               requirement_info=requirement_info)
 
             test_case_object.ValidatedRequirements.Requirement = l_requirement_objects
 
@@ -249,6 +252,14 @@ class TestCaseWriter():
     @property
     def l_requirement_writers(self):
         return self._l_requirement_writers
+
+    def _init_requirement_writer(self,
+                                 requirement_object,
+                                 requirement_info):
+        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
+        """
+        return RequirementWriter(requirement_object=requirement_object,
+                                 requirement_info=requirement_info)
 
     def write_meta(self):
         """ Fill in metadata about the test case, modifying self._test_case_object.
