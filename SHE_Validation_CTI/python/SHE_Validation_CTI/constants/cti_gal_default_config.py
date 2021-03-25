@@ -20,15 +20,15 @@ __updated__ = "2021-03-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from enum import Enum
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from SHE_PPT.utility import AllowedEnum
 
 BACKGROUND_LEVEL_UNITS = "ADU/pixel"
 COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
 SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 
-class FailSigmaScaling(Enum):
+class FailSigmaScaling(AllowedEnum):
     """ Enum to list allowed command-line values to describe how to scale failure threshold. All values are
         case-insensitive
 
@@ -41,10 +41,6 @@ class FailSigmaScaling(Enum):
     BIN_SCALE = "bins"
     TEST_CASE_SCALE = "test_cases"
     TEST_CASE_BINS_SCALE = "test_case_bins"
-
-    @classmethod
-    def is_allowed_value(cls, value):
-        return value in [item.value for item in cls]
 
 
 # Config keys and default values

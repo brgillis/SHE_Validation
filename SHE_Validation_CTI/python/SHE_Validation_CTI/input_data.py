@@ -4,24 +4,8 @@
 
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
-from typing import Dict, List
 
-from SHE_PPT import shear_utility
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.detector import get_vis_quadrant
-from SHE_PPT.flags import is_flagged_failure
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
-from astropy import table
-
-import numpy as np
-
-from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
-
-
-__updated__ = "2021-03-15"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -36,24 +20,29 @@ __updated__ = "2021-03-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 # The size for the stamp used for calculating the background level
+
+from copy import deepcopy
+from typing import Dict, List
+
+from SHE_PPT import shear_utility
+from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.detector import get_vis_quadrant
+from SHE_PPT.flags import is_flagged_failure
+from SHE_PPT.logging import getLogger
+from SHE_PPT.magic_values import ccdid_label
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.shear_utility import ShearEstimate
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from astropy import table
+
+import numpy as np
+
+from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+
 BG_STAMP_SIZE = 128
 
 logger = getLogger(__name__)
-
-
-class ShearInfo():
-    """Simple data class to store required shear information.
-    """
-
-    def __init__(self,
-                 g1: float = np.NaN,
-                 g2: float = np.NaN,
-                 weight: float = 0):
-        self.g1 = g1
-        self.g2 = g2
-        self.weight = weight
 
 
 class PositionInfo():
@@ -98,20 +87,17 @@ class PositionInfo():
                     method_world_shear_info = world_shear_info[method]
 
                     if method_world_shear_info is None:
-                        self.exposure_shear_info[method] = ShearInfo()
+                        self.exposure_shear_info[method] = ShearEstimate()
                         continue
 
-                    shear_estimate = shear_utility.ShearEstimate(g1=method_world_shear_info.g1,
-                                                                 g2=method_world_shear_info.g2)
+                    shear_estimate = deepcopy(method_world_shear_info)
                     shear_utility.uncorrect_for_wcs_shear_and_rotation(shear_estimate, stamp)
 
-                    self.exposure_shear_info[method] = ShearInfo(g1=shear_estimate.g1,
-                                                                 g2=shear_estimate.g2,
-                                                                 weight=method_world_shear_info.weight)
+                    self.exposure_shear_info[method] = shear_estimate
 
             else:
                 for method in METHODS:
-                    self.exposure_shear_info[method] = ShearInfo()
+                    self.exposure_shear_info[method] = ShearEstimate()
 
         # Default initialize
         else:
@@ -126,7 +112,7 @@ class PositionInfo():
 
             self.exposure_shear_info = {}
             for method in METHODS:
-                self.exposure_shear_info[method] = ShearInfo()
+                self.exposure_shear_info[method] = ShearEstimate()
 
 
 class SingleObjectData():
@@ -134,16 +120,16 @@ class SingleObjectData():
     """
 
     def __init__(self,
-                 object_id: int = None,
-                 num_exposures: int = 1,
-                 data_stack: SHEFrameStack = None,
+                 object_id: int=None,
+                 num_exposures: int=1,
+                 data_stack: SHEFrameStack=None,
                  ):
         self.id = object_id
 
         # To be filled with objects of type PositionInfo, one for each exposure
         self.position_info = [None] * num_exposures
 
-        # To be filled with objects of type ShearInfo, with method names as keys
+        # To be filled with objects of type ShearEstimate, with method names as keys
         self.world_shear_info = {}
 
         # Get info from the data_stack if possible
@@ -243,7 +229,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             for method in METHODS:
                 shear_estimate_table = shear_estimate_tables[method]
                 if shear_estimate_table is None:
-                    object_data.world_shear_info[method] = ShearInfo()
+                    object_data.world_shear_info[method] = ShearEstimate()
                     continue
 
                 sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
@@ -256,9 +242,12 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
                 else:
                     object_weight = 0
 
-                object_data.world_shear_info[method] = ShearInfo(g1=object_row[sem_tf.g1],
-                                                                 g2=object_row[sem_tf.g2],
-                                                                 weight=object_weight)
+                object_data.world_shear_info[method] = ShearEstimate(g1=object_row[sem_tf.g1],
+                                                                     g2=object_row[sem_tf.g2],
+                                                                     g1_err=object_row[sem_tf.g1_err],
+                                                                     g2_err=object_row[sem_tf.g2_err],
+                                                                     g1g2_covar=object_row[sem_tf.g1g2_covar],
+                                                                     weight=object_weight)
 
             # Get the object's world position from the detections catalog
             ra = detections_row[mfc_tf.gal_x_world]

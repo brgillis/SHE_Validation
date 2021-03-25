@@ -13,7 +13,7 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
 from astropy import table
 
-from ..constants.cti_gal_test_info import (CTI_GAL_TEST_CASES,
+from ..constants.cti_gal_test_info import (CtiGalTestCases,
                                            D_CTI_GAL_TEST_CASE_INFO)
 
 
@@ -89,7 +89,7 @@ class SheCtiGalObjectDataFormat():
         self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
 
         # Data we might bin by
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
             name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
             comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
             setattr(self, name, set_column_properties(self, name.upper(), comment=comment, is_optional=True))

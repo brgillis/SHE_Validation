@@ -24,12 +24,12 @@ __all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__vers
            "__status__", "__url__"]
 
 __authors__ = ["Rob Blake", "Bryan Gillis"]
-__copyright__ = 'Copyright (C) 2012-2020 Euclid Science Ground Segment'
+__copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
 __credits__ = ["Rob Blake", "Bryan Gillis"]
 __license__ = "GNU LGPL 3.0"
 __version__ = "0.2"
-__maintainer__ = "Rob Blake"
-__email__ = "rpb@roe.ac.uk"
+__maintainer__ = "Bryan Gillis"
+__email__ = "b.gillis@roe.ac.uk"
 __status__ = 'Development'
 
 __description__ = 'Elements project for validation tests within PF-SHE.'

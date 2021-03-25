@@ -5,25 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-from typing import Tuple
-
-from SHE_PPT import mdb
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import linregress_with_errors
-from astropy import table
-
-import numpy as np
-
-from .constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
-from .constants.cti_gal_test_info import (CTI_GAL_TEST_CASE_GLOBAL,
-                                          D_CTI_GAL_TEST_CASE_INFO,
-                                          CTI_GAL_TEST_CASE_EPOCH)
-from .table_formats.cti_gal_object_data import TF as CGOD_TF
-from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
-
-
-__updated__ = "2021-03-03"
+__updated__ = "2021-03-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,6 +19,22 @@ __updated__ = "2021-03-03"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from typing import Tuple
+
+from SHE_PPT import mdb
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import linregress_with_errors
+from astropy import table
+
+import numpy as np
+
+from .constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
+from .constants.cti_gal_test_info import (CtiGalTestCases,
+                                          D_CTI_GAL_TEST_CASE_INFO)
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
+from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 
 
 logger = getLogger(__name__)
@@ -64,7 +62,7 @@ def add_readout_register_distance(object_data_table: table.Table):
 
 def calculate_regression_results(object_data_table: table.Table,
                                  product_type: str = "UNKNOWN",
-                                 test_case: str = CTI_GAL_TEST_CASE_GLOBAL,
+                                 test_case: str = CtiGalTestCases.GLOBAL,
                                  bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
@@ -76,10 +74,10 @@ def calculate_regression_results(object_data_table: table.Table,
     rr_row = regression_results_table[0]
 
     # Get an array of good indices based on the test_case and bin_limits
-    if test_case == CTI_GAL_TEST_CASE_GLOBAL:
+    if test_case == CtiGalTestCases.GLOBAL:
         # Set all to True
         rows_in_bin = np.ones(len(object_data_table), dtype=bool)
-    elif test_case == CTI_GAL_TEST_CASE_EPOCH:
+    elif test_case == CtiGalTestCases.EPOCH:
         # Not yet implemented, so set all to False
         rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
     else:
