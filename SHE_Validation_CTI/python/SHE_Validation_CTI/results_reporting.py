@@ -24,7 +24,7 @@ import numpy as np
 
 from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
-                                          CTI_GAL_TEST_CASES, CtiGalTestCases,
+                                          CtiGalTestCases, CtiGalTestCases,
                                           D_CTI_GAL_TEST_CASE_INFO,)
 from .table_formats.regression_results import TF as RR_TF
 
@@ -188,8 +188,6 @@ class CtiGalRequirementWriter(RequirementWriter):
     def report_good_data(self,
                          measured_value):
 
-        measured_value = measured_value
-
         # If the slope passes but the intercept doesn't, we should raise a warning
         if self.slope_pass and not self.intercept_pass:
             warning = True
@@ -201,6 +199,46 @@ class CtiGalRequirementWriter(RequirementWriter):
         super().report_good_data(measured_value=measured_value,
                                  warning=warning,
                                  l_supplementary_info=l_supplementary_info)
+
+    def _calc_test_results(self, prop: str):
+        """ Calculate the test results for either the slope or intercept.
+        """
+
+        # Init each z, pass, and result as empy lists
+        l_prop_z = np.empty(self.num_bins, dtype=float)
+        setattr(self, f"l_{prop}_z", l_prop_z)
+        l_prop_pass = np.empty(self.num_bins, dtype=bool)
+        setattr(self, f"l_{prop}_pass", l_prop_pass)
+        l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
+        setattr(self, f"l_{prop}_result", l_prop_result)
+        l_prop_good_data = np.empty(self.num_bins, dtype=bool)
+
+        for bin_index in range(self.num_bins):
+            if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
+                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
+                l_prop_z[bin_index] = np.NaN
+                l_prop_pass[bin_index] = False
+                l_prop_good_data[bin_index] = False
+            else:
+                if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
+                    l_prop_z[bin_index] = np.abs(
+                        getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                else:
+                    l_prop_z[bin_index] = np.NaN
+                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
+                l_prop_good_data[bin_index] = True
+            if l_prop_pass[bin_index]:
+                l_prop_result[bin_index] = RESULT_PASS
+            else:
+                l_prop_result[bin_index] = RESULT_FAIL
+
+        # Pass if there's at least some good data, and all good data passes
+        if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data)):
+            setattr(self, f"{prop}_pass", True)
+            setattr(self, f"{prop}_result", RESULT_PASS)
+        else:
+            setattr(self, f"{prop}_pass", False)
+            setattr(self, f"{prop}_result", RESULT_FAIL)
 
     def write(self,
               report_method=None,
@@ -240,50 +278,9 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         self.num_bins = len(l_slope)
 
-        # Calculate some values for both the slope and intercept
+        # Calculate test results for both the slope and intercept
         for prop in "slope", "intercept":
-
-            # Init each z, pass, and result as empy lists
-
-            l_prop_z = np.empty(self.num_bins, dtype=float)
-            setattr(self, f"l_{prop}_z", l_prop_z)
-
-            l_prop_pass = np.empty(self.num_bins, dtype=bool)
-            setattr(self, f"l_{prop}_pass", l_prop_pass)
-
-            l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
-            setattr(self, f"l_{prop}_result", l_prop_result)
-
-            l_prop_good_data = np.empty(self.num_bins, dtype=bool)
-
-            for bin_index in range(self.num_bins):
-                if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                        np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
-                    l_prop_z[bin_index] = np.NaN
-                    l_prop_pass[bin_index] = False
-                    l_prop_good_data[bin_index] = False
-                else:
-                    if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
-                        l_prop_z[bin_index] = np.abs(getattr(self, f"l_{prop}")[bin_index] /
-                                                     getattr(self, f"l_{prop}_err")[bin_index])
-                    else:
-                        l_prop_z[bin_index] = np.NaN
-                    l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
-                    l_prop_good_data[bin_index] = True
-
-                if l_prop_pass[bin_index]:
-                    l_prop_result[bin_index] = RESULT_PASS
-                else:
-                    l_prop_result[bin_index] = RESULT_FAIL
-
-            # Pass if there's at least some good data, and all good data passes
-            if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and
-                    not np.all(~l_prop_good_data)):
-                setattr(self, f"{prop}_pass", True)
-                setattr(self, f"{prop}_result", RESULT_PASS)
-            else:
-                setattr(self, f"{prop}_pass", False)
-                setattr(self, f"{prop}_result", RESULT_FAIL)
+            self._calc_test_results(prop)
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
@@ -395,7 +392,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         test_case_index = 0
 
-        for test_case in CTI_GAL_TEST_CASES:
+        for test_case in CtiGalTestCases:
 
             l_test_case_bins = self.d_bin_limits[test_case]
 

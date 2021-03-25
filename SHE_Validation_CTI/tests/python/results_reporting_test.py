@@ -218,15 +218,13 @@ class TestCase:
 
         # Figure out the index for LensMC Global and Colour test results and save it for each check
         test_case_index = 0
-        for method in METHODS:
-            if not method == "LensMC":
-                test_case_index += NUM_CTI_GAL_TEST_CASES
-                continue
-            for test_case in CtiGalTestCases:
-                if test_case == CtiGalTestCases.GLOBAL:
-                    lensmc_global_test_case_index = test_case_index
-                elif test_case == CtiGalTestCases.COLOUR:
-                    lensmc_colour_test_case_index = test_case_index
+        for test_case in CtiGalTestCases:
+            for method in METHODS:
+                if method == "LensMC":
+                    if test_case == CtiGalTestCases.GLOBAL:
+                        lensmc_global_test_case_index = test_case_index
+                    elif test_case == CtiGalTestCases.COLOUR:
+                        lensmc_colour_test_case_index = test_case_index
 
                 test_case_index += 1
 
@@ -367,8 +365,8 @@ class TestCase:
 
         # Check metadata for all test cases
         test_case_index = 0
-        for method in METHODS:
-            for test_case in CtiGalTestCases:
+        for test_case in CtiGalTestCases:
+            for method in METHODS:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
                 assert D_CTI_GAL_TEST_CASE_INFO[test_case].id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
@@ -386,5 +384,3 @@ class TestCase:
                     assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
 
                 test_case_index += 1
-
-        return
