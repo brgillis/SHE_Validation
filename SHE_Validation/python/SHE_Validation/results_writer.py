@@ -5,7 +5,6 @@
     (Base) classes for writing out results of validation tests
 """
 
-
 __updated__ = "2021-03-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -25,7 +24,6 @@ from copy import deepcopy
 from typing import List, Union, Dict, Any, Callable
 
 from SHE_PPT.logging import getLogger
-from future.builtins.misc import isinstance
 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 
