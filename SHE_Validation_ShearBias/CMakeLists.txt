@@ -61,7 +61,7 @@ elements_install_python_modules()
 # elements_add_python_program(PythonProgramExample
 #                             ElementsExamples.PythonProgramExample)
 #===============================================================================
-elements_add_python_program(ValidateShearBias SHE_Validation_ShearBias.ValidateShearBias)
+elements_add_python_program(SHE_Validation_ValidateShearBias SHE_Validation_ShearBias.ValidateShearBias)
 
 #===============================================================================
 # Add the elements_install_conf_files macro
