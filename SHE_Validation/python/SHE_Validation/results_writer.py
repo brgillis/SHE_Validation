@@ -5,8 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-
-__updated__ = "2021-03-25"
+__updated__ = "2021-03-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,7 +24,6 @@ from copy import deepcopy
 from typing import List, Union, Dict, Any, Callable
 
 from SHE_PPT.logging import getLogger
-from future.builtins.misc import isinstance
 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 
@@ -263,7 +261,8 @@ class TestCaseWriter():
     def l_requirement_objects(self):
         return self._l_requirement_objects
 
-    def _init_requirement_writer(self, *args, **kwargs):
+    @staticmethod
+    def _init_requirement_writer(*args, **kwargs):
         """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
         """
         return RequirementWriter(*args, **kwargs)
@@ -349,7 +348,8 @@ class ValidationResultsWriter():
     def l_test_case_objects(self):
         return self._l_test_case_objects
 
-    def _init_test_case_writer(self, *args, **kwargs) -> TestCaseWriter:
+    @staticmethod
+    def _init_test_case_writer(*args, **kwargs) -> TestCaseWriter:
         """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
         """
         return TestCaseWriter(*args, **kwargs)
