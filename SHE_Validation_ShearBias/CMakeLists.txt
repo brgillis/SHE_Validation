@@ -13,7 +13,7 @@ elements_subdir(SHE_Validation_ShearBias)
 #   For creating a dependency onto an other accessible module
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
-elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(ElementsKernel SHE_Validation)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
