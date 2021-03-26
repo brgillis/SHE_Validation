@@ -1,7 +1,5 @@
-Module Overview <----------------- TO BE WRITTEN ------------------------>
-==========================================================================
-
-.. important:: Please edit ./@_el_pack_short@/doc/module.rst to replace this section.
+Module Overview <----------------- WIP ------------------------>
+================================================================
 
 .. The following sections can be replaced or updated. 
    You may also use a toctree directive for sub documents. 
@@ -9,12 +7,14 @@ Module Overview <----------------- TO BE WRITTEN ------------------------>
 Introduction
 ------------
 
-Purpose of this Elements Module.
+This module contains programs to run validation tests that shear bias and its errors are within requirements.
 
-What does it do?
+TODO: What does it do?
 
 Architecture overview
 ---------------------
+
+TODO:
 
 Highlevel overview of the Module.
 
