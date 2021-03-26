@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-03-25"
+__updated__ = "2021-03-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -320,13 +320,11 @@ class CtiGalTestCaseWriter(TestCaseWriter):
                          test_case_info,
                          l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
 
-    def _init_requirement_writer(self,
-                                 requirement_object,
-                                 requirement_info) -> CtiGalRequirementWriter:
+    @staticmethod
+    def _init_requirement_writer(*args, **kwargs) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
-        return CtiGalRequirementWriter(requirement_object=requirement_object,
-                                       requirement_info=requirement_info)
+        return CtiGalRequirementWriter(*args, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
@@ -349,7 +347,8 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
-    def _init_test_case_writer(self, *args, **kwargs):
+    @staticmethod
+    def _init_test_case_writer(*args, **kwargs):
         """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
         """
         return CtiGalTestCaseWriter(*args, **kwargs)
