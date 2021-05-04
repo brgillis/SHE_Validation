@@ -177,7 +177,9 @@ class CTIGalRequirementWriter():
 
         if l_bin_limits is None:
             self.l_bin_limits = None
-            assert self.num_bins == 1
+            if not self.num_bins == 1:
+                logger.warning("Incorrect number of bins was set for unbinned test case; should be 1.")
+                self.num_bins = 1
         else:
             self.l_bin_limits = np.array(l_bin_limits)
         self.slope_fail_sigma = slope_fail_sigma
