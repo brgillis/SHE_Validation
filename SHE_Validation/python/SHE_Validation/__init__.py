@@ -5,7 +5,7 @@
     SHE_Validation package, for general-purpose code within the SHE_Validation project.
 """
 
-__updated__ = "2020-12-15"
+__updated__ = "2021-05-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

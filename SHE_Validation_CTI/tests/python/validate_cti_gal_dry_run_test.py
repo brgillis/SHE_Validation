@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-02-22"
+__updated__ = "2021-05-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,9 +23,6 @@ __updated__ = "2021-02-22"
 import os
 import time
 
-import pytest
-
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
                                          MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
                                          MER_FINAL_CATALOG_LISTFILE_FILENAME, LENSMC_MEASUREMENTS_TABLE_FILENAME,
@@ -33,6 +30,9 @@ from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_D
 from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import write_analysis_config
+import pytest
+
+from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
 from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
@@ -62,8 +62,7 @@ class Args(object):
         for test_case_label in CtiGalTestCases:
             bin_limits_cline_arg = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_cline_arg
             if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg,
-                        CTI_GAL_DEFAULT_CONFIG[D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key])
+                setattr(self, bin_limits_cline_arg, None)
 
         self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
         self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME

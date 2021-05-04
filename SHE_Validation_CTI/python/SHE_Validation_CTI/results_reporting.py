@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-03-26"
+__updated__ = "2021-05-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,7 +41,7 @@ import numpy as np
 from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
                                           CtiGalTestCases,
-                                          D_CTI_GAL_TEST_CASE_INFO,)
+                                          D_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)

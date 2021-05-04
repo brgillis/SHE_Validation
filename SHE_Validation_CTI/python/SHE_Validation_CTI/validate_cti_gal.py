@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-05-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -108,7 +108,7 @@ def run_validate_cti_gal_from_args(args):
         bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[test_case_label] = FAILSAFE_BIN_LIMITS
+            d_bin_limits[test_case_label] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
             continue
         bin_limits_string = pipeline_config[bin_limits_key]
         try:
