@@ -24,7 +24,7 @@ from .constants.cti_gal_test_info import CTI_GAL_TEST_CASE_EPOCH
 from .table_formats.regression_results import TF as RR_TF
 
 
-__updated__ = "2021-03-18"
+__updated__ = "2021-05-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -173,14 +173,15 @@ class CTIGalRequirementWriter():
         self.l_slope_err = np.array(l_slope_err)
         self.l_intercept = np.array(l_intercept)
         self.l_intercept_err = np.array(l_intercept_err)
+        self.num_bins = len(l_slope)
+
         if l_bin_limits is None:
             self.l_bin_limits = None
+            assert self.num_bins == 1
         else:
             self.l_bin_limits = np.array(l_bin_limits)
         self.slope_fail_sigma = slope_fail_sigma
         self.intercept_fail_sigma = intercept_fail_sigma
-
-        self.num_bins = len(l_slope)
 
         # Calculate some values for both the slope and intercept
         for prop in "slope", "intercept":
