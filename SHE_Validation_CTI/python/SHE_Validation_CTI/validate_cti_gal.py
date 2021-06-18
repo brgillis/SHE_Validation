@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-05-04"
+__updated__ = "2021-06-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -77,15 +77,16 @@ def run_validate_cti_gal_from_args(args):
                              AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
 
-    if type(args.pipeline_config) is str:
+    if type(args.pipeline_config) is str or args.pipeline_config is None:
         pipeline_config = read_analysis_config(args.pipeline_config,
-                                            workdir=args.workdir,
-                                            cline_args=bin_limits_cline_args,
-                                            defaults=CTI_GAL_DEFAULT_CONFIG)
+                                               workdir=args.workdir,
+                                               cline_args=bin_limits_cline_args,
+                                               defaults=CTI_GAL_DEFAULT_CONFIG)
     elif type(args.pipeline_config) is dict:
         pipeline_config = args.pipeline_config
-    elif args.pipeline_config is not None:
-        raise TypeError("run_validate_cti_gal_from_args: args.pipeline_config is an unexpectedd type - %s"%type(args.pipeline_config))
+    else:
+        raise TypeError("run_validate_cti_gal_from_args: args.pipeline_config is an unexpectedd type - %s" %
+                        type(args.pipeline_config))
 
     # Check that the fail sigma scaling is in the enum (silently convert to lower case)
     fail_sigma_scaling_lower = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value].lower()
