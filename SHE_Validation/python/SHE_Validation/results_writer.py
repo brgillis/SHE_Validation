@@ -92,10 +92,16 @@ class RequirementWriter():
     """ Class for managing reporting of results for a single test case.
     """
 
+    _parent_test_case_writer = None
+    _requirement_object = None
+    _requirement_info = None
+
     def __init__(self,
+                 parent_test_case_writer: "TestCaseWriter",
                  requirement_object,
                  requirement_info: RequirementInfo):
 
+        self._parent_test_case_writer = parent_test_case_writer
         self._requirement_object = requirement_object
         self._requirement_info = requirement_info
 
@@ -212,22 +218,22 @@ class AnalysisWriter():
     """ Class for managing writing of analysis data for a single test case
     """
 
+    _parent_test_case_writer = None
     _analysis_object = None
     _l_requirement_info = None
-    _workdir = None
     _qualified_textfiles_filename = None
     _qualified_figures_filename = None
 
     def __init__(self,
-                 analysis_object,
-                 l_requirement_info: RequirementInfo,
-                 workdir: str,
+                 parent_test_case_writer: "TestCaseWriter",
                  product_type="UNKNOWN-TYPE"):
 
-        self._analysis_object = analysis_object
-        self._l_requirement_info = l_requirement_info
-        self._workdir = workdir
+        # Get info from parent
+        self._parent_test_case_writer = parent_test_case_writer
+        self._workdir = self._parent_test_case_writer.workdir
+        self._analysis_object = self._parent_test_case_writer.analysis_object
 
+        # Determine appropriate filenames
         textfiles_filename = get_allowed_filename(type_name=product_type,
                                                   instance_id="TEXTFILES",
                                                   extension=".tar.gz",
@@ -280,6 +286,7 @@ class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
+    _parent_validation_writer = None
     _test_case_object = None
     _test_case_info = None
     _l_requirement_writers = None
@@ -289,9 +296,9 @@ class TestCaseWriter():
     _workdir = None
 
     def __init__(self,
+                 parent_validation_writer: "ValidationWriter",
                  test_case_object,
                  test_case_info: TestCaseInfo,
-                 workdir: str,
                  num_requirements: int = None,
                  l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None):
 
@@ -299,9 +306,13 @@ class TestCaseWriter():
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
                              "to TestCaseWriter().")
 
+        # Get attributes from parent
+        self._parent_validation_writer = parent_validation_writer
+        self._workdir = self._parent_validation_writer.workdir
+
+        # Get attributes from arguments
         self._test_case_object = test_case_object
         self._test_case_info = test_case_info
-        self._workdir = workdir
 
         # Init l_requirement_writers etc. always as lists
         base_requirement_object = test_case_object.ValidatedRequirements.Requirement[0]
@@ -337,10 +348,8 @@ class TestCaseWriter():
         analysis_figures_object = dataContainer(filestatus="PROPOSED")
         analysis_object.Figures = analysis_figures_object
 
-        self._analysis_writer = self._init_analysis_writer(analysis_object=analysis_object,
-                                                           l_requirement_info=l_requirement_info,
-                                                           workdir=self.workdir)
         self._analysis_object = analysis_object
+        self._analysis_writer = self._init_analysis_writer()
 
     @property
     def test_case_object(self):
@@ -367,20 +376,18 @@ class TestCaseWriter():
         return self._analysis_writer
 
     @property
-    def analysis_objects(self):
+    def analysis_object(self):
         return self._analysis_object
 
-    @staticmethod
-    def _init_requirement_writer(**kwargs):
+    def _init_requirement_writer(self, **kwargs):
         """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
         """
-        return RequirementWriter(**kwargs)
+        return RequirementWriter(self, **kwargs)
 
-    @staticmethod
-    def _init_analysis_writer(**kwargs):
+    def _init_analysis_writer(self, **kwargs):
         """ Method to initialize an analysis writer, which we use to allow inherited classes to override this.
         """
-        return AnalysisWriter(**kwargs)
+        return AnalysisWriter(self, **kwargs)
 
     def write_meta(self):
         """ Fill in metadata about the test case, modifying self._test_case_object.
@@ -437,6 +444,11 @@ class ValidationResultsWriter():
     """ Base class to handle the writing out of validation test results.
     """
 
+    _test_object = None
+    _l_test_case_writers = None
+    _l_test_case_objects = None
+    _workdir = None
+
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
@@ -448,6 +460,7 @@ class ValidationResultsWriter():
                              "to ValidationResultsWriter().")
 
         self._test_object = test_object
+        self._workdir = workdir
 
         base_test_case_object = self.test_object.Data.ValidationTestList[0]
 
@@ -470,8 +483,7 @@ class ValidationResultsWriter():
 
             test_case_object = deepcopy(base_test_case_object)
             self.l_test_case_writers[i] = self._init_test_case_writer(test_case_object=test_case_object,
-                                                                      test_case_info=test_case_info,
-                                                                      workdir=workdir)
+                                                                      test_case_info=test_case_info)
 
             self.l_test_case_objects[i] = test_case_object
 
@@ -482,6 +494,10 @@ class ValidationResultsWriter():
         return self._test_object
 
     @property
+    def workdir(self):
+        return self._workdir
+
+    @property
     def l_test_case_writers(self):
         return self._l_test_case_writers
 
@@ -489,11 +505,10 @@ class ValidationResultsWriter():
     def l_test_case_objects(self):
         return self._l_test_case_objects
 
-    @staticmethod
-    def _init_test_case_writer(**kwargs) -> TestCaseWriter:
+    def _init_test_case_writer(self, **kwargs) -> TestCaseWriter:
         """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
         """
-        return TestCaseWriter(**kwargs)
+        return TestCaseWriter(self, **kwargs)
 
     def add_test_case_writer(self,
                              test_case_writer: TestCaseWriter):

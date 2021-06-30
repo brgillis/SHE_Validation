@@ -311,22 +311,21 @@ class CtiGalRequirementWriter(RequirementWriter):
 class CtiGalTestCaseWriter(TestCaseWriter):
 
     def __init__(self,
+                 parent_validation_writer,
                  test_case_object,
-                 test_case_info: TestCaseInfo,
-                 workdir: str):
+                 test_case_info: TestCaseInfo):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
-        super().__init__(test_case_object,
+        super().__init__(parent_validation_writer,
+                         test_case_object,
                          test_case_info,
-                         workdir=workdir,
                          l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
 
-    @staticmethod
-    def _init_requirement_writer(**kwargs) -> CtiGalRequirementWriter:
+    def _init_requirement_writer(self, **kwargs) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
-        return CtiGalRequirementWriter(**kwargs)
+        return CtiGalRequirementWriter(self, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
@@ -351,11 +350,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
-    @staticmethod
-    def _init_test_case_writer(**kwargs):
+    def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
         """
-        return CtiGalTestCaseWriter(**kwargs)
+        return CtiGalTestCaseWriter(self, **kwargs)
 
     def _get_method_info(self,
                          method: str,
