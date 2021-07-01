@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-06-30"
+__updated__ = "2021-07-01"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -97,9 +97,9 @@ class RequirementWriter():
     _requirement_info = None
 
     def __init__(self,
-                 parent_test_case_writer: "TestCaseWriter",
-                 requirement_object,
-                 requirement_info: RequirementInfo):
+                 parent_test_case_writer: "TestCaseWriter" = None,
+                 requirement_object=None,
+                 requirement_info: RequirementInfo = None):
 
         self._parent_test_case_writer = parent_test_case_writer
         self._requirement_object = requirement_object
@@ -219,60 +219,103 @@ class AnalysisWriter():
     """
 
     _parent_test_case_writer = None
+    _workdir = None
+    _product_type = None
     _analysis_object = None
-    _l_requirement_info = None
+    _textfiles_filename = None
     _qualified_textfiles_filename = None
+    _figures_filename = None
     _qualified_figures_filename = None
 
     def __init__(self,
-                 parent_test_case_writer: "TestCaseWriter",
+                 parent_test_case_writer: "TestCaseWriter" = None,
                  product_type="UNKNOWN-TYPE"):
+
+        # Set attrs from command-line
+        self._product_type = product_type
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
-        self._workdir = self._parent_test_case_writer.workdir
-        self._analysis_object = self._parent_test_case_writer.analysis_object
+        if self.parent_test_case_writer is not None:
+            self._workdir = self.parent_test_case_writer.workdir
+            self._analysis_object = self.parent_test_case_writer.analysis_object
+        else:
+            logger.debug("AnalysisWriter.parent_test_case_writer not set at init - attrs will need to be set " +
+                         "manually.")
 
-        # Determine appropriate filenames
-        textfiles_filename = get_allowed_filename(type_name=product_type,
-                                                  instance_id="TEXTFILES",
-                                                  extension=".tar.gz",
-                                                  version=__version__)
-        self._qualified_textfiles_filename = os.path.join(self.workdir, textfiles_filename)
-        self.analysis_object.TextFiles.FileName = textfiles_filename
-
-        figures_filename = get_allowed_filename(type_name=product_type,
-                                                instance_id="FIGURES",
-                                                extension=".tar.gz",
-                                                version=__version__)
-        self._qualified_figures_filename = os.path.join(self.workdir, figures_filename)
-        self.analysis_object.Figures.FileName = textfiles_filename
+    @property
+    def parent_test_case_writer(self):
+        return self._parent_test_case_writer
 
     @property
     def analysis_object(self):
         return self._analysis_object
 
+    @analysis_object.setter
+    def analysis_object(self, a):
+        self._analysis_object = a
+
     @property
-    def requirement_info(self):
-        return self._l_requirement_info
+    def product_type(self):
+        return self._product_type
 
     @property
     def workdir(self):
         return self._workdir
 
+    @workdir.setter
+    def workdir(self, a):
+        self._workdir = a
+
+    @property
+    def textfiles_filename(self):
+        if self._textfiles_filename is None:
+            self._textfiles_filename = get_allowed_filename(type_name=self.product_type, instance_id="TEXTFILES",
+                                                            extension=".tar.gz",
+                                                            version=__version__)
+        return self._textfiles_filename
+
     @property
     def qualified_textfiles_filename(self):
+        if self._qualified_textfiles_filename is None:
+            if self.workdir is not None:
+                self._qualified_textfiles_filename = os.path.join(self.workdir, self.textfiles_filename)
+            else:
+                raise ValueError("Qualified textfile filename cannot be determined when workdir is None.")
         return self._qualified_textfiles_filename
 
     @property
+    def figures_filename(self):
+        if self._figures_filename is None:
+            self._figures_filename = get_allowed_filename(type_name=self.product_type, instance_id="FIGURES",
+                                                          extension=".tar.gz",
+                                                          version=__version__)
+        return self._figures_filename
+
+    @property
     def qualified_figures_filename(self):
+        if self._qualified_figures_filename is None:
+            if self.workdir is not None:
+                self._qualified_figures_filename = os.path.join(self.workdir, self.figures_filename)
+            else:
+                raise ValueError("Qualified figures filename cannot be determined when workdir is None.")
         return self._qualified_figures_filename
+
+    def determine_filenames(self):
+        """ Determine Euclid-compliant filenames for the tarballs of textfiles and figures.  
+        """
 
     def write(self,
               write_dummy_files=True) -> str:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
+
+            It is assumed that subclasses will override this, then call this with
+            super().write(write_dummy_files=False).
         """
+
+        self.analysis_object.TextFiles.FileName = self.textfiles_filename
+        self.analysis_object.Figures.FileName = self.figures_filename
 
         if write_dummy_files:
             os.makedirs(os.path.split(self.qualified_textfiles_filename)[0], exist_ok=True)
@@ -296,9 +339,9 @@ class TestCaseWriter():
     _workdir = None
 
     def __init__(self,
-                 parent_validation_writer: "ValidationWriter",
-                 test_case_object,
-                 test_case_info: TestCaseInfo,
+                 parent_validation_writer: "ValidationWriter" = None,
+                 test_case_object=None,
+                 test_case_info: TestCaseInfo = None,
                  num_requirements: int = None,
                  l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None):
 
@@ -308,7 +351,11 @@ class TestCaseWriter():
 
         # Get attributes from parent
         self._parent_validation_writer = parent_validation_writer
-        self._workdir = self._parent_validation_writer.workdir
+        if self.parent_validation_writer is not None:
+            self._workdir = self.parent_validation_writer.workdir
+        else:
+            logger.debug("TestCaseWriter.parent_validation_writer not set at init - attrs will need to be set " +
+                         "manually.")
 
         # Get attributes from arguments
         self._test_case_object = test_case_object
@@ -352,6 +399,10 @@ class TestCaseWriter():
         self._analysis_writer = self._init_analysis_writer()
 
     @property
+    def parent_validation_writer(self):
+        return self._parent_validation_writer
+
+    @property
     def test_case_object(self):
         return self._test_case_object
 
@@ -362,6 +413,10 @@ class TestCaseWriter():
     @property
     def workdir(self):
         return self._workdir
+
+    @workdir.setter
+    def workdir(self, a):
+        self._workdir = a
 
     @property
     def l_requirement_writers(self):
@@ -496,6 +551,10 @@ class ValidationResultsWriter():
     @property
     def workdir(self):
         return self._workdir
+
+    @workdir.setter
+    def workdir(self, a):
+        self._workdir = a
 
     @property
     def l_test_case_writers(self):
