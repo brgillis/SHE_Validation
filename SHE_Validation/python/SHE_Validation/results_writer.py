@@ -67,6 +67,11 @@ class SupplementaryInfo():
     """ Data class for supplementary info for a test case.
     """
 
+    # Attrs set at init
+    _key = None
+    _description = None
+    _message = None
+
     def __init__(self,
                  key: str = KEY_INFO,
                  description: str = DESC_INFO,
@@ -75,6 +80,7 @@ class SupplementaryInfo():
         self._description = description
         self._message = message
 
+    # Getters/setters for attrs set at init
     @property
     def key(self):
         return self._key
@@ -92,6 +98,7 @@ class RequirementWriter():
     """ Class for managing reporting of results for a single test case.
     """
 
+    # Attrs set at init
     _parent_test_case_writer = None
     _requirement_object = None
     _requirement_info = None
@@ -105,6 +112,7 @@ class RequirementWriter():
         self._requirement_object = requirement_object
         self._requirement_info = requirement_info
 
+    # Getters/setters for attrs set at init
     @property
     def requirement_object(self):
         return self._requirement_object
@@ -113,6 +121,7 @@ class RequirementWriter():
     def requirement_info(self):
         return self._requirement_info
 
+    # Public methods
     def add_supplementary_info(self,
                                l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
         """ Fills out supplementary information in the data model object for one or more items,
@@ -218,10 +227,13 @@ class AnalysisWriter():
     """ Class for managing writing of analysis data for a single test case
     """
 
+    # Attributes set at init
     _parent_test_case_writer = None
-    _workdir = None
-    _product_type = None
     _analysis_object = None
+    _product_type = None
+    _workdir = None
+
+    # Attributes set when requested
     _textfiles_filename = None
     _qualified_textfiles_filename = None
     _figures_filename = None
@@ -243,6 +255,7 @@ class AnalysisWriter():
             logger.debug("AnalysisWriter.parent_test_case_writer not set at init - attrs will need to be set " +
                          "manually.")
 
+    # Getters/setters for attributes set at init
     @property
     def parent_test_case_writer(self):
         return self._parent_test_case_writer
@@ -267,6 +280,7 @@ class AnalysisWriter():
     def workdir(self, a):
         self._workdir = a
 
+    # Getters/setters for attributes set when requested
     @property
     def textfiles_filename(self):
         if self._textfiles_filename is None:
@@ -301,10 +315,7 @@ class AnalysisWriter():
                 raise ValueError("Qualified figures filename cannot be determined when workdir is None.")
         return self._qualified_figures_filename
 
-    def determine_filenames(self):
-        """ Determine Euclid-compliant filenames for the tarballs of textfiles and figures.  
-        """
-
+    # Public methods
     def write(self,
               write_dummy_files=True) -> str:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
@@ -329,6 +340,7 @@ class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
+    # Attributes set at init
     _parent_validation_writer = None
     _test_case_object = None
     _test_case_info = None
@@ -398,6 +410,7 @@ class TestCaseWriter():
         self._analysis_object = analysis_object
         self._analysis_writer = self._init_analysis_writer()
 
+    # Getters/setters for attributes set at init
     @property
     def parent_validation_writer(self):
         return self._parent_validation_writer
@@ -434,6 +447,7 @@ class TestCaseWriter():
     def analysis_object(self):
         return self._analysis_object
 
+    # Private methods
     def _init_requirement_writer(self, **kwargs):
         """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
         """
@@ -444,6 +458,7 @@ class TestCaseWriter():
         """
         return AnalysisWriter(self, **kwargs)
 
+    # Public methods
     def write_meta(self):
         """ Fill in metadata about the test case, modifying self._test_case_object.
         """
@@ -499,6 +514,7 @@ class ValidationResultsWriter():
     """ Base class to handle the writing out of validation test results.
     """
 
+    # Attrs set at init
     _test_object = None
     _l_test_case_writers = None
     _l_test_case_objects = None
@@ -544,6 +560,7 @@ class ValidationResultsWriter():
 
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
+    # Getters/setters for attrs set at init
     @property
     def test_object(self):
         return self._test_object
@@ -564,11 +581,13 @@ class ValidationResultsWriter():
     def l_test_case_objects(self):
         return self._l_test_case_objects
 
+    # Private methods
     def _init_test_case_writer(self, **kwargs) -> TestCaseWriter:
         """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
         """
         return TestCaseWriter(self, **kwargs)
 
+    # Public methods
     def add_test_case_writer(self,
                              test_case_writer: TestCaseWriter):
         self._l_test_case_writers.append(test_case_writer)
