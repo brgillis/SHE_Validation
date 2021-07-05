@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-07-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,7 +27,7 @@ from typing import List
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
-from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
 from ..constants.cti_gal_default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
@@ -72,7 +72,7 @@ class SheRegressionResultsMeta():
         self.all = list(self.comments.keys())
 
 
-class SheRegressionResultsFormat():
+class SheRegressionResultsFormat(SheTableFormat):
     """
         @brief A class defining the format for Regression Results tables. Only the regression_results_table_format
                instance of this should generally be accessed, and it should not be changed.
@@ -81,9 +81,7 @@ class SheRegressionResultsFormat():
     def __init__(self):
 
         # Get the metadata (contained within its own class)
-        self.meta = SheRegressionResultsMeta()
-
-        setup_table_format(self)
+        super().__init__(SheRegressionResultsMeta())
 
         # Table column labels
 
@@ -93,12 +91,12 @@ class SheRegressionResultsFormat():
 
             upper_method = method.upper()
 
-            setattr(self, f"weight_{method}", set_column_properties(self, f"WEIGHT_{upper_method}"))
-            setattr(self, f"slope_{method}", set_column_properties(self, f"M_{upper_method}"))
-            setattr(self, f"intercept_{method}", set_column_properties(self, f"B_{upper_method}"))
-            setattr(self, f"slope_err_{method}", set_column_properties(self, f"M_ERR_{upper_method}"))
-            setattr(self, f"intercept_err_{method}", set_column_properties(self, f"B_ERR_{upper_method}"))
-            setattr(self, f"slope_intercept_covar_{method}", set_column_properties(self, f"MB_COV_{upper_method}"))
+            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
+            setattr(self, f"slope_{method}", self.set_column_properties(f"M_{upper_method}"))
+            setattr(self, f"intercept_{method}", self.set_column_properties(f"B_{upper_method}"))
+            setattr(self, f"slope_err_{method}", self.set_column_properties(f"M_ERR_{upper_method}"))
+            setattr(self, f"intercept_err_{method}", self.set_column_properties(f"B_ERR_{upper_method}"))
+            setattr(self, f"slope_intercept_covar_{method}", self.set_column_properties(f"MB_COV_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())

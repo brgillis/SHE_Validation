@@ -10,14 +10,14 @@ from typing import List
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
-from SHE_PPT.table_utility import is_in_format, setup_table_format, set_column_properties, init_table
+from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
 from ..constants.cti_gal_test_info import (CtiGalTestCases,
                                            D_CTI_GAL_TEST_CASE_INFO)
 
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-07-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -63,36 +63,32 @@ class SheCtiGalObjectDataMeta():
         self.all = list(self.comments.keys())
 
 
-class SheCtiGalObjectDataFormat():
+class SheCtiGalObjectDataFormat(SheTableFormat):
     """
         @brief A class defining the format for CTI-Gal Object Data tables. Only the cti_gal_object_data_table_format
                instance of this should generally be accessed, and it should not be changed.
     """
 
     def __init__(self):
-
-        # Get the metadata (contained within its own class)
-        self.meta = SheCtiGalObjectDataMeta()
-
-        setup_table_format(self)
+        super().__init__(SheCtiGalObjectDataMeta())
 
         # Table column labels
-        self.ID = set_column_properties(self, "OBJECT_ID", dtype=">i8", fits_dtype="K")
+        self.ID = self.set_column_properties("OBJECT_ID", dtype=">i8", fits_dtype="K")
 
-        self.x = set_column_properties(self, "X_IMAGE", comment="pixels")
-        self.y = set_column_properties(self, "Y_IMAGE", comment="pixels")
+        self.x = self.set_column_properties("X_IMAGE", comment="pixels")
+        self.y = self.set_column_properties("Y_IMAGE", comment="pixels")
 
-        self.det_ix = set_column_properties(self, "DET_X", dtype=">i2", fits_dtype="I")
-        self.det_iy = set_column_properties(self, "DET_Y", dtype=">i2", fits_dtype="I")
+        self.det_ix = self.set_column_properties("DET_X", dtype=">i2", fits_dtype="I")
+        self.det_iy = self.set_column_properties("DET_Y", dtype=">i2", fits_dtype="I")
 
-        self.quadrant = set_column_properties(self, "QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
-        self.readout_dist = set_column_properties(self, "READOUT_DIST", comment="pixels", is_optional=True)
+        self.quadrant = self.set_column_properties("QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
+        self.readout_dist = self.set_column_properties("READOUT_DIST", comment="pixels", is_optional=True)
 
         # Data we might bin by
         for test_case in CtiGalTestCases:
             name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
             comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
-            setattr(self, name, set_column_properties(self, name.upper(), comment=comment, is_optional=True))
+            setattr(self, name, self.set_column_properties(name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
 
@@ -100,17 +96,17 @@ class SheCtiGalObjectDataFormat():
 
             upper_method = method.upper()
 
-            setattr(self, f"g1_world_{method}", set_column_properties(self,
-                                                                      f"G1_WORLD_{upper_method}", is_optional=True))
-            setattr(self, f"g2_world_{method}", set_column_properties(self,
-                                                                      f"G2_WORLD_{upper_method}", is_optional=True))
+            setattr(self, f"g1_world_{method}", self.set_column_properties(
+                f"G1_WORLD_{upper_method}", is_optional=True))
+            setattr(self, f"g2_world_{method}", self.set_column_properties(
+                f"G2_WORLD_{upper_method}", is_optional=True))
 
-            setattr(self, f"weight_{method}", set_column_properties(self, f"WEIGHT_{upper_method}"))
+            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
 
             setattr(self, f"g1_image_{method}",
-                    set_column_properties(self, f"G1_IMAGE_{upper_method}"))
+                    self.set_column_properties(f"G1_IMAGE_{upper_method}"))
             setattr(self, f"g2_image_{method}",
-                    set_column_properties(self, f"G2_IMAGE_{upper_method}"))
+                    self.set_column_properties(f"G2_IMAGE_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())
