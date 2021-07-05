@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-06-18"
+__updated__ = "2021-06-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -245,6 +245,7 @@ def run_validate_cti_gal_from_args(args):
         # Fill in each exposure product in turn with results
         for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
+                                            workdir=args.workdir,
                                             regression_results_row_index=product_index,
                                             d_regression_results_tables=d_exposure_regression_results_tables,
                                             pipeline_config=pipeline_config,
@@ -253,6 +254,7 @@ def run_validate_cti_gal_from_args(args):
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
+                                        workdir=args.workdir,
                                         regression_results_row_index=0,
                                         d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=pipeline_config,

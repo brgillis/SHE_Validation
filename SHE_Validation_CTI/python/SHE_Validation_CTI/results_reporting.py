@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-05-04"
+__updated__ = "2021-06-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -311,26 +311,28 @@ class CtiGalRequirementWriter(RequirementWriter):
 class CtiGalTestCaseWriter(TestCaseWriter):
 
     def __init__(self,
+                 parent_validation_writer,
                  test_case_object,
                  test_case_info: TestCaseInfo):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
-        super().__init__(test_case_object,
+        super().__init__(parent_validation_writer,
+                         test_case_object,
                          test_case_info,
                          l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
 
-    @staticmethod
-    def _init_requirement_writer(*args, **kwargs) -> CtiGalRequirementWriter:
+    def _init_requirement_writer(self, **kwargs) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
-        return CtiGalRequirementWriter(*args, **kwargs)
+        return CtiGalRequirementWriter(self, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
+                 workdir: str,
                  regression_results_row_index: int,
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
@@ -338,6 +340,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                  method_data_exists: bool = True,):
 
         super().__init__(test_object=test_object,
+                         workdir=workdir,
                          num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES,
                          l_test_case_info=None)
 
@@ -347,11 +350,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
-    @staticmethod
-    def _init_test_case_writer(*args, **kwargs):
+    def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
         """
-        return CtiGalTestCaseWriter(*args, **kwargs)
+        return CtiGalTestCaseWriter(self, **kwargs)
 
     def _get_method_info(self,
                          method: str,
@@ -452,9 +454,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                     report_kwargs = {"reason": MSG_NO_DATA}
                     write_kwargs = {}
 
-                test_case_writer.write(report_method=report_method,
-                                       report_kwargs=report_kwargs,
-                                       **write_kwargs,)
+                write_kwargs["report_method"] = report_method
+                write_kwargs["report_kwargs"] = report_kwargs
+
+                test_case_writer.write(requirements_kwargs=write_kwargs,)
 
                 test_case_index += 1
 
@@ -464,6 +467,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[str, Any],
                                     d_bin_limits: Dict[str, np.ndarray],
+                                    workdir: str,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -475,6 +479,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     # Initialize a test results writer
     test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
+                                                        workdir=workdir,
                                                         regression_results_row_index=regression_results_row_index,
                                                         d_regression_results_tables=d_regression_results_tables,
                                                         fail_sigma_calculator=fail_sigma_calculator,
