@@ -5,7 +5,7 @@
     Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs.
 """
 
-__updated__ = "2021-02-12"
+__updated__ = "2021-07-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,8 +25,8 @@ import argparse
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import get_arguments_string
 
-import SHE_CTE
-from SHE_CTE_ShearValidation.match_to_tu import match_to_tu_from_args
+import SHE_Validation
+from .match_to_tu import match_to_tu_from_args
 
 
 def defineSpecificProgramOptions():
@@ -41,7 +41,7 @@ def defineSpecificProgramOptions():
     logger = getLogger(__name__)
 
     logger.debug('#')
-    logger.debug('# Entering SHE_CTE_MatchToTU defineSpecificProgramOptions()')
+    logger.debug('# Entering SHE_Validation_MatchToTU defineSpecificProgramOptions()')
     logger.debug('#')
 
     parser = argparse.ArgumentParser()
@@ -74,7 +74,7 @@ def defineSpecificProgramOptions():
     parser.add_argument('--match_threshold', type=float, default=0.3,
                         help="Maximum distance allowed for a match in units of arcsec.")
 
-    logger.debug('Exiting SHE_CTE_MatchToTU defineSpecificProgramOptions()')
+    logger.debug('Exiting SHE_Validation_MatchToTU defineSpecificProgramOptions()')
 
     return parser
 
@@ -92,10 +92,10 @@ def mainMethod(args):
     logger = getLogger(__name__)
 
     logger.debug('#')
-    logger.debug('# Entering SHE_CTE_MatchToTU mainMethod()')
+    logger.debug('# Entering SHE_Validation_MatchToTU mainMethod()')
     logger.debug('#')
 
-    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_CTE " + SHE_CTE.__version__ + " SHE_CTE_MatchToTU",
+    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_MatchToTU",
                                     store_true=["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
@@ -109,9 +109,7 @@ def mainMethod(args):
     else:
         match_to_tu_from_args(args)
 
-    logger.debug('Exiting SHE_CTE_MatchToTU mainMethod()')
-
-    return
+    logger.debug('Exiting SHE_Validation_MatchToTU mainMethod()')
 
 
 def main():
@@ -125,8 +123,6 @@ def main():
     args = parser.parse_args()
 
     mainMethod(args)
-
-    return
 
 
 if __name__ == "__main__":

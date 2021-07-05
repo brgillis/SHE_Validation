@@ -5,7 +5,7 @@
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
 
-__updated__ = "2021-05-06"
+__updated__ = "2021-07-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,7 +37,7 @@ from astropy.io import fits
 from astropy.io.fits import table_to_hdu
 from astropy.table import Table, Column, join, vstack
 
-import SHE_CTE
+import SHE_Validation
 import numpy as np
 
 logger = getLogger(__name__)
@@ -518,7 +518,7 @@ def match_to_tu_from_args(args):
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
                                                        instance_id=method.upper() + "-" + str(os.getpid()),
-                                                       extension=".fits", version=SHE_CTE.__version__, subdir="data",)
+                                                       extension=".fits", version=SHE_Validation.__version__, subdir="data",)
         matched_catalog_product.set_method_filename(method, method_filename)
 
         # Turn each table into an HDU and add it to an HDU list
