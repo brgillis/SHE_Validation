@@ -57,6 +57,8 @@ def defineSpecificProgramOptions():
                         help='Filename for True Universe Galaxy Catalog data product (XML data product)')
     parser.add_argument('--tu_star_catalog', type=str, default=None,
                         help='Filename for True Universe Star Catalog data product (XML data product)')
+    parser.add_argument('--tu_output_product', type=str, default=None,
+                        help='Filename for True Universe Output Product data product (XML data product)')
 
     # Output filenames
     parser.add_argument('--matched_catalog', type=str,
