@@ -213,7 +213,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
         for oid_index, object_id in enumerate(s_object_ids):
 
             # Find the object's pixel coordinates by extracting a wcs
-            wcs_stack = data_stack.extract_galaxy_wcs_stack(object_id, width=1, none_if_out_of_bounds=True)
+            wcs_stack = data_stack.extract_galaxy_wcs_stack(object_id, none_if_out_of_bounds=True)
 
             if wcs_stack is None:
                 logger.warning(f"Object {object_id} is outside the observation.")
