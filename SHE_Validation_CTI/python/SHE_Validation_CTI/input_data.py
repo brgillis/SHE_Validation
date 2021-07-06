@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-07-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -154,7 +154,7 @@ class SingleObjectData():
             self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
 
             # Get the background level from the mean of a stamp around the object
-            stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE)
+            stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE, extract_stacked_stamp=False)
             for exp_index, exp_image in enumerate(stamp_stack.exposures):
                 if exp_image is not None:
                     unmasked_background_data = exp_image.background_map[~exp_image.boolmask]
@@ -212,17 +212,17 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
         l_object_data = [None] * len(s_object_ids)
         for oid_index, object_id in enumerate(s_object_ids):
 
-            # Find the object's pixel coordinates by extracting a size 0 stamp
-            ministamp_stack = data_stack.extract_galaxy_stack(object_id, width=1, none_if_out_of_bounds=True)
+            # Find the object's pixel coordinates by extracting a wcs
+            wcs_stack = data_stack.extract_galaxy_wcs_stack(object_id, none_if_out_of_bounds=True)
 
-            if ministamp_stack is None:
+            if wcs_stack is None:
                 logger.warning(f"Object {object_id} is outside the observation.")
                 continue
 
             detections_row = data_stack.detections_catalogue.loc[object_id]
 
             object_data = SingleObjectData(object_id=object_id,
-                                           num_exposures=len(ministamp_stack.exposures),
+                                           num_exposures=len(wcs_stack.exposures),
                                            data_stack=data_stack)
 
             # Set the shear info for each method
@@ -254,11 +254,11 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             dec = detections_row[mfc_tf.gal_y_world]
 
             # Set the position info for each exposure
-            for exp_index, exposure_ministamp in enumerate(ministamp_stack.exposures):
+            for exp_index, exposure_wcs_stamp in enumerate(wcs_stack.exposures):
 
                 # Add the position info by using the stamp as an initializer. The initializer
                 # will properly use default values if the stamp is None
-                object_data.position_info[exp_index] = PositionInfo(stamp=exposure_ministamp,
+                object_data.position_info[exp_index] = PositionInfo(stamp=exposure_wcs_stamp,
                                                                     world_shear_info=object_data.world_shear_info,
                                                                     ra=ra,
                                                                     dec=dec)
