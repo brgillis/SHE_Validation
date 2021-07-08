@@ -5,7 +5,7 @@
     Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs.
 """
 
-__updated__ = "2021-07-05"
+__updated__ = "2021-07-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -97,7 +97,7 @@ def mainMethod(args):
     logger.debug('# Entering SHE_Validation_MatchToTU mainMethod()')
     logger.debug('#')
 
-    exec_cmd = get_arguments_string(args, cmd="E-Run SHE_Validation " + SHE_Validation.__version__ + " SHE_Validation_MatchToTU",
+    exec_cmd = get_arguments_string(args, cmd=f"E-Run SHE_Validation {SHE_Validation.__version__} SHE_Validation_MatchToTU",
                                     store_true=["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
