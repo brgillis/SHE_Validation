@@ -148,9 +148,12 @@ def validate_shear_bias_from_args(args):
 
                 # Set up the figure, with a density scatter as a base
 
-                fig, ax = density_scatter(g_in, g_out, sort=True, bins=20, colorbar=False, s=1)
+                fig = plt.figure()
 
                 plot_title = f"{method} Shear Estimates: g{i}"
+                ax = fig.add_subplot(1, 1, 1, label=plot_title)
+
+                density_scatter(g_in, g_out, fig=fig, ax=ax, sort=True, bins=20, colorbar=False, s=1)
 
                 plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
