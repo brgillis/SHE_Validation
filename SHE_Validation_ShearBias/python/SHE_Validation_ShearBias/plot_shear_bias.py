@@ -103,7 +103,7 @@ class ShearBiasPlotter():
         if d_bias_measurements is None:
             self._d_bias_measurements = {}
         else:
-            self.d_bias_measurements = d_bias_measurements
+            self._d_bias_measurements = d_bias_measurements
 
     @property
     def d_g_in(self):
@@ -114,7 +114,7 @@ class ShearBiasPlotter():
         if d_g_in is None:
             self._d_g_in = {}
         else:
-            self.d_g_in = d_g_in
+            self._d_g_in = d_g_in
 
     @property
     def d_g_out(self):
@@ -125,7 +125,7 @@ class ShearBiasPlotter():
         if d_g_out is None:
             self._d_g_out = {}
         else:
-            self.d_g_out = d_g_out
+            self._d_g_out = d_g_out
 
     @property
     def d_g_out_err(self):
@@ -136,7 +136,7 @@ class ShearBiasPlotter():
         if d_g_out_err is None:
             self._d_g_out_err = {}
         else:
-            self.d_g_out_err = d_g_out_err
+            self._d_g_out_err = d_g_out_err
 
     # Callable methods
 
