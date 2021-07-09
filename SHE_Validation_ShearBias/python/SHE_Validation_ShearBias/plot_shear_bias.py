@@ -57,17 +57,21 @@ shear_estimation_method_table_formats = {"KSB": ksbm_tf,
 
 class ShearBiasPlotter():
 
-    # Properties
+    # Attributes set directly at init
     gal_matched_table = None
     method = None
     workdir = None
 
-    d_bias_measurements = None
+    # Attributes calculated at init
     sem_tf = None
     good_rows = None
-    d_g_in = None
-    d_g_out = None
-    d_g_out_err = None
+
+    # Attributes calculated when plotting methods are called
+    _d_bias_measurements = None
+    _d_g_in = None
+    _d_g_out = None
+    _d_g_out_err = None
+
     all_plot_filenames = None
 
     def __init__(self, gal_matched_table, method, workdir):
@@ -91,6 +95,12 @@ class ShearBiasPlotter():
                         2: gal_matched_table[self.sem_tf.g2][good_rows]}
         self.d_g_out_err = {1: gal_matched_table[self.sem_tf.g1_err][good_rows],
                             2: gal_matched_table[self.sem_tf.g2_err][good_rows]}
+
+        # Set as None attributes to be set when plotting methods are called
+        self.d_bias_measurements = None
+        self.d_g_in = None
+        self.d_g_out = None
+        self.d_g_out_err = None
 
     # Property getters and setters
 
