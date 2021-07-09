@@ -51,6 +51,14 @@ galcat_gamma1_colname = "GAMMA1"
 galcat_gamma2_colname = "GAMMA2"
 galcat_kappa_colname = "KAPPA"
 
+TITLE_FONTSIZE = 12
+AXISLABEL_FONTSIZE = 12
+TEXT_SIZE = 12
+PLOT_FORMAT = "png"
+C_DIGITS = 5
+M_DIGITS = 3
+SIGMA_DIGITS = 1
+
 
 def validate_shear_bias_from_args(args):
     """ @TODO Fill in docstring
@@ -94,18 +102,13 @@ def validate_shear_bias_from_args(args):
                                                                y_err=g_out_err))
 
                 d_bias_strings = {}
-                for a, d in (("c", 5),
-                             ("m", 3)):
+                for a, d in (("c", C_DIGITS),
+                             ("m", M_DIGITS)):
                     d_bias_strings[f"{a}{i}"] = (f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "
-                                                 f"({getattr(bias,f'{a}_sigma'):.2f}$\\sigma$)")
+                                                 f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
                     logger.info(d_bias_strings[f"{a}{i}"])
 
                 # Make a plot of the shear estimates
-
-                TITLE_FONTSIZE = 12
-                AXISLABEL_FONTSIZE = 12
-                TEXT_SIZE = 12
-                PLOT_FORMAT = "png"
 
                 # Set up the figure
                 fig = pyplot.figure()
