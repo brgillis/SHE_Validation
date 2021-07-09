@@ -4,8 +4,29 @@
 
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
+import os
 
-__updated__ = "2021-07-08"
+from SHE_PPT import file_io
+from SHE_PPT import products
+from SHE_PPT.file_io import read_listfile
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
+from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
+from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
+from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
+from SHE_PPT.utility import is_any_type_of_none
+from astropy import units
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.io.fits import table_to_hdu
+from astropy.table import Table, Column, join, vstack
+
+import SHE_Validation
+import numpy as np
+
+
+__updated__ = "2021-07-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,25 +41,6 @@ __updated__ = "2021-07-08"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.file_io import read_listfile
-from SHE_PPT.logging import getLogger
-from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
-from astropy import units
-from astropy.coordinates import SkyCoord
-from astropy.io import fits
-from astropy.io.fits import table_to_hdu
-from astropy.table import Table, Column, join, vstack
-
-import SHE_Validation
-import numpy as np
 
 logger = getLogger(__name__)
 
@@ -183,7 +185,7 @@ def match_to_tu_from_args(args):
 
     for method in methods:
         fn = shear_estimates_product.get_method_filename(method)
-        if fn is None or fn == "None" or fn == "data/None":
+        if is_any_type_of_none(fn):
             shear_tables[method] = None
             logger.warning("No filename for method " + method + ".")
         else:
@@ -517,7 +519,7 @@ def match_to_tu_from_args(args):
     for method in methods:
 
         if len(gal_matched_tables[method]) == 0:
-            matched_catalog_product.set_method_filename(method, "None")
+            matched_catalog_product.set_method_filename(method, None)
             continue
 
         gal_matched_table = vstack(gal_matched_tables[method])
