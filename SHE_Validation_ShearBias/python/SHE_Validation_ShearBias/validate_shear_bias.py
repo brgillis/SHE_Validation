@@ -20,7 +20,6 @@ __updated__ = "2021-07-09"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
 import os
 
 from SHE_PPT import file_io
@@ -32,14 +31,10 @@ from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from astropy.table import Table
-from matplotlib import cm
 from matplotlib import pyplot as plt
-from matplotlib.colors import Normalize
-from scipy.interpolate import interpn
-from scipy.stats import gaussian_kde
 
 import SHE_Validation
-import numpy as np
+from SHE_Validation.plotting import density_scatter, draw_axes, draw_bestfit_line
 
 
 logger = getLogger(__name__)
@@ -62,35 +57,6 @@ PLOT_FORMAT = "png"
 C_DIGITS = 5
 M_DIGITS = 3
 SIGMA_DIGITS = 1
-
-
-def density_scatter(x, y, fig=None, ax=None, sort=True, bins=20, colorbar=False, **kwargs):
-    """
-    Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
-    Credit: Guillaume on StackOverflow
-    """
-    if ax is None or fig is None:
-        fig, ax = plt.subplots()
-    data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
-    z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
-                np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
-
-    # To be sure to plot all data
-    z[np.where(np.isnan(z))] = 0.0
-
-    # Sort the points by density, so that the densest points are plotted last
-    if sort:
-        idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
-
-    ax.scatter(x, y, c=z, **kwargs)
-
-    norm = Normalize(vmin=np.min(z), vmax=np.max(z))
-    if colorbar:
-        cbar = fig.colorbar(cm.ScalarMappable(norm=norm), ax=ax)
-        cbar.ax.set_ylabel('Density')
-
-    return fig, ax
 
 
 def validate_shear_bias_from_args(args):
@@ -133,9 +99,11 @@ def validate_shear_bias_from_args(args):
                                               (2, g2_in[good_rows], gal_matched_table[sem_tf.g2][good_rows],
                                                gal_matched_table[sem_tf.g2_err][good_rows])):
 
-                bias = BiasMeasurements(linregress_with_errors(x=g_in,
-                                                               y=g_out,
-                                                               y_err=g_out_err))
+                linregress_results = linregress_with_errors(x=g_in,
+                                                            y=g_out,
+                                                            y_err=g_out_err)
+
+                bias = BiasMeasurements(linregress_results)
 
                 d_bias_strings = {}
                 for a, d in (("c", C_DIGITS),
@@ -160,20 +128,15 @@ def validate_shear_bias_from_args(args):
                 fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
                 ax = fig.add_subplot(1, 1, 1, label=plot_title)
+
                 ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
                 ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
 
                 # Draw the zero-axes
-                xlim = deepcopy(ax.get_xlim())
-                ax.plot(xlim, [0, 0], label=None, color="k", linestyle="solid")
-
-                ylim = deepcopy(ax.get_ylim())
-                ax.plot([0, 0], ylim, label=None, color="k", linestyle="solid")
+                xlim, ylim = draw_axes(ax)
 
                 # Draw the line of best-fit
-                bestfit_x = np.array(xlim)
-                bestfit_y = (1 + bias.m) * bestfit_x + bias.c
-                ax.plot(bestfit_x, bestfit_y, label=None, color="r", linestyle="solid")
+                draw_bestfit_line(ax, linregress_results, xlim=xlim)
 
                 # Reset the axes
                 ax.set_xlim(xlim)
