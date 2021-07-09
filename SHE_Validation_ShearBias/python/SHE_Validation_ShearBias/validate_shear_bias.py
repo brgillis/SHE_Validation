@@ -33,6 +33,7 @@ from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from astropy.table import Table
 from matplotlib import pyplot
+from scipy.stats import gaussian_kde
 
 import SHE_Validation
 import numpy as np
@@ -113,8 +114,11 @@ def validate_shear_bias_from_args(args):
 
                 # Make a plot of the shear estimates
 
+                x = g_in
+                y = g_out
+
                 # Set up the figure
-                fig = pyplot.figure()
+                fig, ax = pyplot.subplots()
 
                 plot_title = f"{method} Shear Estimates: g{i}"
 
@@ -126,8 +130,18 @@ def validate_shear_bias_from_args(args):
                 ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
                 ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
 
-                ax.scatter(g_in, g_out, label=None,
-                           marker=".", color="r",
+                # Code taken from StackOverflow for density plot: https://stackoverflow.com/a/20107592/5099457
+
+                # Calculate the point density
+                xy = np.vstack([x, y])
+                z = gaussian_kde(xy)(xy)
+
+                # Sort the points by density, so that the densest points are plotted last
+                idx = z.argsort()
+                x, y, z = x[idx], y[idx], z[idx]
+
+                ax.scatter(x, y, label=None,
+                           marker=".", color=z,
                            s=1)
 
                 # Draw the zero-axes
