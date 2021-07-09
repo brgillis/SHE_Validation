@@ -173,7 +173,7 @@ def validate_shear_bias_from_args(args):
                 # Draw the line of best-fit
                 bestfit_x = np.array(xlim)
                 bestfit_y = (1 + bias.m) * bestfit_x + bias.c
-                ax.plot(bestfit_x, bestfit_y, label=None, color="b", linestyle="solid")
+                ax.plot(bestfit_x, bestfit_y, label=None, color="r", linestyle="solid")
 
                 # Reset the axes
                 ax.set_xlim(xlim)
