@@ -71,7 +71,6 @@ class ShearBiasPlotter():
 
     # Attributes calculated when plotting methods are called
     _d_bias_measurements = None
-
     all_plot_filenames = None
 
     def __init__(self, gal_matched_table, method, workdir):
