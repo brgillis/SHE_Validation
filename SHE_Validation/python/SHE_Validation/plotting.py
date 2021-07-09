@@ -120,8 +120,8 @@ class ValidationPlotter():
         """ Draws an x-axis and y-axis on a plot.
         """
 
-        self.draw_x_axis(self, color, linestyle, **kwargs)
-        self.draw_y_axis(self, color, linestyle, **kwargs)
+        self.draw_x_axis(color, linestyle, **kwargs)
+        self.draw_y_axis(color, linestyle, **kwargs)
 
     def draw_bestfit_line(self, linregress_results, label=None, color="r", linestyle="solid"):
         """ Draw a line of bestfit on a plot.
