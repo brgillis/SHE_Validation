@@ -187,7 +187,7 @@ def validate_shear_bias_from_args(args):
                 # Save the plot
 
                 bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
-                                                                  instance_id=f"{method}_g{i}".upper(),
+                                                                  instance_id=f"{method}-g{i}".upper(),
                                                                   extension=PLOT_FORMAT,
                                                                   version=SHE_Validation.__version__)
                 qualified_bias_plot_filename = os.path.join(args.workdir, bias_plot_filename)
