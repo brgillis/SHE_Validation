@@ -70,6 +70,9 @@ def validate_shear_bias_from_args(args):
     logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
     matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
 
+    # Keep a list of filenams for all plots, which we'll tarball up at the end
+    all_plot_filenames = []
+
     for method in methods:
 
         method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
@@ -151,12 +154,21 @@ def validate_shear_bias_from_args(args):
                         horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
                         fontsize=TEXT_SIZE)
 
-                # Save and show it
+                # Save the plot
 
-                qualified_bias_plot_filename = os.path.join(args.workdir, f"{method}_g{i}.{PLOT_FORMAT}")
+                bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
+                                                                  instance_id=f"{method}_g{i}".upper(),
+                                                                  extension=PLOT_FORMAT,
+                                                                  version=SHE_Validation.__version__)
+                qualified_bias_plot_filename = os.path.join(args.workdir, bias_plot_filename)
+
                 pyplot.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
                                bbox_inches="tight", pad_inches=0.05)
                 logger.info(f"Saved {method} g{i} bias plot to {qualified_bias_plot_filename}")
+
+                # Append to list only after the plot has been written, in case something goes wrong
+                all_plot_filenames.append(bias_plot_filename)
+
                 pyplot.close()
 
         except Exception as e:
