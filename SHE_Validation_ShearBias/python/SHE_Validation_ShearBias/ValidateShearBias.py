@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-08"
+__updated__ = "2021-07-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -90,7 +90,7 @@ def mainMethod(args):
 
     if args.profile:
         import cProfile
-        cProfile.runctx("validate_shear_bias_from_args(args,dry_run=dry_run)", {},
+        cProfile.runctx("validate_shear_bias_from_args(args)", {},
                         {"validate_shear_bias_from_args": validate_shear_bias_from_args,
                          "args": args, },
                         filename="validate_shear_bias_from_args.prof")
