@@ -4,8 +4,29 @@
 
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
+import os
 
-__updated__ = "2021-07-05"
+from SHE_PPT import file_io
+from SHE_PPT import products
+from SHE_PPT.file_io import read_listfile
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
+from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
+from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
+from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
+from SHE_PPT.utility import is_any_type_of_none
+from astropy import units
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.io.fits import table_to_hdu
+from astropy.table import Table, Column, join, vstack
+
+import SHE_Validation
+import numpy as np
+
+
+__updated__ = "2021-07-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,28 +41,6 @@ __updated__ = "2021-07-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
-import os
-
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.file_io import read_listfile
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import BiasMeasurements, linregress_with_errors
-from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
-from astropy import units
-from astropy.coordinates import SkyCoord
-from astropy.io import fits
-from astropy.io.fits import table_to_hdu
-from astropy.table import Table, Column, join, vstack
-from matplotlib import pyplot
-
-import SHE_Validation
-import numpy as np
 
 logger = getLogger(__name__)
 
@@ -65,8 +64,6 @@ galcat_bulge_angle_colname = "DISK_ANGLE"
 galcat_bulge_axis_ratio_colname = "DISK_AXIS_RATIO"
 galcat_disk_angle_colname = "DISK_ANGLE"
 galcat_disk_axis_ratio_colname = "DISK_AXIS_RATIO"
-
-make_bias_plots = True
 
 
 def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
@@ -188,7 +185,7 @@ def match_to_tu_from_args(args):
 
     for method in methods:
         fn = shear_estimates_product.get_method_filename(method)
-        if fn is None or fn == "None" or fn == "data/None":
+        if is_any_type_of_none(fn):
             shear_tables[method] = None
             logger.warning("No filename for method " + method + ".")
         else:
@@ -522,7 +519,7 @@ def match_to_tu_from_args(args):
     for method in methods:
 
         if len(gal_matched_tables[method]) == 0:
-            matched_catalog_product.set_method_filename(method, "None")
+            matched_catalog_product.set_method_filename(method, None)
             continue
 
         gal_matched_table = vstack(gal_matched_tables[method])
@@ -531,95 +528,6 @@ def match_to_tu_from_args(args):
         star_matched_table = vstack(star_matched_tables[method])
         if len(star_matched_table) == 0:
             logger.warn(f"No measurements with method {method} were matched to stars.")
-
-        # Perform a linear regression for e1 and e2 to get bias measurements and make plots
-
-        if make_bias_plots and not method == "BFD":
-
-            try:
-
-                good_rows = gal_matched_table[sem_tf.fit_flags] == 0
-
-                g1_in = -gal_matched_table[galcat_g1_colname] / (1 - gal_matched_table[galcat_kappa_colname])
-                g2_in = gal_matched_table[galcat_g2_colname] / (1 - gal_matched_table[galcat_kappa_colname])
-
-                logger.info(f"Bias measurements for method {method}:")
-                for i, g_in, g_out, g_out_err in ((1, g1_in[good_rows], gal_matched_table[sem_tf.g1][good_rows],
-                                                   gal_matched_table[sem_tf.g1_err][good_rows]),
-                                                  (2, g2_in[good_rows], gal_matched_table[sem_tf.g2][good_rows],
-                                                   gal_matched_table[sem_tf.g2_err][good_rows])):
-
-                    bias = BiasMeasurements(linregress_with_errors(x=g_in,
-                                                                   y=g_out,
-                                                                   y_err=g_out_err))
-
-                    d_bias_strings = {}
-                    for a, d in (("c", 5),
-                                 ("m", 3)):
-                        d_bias_strings[f"{a}{i}"] = (f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "
-                                                     f"({getattr(bias,f'{a}_sigma'):.2f}$\\sigma$)")
-                        logger.info(d_bias_strings[f"{a}{i}"])
-
-                    # Make a plot of the shear estimates
-
-                    TITLE_FONTSIZE = 12
-                    AXISLABEL_FONTSIZE = 12
-                    TEXT_SIZE = 12
-                    PLOT_FORMAT = "png"
-
-                    # Set up the figure
-                    fig = pyplot.figure()
-
-                    plot_title = f"{method} Shear Estimates: g{i}"
-
-                    pyplot.title(plot_title, fontsize=TITLE_FONTSIZE)
-
-                    fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
-
-                    ax = fig.add_subplot(1, 1, 1, label=plot_title)
-                    ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
-                    ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
-
-                    ax.scatter(g_in, g_out, label=None,
-                               marker=".", color="r",
-                               s=1)
-
-                    # Draw the zero-axes
-                    xlim = deepcopy(ax.get_xlim())
-                    ax.plot(xlim, [0, 0], label=None, color="k", linestyle="solid")
-
-                    ylim = deepcopy(ax.get_ylim())
-                    ax.plot([0, 0], ylim, label=None, color="k", linestyle="solid")
-
-                    # Draw the line of best-fit
-                    bestfit_x = np.array(xlim)
-                    bestfit_y = (1 + bias.m) * bestfit_x + bias.c
-                    ax.plot(bestfit_x, bestfit_y, label=None, color="b", linestyle="solid")
-
-                    # Reset the axes
-                    ax.set_xlim(xlim)
-                    ax.set_ylim(ylim)
-
-                    # Write the bias
-                    ax.text(0.02, 0.98, d_bias_strings[f"c{i}"],
-                            horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-                            fontsize=TEXT_SIZE)
-                    ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
-                            horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-                            fontsize=TEXT_SIZE)
-
-                    # Save and show it
-
-                    qualified_bias_plot_filename = os.path.join(args.workdir, f"{method}_g{i}.{PLOT_FORMAT}")
-                    pyplot.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
-                                   bbox_inches="tight", pad_inches=0.05)
-                    logger.info(f"Saved {method} g{i} bias plot to {qualified_bias_plot_filename}")
-                    pyplot.close()
-
-            except Exception as e:
-                import traceback
-                logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
-                               "Traceback: " + "".join(traceback.format_tb(e.__traceback__)))
 
         unmatched_table = shear_tables[method]
 
