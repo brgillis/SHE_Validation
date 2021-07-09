@@ -32,7 +32,10 @@ from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from astropy.table import Table
-from matplotlib import pyplot
+from matplotlib import cm
+from matplotlib import pyplot as plt
+from matplotlib.colors import Normalize
+from scipy.interpolate import interpn
 from scipy.stats import gaussian_kde
 
 import SHE_Validation
@@ -59,6 +62,35 @@ PLOT_FORMAT = "png"
 C_DIGITS = 5
 M_DIGITS = 3
 SIGMA_DIGITS = 1
+
+
+def density_scatter(x, y, ax=None, sort=True, bins=20, colorbar=False, **kwargs):
+    """
+    Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
+    Credit: Guillaume on StackOverflow
+    """
+    if ax is None:
+        fig, ax = plt.subplots()
+    data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
+    z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
+                np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
+
+    # To be sure to plot all data
+    z[np.where(np.isnan(z))] = 0.0
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort:
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    ax.scatter(x, y, c=z, **kwargs)
+
+    norm = Normalize(vmin=np.min(z), vmax=np.max(z))
+    if colorbar:
+        cbar = fig.colorbar(cm.ScalarMappable(norm=norm), ax=ax)
+        cbar.ax.set_ylabel('Density')
+
+    return ax
 
 
 def validate_shear_bias_from_args(args):
@@ -114,15 +146,12 @@ def validate_shear_bias_from_args(args):
 
                 # Make a plot of the shear estimates
 
-                x = g_in
-                y = g_out
-
                 # Set up the figure
-                fig, ax = pyplot.subplots()
+                fig, ax = plt.subplots()
 
                 plot_title = f"{method} Shear Estimates: g{i}"
 
-                pyplot.title(plot_title, fontsize=TITLE_FONTSIZE)
+                plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
                 fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
@@ -130,19 +159,7 @@ def validate_shear_bias_from_args(args):
                 ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
                 ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
 
-                # Code taken from StackOverflow for density plot: https://stackoverflow.com/a/20107592/5099457
-
-                # Calculate the point density
-                xy = np.vstack([x, y])
-                z = gaussian_kde(xy)(xy)
-
-                # Sort the points by density, so that the densest points are plotted last
-                idx = z.argsort()
-                x, y, z = x[idx], y[idx], z[idx]
-
-                ax.scatter(x, y, label=None,
-                           marker=".", color=z,
-                           s=1)
+                density_scatter(g_in, g_out, ax=ax, sort=True, bins=20, colorbar=False, s=1)
 
                 # Draw the zero-axes
                 xlim = deepcopy(ax.get_xlim())
