@@ -82,7 +82,7 @@ def validate_shear_bias_from_args(args):
 
         qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
         logger.info(f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
-        gal_matched_table = Table.read(qualified_method_matched_catalog_filename)
+        gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
 
         # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
