@@ -64,12 +64,12 @@ M_DIGITS = 3
 SIGMA_DIGITS = 1
 
 
-def density_scatter(x, y, ax=None, sort=True, bins=20, colorbar=False, **kwargs):
+def density_scatter(x, y, fig=None, ax=None, sort=True, bins=20, colorbar=False, **kwargs):
     """
     Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
     Credit: Guillaume on StackOverflow
     """
-    if ax is None:
+    if ax is None or fig is None:
         fig, ax = plt.subplots()
     data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
     z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
@@ -90,7 +90,7 @@ def density_scatter(x, y, ax=None, sort=True, bins=20, colorbar=False, **kwargs)
         cbar = fig.colorbar(cm.ScalarMappable(norm=norm), ax=ax)
         cbar.ax.set_ylabel('Density')
 
-    return ax
+    return fig, ax
 
 
 def validate_shear_bias_from_args(args):
@@ -146,8 +146,9 @@ def validate_shear_bias_from_args(args):
 
                 # Make a plot of the shear estimates
 
-                # Set up the figure
-                fig, ax = plt.subplots()
+                # Set up the figure, with a density scatter as a base
+
+                fig, ax = density_scatter(g_in, g_out, sort=True, bins=20, colorbar=False, s=1)
 
                 plot_title = f"{method} Shear Estimates: g{i}"
 
@@ -158,8 +159,6 @@ def validate_shear_bias_from_args(args):
                 ax = fig.add_subplot(1, 1, 1, label=plot_title)
                 ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
                 ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
-
-                density_scatter(g_in, g_out, ax=ax, sort=True, bins=20, colorbar=False, s=1)
 
                 # Draw the zero-axes
                 xlim = deepcopy(ax.get_xlim())
@@ -193,14 +192,14 @@ def validate_shear_bias_from_args(args):
                                                                   version=SHE_Validation.__version__)
                 qualified_bias_plot_filename = os.path.join(args.workdir, bias_plot_filename)
 
-                pyplot.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
-                               bbox_inches="tight", pad_inches=0.05)
+                plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
+                            bbox_inches="tight", pad_inches=0.05)
                 logger.info(f"Saved {method} g{i} bias plot to {qualified_bias_plot_filename}")
 
                 # Append to list only after the plot has been written, in case something goes wrong
                 all_plot_filenames.append(bias_plot_filename)
 
-                pyplot.close()
+                plt.close()
 
         except Exception as e:
             import traceback
