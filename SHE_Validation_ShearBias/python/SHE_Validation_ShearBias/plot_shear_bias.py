@@ -65,12 +65,12 @@ class ShearBiasPlotter():
     # Attributes calculated at init
     sem_tf = None
     good_rows = None
-
-    # Attributes calculated when plotting methods are called
-    _d_bias_measurements = None
     _d_g_in = None
     _d_g_out = None
     _d_g_out_err = None
+
+    # Attributes calculated when plotting methods are called
+    _d_bias_measurements = None
 
     all_plot_filenames = None
 
@@ -98,9 +98,6 @@ class ShearBiasPlotter():
 
         # Set as None attributes to be set when plotting methods are called
         self.d_bias_measurements = None
-        self.d_g_in = None
-        self.d_g_out = None
-        self.d_g_out_err = None
 
     # Property getters and setters
 
