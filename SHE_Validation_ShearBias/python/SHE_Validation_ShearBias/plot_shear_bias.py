@@ -23,9 +23,12 @@ __updated__ = "2021-07-09"
 import os
 
 from SHE_PPT import file_io
-from SHE_PPT import products
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, linregress_with_errors
+from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
+from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
+from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from matplotlib import pyplot as plt
 
 import SHE_Validation
@@ -46,91 +49,124 @@ C_DIGITS = 5
 M_DIGITS = 3
 SIGMA_DIGITS = 1
 
-
-def plot_component_shear_bias(method, i, g_in, g_out, g_out_err, workdir):
-
-    # Perform the linear regression and calculate bias
-    linregress_results = linregress_with_errors(x=g_in, y=g_out,
-                                                y_err=g_out_err)
-    bias = BiasMeasurements(linregress_results)
-
-    # Log the bias measurements, and save these strings for the plot
-    logger.info(f"Bias measurements for method {method}:")
-    d_bias_strings = {}
-    for a, d in ("c", C_DIGITS), ("m", M_DIGITS):
-        d_bias_strings[f"{a}{i}"] = f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "\
-            f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)"
-        logger.info(d_bias_strings[f"{a}{i}"])
-
-    # Make a plot of the shear estimates
-
-    # Set up the figure, with a density scatter as a base
-
-    fig = plt.figure()
-    plot_title = f"{method} Shear Estimates: g{i}"
-    ax = fig.add_subplot(1, 1, 1, label=plot_title)
-    fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
-
-    density_scatter(g_in, g_out, fig=fig, ax=ax, sort=True, bins=20, colorbar=False, s=1)
-
-    plt.title(plot_title, fontsize=TITLE_FONTSIZE)
-
-    ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
-    ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
-
-    # Draw the zero-axes
-    xlim, ylim = draw_axes(ax)
-
-    # Draw the line of best-fit
-    draw_bestfit_line(ax, linregress_results, xlim=xlim)
-
-    # Reset the axes
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-
-    # Write the bias
-    ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-            fontsize=TEXT_SIZE)
-    ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
-            horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-            fontsize=TEXT_SIZE)
-
-    # Save the plot
-    bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
-                                                      instance_id=f"{method}-g{i}".upper(),
-                                                      extension=PLOT_FORMAT,
-                                                      version=SHE_Validation.__version__)
-    qualified_bias_plot_filename = os.path.join(workdir, bias_plot_filename)
-    plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
-                bbox_inches="tight", pad_inches=0.05)
-    logger.info(f"Saved {method} g{i} bias plot to {qualified_bias_plot_filename}")
-
-    plt.close()
-
-    return bias, bias_plot_filename
+shear_estimation_method_table_formats = {"KSB": ksbm_tf,
+                                         "REGAUSS": regm_tf,
+                                         "MomentsML": mmlm_tf,
+                                         "LensMC": lmcm_tf}
 
 
-def plot_method_shear_bias(gal_matched_table, method, sem_tf, workdir):
-    """ @TODO Fill in docstring
-    """
+class ShearBiasPlotter():
 
-    good_rows = gal_matched_table[sem_tf.fit_flags] == 0
+    # Properties
+    gal_matched_table = None
+    method = None
+    workdir = None
 
-    g1_in = -gal_matched_table[galcat_gamma1_colname] / (1 - gal_matched_table[galcat_kappa_colname])
-    g2_in = gal_matched_table[galcat_gamma2_colname] / (1 - gal_matched_table[galcat_kappa_colname])
+    d_bias_measurements = None
+    sem_tf = None
+    good_rows = None
+    d_g_in = None
+    d_g_out = None
+    d_g_out_err = None
 
-    all_plot_filenames = []
-    bias_measurements = {}
+    def __init__(self, gal_matched_table, method, workdir):
 
-    for i, g_in, g_out, g_out_err in ((1, g1_in[good_rows], gal_matched_table[sem_tf.g1][good_rows],
-                                       gal_matched_table[sem_tf.g1_err][good_rows]),
-                                      (2, g2_in[good_rows], gal_matched_table[sem_tf.g2][good_rows],
-                                       gal_matched_table[sem_tf.g2_err][good_rows])):
+        # Set attrs directly
+        self.gal_matched_table = gal_matched_table
+        self.method = method
+        self.workdir = workdir
 
-        (component_bias_measurements,
-         component_plot_filename) = plot_component_shear_bias(method, i, g_in, g_out, g_out_err, workdir)
+        # Determine attrs from kwargs
+        self.sem_tf = shear_estimation_method_table_formats[method]
 
-        bias_measurements[i] = component_bias_measurements
-        all_plot_filenames.append(component_plot_filename)
+        good_rows = gal_matched_table[self.sem_tf.fit_flags] == 0
 
-    return bias_measurements, all_plot_filenames
+        g1_in = -gal_matched_table[galcat_gamma1_colname] / (1 - gal_matched_table[galcat_kappa_colname])
+        g2_in = gal_matched_table[galcat_gamma2_colname] / (1 - gal_matched_table[galcat_kappa_colname])
+
+        self.d_g_in = {1: g1_in[good_rows],
+                       2: g2_in[good_rows]}
+        self.d_g_out = {1: gal_matched_table[self.sem_tf.g1][good_rows],
+                        2: gal_matched_table[self.sem_tf.g2][good_rows]}
+        self.d_g_out_err = {1: gal_matched_table[self.sem_tf.g1_err][good_rows],
+                            2: gal_matched_table[self.sem_tf.g2_err][good_rows]}
+
+    def plot_component_shear_bias(self, i):
+
+        g_in = self.d_g_in[i]
+        g_out = self.d_g_out[i]
+        g_out_err = self.d_g_out_err[i]
+
+        # Perform the linear regression and calculate bias
+        linregress_results = linregress_with_errors(x=g_in, y=g_out,
+                                                    y_err=g_out_err)
+        bias = BiasMeasurements(linregress_results)
+
+        # Log the bias measurements, and save these strings for the plot
+        logger.info(f"Bias measurements for method {self.method}:")
+        d_bias_strings = {}
+        for a, d in ("c", C_DIGITS), ("m", M_DIGITS):
+            d_bias_strings[f"{a}{i}"] = f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "\
+                f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)"
+            logger.info(d_bias_strings[f"{a}{i}"])
+
+        # Make a plot of the shear estimates
+
+        # Set up the figure, with a density scatter as a base
+
+        fig = plt.figure()
+        plot_title = f"{self.method} Shear Estimates: g{i}"
+        ax = fig.add_subplot(1, 1, 1, label=plot_title)
+        fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
+
+        density_scatter(g_in, g_out, fig=fig, ax=ax, sort=True, bins=20, colorbar=False, s=1)
+
+        plt.title(plot_title, fontsize=TITLE_FONTSIZE)
+
+        ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
+        ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
+
+        # Draw the zero-axes
+        xlim, ylim = draw_axes(ax)
+
+        # Draw the line of best-fit
+        draw_bestfit_line(ax, linregress_results, xlim=xlim)
+
+        # Reset the axes
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+
+        # Write the bias
+        ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
+                fontsize=TEXT_SIZE)
+        ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
+                horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
+                fontsize=TEXT_SIZE)
+
+        # Save the plot
+        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
+                                                          instance_id=f"{self.method}-g{i}".upper(),
+                                                          extension=PLOT_FORMAT,
+                                                          version=SHE_Validation.__version__)
+        qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
+        plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
+                    bbox_inches="tight", pad_inches=0.05)
+        logger.info(f"Saved {self.method} g{i} bias plot to {qualified_bias_plot_filename}")
+
+        plt.close()
+
+        self.bias_measurements[i] = bias
+
+        return bias_plot_filename
+
+    def plot_method_shear_bias(self):
+        """ @TODO Fill in docstring
+        """
+
+        self.all_plot_filenames = []
+
+        for i in (1, 2):
+
+            component_plot_filename = self.plot_component_shear_bias(i)
+
+            self.all_plot_filenames.append(component_plot_filename)

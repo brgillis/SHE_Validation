@@ -25,23 +25,14 @@ import os
 from SHE_PPT import file_io
 from SHE_PPT import products
 from SHE_PPT.logging import getLogger
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from astropy.table import Table
 
-from .plot_shear_bias import plot_method_shear_bias
+from .plot_shear_bias import ShearBiasPlotter
 
 
 logger = getLogger(__name__)
 
 methods = ("KSB", "LensMC", "MomentsML", "REGAUSS")
-
-shear_estimation_method_table_formats = {"KSB": ksbm_tf,
-                                         "REGAUSS": regm_tf,
-                                         "MomentsML": mmlm_tf,
-                                         "LensMC": lmcm_tf}
 
 
 def validate_shear_bias_from_args(args):
@@ -63,8 +54,6 @@ def validate_shear_bias_from_args(args):
         if method_matched_catalog_filename is None:
             continue
 
-        sem_tf = shear_estimation_method_table_formats[method]
-
         qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
         logger.info(f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
         gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
@@ -73,11 +62,12 @@ def validate_shear_bias_from_args(args):
 
         try:
 
-            (method_bias_measurements,
-             method_plot_filenames) = plot_method_shear_bias(gal_matched_table=gal_matched_table,
-                                                             method=method,
-                                                             sem_tf=sem_tf,
-                                                             workdir=args.workdir)
+            shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
+
+            shear_bias_plotter.plot_method_shear_bias()
+
+            method_bias_measurements = shear_bias_plotter.d_bias_measurements
+            method_plot_filenames = shear_bias_plotter.all_plot_filenames
 
         except Exception as e:
             import traceback
