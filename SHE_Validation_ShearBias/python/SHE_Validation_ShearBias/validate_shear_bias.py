@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-08"
+__updated__ = "2021-07-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -64,10 +64,13 @@ def validate_shear_bias_from_args(args):
 
     for method in methods:
 
+        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
+        if method_matched_catalog_filename is None:
+            continue
+
         sem_tf = shear_estimation_method_table_formats[method]
 
-        qualified_method_matched_catalog_filename = os.path.join(
-            args.workdir, matched_catalog_product.get_method_filename(method))
+        qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
         logger.info(f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
         gal_matched_table = Table.read(qualified_method_matched_catalog_filename)
 
