@@ -32,7 +32,7 @@ from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
 from matplotlib import pyplot as plt
 
 import SHE_Validation
-from SHE_Validation.plotting import density_scatter, draw_axes, draw_bestfit_line
+from SHE_Validation.plotting import ValidationPlotter
 
 logger = getLogger(__name__)
 
@@ -55,7 +55,7 @@ shear_estimation_method_table_formats = {"KSB": ksbm_tf,
                                          "LensMC": lmcm_tf}
 
 
-class ShearBiasPlotter():
+class ShearBiasPlotter(ValidationPlotter):
 
     # Attributes set directly at init
     gal_matched_table = None
@@ -74,6 +74,8 @@ class ShearBiasPlotter():
     all_plot_filenames = None
 
     def __init__(self, gal_matched_table, method, workdir):
+
+        super().__init__()
 
         # Set attrs directly
         self.gal_matched_table = gal_matched_table
@@ -171,34 +173,33 @@ class ShearBiasPlotter():
 
         # Set up the figure, with a density scatter as a base
 
-        fig = plt.figure()
+        self.fig = plt.figure()
         plot_title = f"{self.method} Shear Estimates: g{i}"
-        ax = fig.add_subplot(1, 1, 1, label=plot_title)
-        fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
+        self.ax = self.fig.add_subplot(1, 1, 1, label=plot_title)
+        self.fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
-        density_scatter(g_in, g_out, fig=fig, ax=ax, sort=True, bins=20, colorbar=False, s=1)
+        self.density_scatter(g_in, g_out, sort=True, bins=20, colorbar=False, s=1)
 
         plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
-        ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
-        ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(f"Estimated g{i}", fontsize=AXISLABEL_FONTSIZE)
 
         # Draw the zero-axes
-        xlim, ylim = draw_axes(ax)
+        self.draw_axes()
 
         # Draw the line of best-fit
-        draw_bestfit_line(ax, linregress_results, xlim=xlim)
+        self.draw_bestfit_line(linregress_results)
 
         # Reset the axes
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
+        self.ax.set_xlim(self.xlim)
+        self.ax.set_ylim(self.ylim)
 
         # Write the bias
-        ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-                fontsize=TEXT_SIZE)
-        ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
-                horizontalalignment='left', verticalalignment='top', transform=ax.transAxes,
-                fontsize=TEXT_SIZE)
+        self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment='left', verticalalignment='top',
+                     transform=self.ax.transAxes, fontsize=TEXT_SIZE)
+        self.ax.text(0.02, 0.93, d_bias_strings[f"m{i}"], horizontalalignment='left', verticalalignment='top',
+                     transform=self.ax.transAxes, fontsize=TEXT_SIZE)
 
         # Save the plot
         bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",

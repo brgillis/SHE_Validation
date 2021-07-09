@@ -31,73 +31,102 @@ from scipy.interpolate import interpn
 import numpy as np
 
 
-def density_scatter(x, y, fig=None, ax=None, sort=True, bins=20, colorbar=False, **kwargs):
-    """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
-        Credit: Guillaume on StackOverflow
-    """
-    if ax is None or fig is None:
-        fig, ax = plt.subplots()
-    data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
-    z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
-                np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
+class ValidationPlotter():
 
-    # To be sure to plot all data
-    z[np.where(np.isnan(z))] = 0.0
+    fig = None
+    ax = None
+    xlim = None
+    ylim = None
 
-    # Sort the points by density, so that the densest points are plotted last
-    if sort:
-        idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
+    def __init__(self):
+        self._ax = None
+        self._fig = None
+        self._xlim = None
+        self._ylim = None
 
-    ax.scatter(x, y, c=z, **kwargs)
+    @property
+    def ax(self):
+        if self._ax is None:
+            self._fig, self._ax = plt.subplots()
+        return self._ax
 
-    norm = Normalize(vmin=np.min(z), vmax=np.max(z))
-    if colorbar:
-        cbar = fig.colorbar(cm.ScalarMappable(norm=norm), ax=ax)
-        cbar.ax.set_ylabel('Density')
+    @ax.setter
+    def ax(self, ax):
+        self._ax = ax
+        self._xlim = None
+        self._ylim = None
 
-    return fig, ax
+    @property
+    def fig(self):
+        if self._fig is None:
+            self._fig, self._ax = plt.subplots()
+        return self._fig
 
+    @fig.setter
+    def fig(self, fig):
+        self._fig = fig
+        self._xlim = None
+        self._ylim = None
 
-def draw_x_axis(ax, color, linestyle, **kwargs):
-    """ Draws an x-axis on a plot.
-    """
+    @property
+    def xlim(self):
+        if self._xlim is None:
+            self._xlim = deepcopy(self.ax.get_xlim())
+        return self._xlim
 
-    xlim = deepcopy(ax.get_xlim())
-    ax.plot(xlim, [0, 0], label=None, color=color, linestyle=linestyle, **kwargs)
+    @property
+    def ylim(self):
+        if self._ylim is None:
+            self._ylim = deepcopy(self.ax.get_ylim())
+        return self._ylim
 
-    return xlim
+    def density_scatter(self, x, y, sort=True, bins=20, colorbar=False, **kwargs):
+        """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
+            Credit: Guillaume on StackOverflow
+        """
 
+        data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
+        z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
+                    np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
 
-def draw_y_axis(ax, color, linestyle, **kwargs):
-    """ Draws a y-axis on a plot.
-    """
+        # To be sure to plot all data
+        z[np.where(np.isnan(z))] = 0.0
 
-    ylim = deepcopy(ax.get_ylim())
-    ax.plot([0, 0], ylim, label=None, color=color, linestyle=linestyle, **kwargs)
+        # Sort the points by density, so that the densest points are plotted last
+        if sort:
+            idx = z.argsort()
+            x, y, z = x[idx], y[idx], z[idx]
 
-    return ylim
+        self.ax.scatter(x, y, c=z, **kwargs)
 
+        norm = Normalize(vmin=np.min(z), vmax=np.max(z))
+        if colorbar:
+            cbar = self.fig.colorbar(cm.ScalarMappable(norm=norm), ax=self.ax)
+            cbar.ax.set_ylabel('Density')
 
-def draw_axes(ax, color="k", linestyle="solid", **kwargs):
-    """ Draws an x-axis and y-axis on a plot.
-    """
+    def draw_x_axis(self, color="k", linestyle="solid", **kwargs):
+        """ Draws an x-axis on a plot.
+        """
 
-    xlim = draw_x_axis(ax, color, linestyle, **kwargs)
-    ylim = draw_y_axis(ax, color, linestyle, **kwargs)
+        self.ax.plot(self.xlim, [0, 0], label=None, color=color, linestyle=linestyle, **kwargs)
 
-    return xlim, ylim
+    def draw_y_axis(self, color="k", linestyle="solid", **kwargs):
+        """ Draws a y-axis on a plot.
+        """
 
+        self.ax.plot([0, 0], self.ylim, label=None, color=color, linestyle=linestyle, **kwargs)
 
-def draw_bestfit_line(ax, linregress_results, xlim=None, label=None, color="r", linestyle="solid"):
-    """ Draw a line of bestfit on a plot.
-    """
+    def draw_axes(self, color="k", linestyle="solid", **kwargs):
+        """ Draws an x-axis and y-axis on a plot.
+        """
 
-    if xlim is None:
-        xlim = ax.get_xlim()
+        self.draw_x_axis(self, color, linestyle, **kwargs)
+        self.draw_y_axis(self, color, linestyle, **kwargs)
 
-    bestfit_x = np.array(xlim)
-    bestfit_y = linregress_results.slope * bestfit_x + linregress_results.intercept
-    ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
+    def draw_bestfit_line(self, linregress_results, label=None, color="r", linestyle="solid"):
+        """ Draw a line of bestfit on a plot.
+        """
 
-    return xlim
+        bestfit_x = np.array(self.xlim)
+        bestfit_y = linregress_results.slope * bestfit_x + linregress_results.intercept
+        self.ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
