@@ -71,7 +71,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
     # Attributes calculated when plotting methods are called
     _d_bias_measurements = None
-    all_plot_filenames = None
+    _d_bias_plot_filename = None
 
     def __init__(self, gal_matched_table, method, workdir):
 
@@ -99,6 +99,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Set as None attributes to be set when plotting methods are called
         self.d_bias_measurements = None
+        self.d_bias_plot_filename = None
 
     # Property getters and setters
 
@@ -112,6 +113,17 @@ class ShearBiasPlotter(ValidationPlotter):
             self._d_bias_measurements = {}
         else:
             self._d_bias_measurements = d_bias_measurements
+
+    @property
+    def d_bias_plot_filename(self):
+        return self._d_bias_plot_filename
+
+    @d_bias_plot_filename.setter
+    def d_bias_plot_filename(self, d_bias_plot_filename):
+        if d_bias_plot_filename is None:
+            self._d_bias_plot_filename = {}
+        else:
+            self._d_bias_plot_filename = d_bias_plot_filename
 
     @property
     def d_g_in(self):
@@ -148,6 +160,25 @@ class ShearBiasPlotter(ValidationPlotter):
 
     # Callable methods
 
+    def _save_component_plot(self, i):
+        """ Save the plot for bias component i.
+        """
+
+        # Get the filename to save to
+        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL", instance_id=f"{self.method}-g{i}".upper(),
+                                                          extension=PLOT_FORMAT,
+                                                          version=SHE_Validation.__version__)
+        qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
+
+        # Save the figure and close it
+        plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
+                    bbox_inches="tight", pad_inches=0.05)
+        logger.info(f"Saved {self.method} g{i} bias plot to {qualified_bias_plot_filename}")
+        plt.close()
+
+        # Record the filename for this plot in the filenams dict
+        self.d_bias_plot_filename[i] = bias_plot_filename
+
     def plot_component_shear_bias(self, i):
         """ Plot shear bias for an individual component.
         """
@@ -156,10 +187,12 @@ class ShearBiasPlotter(ValidationPlotter):
         g_out = self.d_g_out[i]
         g_out_err = self.d_g_out_err[i]
 
-        # Perform the linear regression and calculate bias
-        linregress_results = linregress_with_errors(x=g_in, y=g_out,
+        # Perform the linear regression, calculate bias, and save it in the bias dict
+        linregress_results = linregress_with_errors(x=g_in,
+                                                    y=g_out,
                                                     y_err=g_out_err)
         bias = BiasMeasurements(linregress_results)
+        self.d_bias_measurements[i] = bias
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Bias measurements for method {self.method}:")
@@ -173,13 +206,11 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Set up the figure, with a density scatter as a base
 
-        self.fig = plt.figure()
-        plot_title = f"{self.method} Shear Estimates: g{i}"
-        self.ax = self.fig.add_subplot(1, 1, 1, label=plot_title)
         self.fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
         self.density_scatter(g_in, g_out, sort=True, bins=20, colorbar=False, s=1)
 
+        plot_title = f"{self.method} Shear Estimates: g{i}"
         plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
         self.ax.set_xlabel(f"True g{i}", fontsize=AXISLABEL_FONTSIZE)
@@ -192,8 +223,7 @@ class ShearBiasPlotter(ValidationPlotter):
         self.draw_bestfit_line(linregress_results)
 
         # Reset the axes
-        self.ax.set_xlim(self.xlim)
-        self.ax.set_ylim(self.ylim)
+        self.reset_axes()
 
         # Write the bias
         self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment='left', verticalalignment='top',
@@ -202,29 +232,12 @@ class ShearBiasPlotter(ValidationPlotter):
                      transform=self.ax.transAxes, fontsize=TEXT_SIZE)
 
         # Save the plot
-        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
-                                                          instance_id=f"{self.method}-g{i}".upper(),
-                                                          extension=PLOT_FORMAT,
-                                                          version=SHE_Validation.__version__)
-        qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
-        plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
-                    bbox_inches="tight", pad_inches=0.05)
-        logger.info(f"Saved {self.method} g{i} bias plot to {qualified_bias_plot_filename}")
-
-        plt.close()
-
-        self.d_bias_measurements[i] = bias
-
-        return bias_plot_filename
+        self._save_component_plot(i)
 
     def plot_shear_bias(self):
         """ Plot shear bias for both components.
         """
 
-        self.all_plot_filenames = []
-
         for i in (1, 2):
 
-            component_plot_filename = self.plot_component_shear_bias(i)
-
-            self.all_plot_filenames.append(component_plot_filename)
+            self.plot_component_shear_bias(i)

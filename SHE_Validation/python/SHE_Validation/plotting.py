@@ -130,3 +130,10 @@ class ValidationPlotter():
         bestfit_x = np.array(self.xlim)
         bestfit_y = linregress_results.slope * bestfit_x + linregress_results.intercept
         self.ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
+
+    def reset_axes(self):
+        """ Resets the axes to saved xlim/ylim from when they were first accessed.
+        """
+
+        self.ax.set_xlim(self.xlim)
+        self.ax.set_ylim(self.ylim)

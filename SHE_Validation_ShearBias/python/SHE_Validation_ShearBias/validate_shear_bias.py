@@ -66,8 +66,10 @@ def validate_shear_bias_from_args(args):
 
             shear_bias_plotter.plot_shear_bias()
 
-            method_bias_measurements = shear_bias_plotter.d_bias_measurements
-            method_plot_filenames = shear_bias_plotter.all_plot_filenames
+            d_method_bias_measurements = shear_bias_plotter.d_bias_measurements
+            d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
+
+            all_plot_filenames += d_method_bias_plot_filename.values()
 
         except Exception as e:
             import traceback
