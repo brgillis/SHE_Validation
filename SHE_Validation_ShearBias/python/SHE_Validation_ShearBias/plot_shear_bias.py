@@ -68,6 +68,7 @@ class ShearBiasPlotter():
     d_g_in = None
     d_g_out = None
     d_g_out_err = None
+    all_plot_filenames = None
 
     def __init__(self, gal_matched_table, method, workdir):
 
@@ -91,7 +92,57 @@ class ShearBiasPlotter():
         self.d_g_out_err = {1: gal_matched_table[self.sem_tf.g1_err][good_rows],
                             2: gal_matched_table[self.sem_tf.g2_err][good_rows]}
 
+    # Property getters and setters
+
+    @property
+    def d_bias_measurements(self):
+        return self._d_bias_measurements
+
+    @d_bias_measurements.setter
+    def d_bias_measurements(self, d_bias_measurements):
+        if d_bias_measurements is None:
+            self._d_bias_measurements = {}
+        else:
+            self.d_bias_measurements = d_bias_measurements
+
+    @property
+    def d_g_in(self):
+        return self._d_g_in
+
+    @d_g_in.setter
+    def d_g_in(self, d_g_in):
+        if d_g_in is None:
+            self._d_g_in = {}
+        else:
+            self.d_g_in = d_g_in
+
+    @property
+    def d_g_out(self):
+        return self._d_g_out
+
+    @d_g_out.setter
+    def d_g_out(self, d_g_out):
+        if d_g_out is None:
+            self._d_g_out = {}
+        else:
+            self.d_g_out = d_g_out
+
+    @property
+    def d_g_out_err(self):
+        return self._d_g_out_err
+
+    @d_g_out_err.setter
+    def d_g_out_err(self, d_g_out_err):
+        if d_g_out_err is None:
+            self._d_g_out_err = {}
+        else:
+            self.d_g_out_err = d_g_out_err
+
+    # Callable methods
+
     def plot_component_shear_bias(self, i):
+        """ Plot shear bias for an individual component.
+        """
 
         g_in = self.d_g_in[i]
         g_out = self.d_g_out[i]
@@ -155,12 +206,12 @@ class ShearBiasPlotter():
 
         plt.close()
 
-        self.bias_measurements[i] = bias
+        self.d_bias_measurements[i] = bias
 
         return bias_plot_filename
 
-    def plot_method_shear_bias(self):
-        """ @TODO Fill in docstring
+    def plot_shear_bias(self):
+        """ Plot shear bias for both components.
         """
 
         self.all_plot_filenames = []

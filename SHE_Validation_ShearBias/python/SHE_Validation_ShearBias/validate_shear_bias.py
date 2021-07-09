@@ -64,7 +64,7 @@ def validate_shear_bias_from_args(args):
 
             shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
 
-            shear_bias_plotter.plot_method_shear_bias()
+            shear_bias_plotter.plot_shear_bias()
 
             method_bias_measurements = shear_bias_plotter.d_bias_measurements
             method_plot_filenames = shear_bias_plotter.all_plot_filenames
