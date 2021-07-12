@@ -1,11 +1,11 @@
-""" @file validate_shear_bias.py
+""" @file plot_shear_bias.py
 
     Created 8 July 2021
 
-    Code to implement shear bias validation test.
+    Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-07-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -165,7 +165,8 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         # Get the filename to save to
-        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL", instance_id=f"{self.method}-g{i}".upper(),
+        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
+                                                          instance_id=f"{self.method}-g{i}-{os.getpid()}".upper(),
                                                           extension=PLOT_FORMAT,
                                                           version=SHE_Validation.__version__)
         qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
