@@ -165,7 +165,8 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         # Get the filename to save to
-        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL", instance_id=f"{self.method}-g{i}".upper(),
+        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
+                                                          instance_id=f"{self.method}-g{i}-{os.getpid()}".upper(),
                                                           extension=PLOT_FORMAT,
                                                           version=SHE_Validation.__version__)
         qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
