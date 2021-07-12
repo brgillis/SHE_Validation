@@ -79,7 +79,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{method}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
 
-        weight = self.merged_object_table[self.g1_colname]
+        weight = self.merged_object_table[self.weight_colname]
         self._good_rows = weight > 0
 
         # Set as None attributes to be set when plotting methods are called
