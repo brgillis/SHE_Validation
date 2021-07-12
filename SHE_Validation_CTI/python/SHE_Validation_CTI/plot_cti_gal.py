@@ -41,7 +41,7 @@ TITLE_FONTSIZE = 12
 AXISLABEL_FONTSIZE = 12
 TEXT_SIZE = 12
 PLOT_FORMAT = "png"
-SLOPE_DIGITS = 3
+SLOPE_DIGITS = 7
 INTERCEPT_DIGITS = 5
 SIGMA_DIGITS = 1
 
@@ -156,12 +156,12 @@ class CtiGalPlotter(ValidationPlotter):
 
         self.fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
-        self.density_scatter(rr_dist, g1, sort=True, bins=20, colorbar=False, s=1)
+        self.density_scatter(rr_dist, g1, sort=True, bins=200, colorbar=False, s=4)
 
         plot_title = f"{self.method} g1 v. Readout Register Distance"
         plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(f"Readout Register Distance", fontsize=AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize=AXISLABEL_FONTSIZE)
         self.ax.set_ylabel(f"g1 (detector coordinates)", fontsize=AXISLABEL_FONTSIZE)
 
         # Draw the x axis

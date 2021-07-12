@@ -64,13 +64,11 @@ class TestCase:
         method = "LensMC"
 
         # Make some mock data
-        m = 1e-5
+        m = 1e-4
         b = -0.2
         g1_err = 0.25
 
-        sigmal_tol = 5  # Pass test if calculations are within 5 sigma
-
-        l = 200000  # Length of good data
+        l = 100000  # Length of good data
         lnan = 5  # Length of bad data
         lzero = 5  # Length of zero-weight data
         ltot = l + lnan + lzero
@@ -103,9 +101,4 @@ class TestCase:
 
         qualified_plot_filename = os.path.join(self.workdir, plotter.cti_gal_plot_filename)
 
-        import pdb
-        pdb.set_trace()
-
         assert os.path.isfile(qualified_plot_filename)
-
-        return
