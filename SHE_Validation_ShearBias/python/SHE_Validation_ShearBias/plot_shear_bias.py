@@ -1,11 +1,11 @@
-""" @file validate_shear_bias.py
+""" @file plot_shear_bias.py
 
     Created 8 July 2021
 
-    Code to implement shear bias validation test.
+    Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-07-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
