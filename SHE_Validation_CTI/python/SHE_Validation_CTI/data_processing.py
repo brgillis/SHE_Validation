@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-07-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -45,6 +45,10 @@ def add_readout_register_distance(object_data_table: table.Table):
         the table.
     """
 
+    # If we already have the data calculated and in the table, return
+    if CGOD_TF.readout_dist in object_data_table.colnames:
+        return
+
     # Get the y-dimension size of the detector from the mdb, and split by half of it
     det_size_y = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
     det_split_y = det_size_y / 2
@@ -53,11 +57,8 @@ def add_readout_register_distance(object_data_table: table.Table):
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    if CGOD_TF.readout_dist in object_data_table.colnames:
-        object_data_table[CGOD_TF.readout_dist] = readout_distance_data
-    else:
-        readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
-        object_data_table.add_column(readout_distance_column)
+    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
+    object_data_table.add_column(readout_distance_column)
 
 
 def calculate_regression_results(object_data_table: table.Table,
