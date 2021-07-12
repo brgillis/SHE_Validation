@@ -186,6 +186,8 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Complete!")
 
+    plot_filenames = []
+
     # Run the validation
     if not args.dry_run:
         (d_exposure_regression_results_tables,
@@ -195,15 +197,14 @@ def run_validate_cti_gal_from_args(args):
                                                  shear_estimate_tables=d_shear_estimate_tables,
                                                  d_bin_limits=d_bin_limits)
 
-    # Make plots of the data
-    plot_filenames = []
-    for method in METHODS:
-        plotter = CtiGalPlotter(l_object_data_table=l_object_data_table,
-                                merged_object_table=merged_object_table,
-                                method=method,
-                                workdir=args.workdir)
-        plotter.plot_cti_gal()
-        plot_filenames.append(plotter.cti_gal_plot_filename)
+        # Make plots of the data
+        for method in METHODS:
+            plotter = CtiGalPlotter(l_object_data_table=l_object_data_table,
+                                    merged_object_table=merged_object_table,
+                                    method=method,
+                                    workdir=args.workdir)
+            plotter.plot_cti_gal()
+            plot_filenames.append(plotter.cti_gal_plot_filename)
 
     # Set up output product
 

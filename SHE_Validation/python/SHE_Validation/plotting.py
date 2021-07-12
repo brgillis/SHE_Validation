@@ -5,7 +5,7 @@
     Common functions to aid with plotting.
 """
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-07-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -99,8 +99,11 @@ class ValidationPlotter():
 
         self.ax.scatter(x, y, c=z, **kwargs)
 
-        norm = Normalize(vmin=np.min(z), vmax=np.max(z))
         if colorbar:
+            if len(z) == 0:
+                norm = Normalize(vmin=0, vmax=1)
+            else:
+                norm = Normalize(vmin=np.min(z), vmax=np.max(z))
             cbar = self.fig.colorbar(cm.ScalarMappable(norm=norm), ax=self.ax)
             cbar.ax.set_ylabel('Density')
 

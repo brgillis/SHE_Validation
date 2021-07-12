@@ -49,8 +49,8 @@ SIGMA_DIGITS = 1
 class CtiGalPlotter(ValidationPlotter):
 
     # Attributes set directly at init
-    l_object_data_table = None
-    merged_object_table = None
+    _l_object_data_table = None
+    _merged_object_table = None
     method = None
     workdir = None
 
@@ -58,6 +58,8 @@ class CtiGalPlotter(ValidationPlotter):
     _g1_colname = None
 
     # Attributes calculated when plotting methods are called
+    _cti_gal_plot_filename = None
+
     def __init__(self, l_object_data_table, merged_object_table, method, workdir):
 
         super().__init__()
@@ -76,6 +78,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
 
         # Set as None attributes to be set when plotting methods are called
+        self._cti_gal_plot_filename = None
 
     # Property getters and setters
 
@@ -99,6 +102,14 @@ class CtiGalPlotter(ValidationPlotter):
         self._merged_object_table = merged_object_table
 
     @property
+    def g1_colname(self):
+        return self._g1_colname
+
+    @property
+    def weight_colname(self):
+        return self._weight_colname
+
+    @property
     def cti_gal_plot_filename(self):
         return self._cti_gal_plot_filename
 
@@ -114,7 +125,7 @@ class CtiGalPlotter(ValidationPlotter):
 
         rr_dist = self.merged_object_table[CGOD_TF.readout_dist]
         g1 = self.merged_object_table[self.g1_colname]
-        g1_err = 1 / np.sqrt(self.merged_object_table[self.weight])
+        g1_err = 1 / np.sqrt(self.merged_object_table[self.weight_colname])
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=rr_dist,
