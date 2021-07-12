@@ -55,7 +55,9 @@ class CtiGalPlotter(ValidationPlotter):
     workdir = None
 
     # Attributes calculated at init
+    _good_rows = None
     _g1_colname = None
+    _weight_colname = None
 
     # Attributes calculated when plotting methods are called
     _cti_gal_plot_filename = None
@@ -66,7 +68,7 @@ class CtiGalPlotter(ValidationPlotter):
 
         # Set attrs directly
         self.l_object_data_table = l_object_data_table
-        if self.merged_object_table is not None:
+        if merged_object_table is not None:
             self.merged_object_table = merged_object_table
         else:
             self.merged_object_table = table.vstack(tables=self.l_object_data_table)
@@ -76,6 +78,9 @@ class CtiGalPlotter(ValidationPlotter):
         # Determine attrs from kwargs
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{method}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
+
+        weight = self.merged_object_table[self.g1_colname]
+        self._good_rows = weight > 0
 
         # Set as None attributes to be set when plotting methods are called
         self._cti_gal_plot_filename = None
@@ -102,6 +107,10 @@ class CtiGalPlotter(ValidationPlotter):
         self._merged_object_table = merged_object_table
 
     @property
+    def good_rows(self):
+        return self._good_rows
+
+    @property
     def g1_colname(self):
         return self._g1_colname
 
@@ -123,9 +132,9 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        rr_dist = self.merged_object_table[CGOD_TF.readout_dist]
-        g1 = self.merged_object_table[self.g1_colname]
-        g1_err = 1 / np.sqrt(self.merged_object_table[self.weight_colname])
+        rr_dist = self.merged_object_table[CGOD_TF.readout_dist][self._good_rows]
+        g1 = self.merged_object_table[self.g1_colname][self._good_rows]
+        g1_err = 1 / np.sqrt(self.merged_object_table[self.weight_colname][self._good_rows])
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=rr_dist,
@@ -186,4 +195,4 @@ class CtiGalPlotter(ValidationPlotter):
         plt.close()
 
         # Record the filename for this plot in the filenams dict
-        self.plot_filename = plot_filename
+        self.cti_gal_plot_filename = plot_filename
