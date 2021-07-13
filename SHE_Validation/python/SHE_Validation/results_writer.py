@@ -434,7 +434,7 @@ class AnalysisWriter():
             fo.write("Dummy data")
         return fo
 
-    def _tar_files(self, qualified_tarball_filename, filenames, delete_files):
+    def _tar_files(self, tarball_filename, filenames, delete_files):
         """ Tar the set of files in {files} into the tarball {qualified_filename}. Optionally delete these files
             afterwards.
         """
@@ -445,20 +445,15 @@ class AnalysisWriter():
         else:
             l_filenames = filenames
 
-        # Get a list of the qualified files to be tarred, and write it in a space-separated string
-        l_qualified_filenames = [None] * len(l_filenames)
-        for i, filename in enumerate(l_filenames):
-            l_qualified_filenames[i] = os.path.join(self.workdir, filename)
-
         # Tar the files into the desired tarball
-        file_io.tar_files(qualified_tarball_filename=qualified_tarball_filename,
-                          l_qualified_filenames=l_qualified_filenames,
+        file_io.tar_files(tarball_filename=tarball_filename,
+                          l_filenames=l_filenames,
+                          workdir=self.workdir,
                           delete_files=delete_files)
 
     def _write_files(self,
                      files,
                      tarball_filename,
-                     qualified_tarball_filename,
                      data_container_attr,
                      write_dummy_files,
                      delete_files):
@@ -470,9 +465,9 @@ class AnalysisWriter():
         if len(files) > 0 or write_dummy_files:
             getattr(self.analysis_object, data_container_attr).FileName = tarball_filename
             if len(files) == 0:
-                self._write_dummy_data(qualified_tarball_filename)
+                self._write_dummy_data(os.path.join(self.workdir, tarball_filename))
             else:
-                self._tar_files(qualified_tarball_filename=qualified_tarball_filename,
+                self._tar_files(tarball_filename=tarball_filename,
                                 filenames=files,
                                 delete_files=delete_files)
         else:
@@ -500,14 +495,12 @@ class AnalysisWriter():
         # Write out textfiles and figures
         self._write_files(files=self.textfiles,
                           tarball_filename=self.textfiles_filename,
-                          qualified_tarball_filename=self.qualified_textfiles_filename,
                           data_container_attr="TextFiles",
                           write_dummy_files=write_dummy_files,
                           delete_files=delete_files)
 
         self._write_files(files=self.figures,
                           tarball_filename=self.figures_filename,
-                          qualified_tarball_filename=self.qualified_figures_filename,
                           data_container_attr="Figures",
                           write_dummy_files=write_dummy_files,
                           delete_files=delete_files)
