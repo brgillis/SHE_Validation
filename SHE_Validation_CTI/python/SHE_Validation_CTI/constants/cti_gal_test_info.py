@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -46,12 +46,12 @@ CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
 class CtiGalTestCases(Enum):
     """ Enum of test cases for this test.
     """
-    GLOBAL = "Global"
-    SNR = "SNR"
-    BG = "Background level"
-    COLOUR = "Colour"
-    SIZE = "Size"
-    EPOCH = "Epoch"
+    GLOBAL = "global"
+    SNR = "snr"
+    BG = "bg"
+    COLOUR = "colour"
+    SIZE = "size"
+    EPOCH = "epoch"
 
 
 CTI_GAL_TEST_CASE_GLOBAL_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
@@ -60,7 +60,7 @@ CTI_GAL_TEST_CASE_GLOBAL_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal"
                                                           "register distance (slope) unbinned."),
                                              bins_cline_arg=None,
                                              bins_config_key=None,
-                                             name="global",
+                                             name=CtiGalTestCases.GLOBAL.value,
                                              comment=None,)
 CTI_GAL_TEST_CASE_SNR_INFO = TestCaseInfo(test_case_id="TC-SHE-100028-CTI-gal-SNR",
                                           description=("Linear dependence of " +
@@ -68,7 +68,7 @@ CTI_GAL_TEST_CASE_SNR_INFO = TestCaseInfo(test_case_id="TC-SHE-100028-CTI-gal-SN
                                                        "distance (slope) in bins of SNR of galaxies."),
                                           bins_cline_arg="snr_bin_limits",
                                           bins_config_key=AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value,
-                                          name="snr",
+                                          name=CtiGalTestCases.SNR.value,
                                           comment=None,)
 CTI_GAL_TEST_CASE_BG_INFO = TestCaseInfo(test_case_id="TC-SHE-100029-CTI-gal-bg",
                                          description=("Linear dependence of residual galaxy ellipticity " +
@@ -76,7 +76,7 @@ CTI_GAL_TEST_CASE_BG_INFO = TestCaseInfo(test_case_id="TC-SHE-100029-CTI-gal-bg"
                                                       "sky background levels."),
                                          bins_cline_arg="bg_bin_limits",
                                          bins_config_key=AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value,
-                                         name="bg",
+                                         name=CtiGalTestCases.BG.value,
                                          comment=BACKGROUND_LEVEL_UNITS)
 CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal-col",
                                              description=("Linear dependence of residual galaxy " +
@@ -84,7 +84,7 @@ CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal
                                                           "(slope) in bins of colour of galaxies."),
                                              bins_cline_arg="colour_bin_limits",
                                              bins_config_key=AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value,
-                                             name="colour",
+                                             name=CtiGalTestCases.COLOUR.value,
                                              comment=COLOUR_DEFINITION)
 CTI_GAL_TEST_CASE_SIZE_INFO = TestCaseInfo(test_case_id="TC-SHE-100031-CTI-gal-size",
                                            description=("Linear dependence of residual galaxy ellipticity " +
@@ -92,7 +92,7 @@ CTI_GAL_TEST_CASE_SIZE_INFO = TestCaseInfo(test_case_id="TC-SHE-100031-CTI-gal-s
                                                         "of size of galaxies."),
                                            bins_cline_arg="size_bin_limits",
                                            bins_config_key=AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value,
-                                           name="size",
+                                           name=CtiGalTestCases.SIZE.value,
                                            comment=SIZE_DEFINITION)
 CTI_GAL_TEST_CASE_EPOCH_INFO = TestCaseInfo(test_case_id="TC-SHE-100032-CTI-gal-epoch",
                                             description=("Linear dependence of residual galaxy " +
@@ -100,7 +100,7 @@ CTI_GAL_TEST_CASE_EPOCH_INFO = TestCaseInfo(test_case_id="TC-SHE-100032-CTI-gal-
                                                          "(slope) in bins of observation epoch"),
                                             bins_cline_arg=None,
                                             bins_config_key=None,
-                                            name="epoch",
+                                            name=CtiGalTestCases.EPOCH.value,
                                             comment=None)
 
 # Create a dict of the test case info

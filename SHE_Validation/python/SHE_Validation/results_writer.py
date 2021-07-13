@@ -242,6 +242,8 @@ class AnalysisWriter():
     _analysis_object = None
     _product_type = None
     _workdir = None
+    _textfiles = None
+    _figures = None
 
     # Attributes set when requested
     _textfiles_filename = None
@@ -255,10 +257,20 @@ class AnalysisWriter():
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
-                 product_type="UNKNOWN-TYPE"):
+                 product_type="UNKNOWN-TYPE",
+                 textfiles: Union[Dict[str, str], List[str]] = None,
+                 figures: Union[Dict[str, str], List[str]] = None):
 
-        # Set attrs from command-line
+        # Set attrs from kwargs
         self._product_type = product_type
+        if textfiles is not None:
+            self._textfiles = textfiles
+        else:
+            self._textfiles = []
+        if figures is not None:
+            self._figures = figures
+        else:
+            self._figures = []
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -462,8 +474,6 @@ class AnalysisWriter():
     # Public methods
 
     def write(self,
-              textfiles=None,
-              figures=None,
               write_directory=True,
               write_dummy_files=False,
               delete_files=True) -> str:
@@ -474,25 +484,20 @@ class AnalysisWriter():
             is written if desired; if dicts are passed, the keys will be written in the directory along with filenames.
         """
 
-        if textfiles is None:
-            textfiles = []
-        if figures is None:
-            figures = []
-
         # Create a directory if desired
         if write_directory:
-            self._write_directory(textfiles, figures)
-            self._add_directory_to_textfiles(textfiles)
+            self._write_directory(self.textfiles, self.figures)
+            self._add_directory_to_textfiles(self.textfiles)
 
         # Write out textfiles and figures
-        self._write_files(files=textfiles,
+        self._write_files(files=self.textfiles,
                           tarball_filename=self.textfiles_filename,
                           qualified_tarball_filename=self.qualified_textfiles_filename,
                           data_container_attr="TextFiles",
                           write_dummy_files=write_dummy_files,
                           delete_files=delete_files)
 
-        self._write_files(files=figures,
+        self._write_files(files=self.figures,
                           tarball_filename=self.figures_filename,
                           qualified_tarball_filename=self.qualified_figures_filename,
                           data_container_attr="Figures",
@@ -519,7 +524,9 @@ class TestCaseWriter():
                  test_case_object=None,
                  test_case_info: TestCaseInfo = None,
                  num_requirements: int = None,
-                 l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None):
+                 l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None,
+                 textfiles: Union[Dict[str, str], List[str]] = None,
+                 figures: Union[Dict[str, str], List[str]] = None):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
@@ -572,7 +579,8 @@ class TestCaseWriter():
         analysis_object.Figures = analysis_figures_object
 
         self._analysis_object = analysis_object
-        self._analysis_writer = self._init_analysis_writer()
+        self._analysis_writer = self._init_analysis_writer(textfiles=textfiles,
+                                                           figures=figures)
 
     # Getters/setters for attributes set at init
     @property
@@ -611,7 +619,7 @@ class TestCaseWriter():
     def analysis_object(self):
         return self._analysis_object
 
-    # Private methods
+    # Private and protected methods
     def _init_requirement_writer(self, **kwargs):
         """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
         """
@@ -683,10 +691,14 @@ class ValidationResultsWriter():
     _l_test_case_writers = None
     _l_test_case_objects = None
     _workdir = None
+    _textfiles = None
+    _figures = None
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
+                 textfiles: Union[Dict[str, str], List[str]] = None,
+                 figures: Union[Dict[str, str], List[str]] = None,
                  num_test_cases: int = 1,
                  l_test_case_info: Union[TestCaseInfo, List[TestCaseInfo]] = None):
 
@@ -716,9 +728,26 @@ class ValidationResultsWriter():
 
         for i, test_case_info in enumerate(l_test_case_info):
 
+            # Get the proper textfiles and figures for this test case
+            test_case_textfiles = None
+            if isinstance(textfiles, dict):
+                if test_case_info.name in textfiles:
+                    test_case_textfiles = textfiles[test_case_info.name]
+            elif textfiles is not None:
+                test_case_textfiles = textfiles[i]
+            test_case_figures = None
+            if isinstance(figures, dict):
+                if test_case_info.name in figures:
+                    test_case_figures = figures[test_case_info.name]
+            elif figures is not None:
+                test_case_figures = figures[i]
+
+            # Create a test case writer and keep it in the list of writers
             test_case_object = deepcopy(base_test_case_object)
             self.l_test_case_writers[i] = self._init_test_case_writer(test_case_object=test_case_object,
-                                                                      test_case_info=test_case_info)
+                                                                      test_case_info=test_case_info,
+                                                                      test_case_textfiles=test_case_textfiles,
+                                                                      test_case_figures=test_case_figures)
 
             self.l_test_case_objects[i] = test_case_object
 

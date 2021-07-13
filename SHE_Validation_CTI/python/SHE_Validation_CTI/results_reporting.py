@@ -21,7 +21,7 @@ __updated__ = "2021-07-13"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, List,  Any, Callable, Tuple
+from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
@@ -490,6 +490,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     pipeline_config: Dict[str, Any],
                                     d_bin_limits: Dict[str, np.ndarray],
                                     workdir: str,
+                                    figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                   List[Union[Dict[str, str], List[str]]], ] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -506,6 +508,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         d_regression_results_tables=d_regression_results_tables,
                                                         fail_sigma_calculator=fail_sigma_calculator,
                                                         d_bin_limits=d_bin_limits,
-                                                        method_data_exists=method_data_exists)
+                                                        method_data_exists=method_data_exists,
+                                                        figures=figures)
 
     test_results_writer.write()

@@ -4,6 +4,22 @@
 
     Primary function code for performing CTI-Gal validation
 """
+
+__updated__ = "2021-07-13"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from os.path import join
 from typing import Dict
 
@@ -32,22 +48,6 @@ from .data_processing import add_readout_register_distance, calculate_regression
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import initialise_regression_results_table
-
-
-__updated__ = "2021-07-12"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
 logger = getLogger(__name__)
@@ -186,7 +186,7 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Complete!")
 
-    plot_filenames = []
+    plot_filenames = {}
 
     # Run the validation
     if not args.dry_run:
@@ -204,7 +204,7 @@ def run_validate_cti_gal_from_args(args):
                                     method=method,
                                     workdir=args.workdir)
             plotter.plot_cti_gal()
-            plot_filenames.append(plotter.cti_gal_plot_filename)
+            plot_filenames[f"{method}-{CtiGalTestCases.GLOBAL.value}"] = plotter.cti_gal_plot_filename
 
     # Set up output product
 
@@ -273,6 +273,7 @@ def run_validate_cti_gal_from_args(args):
                                         d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=pipeline_config,
                                         d_bin_limits=d_bin_limits,
+                                        figures=plot_filenames,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
