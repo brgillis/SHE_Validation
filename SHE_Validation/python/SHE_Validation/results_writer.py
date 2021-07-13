@@ -306,6 +306,14 @@ class AnalysisWriter():
     def workdir(self, a):
         self._workdir = a
 
+    @property
+    def textfiles(self):
+        return self._textfiles
+
+    @property
+    def figures(self):
+        return self._figures
+
     # Getters/setters for attributes set when requested
     @property
     def textfiles_filename(self):
@@ -485,7 +493,7 @@ class AnalysisWriter():
         """
 
         # Create a directory if desired
-        if write_directory:
+        if write_directory and len(self.textfiles) + len(self.figures) > 0:
             self._write_directory(self.textfiles, self.figures)
             self._add_directory_to_textfiles(self.textfiles)
 
@@ -734,20 +742,26 @@ class ValidationResultsWriter():
                 if test_case_info.name in textfiles:
                     test_case_textfiles = textfiles[test_case_info.name]
             elif textfiles is not None:
-                test_case_textfiles = textfiles[i]
+                try:
+                    test_case_textfiles = textfiles[i]
+                except IndexError:
+                    pass
             test_case_figures = None
             if isinstance(figures, dict):
                 if test_case_info.name in figures:
                     test_case_figures = figures[test_case_info.name]
             elif figures is not None:
-                test_case_figures = figures[i]
+                try:
+                    test_case_figures = figures[i]
+                except IndexError:
+                    pass
 
             # Create a test case writer and keep it in the list of writers
             test_case_object = deepcopy(base_test_case_object)
             self.l_test_case_writers[i] = self._init_test_case_writer(test_case_object=test_case_object,
                                                                       test_case_info=test_case_info,
-                                                                      test_case_textfiles=test_case_textfiles,
-                                                                      test_case_figures=test_case_figures)
+                                                                      textfiles=test_case_textfiles,
+                                                                      figures=test_case_figures)
 
             self.l_test_case_objects[i] = test_case_object
 

@@ -330,14 +330,16 @@ class CtiGalTestCaseWriter(TestCaseWriter):
     def __init__(self,
                  parent_validation_writer: "CtiGalValidationResultsWriter",
                  test_case_object,
-                 test_case_info: TestCaseInfo):
+                 test_case_info: TestCaseInfo,
+                 *args, **kwargs):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
-                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
+                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO,
+                         *args, **kwargs)
 
     def _init_requirement_writer(self, **kwargs) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
@@ -359,12 +361,13 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
                  d_bin_limits: Dict[str, np.ndarray],
-                 method_data_exists: bool = True,):
+                 method_data_exists: bool = True,
+                 *args, **kwargs):
 
         super().__init__(test_object=test_object,
                          workdir=workdir,
                          num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES,
-                         l_test_case_info=None)
+                         l_test_case_info=None, *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
         self.d_regression_results_tables = d_regression_results_tables

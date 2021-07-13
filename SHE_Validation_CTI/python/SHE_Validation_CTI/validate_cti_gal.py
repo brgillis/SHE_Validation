@@ -186,7 +186,7 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Complete!")
 
-    plot_filenames = {}
+    plot_filenames = [{}]
 
     # Run the validation
     if not args.dry_run:
@@ -204,7 +204,7 @@ def run_validate_cti_gal_from_args(args):
                                     method=method,
                                     workdir=args.workdir)
             plotter.plot_cti_gal()
-            plot_filenames[f"{method}-{CtiGalTestCases.GLOBAL.value}"] = plotter.cti_gal_plot_filename
+            plot_filenames[0][f"{method}-{CtiGalTestCases.GLOBAL.value}"] = plotter.cti_gal_plot_filename
 
     # Set up output product
 
