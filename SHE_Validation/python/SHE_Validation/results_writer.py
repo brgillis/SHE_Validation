@@ -318,7 +318,8 @@ class AnalysisWriter():
     @property
     def textfiles_filename(self):
         if self._textfiles_filename is None:
-            self._textfiles_filename = file_io.get_allowed_filename(type_name=self.product_type, instance_id="TEXTFILES",
+            self._textfiles_filename = file_io.get_allowed_filename(type_name=self.product_type,
+                                                                    instance_id=f"TEXTFILES-{os.getpid()}",
                                                                     extension=".tar.gz",
                                                                     version=__version__)
         return self._textfiles_filename
@@ -335,7 +336,8 @@ class AnalysisWriter():
     @property
     def figures_filename(self):
         if self._figures_filename is None:
-            self._figures_filename = file_io.get_allowed_filename(type_name=self.product_type, instance_id="FIGURES",
+            self._figures_filename = file_io.get_allowed_filename(type_name=self.product_type,
+                                                                  instance_id=f"FIGURES-{os.getpid()}",
                                                                   extension=".tar.gz",
                                                                   version=__version__)
         return self._figures_filename

@@ -314,6 +314,10 @@ class CtiGalAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for this test.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
+                         *args, **kwargs)
+
     def _generate_directory_filename(self):
         """ Overriding method to generate a filename for a directory file.
         """

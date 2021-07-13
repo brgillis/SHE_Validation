@@ -4,23 +4,8 @@
 
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
-
-__updated__ = "2021-05-04"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 import os
+import subprocess
 import time
 
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
@@ -35,8 +20,25 @@ import pytest
 from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
 from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
+from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
+
+
+__updated__ = "2021-07-13"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
 # Pipeline config filename
@@ -110,15 +112,11 @@ class TestCase:
                               config_filename=PIPELINE_CONFIG_FILENAME,
                               workdir=cls.args.workdir)
 
-        return
-
     @classmethod
     def teardown_class(cls):
 
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
-
-        return
 
     def test_cti_gal_dry_run(self):
 
@@ -128,8 +126,6 @@ class TestCase:
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
-
-        return
 
     def test_cti_gal_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
@@ -143,4 +139,30 @@ class TestCase:
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
 
-        return
+        # Check the resulting data product and plot exist
+
+        workdir = self.args.workdir
+        output_filename = os.path.join(workdir, self.args.she_observation_validation_test_results_product)
+
+        assert os.path.isfile(output_filename)
+
+        p = read_xml_product(xml_filename=output_filename)
+
+        textfiles_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.TextFiles.FileName
+        figures_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.Figures.FileName
+
+        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
+            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+
+        qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
+        plot_filename = None
+        with open(qualified_directory_filename, "r") as fi:
+            for line in fi:
+                if line[0] == "#":
+                    continue
+                key, value = line.strip().split(": ")
+                if key == "LensMC-global":
+                    plot_filename = value
+
+        assert plot_filename is not None
+        assert os.path.isfile(os.path.join(workdir, plot_filename))
