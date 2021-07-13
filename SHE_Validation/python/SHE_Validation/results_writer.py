@@ -385,7 +385,7 @@ class AnalysisWriter():
             self._generate_directory_filename()
 
         # Write out the directory file
-        with open(self.qualified_directory_filename) as fo:
+        with open(self.qualified_directory_filename, "w") as fo:
 
             # Write the header using the possible-overloaded method self._get_directory_header()
             fo.write(f"{self._get_directory_header()}\n")
@@ -474,6 +474,11 @@ class AnalysisWriter():
             'textfiles' and 'figures' should either be None (for no files), lists of filenames, or dicts. A directory
             is written if desired; if dicts are passed, the keys will be written in the directory along with filenames.
         """
+
+        if textfiles is None:
+            textfiles = []
+        if figures is None:
+            figures = []
 
         # Create a directory if desired
         if write_directory:
