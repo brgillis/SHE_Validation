@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-01"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,10 +22,12 @@ __updated__ = "2021-07-01"
 
 from copy import deepcopy
 import os
+import subprocess
 from typing import List, Union, Dict, Any, Callable
 
-from SHE_PPT.file_io import get_allowed_filename
+from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
+from future.builtins.misc import isinstance
 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
@@ -35,6 +37,15 @@ from .test_info import RequirementInfo, TestCaseInfo
 
 
 logger = getLogger(__name__)
+
+# Constants related to writing directory files
+
+DEFAULT_DIRECTORY_FILENAME = "SheAnalysisResultsDirectory.txt"
+DEFAULT_DIRECTORY_HEADER = "### OU-SHE Analysis Results Directory ###"
+TEXTFILES_SECTION_HEADER = "# Textfiles:"
+FIGURES_SECTION_HEADER = "# Figures:"
+DIRECTORY_KEY = "Directory"
+
 
 # Define constants for various messages
 
@@ -239,6 +250,10 @@ class AnalysisWriter():
     _figures_filename = None
     _qualified_figures_filename = None
 
+    # Attributes set when write is called
+    _directory_filename = None
+    _qualified__directory_filename = None
+
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type="UNKNOWN-TYPE"):
@@ -284,9 +299,9 @@ class AnalysisWriter():
     @property
     def textfiles_filename(self):
         if self._textfiles_filename is None:
-            self._textfiles_filename = get_allowed_filename(type_name=self.product_type, instance_id="TEXTFILES",
-                                                            extension=".tar.gz",
-                                                            version=__version__)
+            self._textfiles_filename = file_io.get_allowed_filename(type_name=self.product_type, instance_id="TEXTFILES",
+                                                                    extension=".tar.gz",
+                                                                    version=__version__)
         return self._textfiles_filename
 
     @property
@@ -301,9 +316,9 @@ class AnalysisWriter():
     @property
     def figures_filename(self):
         if self._figures_filename is None:
-            self._figures_filename = get_allowed_filename(type_name=self.product_type, instance_id="FIGURES",
-                                                          extension=".tar.gz",
-                                                          version=__version__)
+            self._figures_filename = file_io.get_allowed_filename(type_name=self.product_type, instance_id="FIGURES",
+                                                                  extension=".tar.gz",
+                                                                  version=__version__)
         return self._figures_filename
 
     @property
@@ -315,25 +330,170 @@ class AnalysisWriter():
                 raise ValueError("Qualified figures filename cannot be determined when workdir is None.")
         return self._qualified_figures_filename
 
+    @property
+    def directory_filename(self):
+        return self._directory_filename
+
+    @directory_filename.setter
+    def directory_filename(self, directory_filename):
+
+        # Unset _qualified_directory_filename
+        self._qualified_directory_filename = None
+
+        self._directory_filename = directory_filename
+
+    @property
+    def qualified_directory_filename(self):
+        if self.directory_filename is None:
+            return None
+        if self._qualified_directory_filename is None:
+            if self.workdir is not None:
+                self._qualified_directory_filename = os.path.join(self.workdir, self.directory_filename)
+            else:
+                raise ValueError("Qualified directory filename cannot be determined when workdir is None.")
+        return self._qualified_directory_filename
+
+    # Private and protected methods
+    def _generate_directory_filename(self):
+        """ Overridable method to generate a filename for a directory file.
+        """
+        self.directory_filename = DEFAULT_DIRECTORY_FILENAME
+
+    def _get_directory_header(self):
+        """ Overridable method to get the desired header for a directory file.
+        """
+        return DEFAULT_DIRECTORY_HEADER
+
+    def _write_filenames_to_directory(self, fo, filenames):
+        """ Write a dict or list of filenames to an open, writable directory file,
+            with different functionality depending on if a list or dict is passed.
+        """
+
+        if isinstance(filenames, dict):
+            # Write out the key for each file and its filename
+            for key, filename in filenames.items():
+                fo.write(f"{key}: {filename}\n")
+        else:
+            # Write the string representation of each filename
+            for filename in filenames.items():
+                fo.write(f"{filename}\n")
+
+    def _write_directory(self, textfiles, figures):
+
+        # Generate a filename for the directory if needed
+        if self._directory_filename is None:
+            self._generate_directory_filename()
+
+        # Write out the directory file
+        with open(self.qualified_directory_filename) as fo:
+
+            # Write the header using the possible-overloaded method self._get_directory_header()
+            fo.write(f"{self._get_directory_header()}\n")
+
+            # Write a comment for the start of the textfiles section, then write out the textfile filenames
+            fo.write(f"{TEXTFILES_SECTION_HEADER}\n")
+            self._write_filenames_to_directory(fo, textfiles)
+
+            # Write a comment for the start of the figures section, then write out the figure filenames
+            fo.write(f"{FIGURES_SECTION_HEADER}\n")
+            self._write_filenames_to_directory(fo, figures)
+
+    def _add_directory_to_textfiles(self, textfiles):
+        """ Adds the directory filename to a dict or list of textfiles.
+        """
+
+        if isinstance(textfiles, dict):
+            textfiles[DIRECTORY_KEY] = self.directory_filename
+        else:
+            textfiles.append(self.directory_filename)
+
+    @staticmethod
+    def _write_dummy_data(qualified_filename):
+        """ Write dummy data to a file.
+        """
+        with open(qualified_filename, "w") as fo:
+            fo.write("Dummy data")
+        return fo
+
+    def _tar_files(self, qualified_tarball_filename, filenames, delete_files):
+        """ Tar the set of files in {files} into the tarball {qualified_filename}. Optionally delete these files
+            afterwards.
+        """
+
+        # Get a list of the files
+        if isinstance(filenames, dict):
+            l_filenames = list(filenames.values())
+        else:
+            l_filenames = filenames
+
+        # Get a list of the qualified files to be tarred, and write it in a space-separated string
+        l_qualified_filenames = [None] * len(l_filenames)
+        for i, filename in enumerate(l_filenames):
+            l_qualified_filenames[i] = os.path.join(self.workdir, filename)
+
+        # Tar the files into the desired tarball
+        file_io.tar_files(qualified_tarball_filename=qualified_tarball_filename,
+                          l_qualified_filenames=l_qualified_filenames,
+                          delete_files=delete_files)
+
+    def _write_files(self,
+                     files,
+                     tarball_filename,
+                     qualified_tarball_filename,
+                     data_container_attr,
+                     write_dummy_files,
+                     delete_files):
+        """ Tar a set of files and update the data product with the filename of the tarball. Optionally delete
+            files now included in the tarball.
+        """
+
+        # Check if we will be creating a file we want to point the data product to
+        if len(files) > 0 or write_dummy_files:
+            getattr(self.analysis_object, data_container_attr).FileName = tarball_filename
+            if len(files) == 0:
+                self._write_dummy_data(qualified_tarball_filename)
+            else:
+                self._tar_files(qualified_tarball_filename=qualified_tarball_filename,
+                                filenames=files,
+                                delete_files=delete_files)
+        else:
+            # No file for the data product, so set the attribute to None
+            setattr(self.analysis_object, data_container_attr, None)
+
     # Public methods
+
     def write(self,
-              write_dummy_files=True) -> str:
+              textfiles=None,
+              figures=None,
+              write_directory=True,
+              write_dummy_files=False,
+              delete_files=True) -> str:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
 
-            It is assumed that subclasses will override this, then call this with
-            super().write(write_dummy_files=False).
+            'textfiles' and 'figures' should either be None (for no files), lists of filenames, or dicts. A directory
+            is written if desired; if dicts are passed, the keys will be written in the directory along with filenames.
         """
 
-        self.analysis_object.TextFiles.FileName = self.textfiles_filename
-        self.analysis_object.Figures.FileName = self.figures_filename
+        # Create a directory if desired
+        if write_directory:
+            self._write_directory(textfiles, figures)
+            self._add_directory_to_textfiles(textfiles)
 
-        if write_dummy_files:
-            os.makedirs(os.path.split(self.qualified_textfiles_filename)[0], exist_ok=True)
-            with open(self.qualified_textfiles_filename, "w") as fo:
-                fo.write("Dummy data")
-            with open(self.qualified_figures_filename, "w") as fo:
-                fo.write("Dummy data")
+        # Write out textfiles and figures
+        self._write_files(files=textfiles,
+                          tarball_filename=self.textfiles_filename,
+                          qualified_tarball_filename=self.qualified_textfiles_filename,
+                          data_container_attr="TextFiles",
+                          write_dummy_files=write_dummy_files,
+                          delete_files=delete_files)
+
+        self._write_files(files=figures,
+                          tarball_filename=self.figures_filename,
+                          qualified_tarball_filename=self.qualified_figures_filename,
+                          data_container_attr="Figures",
+                          write_dummy_files=write_dummy_files,
+                          delete_files=delete_files)
 
 
 class TestCaseWriter():
