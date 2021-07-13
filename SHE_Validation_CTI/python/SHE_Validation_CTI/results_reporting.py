@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-06-30"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,10 +29,9 @@ from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 from astropy import table
 import scipy.stats
 
-from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, TestCaseWriter,
-                                           ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE,
-                                           MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
+from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
+                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
+                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
 from SHE_Validation.test_info import TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
@@ -56,6 +55,9 @@ DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versu
 
 MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
+
+CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
+CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
 
 
 class FailSigmaCalculator():
@@ -308,6 +310,21 @@ class CtiGalRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
+class CtiGalAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+    """
+
+    def _generate_directory_filename(self):
+        """ Overriding method to generate a filename for a directory file.
+        """
+        self.directory_filename = CTI_GAL_DIRECTORY_FILENAME
+
+    def _get_directory_header(self):
+        """ Overriding method to get the desired header for a directory file.
+        """
+        return CTI_GAL_DIRECTORY_HEADER
+
+
 class CtiGalTestCaseWriter(TestCaseWriter):
 
     def __init__(self,
@@ -326,6 +343,11 @@ class CtiGalTestCaseWriter(TestCaseWriter):
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
         return CtiGalRequirementWriter(self, **kwargs)
+
+    def _init_analysis_writer(self, **kwargs) -> CtiGalAnalysisWriter:
+        """ We override the _init_analysis_writer method to create a writer of the inherited type.
+        """
+        return CtiGalAnalysisWriter(self, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):

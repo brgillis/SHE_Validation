@@ -22,7 +22,6 @@ __updated__ = "2021-07-13"
 
 from copy import deepcopy
 import os
-import subprocess
 from typing import List, Union, Dict, Any, Callable
 
 from SHE_PPT import file_io
@@ -41,7 +40,7 @@ logger = getLogger(__name__)
 # Constants related to writing directory files
 
 DEFAULT_DIRECTORY_FILENAME = "SheAnalysisResultsDirectory.txt"
-DEFAULT_DIRECTORY_HEADER = "### OU-SHE Analysis Results Directory ###"
+DEFAULT_DIRECTORY_HEADER = "### OU-SHE Analysis Results File Directory ###"
 TEXTFILES_SECTION_HEADER = "# Textfiles:"
 FIGURES_SECTION_HEADER = "# Figures:"
 DIRECTORY_KEY = "Directory"
