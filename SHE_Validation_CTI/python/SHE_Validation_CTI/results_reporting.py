@@ -328,7 +328,7 @@ class CtiGalAnalysisWriter(AnalysisWriter):
 class CtiGalTestCaseWriter(TestCaseWriter):
 
     def __init__(self,
-                 parent_validation_writer,
+                 parent_validation_writer: "CtiGalValidationResultsWriter",
                  test_case_object,
                  test_case_info: TestCaseInfo):
         """ We override __init__ since we'll be using a known set of requirement info.
