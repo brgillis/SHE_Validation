@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-06-30"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -60,6 +60,7 @@ class TestCase:
     def setup(self, tmpdir):
 
         self.workdir = tmpdir.strpath
+        os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
         self.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,

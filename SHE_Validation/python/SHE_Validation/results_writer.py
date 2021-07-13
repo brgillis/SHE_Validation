@@ -375,7 +375,7 @@ class AnalysisWriter():
                 fo.write(f"{key}: {filename}\n")
         else:
             # Write the string representation of each filename
-            for filename in filenames.items():
+            for filename in filenames:
                 fo.write(f"{filename}\n")
 
     def _write_directory(self, textfiles, figures):
