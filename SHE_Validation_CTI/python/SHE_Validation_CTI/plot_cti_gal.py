@@ -90,7 +90,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
 
         self.bin_limits = d_bin_limits[test_case][bin_index:bin_index + 2]
-        rows_in_bin = get_rows_in_bin(self.object_data_table, self.test_case, self.bin_limits)
+        rows_in_bin = get_rows_in_bin(self.object_table, self.test_case, self.bin_limits)
 
         weight = self.object_table[self.weight_colname]
         self._good_rows = np.logical_and(weight > 0, rows_in_bin)
@@ -134,9 +134,19 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        rr_dist = self.object_table[CGOD_TF.readout_dist][self._good_rows]
-        g1 = self.object_table[self.g1_colname][self._good_rows]
-        g1_err = 1 / np.sqrt(self.object_table[self.weight_colname][self._good_rows])
+        # Check if there's any valid data for this bin
+        if sum(self.good_rows) == 0:
+            # We'll always make the global plot for testing purposes, but log a warning if no data
+            if self.test_case == CtiGalTestCases.GLOBAL:
+                logger.warning(f"No valid data to plot for method {self.method} and test case "
+                               f"{self.test_case.value}, but making plot anyway for testing purposes.")
+            else:
+                logger.info(f"No valid data to plot for method {self.method}, test case "
+                            f"{self.test_case.value}, bin {self.bin_limits}, so skipping plot.")
+
+        rr_dist = self.object_table[CGOD_TF.readout_dist][self.good_rows]
+        g1 = self.object_table[self.g1_colname][self.good_rows]
+        g1_err = 1 / np.sqrt(self.object_table[self.weight_colname][self.good_rows])
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=rr_dist,
