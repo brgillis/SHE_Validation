@@ -135,13 +135,13 @@ class CtiGalPlotter(ValidationPlotter):
         """
 
         # Check if there's any valid data for this bin
-        if sum(self.good_rows) == 0:
+        if sum(self.good_rows) <= 1:
             # We'll always make the global plot for testing purposes, but log a warning if no data
             if self.test_case == CtiGalTestCases.GLOBAL:
-                logger.warning(f"No valid data to plot for method {self.method} and test case "
+                logger.warning(f"Insufficient valid data to plot for method {self.method} and test case "
                                f"{self.test_case.value}, but making plot anyway for testing purposes.")
             else:
-                logger.info(f"No valid data to plot for method {self.method}, test case "
+                logger.info(f"Insufficient valid valid data to plot for method {self.method}, test case "
                             f"{self.test_case.value}, bin {self.bin_limits}, so skipping plot.")
 
         rr_dist = self.object_table[CGOD_TF.readout_dist][self.good_rows]
