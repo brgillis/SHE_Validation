@@ -25,7 +25,7 @@ from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
-__updated__ = "2021-07-13"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -161,7 +161,7 @@ class TestCase:
                 if line[0] == "#":
                     continue
                 key, value = line.strip().split(": ")
-                if key == "LensMC-global":
+                if key == "LensMC-global-0":
                     plot_filename = value
 
         assert plot_filename is not None

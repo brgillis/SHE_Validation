@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-07-12"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -61,9 +61,37 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
 
+def get_rows_in_bin(object_data_table, test_case, bin_limits):
+    """ Get an array of good indices based on the test_case and bin_limits
+    """
+
+    if test_case == CtiGalTestCases.GLOBAL:
+
+        # Set all to True
+        rows_in_bin = np.ones(len(object_data_table), dtype=bool)
+
+    elif test_case == CtiGalTestCases.EPOCH:
+
+        # Not yet implemented, so set all to False
+        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
+
+    else:
+
+        colname = getattr(CGOD_TF, D_CTI_GAL_TEST_CASE_INFO[test_case].name)
+        if not colname in object_data_table.colnames:
+            raise ValueError(
+                f"Column {colname} is not preset in object_data_table - make sure it's added earlier " + "in the code.")
+        column = object_data_table[colname]
+
+        # Get the column name of this property from the table format and check it exists
+        rows_in_bin = np.logical_and(column >= bin_limits[0], column < bin_limits[1])
+
+    return rows_in_bin
+
+
 def calculate_regression_results(object_data_table: table.Table,
                                  product_type: str = "UNKNOWN",
-                                 test_case: str = CtiGalTestCases.GLOBAL,
+                                 test_case: CtiGalTestCases = CtiGalTestCases.GLOBAL,
                                  bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
@@ -74,21 +102,7 @@ def calculate_regression_results(object_data_table: table.Table,
 
     rr_row = regression_results_table[0]
 
-    # Get an array of good indices based on the test_case and bin_limits
-    if test_case == CtiGalTestCases.GLOBAL:
-        # Set all to True
-        rows_in_bin = np.ones(len(object_data_table), dtype=bool)
-    elif test_case == CtiGalTestCases.EPOCH:
-        # Not yet implemented, so set all to False
-        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
-    else:
-        # Get the column name of this property from the table format and check it exists
-        colname = getattr(CGOD_TF, D_CTI_GAL_TEST_CASE_INFO[test_case].name)
-        if not colname in object_data_table.colnames:
-            raise ValueError(f"Column {colname} is not preset in object_data_table - make sure it's added earlier " +
-                             "in the code.")
-        column = object_data_table[colname]
-        rows_in_bin = np.logical_and(column >= bin_limits[0], column < bin_limits[1])
+    rows_in_bin = get_rows_in_bin(object_data_table, test_case, bin_limits)
 
     object_data_table_in_bin = object_data_table[rows_in_bin]
 
