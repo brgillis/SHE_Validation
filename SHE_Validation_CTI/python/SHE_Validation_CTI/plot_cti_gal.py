@@ -154,7 +154,7 @@ class CtiGalPlotter(ValidationPlotter):
                                                     y_err=g1_err)
 
         # Log the bias measurements, and save these strings for the plot
-        logger.info(f"Global linear regression for method {self.method}, test case {self.test_case.value}, "
+        logger.info(f"Linear regression for method {self.method}, test case {self.test_case.value}, "
                     f"bin {self.bin_limits}:")
         d_linregress_strings = {}
         for a, d in ("slope", SLOPE_DIGITS), ("intercept", INTERCEPT_DIGITS):
