@@ -4,6 +4,24 @@
 
     Unit tests of the plot_cti_gal.py module
 """
+import os
+import time
+
+from SHE_PPT import mdb
+from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
+from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
+from SHE_PPT.logging import getLogger
+from astropy import table
+import pytest
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
+from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+import numpy as np
+
 
 __updated__ = "2021-07-14"
 
@@ -19,22 +37,6 @@ __updated__ = "2021-07-14"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-import os
-import time
-
-from SHE_PPT import mdb
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
-from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
-from SHE_PPT.logging import getLogger
-from astropy import table
-import pytest
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
-import numpy as np
 
 
 class TestCase:
@@ -93,6 +95,9 @@ class TestCase:
         # Run the plotting
         plotter = CtiGalPlotter(object_table=object_data_table,
                                 method=method,
+                                test_case=CtiGalTestCases.GLOBAL,
+                                d_bin_limits={CtiGalTestCases.GLOBAL: DEFAULT_BIN_LIMITS},
+                                bin_index=0,
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
 
