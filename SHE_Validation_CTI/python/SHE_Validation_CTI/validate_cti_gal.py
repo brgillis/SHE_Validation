@@ -187,15 +187,14 @@ def run_validate_cti_gal_from_args(args):
 
     logger.info("Complete!")
 
-    plot_filenames = [{}]
-
     # Run the validation
     if not args.dry_run:
         (d_exposure_regression_results_tables,
-         d_observation_regression_results_tables) = validate_cti_gal(data_stack=data_stack,
-                                                                     shear_estimate_tables=d_shear_estimate_tables,
-                                                                     d_bin_limits=d_bin_limits,
-                                                                     workdir=args.workdir)
+         d_observation_regression_results_tables,
+         plot_filenames) = validate_cti_gal(data_stack=data_stack,
+                                            shear_estimate_tables=d_shear_estimate_tables,
+                                            d_bin_limits=d_bin_limits,
+                                            workdir=args.workdir)
 
     # Set up output product
 
@@ -369,4 +368,4 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return (d_exposure_regression_results_tables, d_observation_regression_results_tables,)
+    return (d_exposure_regression_results_tables, d_observation_regression_results_tables, plot_filenames)
