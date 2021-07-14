@@ -4,22 +4,6 @@
 
     Primary function code for performing CTI-Gal validation
 """
-
-__updated__ = "2021-07-14"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 from os.path import join
 from typing import Dict
 
@@ -36,6 +20,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
+from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
@@ -48,6 +33,22 @@ from .data_processing import add_readout_register_distance, calculate_regression
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import initialise_regression_results_table
+
+
+__updated__ = "2021-07-14"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
 logger = getLogger(__name__)
@@ -191,20 +192,10 @@ def run_validate_cti_gal_from_args(args):
     # Run the validation
     if not args.dry_run:
         (d_exposure_regression_results_tables,
-         d_observation_regression_results_tables,
-         l_object_data_table,
-         merged_object_table) = validate_cti_gal(data_stack=data_stack,
-                                                 shear_estimate_tables=d_shear_estimate_tables,
-                                                 d_bin_limits=d_bin_limits)
-
-        # Make plots of the data
-        for method in METHODS:
-            plotter = CtiGalPlotter(l_object_data_table=l_object_data_table,
-                                    object_table=merged_object_table,
-                                    method=method,
-                                    workdir=args.workdir)
-            plotter.plot_cti_gal()
-            plot_filenames[0][f"{method}-{CtiGalTestCases.GLOBAL.value}"] = plotter.cti_gal_plot_filename
+         d_observation_regression_results_tables) = validate_cti_gal(data_stack=data_stack,
+                                                                     shear_estimate_tables=d_shear_estimate_tables,
+                                                                     d_bin_limits=d_bin_limits,
+                                                                     workdir=args.workdir)
 
     # Set up output product
 
@@ -298,7 +289,8 @@ def run_validate_cti_gal_from_args(args):
 
 def validate_cti_gal(data_stack: SHEFrameStack,
                      shear_estimate_tables: Dict[str, table.Table],
-                     d_bin_limits: Dict[str, np.ndarray]):
+                     d_bin_limits: Dict[str, np.ndarray],
+                     workdir: str):
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
@@ -314,11 +306,15 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_exposure_regression_results_tables = {}
     d_observation_regression_results_tables = {}
+    plot_filenames = [None] * NUM_CTI_GAL_TEST_CASES
 
-    for test_case in d_bin_limits:
+    for test_case_index, test_case in enumerate(CtiGalTestCases):
 
+        # Initialise for this test case
+        plot_filenames[test_case_index] = {}
         test_case_bin_limits = d_bin_limits[test_case]
         num_bins = len(test_case_bin_limits) - 1
+
         # Double check we have at least one bin
         assert num_bins >= 1
 
@@ -327,7 +323,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
         for bin_index in range(num_bins):
 
-            # We'll now loop over the table for each exposure, eventually getting regression results for each
+            # We'll now loop over the table for each exposure, eventually getting regression results and plots
+            # for each
 
             exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
 
@@ -342,6 +339,18 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                bin_limits=test_case_bin_limits[
                                                                                    bin_index:bin_index + 2])[0]
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
+
+                # Make a plot for each method
+                for method in METHODS:
+                    plotter = CtiGalPlotter(object_table=object_data_table,
+                                            method=method,
+                                            test_case=test_case,
+                                            d_bin_limits=d_bin_limits,
+                                            bin_index=bin_index,
+                                            workdir=workdir,)
+                    plotter.plot_cti_gal()
+                    plot_label = f"{method}-{test_case.value}-{bin_index}"
+                    plot_filenames[test_case_index][plot_label] = plotter.cti_gal_plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table.vstack(tables=l_object_data_table)
