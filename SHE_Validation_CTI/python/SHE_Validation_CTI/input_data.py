@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-07-06"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -40,7 +40,7 @@ import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 
-BG_STAMP_SIZE = 128
+BG_STAMP_SIZE = 1
 
 logger = getLogger(__name__)
 
@@ -132,49 +132,47 @@ class SingleObjectData():
         # To be filled with objects of type ShearEstimate, with method names as keys
         self.world_shear_info = {}
 
-        # Get info from the data_stack if possible
+        # Get info from the data_stack if possible. Otherwise return early
 
         self.background_level = [None] * num_exposures
 
-        if data_stack is not None:
+        self.snr = None
+        self.colour = None
+        self.size = None
+        self.mean_background_level = None
 
-            detections_row = data_stack.detections_catalogue.loc[object_id]
+        if data_stack is None:
+            return
 
-            if detections_row[mfc_tf.FLUXERR_VIS_APER] == 0.:
-                self.snr = np.NaN
-            else:
-                self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
+        detections_row = data_stack.detections_catalogue.loc[object_id]
 
-            if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
-                self.colour = np.NaN
-            else:
-                self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
-                                             detections_row[mfc_tf.FLUX_NIR_STACK_APER])
-
-            self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
-
-            # Get the background level from the mean of a stamp around the object
-            stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE, extract_stacked_stamp=False)
-            for exp_index, exp_image in enumerate(stamp_stack.exposures):
-                if exp_image is not None:
-                    unmasked_background_data = exp_image.background_map[~exp_image.boolmask]
-                    if len(unmasked_background_data) > 0:
-                        self.background_level[exp_index] = unmasked_background_data.mean()
-
-            # Calculate the mean background level of all valid exposures
-            bg_array = np.array(self.background_level)
-            valid_bg = bg_array != None
-            if valid_bg.sum() > 0:
-                self.mean_background_level = bg_array[valid_bg].mean()
-            else:
-                # No data, so set -99 for mean background level
-                self.mean_background_level = -99
-
+        if detections_row[mfc_tf.FLUXERR_VIS_APER] == 0.:
+            self.snr = np.NaN
         else:
-            self.snr = None
-            self.colour = None
-            self.size = None
-            self.mean_background_level = None
+            self.snr = detections_row[mfc_tf.FLUX_VIS_APER] / detections_row[mfc_tf.FLUXERR_VIS_APER]
+
+        if detections_row[mfc_tf.FLUX_NIR_STACK_APER] == 0.:
+            self.colour = np.NaN
+        else:
+            self.colour = 2.5 * np.log10(detections_row[mfc_tf.FLUX_VIS_APER] /
+                                         detections_row[mfc_tf.FLUX_NIR_STACK_APER])
+
+        self.size = detections_row[mfc_tf.SEGMENTATION_AREA]
+
+        # Get the background level from background image at the object position
+        stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE, extract_stacked_stamp=False)
+        for exp_index, exp_image in enumerate(stamp_stack.exposures):
+            if exp_image is not None:
+                self.background_level[exp_index] = exp_image.background_map.mean()
+
+        # Calculate the mean background level of all valid exposures
+        bg_array = np.array(self.background_level)
+        valid_bg = bg_array != None
+        if valid_bg.sum() > 0:
+            self.mean_background_level = bg_array[valid_bg].mean()
+        else:
+            # No data, so set -99 for mean background level
+            self.mean_background_level = -99
 
 
 def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
