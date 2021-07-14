@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-13"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -446,6 +446,12 @@ class AnalysisWriter():
             l_filenames = list(filenames.values())
         else:
             l_filenames = filenames
+
+        # Prune any Nones from the list
+        l_filenames = [filename for filename in l_filenames if filename is not None]
+
+        if len(l_filenames) == 0:
+            return
 
         # Tar the files into the desired tarball
         file_io.tar_files(tarball_filename=tarball_filename,
