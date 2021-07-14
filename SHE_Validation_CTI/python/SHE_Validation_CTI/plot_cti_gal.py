@@ -148,6 +148,7 @@ class CtiGalPlotter(ValidationPlotter):
             else:
                 logger.info(f"Insufficient valid valid data to plot for method {self.method}, test case "
                             f"{self.test_case.value}, bin {self.bin_limits}, so skipping plot.")
+                return
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=rr_dist,
