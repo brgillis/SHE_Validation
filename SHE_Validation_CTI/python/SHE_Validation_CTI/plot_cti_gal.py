@@ -5,7 +5,7 @@
     Code to make plots for CTI-Gal Validation test.
 """
 
-__updated__ = "2021-07-12"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -50,7 +50,7 @@ class CtiGalPlotter(ValidationPlotter):
 
     # Attributes set directly at init
     _l_object_data_table = None
-    _merged_object_table = None
+    _object_table = None
     method = None
     workdir = None
 
@@ -62,16 +62,16 @@ class CtiGalPlotter(ValidationPlotter):
     # Attributes calculated when plotting methods are called
     _cti_gal_plot_filename = None
 
-    def __init__(self, l_object_data_table, merged_object_table, method, workdir):
+    def __init__(self, l_object_data_table, object_table, method, workdir):
 
         super().__init__()
 
         # Set attrs directly
         self.l_object_data_table = l_object_data_table
-        if merged_object_table is not None:
-            self.merged_object_table = merged_object_table
+        if object_table is not None:
+            self.object_table = object_table
         else:
-            self.merged_object_table = table.vstack(tables=self.l_object_data_table)
+            self.object_table = table.vstack(tables=self.l_object_data_table)
         self.method = method
         self.workdir = workdir
 
@@ -79,7 +79,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{method}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
 
-        weight = self.merged_object_table[self.weight_colname]
+        weight = self.object_table[self.weight_colname]
         self._good_rows = weight > 0
 
         # Set as None attributes to be set when plotting methods are called
@@ -99,12 +99,12 @@ class CtiGalPlotter(ValidationPlotter):
             self._l_object_data_table = l_object_data_table
 
     @property
-    def merged_object_table(self):
-        return self._merged_object_table
+    def object_table(self):
+        return self._object_table
 
-    @merged_object_table.setter
-    def merged_object_table(self, merged_object_table):
-        self._merged_object_table = merged_object_table
+    @object_table.setter
+    def object_table(self, object_table):
+        self._object_table = object_table
 
     @property
     def good_rows(self):
@@ -132,9 +132,9 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        rr_dist = self.merged_object_table[CGOD_TF.readout_dist][self._good_rows]
-        g1 = self.merged_object_table[self.g1_colname][self._good_rows]
-        g1_err = 1 / np.sqrt(self.merged_object_table[self.weight_colname][self._good_rows])
+        rr_dist = self.object_table[CGOD_TF.readout_dist][self._good_rows]
+        g1 = self.object_table[self.g1_colname][self._good_rows]
+        g1_err = 1 / np.sqrt(self.object_table[self.weight_colname][self._good_rows])
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=rr_dist,

@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-07-13"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -200,7 +200,7 @@ def run_validate_cti_gal_from_args(args):
         # Make plots of the data
         for method in METHODS:
             plotter = CtiGalPlotter(l_object_data_table=l_object_data_table,
-                                    merged_object_table=merged_object_table,
+                                    object_table=merged_object_table,
                                     method=method,
                                     workdir=args.workdir)
             plotter.plot_cti_gal()
