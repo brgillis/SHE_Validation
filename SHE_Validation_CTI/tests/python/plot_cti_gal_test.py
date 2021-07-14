@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-07-12"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -91,8 +91,7 @@ class TestCase:
                                                                             CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the plotting
-        plotter = CtiGalPlotter(l_object_data_table=None,
-                                merged_object_table=object_data_table,
+        plotter = CtiGalPlotter(object_table=object_data_table,
                                 method=method,
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
