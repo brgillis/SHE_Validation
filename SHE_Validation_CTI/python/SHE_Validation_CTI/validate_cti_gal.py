@@ -369,5 +369,4 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return (d_exposure_regression_results_tables, d_observation_regression_results_tables,
-            l_object_data_table, merged_object_table)
+    return (d_exposure_regression_results_tables, d_observation_regression_results_tables,)
