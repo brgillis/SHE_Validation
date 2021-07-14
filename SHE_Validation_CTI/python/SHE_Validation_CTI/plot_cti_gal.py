@@ -4,23 +4,6 @@
 
     Code to make plots for CTI-Gal Validation test.
 """
-import os
-from typing import Dict
-
-from SHE_PPT import file_io
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import linregress_with_errors
-from astropy import table
-from matplotlib import pyplot as plt
-
-import SHE_Validation
-from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
-import numpy as np
-
-from .data_processing import get_rows_in_bin
-from .table_formats.cti_gal_object_data import TF as CGOD_TF
-
 
 __updated__ = "2021-07-14"
 
@@ -37,6 +20,22 @@ __updated__ = "2021-07-14"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+from typing import Dict
+
+from SHE_PPT import file_io
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import linregress_with_errors
+from astropy import table
+from matplotlib import pyplot as plt
+
+import SHE_Validation
+from SHE_Validation.plotting import ValidationPlotter
+from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
+import numpy as np
+
+from .data_processing import get_rows_in_bin
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 logger = getLogger(__name__)
 
