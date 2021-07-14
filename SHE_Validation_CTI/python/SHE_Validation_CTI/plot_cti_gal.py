@@ -146,8 +146,8 @@ class CtiGalPlotter(ValidationPlotter):
                 logger.warning(f"Insufficient valid data to plot for method {self.method} and test case "
                                f"{self.test_case.value}, but making plot anyway for testing purposes.")
             else:
-                logger.info(f"Insufficient valid valid data to plot for method {self.method}, test case "
-                            f"{self.test_case.value}, bin {self.bin_limits}, so skipping plot.")
+                logger.debug(f"Insufficient valid valid data to plot for method {self.method}, test case "
+                             f"{self.test_case.value}, bin {self.bin_limits}, so skipping plot.")
                 return
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
