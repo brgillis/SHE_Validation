@@ -21,18 +21,17 @@ __updated__ = "2021-07-15"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, List,  Any, Callable, Tuple, Union
+from typing import Dict, List,  Any, Callable, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
-from astropy import table
 import scipy.stats
 
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
+                                           WARNING_MULTIPLE, MSG_NO_DATA)
 from SHE_Validation.test_info import TestCaseInfo
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
