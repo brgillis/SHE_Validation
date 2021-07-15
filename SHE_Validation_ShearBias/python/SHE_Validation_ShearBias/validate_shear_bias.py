@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,8 +27,9 @@ from SHE_PPT import products
 from SHE_PPT.logging import getLogger
 from astropy.table import Table
 
-from .plot_shear_bias import ShearBiasPlotter
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_SHEAR_BIAS_TEST_CASES
 
+from .plot_shear_bias import ShearBiasPlotter
 
 logger = getLogger(__name__)
 
@@ -45,8 +46,11 @@ def validate_shear_bias_from_args(args):
     logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
     matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
 
-    # Keep a list of filenams for all plots, which we'll tarball up at the end
-    all_plot_filenames = []
+    # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
+    # in the M test case, to avoid duplication
+    plot_filenames = [None] * NUM_SHEAR_BIAS_TEST_CASES
+    plot_filenames[0] = {}
+    d_bias_measurements = {}
 
     for method in methods:
 
@@ -60,18 +64,14 @@ def validate_shear_bias_from_args(args):
 
         # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-        try:
+        shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
 
-            shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
+        shear_bias_plotter.plot_shear_bias()
 
-            shear_bias_plotter.plot_shear_bias()
+        d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
+        d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
 
-            d_method_bias_measurements = shear_bias_plotter.d_bias_measurements
-            d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
-
-            all_plot_filenames += d_method_bias_plot_filename.values()
-
-        except Exception as e:
-            import traceback
-            logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
-                           "Traceback: " + "".join(traceback.format_tb(e.__traceback__)))
+        # Save the filename for each component plot
+        for i in d_method_bias_plot_filename:
+            plot_label = f"{method}-g{i}"
+            plot_filenames[0][plot_label] = plot_label
