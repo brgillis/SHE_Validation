@@ -4,8 +4,28 @@
 
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
+import os
+import subprocess
+import time
 
-__updated__ = "2021-02-22"
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                         MER_FINAL_CATALOG_LISTFILE_FILENAME, LENSMC_MEASUREMENTS_TABLE_FILENAME,
+                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
+from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import write_analysis_config
+import pytest
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
+from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
+from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
+from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
+import numpy as np
+
+
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,24 +39,6 @@ __updated__ = "2021-02-22"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-import os
-import time
-
-import pytest
-
-from ElementsServices.DataSync import DataSync
-from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_MDB, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
-                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                         MER_FINAL_CATALOG_LISTFILE_FILENAME, LENSMC_MEASUREMENTS_TABLE_FILENAME,
-                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
-from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import write_analysis_config
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisConfigKeys, CTI_GAL_DEFAULT_CONFIG
-from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
-from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
-import numpy as np
 
 
 # Pipeline config filename
@@ -62,8 +64,7 @@ class Args(object):
         for test_case_label in CtiGalTestCases:
             bin_limits_cline_arg = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_cline_arg
             if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg,
-                        CTI_GAL_DEFAULT_CONFIG[D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key])
+                setattr(self, bin_limits_cline_arg, None)
 
         self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
         self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
@@ -111,15 +112,11 @@ class TestCase:
                               config_filename=PIPELINE_CONFIG_FILENAME,
                               workdir=cls.args.workdir)
 
-        return
-
     @classmethod
     def teardown_class(cls):
 
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
-
-        return
 
     def test_cti_gal_dry_run(self):
 
@@ -129,8 +126,6 @@ class TestCase:
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
-
-        return
 
     def test_cti_gal_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
@@ -144,4 +139,30 @@ class TestCase:
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
 
-        return
+        # Check the resulting data product and plot exist
+
+        workdir = self.args.workdir
+        output_filename = os.path.join(workdir, self.args.she_observation_validation_test_results_product)
+
+        assert os.path.isfile(output_filename)
+
+        p = read_xml_product(xml_filename=output_filename)
+
+        textfiles_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.TextFiles.FileName
+        figures_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.Figures.FileName
+
+        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
+            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+
+        qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
+        plot_filename = None
+        with open(qualified_directory_filename, "r") as fi:
+            for line in fi:
+                if line[0] == "#":
+                    continue
+                key, value = line.strip().split(": ")
+                if key == "LensMC-global-0":
+                    plot_filename = value
+
+        assert plot_filename is not None
+        assert os.path.isfile(os.path.join(workdir, plot_filename))

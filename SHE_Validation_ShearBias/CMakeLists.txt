@@ -1,71 +1,17 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
-
-#===============================================================================
-# Load elements_subdir macro here
-# Examples:
-#   For declaring a project module:
-#         elements_subdir(ElementsExamples)
-#===============================================================================
+# Declare this directory as an Elements module
 elements_subdir(SHE_Validation_ShearBias)
 
-#===============================================================================
-# Load elements_depends_on_subdirs macro here
-#   For creating a dependency onto an other accessible module
-#         elements_depends_on_subdirs(ElementsKernel)
-#===============================================================================
-elements_depends_on_subdirs(ElementsKernel SHE_Validation)
+# Declare Elements module dependencies
+elements_depends_on_subdirs(ElementsKernel)
 
-#===============================================================================
-# Add the find_package macro (a pure CMake command) here to locate the
-# libraries.
-# Examples:
-#          find_package(CppUnit)
-#===============================================================================
-
-#===============================================================================
-# Declare the library dependencies here
-# Example:
-#         elements_add_library(ElementsExamples src/Lib/*.cpp
-#                     INCLUDE_DIRS Boost ElementsKernel
-#                     LINK_LIBRARIES Boost ElementsKernel
-#                     PUBLIC_HEADERS ElementsExamples)
-#===============================================================================
-
-#===============================================================================
-# Declare the executables here
-# Example:
-# elements_add_executable(ElementsProgramExample src/Program/ProgramExample.cpp
-#                        INCLUDE_DIRS Boost ElementsExamples
-#                        LINK_LIBRARIES Boost ElementsExamples)
-#===============================================================================
-
-#===============================================================================
-# Declare the Boost tests here
-# Example:
-# elements_add_unit_test(BoostClassExample tests/src/Boost/ClassExample_test.cpp
-#                       EXECUTABLE BoostClassExample_test
-#                       INCLUDE_DIRS ElementsExamples
-#                       LINK_LIBRARIES ElementsExamples TYPE Boost)
-#===============================================================================
-
-#===============================================================================
-# Use the following macro for python modules, scripts and aux files:
-#  elements_install_python_modules()
-#  elements_install_scripts()
-#===============================================================================
+# Instruction for Python module installation
 elements_install_python_modules()
 
-#===============================================================================
-# Declare the Python programs here
-# Examples :
-# elements_add_python_program(PythonProgramExample
-#                             ElementsExamples.PythonProgramExample)
-#===============================================================================
+# Instruction for creating a Python executable
 elements_add_python_program(SHE_Validation_ValidateShearBias SHE_Validation_ShearBias.ValidateShearBias)
 
-#===============================================================================
-# Add the elements_install_conf_files macro
-# Examples:
-#          elements_install_conf_files()
-#===============================================================================
-elements_install_conf_files()
+# Install the configuration files
+# elements_install_conf_files()
+
+# Install the auxiliary files
+# elements_install_aux_files()

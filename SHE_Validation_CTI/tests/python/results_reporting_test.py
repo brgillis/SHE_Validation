@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-03-25"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -56,16 +56,19 @@ class TestCase:
 
     """
 
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(autouse=True)
+    def setup(self, tmpdir):
+
+        self.workdir = tmpdir.strpath
+        os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        cls.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,
-                                                         defaults=CTI_GAL_DEFAULT_CONFIG)
-        cls.pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
+        self.pipeline_config = _make_config_from_defaults(config_keys=AnalysisConfigKeys,
+                                                          defaults=CTI_GAL_DEFAULT_CONFIG)
+        self.pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
 
         # Make a dictionary of bin limits
-        cls.d_bin_limits = {}
+        self.d_bin_limits = {}
         for test_case in CtiGalTestCases:
             bins_config_key = D_CTI_GAL_TEST_CASE_INFO[test_case].bins_config_key
             if bins_config_key is None:
@@ -76,14 +79,7 @@ class TestCase:
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
 
-            cls.d_bin_limits[test_case] = bin_limits_array
-
-        return
-
-    @classmethod
-    def teardown_class(cls):
-
-        return
+            self.d_bin_limits[test_case] = bin_limits_array
 
     def test_fail_sigma_scaling(self):
 
@@ -210,6 +206,7 @@ class TestCase:
                                             d_regression_results_tables=d_exp_results_tables,
                                             pipeline_config=self.pipeline_config,
                                             d_bin_limits=self.d_bin_limits,
+                                            workdir=self.workdir,
                                             method_data_exists=True)
 
             exp_product_list[exp_index] = exp_product
@@ -358,6 +355,7 @@ class TestCase:
                                         d_regression_results_tables=d_obs_results_tables,
                                         pipeline_config=self.pipeline_config,
                                         d_bin_limits=self.d_bin_limits,
+                                        workdir=self.workdir,
                                         method_data_exists=False)
 
         # Check that the product validates its binding

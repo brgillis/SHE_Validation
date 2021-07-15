@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-03-24"
+__updated__ = "2021-07-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +19,7 @@ __updated__ = "2021-03-24"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 
 from os.path import join
 from typing import Dict
@@ -36,6 +37,8 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
+from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
+from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
@@ -67,11 +70,6 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Complete!")
 
     # Load the configuration, and convert values in it to the proper type
-    if args.pipeline_config is None:
-        logger.info("No pipeline_config provided; default values will be used.")
-    else:
-        qualified_pipeline_config_filename = join(args.workdir, args.pipeline_config)
-        logger.info(f"Loading pipeline_config from {qualified_pipeline_config_filename}.")
 
     bin_limits_cline_args = {AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
@@ -82,10 +80,16 @@ def run_validate_cti_gal_from_args(args):
                              AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
 
-    pipeline_config = read_analysis_config(args.pipeline_config,
-                                           workdir=args.workdir,
-                                           cline_args=bin_limits_cline_args,
-                                           defaults=CTI_GAL_DEFAULT_CONFIG)
+    if type(args.pipeline_config) is str or args.pipeline_config is None:
+        pipeline_config = read_analysis_config(args.pipeline_config,
+                                               workdir=args.workdir,
+                                               cline_args=bin_limits_cline_args,
+                                               defaults=CTI_GAL_DEFAULT_CONFIG)
+    elif type(args.pipeline_config) is dict:
+        pipeline_config = args.pipeline_config
+    else:
+        raise TypeError("run_validate_cti_gal_from_args: args.pipeline_config is an unexpectedd type - %s" %
+                        type(args.pipeline_config))
 
     # Check that the fail sigma scaling is in the enum (silently convert to lower case)
     fail_sigma_scaling_lower = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value].lower()
@@ -108,7 +112,7 @@ def run_validate_cti_gal_from_args(args):
         bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[test_case_label] = FAILSAFE_BIN_LIMITS
+            d_bin_limits[test_case_label] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
             continue
         bin_limits_string = pipeline_config[bin_limits_key]
         try:
@@ -131,7 +135,8 @@ def run_validate_cti_gal_from_args(args):
     data_stack = SHEFrameStack.read(exposure_listfile_filename=args.vis_calibrated_frame_listfile,
                                     detections_listfile_filename=args.mer_final_catalog_listfile,
                                     workdir=args.workdir,
-                                    memmap=True,
+                                    memmap=False,
+                                    load_images=False,
                                     mode='denywrite')
     logger.info("Complete!")
 
@@ -187,9 +192,11 @@ def run_validate_cti_gal_from_args(args):
     # Run the validation
     if not args.dry_run:
         (d_exposure_regression_results_tables,
-         d_observation_regression_results_tables) = validate_cti_gal(data_stack=data_stack,
-                                                                     shear_estimate_tables=d_shear_estimate_tables,
-                                                                     d_bin_limits=d_bin_limits)
+         d_observation_regression_results_tables,
+         plot_filenames) = validate_cti_gal(data_stack=data_stack,
+                                            shear_estimate_tables=d_shear_estimate_tables,
+                                            d_bin_limits=d_bin_limits,
+                                            workdir=args.workdir)
 
     # Set up output product
 
@@ -244,6 +251,7 @@ def run_validate_cti_gal_from_args(args):
         # Fill in each exposure product in turn with results
         for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
+                                            workdir=args.workdir,
                                             regression_results_row_index=product_index,
                                             d_regression_results_tables=d_exposure_regression_results_tables,
                                             pipeline_config=pipeline_config,
@@ -252,10 +260,12 @@ def run_validate_cti_gal_from_args(args):
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
+                                        workdir=args.workdir,
                                         regression_results_row_index=0,
                                         d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=pipeline_config,
                                         d_bin_limits=d_bin_limits,
+                                        figures=plot_filenames,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
@@ -280,7 +290,8 @@ def run_validate_cti_gal_from_args(args):
 
 def validate_cti_gal(data_stack: SHEFrameStack,
                      shear_estimate_tables: Dict[str, table.Table],
-                     d_bin_limits: Dict[str, np.ndarray]):
+                     d_bin_limits: Dict[str, np.ndarray],
+                     workdir: str):
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
@@ -296,11 +307,15 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_exposure_regression_results_tables = {}
     d_observation_regression_results_tables = {}
+    plot_filenames = [None] * NUM_CTI_GAL_TEST_CASES
 
-    for test_case in d_bin_limits:
+    for test_case_index, test_case in enumerate(CtiGalTestCases):
 
+        # Initialise for this test case
+        plot_filenames[test_case_index] = {}
         test_case_bin_limits = d_bin_limits[test_case]
         num_bins = len(test_case_bin_limits) - 1
+
         # Double check we have at least one bin
         assert num_bins >= 1
 
@@ -309,7 +324,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
         for bin_index in range(num_bins):
 
-            # We'll now loop over the table for each exposure, eventually getting regression results for each
+            # We'll now loop over the table for each exposure, eventually getting regression results and plots
+            # for each
 
             exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
 
@@ -324,6 +340,18 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                bin_limits=test_case_bin_limits[
                                                                                    bin_index:bin_index + 2])[0]
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
+
+                # Make a plot for each method
+                for method in METHODS:
+                    plotter = CtiGalPlotter(object_table=object_data_table,
+                                            method=method,
+                                            test_case=test_case,
+                                            d_bin_limits=d_bin_limits,
+                                            bin_index=bin_index,
+                                            workdir=workdir,)
+                    plotter.plot_cti_gal()
+                    plot_label = f"{method}-{test_case.value}-{bin_index}"
+                    plot_filenames[test_case_index][plot_label] = plotter.cti_gal_plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table.vstack(tables=l_object_data_table)
@@ -341,5 +369,5 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         d_exposure_regression_results_tables[test_case] = l_test_case_exposure_regression_results_tables
         d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
 
-    # And we're done here, so return the results
-    return d_exposure_regression_results_tables, d_observation_regression_results_tables
+    # And we're done here, so return the results and object tables
+    return (d_exposure_regression_results_tables, d_observation_regression_results_tables, plot_filenames)

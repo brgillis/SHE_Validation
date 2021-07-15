@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-03-26"
+__updated__ = "2021-07-13"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,7 +21,7 @@ __updated__ = "2021-03-26"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, List,  Any, Callable, Tuple
+from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
@@ -29,10 +29,9 @@ from SHE_PPT.pipeline_utility import AnalysisConfigKeys
 from astropy import table
 import scipy.stats
 
-from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, TestCaseWriter,
-                                           ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE,
-                                           MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
+from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
+                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
+                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
 from SHE_Validation.test_info import TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
@@ -41,7 +40,7 @@ import numpy as np
 from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
                                           CtiGalTestCases,
-                                          D_CTI_GAL_TEST_CASE_INFO,)
+                                          D_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
@@ -56,6 +55,9 @@ DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versu
 
 MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
+
+CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
+CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
 
 
 class FailSigmaCalculator():
@@ -308,38 +310,68 @@ class CtiGalRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
+class CtiGalAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
+                         *args, **kwargs)
+
+    def _generate_directory_filename(self):
+        """ Overriding method to generate a filename for a directory file.
+        """
+        self.directory_filename = CTI_GAL_DIRECTORY_FILENAME
+
+    def _get_directory_header(self):
+        """ Overriding method to get the desired header for a directory file.
+        """
+        return CTI_GAL_DIRECTORY_HEADER
+
+
 class CtiGalTestCaseWriter(TestCaseWriter):
 
     def __init__(self,
+                 parent_validation_writer: "CtiGalValidationResultsWriter",
                  test_case_object,
-                 test_case_info: TestCaseInfo):
+                 test_case_info: TestCaseInfo,
+                 *args, **kwargs):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
-        super().__init__(test_case_object,
+        super().__init__(parent_validation_writer,
+                         test_case_object,
                          test_case_info,
-                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO)
+                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO,
+                         *args, **kwargs)
 
-    @staticmethod
-    def _init_requirement_writer(*args, **kwargs) -> CtiGalRequirementWriter:
+    def _init_requirement_writer(self, **kwargs) -> CtiGalRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
-        return CtiGalRequirementWriter(*args, **kwargs)
+        return CtiGalRequirementWriter(self, **kwargs)
+
+    def _init_analysis_writer(self, **kwargs) -> CtiGalAnalysisWriter:
+        """ We override the _init_analysis_writer method to create a writer of the inherited type.
+        """
+        return CtiGalAnalysisWriter(self, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
+                 workdir: str,
                  regression_results_row_index: int,
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
                  d_bin_limits: Dict[str, np.ndarray],
-                 method_data_exists: bool = True,):
+                 method_data_exists: bool = True,
+                 *args, **kwargs):
 
         super().__init__(test_object=test_object,
+                         workdir=workdir,
                          num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES,
-                         l_test_case_info=None)
+                         l_test_case_info=None, *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
         self.d_regression_results_tables = d_regression_results_tables
@@ -347,11 +379,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
-    @staticmethod
-    def _init_test_case_writer(*args, **kwargs):
+    def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
         """
-        return CtiGalTestCaseWriter(*args, **kwargs)
+        return CtiGalTestCaseWriter(self, **kwargs)
 
     def _get_method_info(self,
                          method: str,
@@ -452,9 +483,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                     report_kwargs = {"reason": MSG_NO_DATA}
                     write_kwargs = {}
 
-                test_case_writer.write(report_method=report_method,
-                                       report_kwargs=report_kwargs,
-                                       **write_kwargs,)
+                write_kwargs["report_method"] = report_method
+                write_kwargs["report_kwargs"] = report_kwargs
+
+                test_case_writer.write(requirements_kwargs=write_kwargs,)
 
                 test_case_index += 1
 
@@ -464,6 +496,9 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[str, Any],
                                     d_bin_limits: Dict[str, np.ndarray],
+                                    workdir: str,
+                                    figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                   List[Union[Dict[str, str], List[str]]], ] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -475,10 +510,12 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     # Initialize a test results writer
     test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
+                                                        workdir=workdir,
                                                         regression_results_row_index=regression_results_row_index,
                                                         d_regression_results_tables=d_regression_results_tables,
                                                         fail_sigma_calculator=fail_sigma_calculator,
                                                         d_bin_limits=d_bin_limits,
-                                                        method_data_exists=method_data_exists)
+                                                        method_data_exists=method_data_exists,
+                                                        figures=figures)
 
     test_results_writer.write()
