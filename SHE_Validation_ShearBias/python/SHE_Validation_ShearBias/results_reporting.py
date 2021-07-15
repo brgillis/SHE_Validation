@@ -25,6 +25,7 @@ from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
+from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
 from astropy import table
 import scipy.stats
@@ -33,7 +34,6 @@ from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
                                            WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
 from SHE_Validation.test_info import TestCaseInfo
-from SHE_Validation_CTI.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
@@ -41,6 +41,7 @@ from .constants.shear_bias_default_config import FailSigmaScaling
 from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
                                              D_SHEAR_BIAS_TEST_CASE_INFO)
+from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
 
@@ -69,8 +70,7 @@ class FailSigmaCalculator():
     """
 
     def __init__(self,
-                 pipeline_config: Dict[str, str],
-                 d_bin_limits: Dict[str, str]):
+                 pipeline_config: Dict[str, str]):
 
         self.m_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value]
         self.c_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value]
@@ -345,14 +345,11 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
-
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
-                 regression_results_row_index: int,
-                 d_regression_results_tables: Dict[str, List[table.Table]],
+                 d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 d_bin_limits: Dict[str, np.ndarray],
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
@@ -361,50 +358,14 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                          num_test_cases=NUM_METHOD_SHEAR_BIAS_TEST_CASES,
                          l_test_case_info=None, *args, **kwargs)
 
-        self.regression_results_row_index = regression_results_row_index
-        self.d_regression_results_tables = d_regression_results_tables
+        self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
     def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter
         """
         return ShearBiasTestCaseWriter(self, **kwargs)
-
-    def _get_method_info(self,
-                         method: str,
-                         test_case: str,
-                         l_test_case_bins: List[float],
-                         l_test_case_regression_results_tables: List[table.Table]) -> Tuple[List[float],
-                                                                                            List[float],
-                                                                                            List[float],
-                                                                                            List[float],
-                                                                                            List[List[float]]]:
-        """ Sort the data out from the tables for this method.
-        """
-
-        num_bins = len(l_test_case_bins) - 1
-
-        l_slope = [None] * num_bins
-        l_slope_err = [None] * num_bins
-        l_intercept = [None] * num_bins
-        l_intercept_err = [None] * num_bins
-        l_bin_limits = [None] * num_bins
-
-        for bin_index, bin_test_case_regression_results_table in enumerate(l_test_case_regression_results_tables):
-            regression_results_row = bin_test_case_regression_results_table[self.regression_results_row_index]
-            l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
-            l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
-            l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
-            l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method}")]
-            l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
-
-        # For the global case, override the bin limits with None
-        if test_case == ShearBiasTestCases.GLOBAL:
-            l_bin_limits = None
-
-        return l_slope, l_slope_err, l_intercept, l_intercept_err, l_bin_limits
 
     def write_test_case_objects(self):
         """ Writes all data for each requirement subobject, modifying self._test_object.
@@ -416,12 +377,11 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
         for test_case in ShearBiasTestCases:
 
-            l_test_case_bins = self.d_bin_limits[test_case]
+            # Get whether this relates to m or c from the test case info's test_case_id's last letter
+            test_case_info = D_SHEAR_BIAS_TEST_CASE_INFO[test_case]
+            prop = test_case_info.test_case_id[-1]
 
-            m_fail_sigma = self.fail_sigma_calculator.d_scaled_m_sigma[test_case]
-            c_fail_sigma = self.fail_sigma_calculator.d_scaled_c_sigma[test_case]
-
-            l_test_case_regression_results_tables = self.d_regression_results_tables[test_case]
+            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{prop}_sigma")[test_case]
 
             for method in METHODS:
 
@@ -429,42 +389,37 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 # Use a modified test case info object to describe this test, clarifying it's
                 # just for this method
-                test_case_info = deepcopy(D_SHEAR_BIAS_TEST_CASE_INFO[test_case])
-                test_case_info._test_case_id = test_case_info.id + "-" + method
+                method_test_case_info = deepcopy(test_case_info)
+                method_test_case_info._test_case_id = method_test_case_info.id + "-" + method
 
-                test_case_writer._test_case_info = test_case_info
+                test_case_writer._test_case_info = method_test_case_info
 
                 # Fill in metadata about the test
 
                 requirement_writer = test_case_writer.l_requirement_writers[0]
 
-                if self.method_data_exists and test_case != ShearBiasTestCases.EPOCH:
+                if self.method_data_exists:
 
-                    (l_slope,
-                     l_slope_err,
-                     l_intercept,
-                     l_intercept_err,
-                     l_bin_limits) = self._get_method_info(method,
-                                                           test_case,
-                                                           l_test_case_bins,
-                                                           l_test_case_regression_results_tables)
+                    d_method_bias_measurements = self.d_bias_measurements
+
+                    val = (getattr(d_method_bias_measurements[1], prop),
+                           getattr(d_method_bias_measurements[2], prop))
+                    val_err = (getattr(d_method_bias_measurements[1], f"{prop}_err"), getattr(
+                        d_method_bias_measurements[2], f"{prop}_err"))
+                    val_target = getattr(d_method_bias_measurements[1], f"{prop}_target")
+                    val_z = (getattr(d_method_bias_measurements[1], f"{prop}_z"), getattr(
+                        d_method_bias_measurements[2], f"{prop}_z"))
 
                     report_method = None
                     report_kwargs = {}
                     write_kwargs = {"have_data": True,
-                                    "l_slope": l_slope,
-                                    "l_slope_err": l_slope_err,
-                                    "l_intercept": l_intercept,
-                                    "l_intercept_err": l_intercept_err,
-                                    "l_bin_limits": l_bin_limits,
-                                    "m_fail_sigma": m_fail_sigma,
-                                    "c_fail_sigma": c_fail_sigma}
+                                    "prop": prop,
+                                    "val": val,
+                                    "val_err": val_err,
+                                    "val_target": val_target,
+                                    "val_z": val_z,
+                                    "fail_sigma": fail_sigma}
 
-                elif test_case == ShearBiasTestCases.EPOCH:
-                    # Report that the test wasn't run due to it not yet being implemented
-                    report_method = requirement_writer.report_test_not_run
-                    report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
-                    write_kwargs = {}
                 else:
                     # Report that the test wasn't run due to a lack of data
                     report_method = requirement_writer.report_test_not_run
@@ -480,29 +435,23 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
 
 def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTestResults,
-                                       regression_results_row_index: int,
-                                       d_regression_results_tables: Dict[str, List[table.Table]],
+                                       d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                                        pipeline_config: Dict[str, Any],
-                                       d_bin_limits: Dict[str, np.ndarray],
                                        workdir: str,
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
                                        method_data_exists: bool = True):
-    """ Interprets the results in the regression_results_row and other provided data to fill out the provided
-        test_result_product with the results of this validation test.
+    """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
     # Set up a calculator object for scaled fail sigmas
-    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
-                                                d_bin_limits=d_bin_limits)
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config)
 
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object=test_result_product,
                                                            workdir=workdir,
-                                                           regression_results_row_index=regression_results_row_index,
-                                                           d_regression_results_tables=d_regression_results_tables,
+                                                           d_bias_measurements=d_bias_measurements,
                                                            fail_sigma_calculator=fail_sigma_calculator,
-                                                           d_bin_limits=d_bin_limits,
                                                            method_data_exists=method_data_exists,
                                                            figures=figures)
 
