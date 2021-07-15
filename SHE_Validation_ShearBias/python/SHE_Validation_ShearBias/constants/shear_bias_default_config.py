@@ -26,8 +26,8 @@ from SHE_Validation.constants.default_config import FailSigmaScaling
 PROFILING_FILENAME = "validate_shear_bias.prof"
 
 # Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_SLOPE_FAIL_SIGMA.value: 5.,
-                             AnalysisValidationConfigKeys.SBV_INTERCEPT_FAIL_SIGMA.value: 5.,
+SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value: 5.,
+                             AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value: 5.,
                              AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_SCALE.value,
                              AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
                              }

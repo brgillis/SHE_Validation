@@ -60,7 +60,9 @@ SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(test_case_id="TC-SHE-100018-shear-bia
                                            name=ShearBiasTestCases.C.value,
                                            comment=None,)
 
-# Create a dict of the test case info
+# Create a dict of the test case info and requirement info
+D_SHEAR_BIAS_REQUIREMENT_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_M_REQUIREMENT_INFO,
+                                 ShearBiasTestCases.C: SHEAR_BIAS_C_REQUIREMENT_INFO, }
 D_SHEAR_BIAS_TEST_CASE_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_TEST_CASE_M_INFO,
                                ShearBiasTestCases.C: SHEAR_BIAS_TEST_CASE_C_INFO, }
 
