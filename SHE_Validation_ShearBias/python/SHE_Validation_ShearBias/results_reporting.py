@@ -38,8 +38,7 @@ from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValida
 import numpy as np
 
 from .constants.shear_bias_default_config import FailSigmaScaling
-from .constants.shear_bias_test_info import (SHEAR_BIAS_M_REQUIREMENT_INFO,
-                                             SHEAR_BIAS_C_REQUIREMENT_INFO,
+from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
                                              D_SHEAR_BIAS_TEST_CASE_INFO)
 
@@ -134,23 +133,10 @@ class ShearBiasRequirementWriter(RequirementWriter):
     val_err = None
     val_target = None
     val_z = None
-
-    def __init__(self,
-                 prop: str,
-                 val: float,
-                 val_err: float,
-                 val_target: float,
-                 val_z: float,
-                 *args, **kwargs):
-        """ prop is either "m" or "c", val and val_err are the value and error on it
-        """
-
-        super().__init__(*args, **kwargs)
-        self.prop = prop
-        self.val = val
-        self.val_err = val_err
-        self.val_target = val_target
-        self.val_z = val_z
+    fail_sigma = None
+    test_pass = None
+    result = None
+    good_data = None
 
     def _get_supplementary_info(self,
                                 extra_g1_message: str = "",
@@ -219,6 +205,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.test_pass = {}
         self.result = {}
         self.good_data = {}
+        some_good_data = False
 
         for i in (1, 2):
             if (np.isnan(self.prop[i]) or np.isnan(self.prop_err[i])):
@@ -227,13 +214,15 @@ class ShearBiasRequirementWriter(RequirementWriter):
             else:
                 self.test_pass[i] = self.prop_z[i] < self.fail_sigma
                 self.good_data[i] = True
+                some_good_data = True
             if self.test_pass[i]:
-                self.good_data[i] = RESULT_PASS
+                self.result[i] = RESULT_PASS
             else:
-                self.good_data[i] = RESULT_FAIL
+                self.result[i] = RESULT_FAIL
 
         # Pass if there's at least some good data, and all good data passes
-        if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data)):
+        if (not some_good_data) or ((self.test_pass[1] or not self.good_data[1]) and
+                                    (self.test_pass[2] or not self.good_data[2])):
             setattr(self, f"{prop}_pass", True)
             setattr(self, f"{prop}_result", RESULT_PASS)
         else:
@@ -243,18 +232,24 @@ class ShearBiasRequirementWriter(RequirementWriter):
     def write(self,
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
-              l_slope: List[float] = None,
-              l_slope_err: List[float] = None,
-              l_intercept: List[float] = None,
-              l_intercept_err: List[float] = None,
-              l_bin_limits: List[float] = None,
-              m_fail_sigma: float = None,
-              c_fail_sigma: float = None,
+              prop: Dict[int, float] = None,
+              val: Dict[int, float] = None,
+              val_err: Dict[int, float] = None,
+              val_target: float = None,
+              val_z: Dict[int, float] = None,
+              fail_sigma: float = None,
               report_kwargs: Dict[str, Any] = None) -> str:
+
+        self.prop = prop
+        self.val = val
+        self.val_err = val_err
+        self.val_target = val_target
+        self.val_z = val_z
+        self.fail_sigma = fail_sigma
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
-            report_method = self.report_bad_data
+            report_method = self.report_good_data
 
         # Default to empty dict for report_kwargs
         if report_kwargs is None:
@@ -265,45 +260,37 @@ class ShearBiasRequirementWriter(RequirementWriter):
             report_method(**report_kwargs)
             return RESULT_PASS
 
-        self.l_slope = np.array(l_slope)
-        self.l_slope_err = np.array(l_slope_err)
-        self.l_intercept = np.array(l_intercept)
-        self.l_intercept_err = np.array(l_intercept_err)
-        if l_bin_limits is None:
-            self.l_bin_limits = None
+        # Calculate test results for both components
+        for i in (1, 2):
+            self._calc_test_results(i)
+
+        # Report the result based on whether or not bothc components passed
+        test_pass = self.test_pass[1] and self.test_pass[2]
+        if test_pass:
+            result = RESULT_PASS
         else:
-            self.l_bin_limits = np.array(l_bin_limits)
-        self.m_fail_sigma = m_fail_sigma
-        self.c_fail_sigma = c_fail_sigma
+            result = RESULT_FAIL
+        self.requirement_object.ValidationResult = result
 
-        self.num_bins = len(l_slope)
-
-        # Calculate test results for both the slope and intercept
-        for prop in "slope", "intercept":
-            self._calc_test_results(prop)
-
-        # Report the result based on whether or not the slope passed.
-        self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue[0].Parameter = SHEAR_BIAS_REQUIREMENT_INFO.parameter
+        self.requirement_object.MeasuredValue[0].Parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[self.prop].parameter
 
         # Check for data quality issues and report as proper if found
-        if np.all(self.l_slope_err == 0.):
-            report_method = self.report_zero_slope_err
+        if self.val_err[1] == 0 or self.val_err[2] == 0:
+            report_method = self.report_zero_err
             extra_report_kwargs = {}
-        elif np.logical_or.reduce((np.isnan(self.l_slope),
-                                   np.isinf(self.l_slope),
-                                   np.isnan(self.l_slope_err),
-                                   np.isinf(self.l_slope_err),
-                                   self.l_slope_err == 0.)).all():
+        elif ((np.isnan(self.val[1]) or np.isnan(self.val_err[1]) or
+               np.isinf(self.val[1]) or np.isinf(self.val_err[1])) and
+              (np.isnan(self.val[2]) or np.isnan(self.val_err[2]) or
+               np.isinf(self.val[1]) or np.isinf(self.val_err[1]))):
             report_method = self.report_bad_data
             extra_report_kwargs = {}
         else:
             report_method = self.report_good_data
 
-            # Report the maximum slope_z as the measured value for this test
-            extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
+            # Report the maximum z as the measured value for this test
+            extra_report_kwargs = {"measured_value": np.nanmax((self.val_z[1], self.val_z[2]))}
 
-        return super().write(result=self.slope_result,
+        return super().write(result=result,
                              report_method=report_method,
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 

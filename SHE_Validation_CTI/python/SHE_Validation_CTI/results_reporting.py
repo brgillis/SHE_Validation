@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-07-13"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -256,7 +256,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
-            report_method = self.report_bad_data
+            report_method = self.report_good_data
 
         # Default to empty dict for report_kwargs
         if report_kwargs is None:
