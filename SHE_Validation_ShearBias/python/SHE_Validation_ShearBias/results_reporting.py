@@ -324,10 +324,13 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
+        # Get whether we're doing m or c from the last letter of the test case id
+        prop = test_case_info.test_case_id[-1]
+
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
-                         l_requirement_info=SHEAR_BIAS_REQUIREMENT_INFO,
+                         l_requirement_info=D_SHEAR_BIAS_REQUIREMENT_INFO[prop],
                          *args, **kwargs)
 
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
