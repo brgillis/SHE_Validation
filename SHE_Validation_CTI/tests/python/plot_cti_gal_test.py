@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-07-14"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,7 +32,7 @@ from astropy import table
 import pytest
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table

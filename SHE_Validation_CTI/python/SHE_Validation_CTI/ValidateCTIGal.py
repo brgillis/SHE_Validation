@@ -30,7 +30,7 @@ import os
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import read_analysis_config, AnalysisConfigKeys
+from SHE_PPT.pipeline_utility import read_analysis_config, AnalysisValidationConfigKeys
 
 from . import __version__
 from .constants.cti_gal_default_config import BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_DEFINITION, CTI_GAL_DEFAULT_CONFIG
@@ -40,7 +40,7 @@ from .validate_cti_gal import run_validate_cti_gal_from_args
 
 
 #set default profiling to be False
-CTI_GAL_DEFAULT_CONFIG[AnalysisConfigKeys.PIP_PROFILE.value]="False"
+CTI_GAL_DEFAULT_CONFIG[AnalysisValidationConfigKeys.PIP_PROFILE.value]="False"
 
 
 
@@ -147,13 +147,13 @@ def mainMethod(args):
     logger.info(exec_cmd)
 
 
-    bin_limits_cline_args = {AnalysisConfigKeys.CGV_SNR_BIN_LIMITS.value:
+    bin_limits_cline_args = {AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                             AnalysisConfigKeys.CGV_BG_BIN_LIMITS.value:
+                             AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                             AnalysisConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
+                             AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                             AnalysisConfigKeys.CGV_SIZE_BIN_LIMITS.value:
+                             AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
     
     #load the pipeline config in
@@ -166,7 +166,7 @@ def mainMethod(args):
     args.pipeline_config = pipeline_config
     
     #check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[AnalysisConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+    profiling = pipeline_config[AnalysisValidationConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
 
     if args.profile or profiling:
         import cProfile

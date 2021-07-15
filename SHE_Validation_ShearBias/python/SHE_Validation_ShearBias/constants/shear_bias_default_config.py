@@ -20,12 +20,12 @@ __updated__ = "2021-07-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
-from SHE_PPT.utility import AllowedEnum
+from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
+from SHE_Validation.constants.default_config import FailSigmaScaling
 
 
 # Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisConfigKeys.SBV_SLOPE_FAIL_SIGMA.value: 5.,
-                             AnalysisConfigKeys.SBV_INTERCEPT_FAIL_SIGMA.value: 5.,
-                             AnalysisConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_BINS_SCALE.value,
+SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_SLOPE_FAIL_SIGMA.value: 5.,
+                             AnalysisValidationConfigKeys.SBV_INTERCEPT_FAIL_SIGMA.value: 5.,
+                             AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_SCALE.value,
                              }
