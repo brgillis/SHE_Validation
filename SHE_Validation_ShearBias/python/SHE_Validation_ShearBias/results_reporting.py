@@ -47,14 +47,19 @@ logger = getLogger(__name__)
 
 # Define constants for various messages
 
-KEY_SLOPE_INFO = "SLOPE_INFO"
-KEY_INTERCEPT_INFO = "INTERCEPT_INFO"
+KEY_G1_INFO = "G1_INFO"
+KEY_G2_INFO = "G2_INFO"
 
-DESC_SLOPE_INFO = "Information about the test on slope of g1_image versus readout distance."
-DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versus readout distance."
+DESC_INFO_BASE = "Information about the test on REPLACEME_PROP bias in component REPLACEME_COMPONENT."
 
-MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
-MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
+D_DESC_INFO = {}
+for prop, name in ("m", "multiplicative"), ("c", "additive"):
+    for i in (1, 2):
+        D_DESC_INFO[f"{prop}{i}"] = DESC_INFO_BASE.replace(
+            "REPLACEME_PROP", name).replace("REPLACEME_COMPONENT", f"{i}")
+
+MSG_NAN_VAL = "Test failed due to NaN regression results."
+MSG_ZERO_ERR = "Test failed due to zero error."
 
 SHEAR_BIAS_DIRECTORY_FILENAME = "SheShearBiasResultsDirectory.txt"
 SHEAR_BIAS_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
@@ -147,9 +152,9 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.val_target = val_target
         self.val_z = val_z
 
-    def _get_prop_info(self,
-                       extra_g1_message: str = "",
-                       extra_g2_message: str = "",) -> SupplementaryInfo:
+    def _get_supplementary_info(self,
+                                extra_g1_message: str = "",
+                                extra_g2_message: str = "",) -> SupplementaryInfo:
 
         # Check the extra messages and make sure they end in a linebreak
         if extra_g1_message != "" and extra_g1_message[-1:] != "\n":
@@ -169,10 +174,10 @@ class ShearBiasRequirementWriter(RequirementWriter):
                             f"Result: {self.result[i]}\n\n")
 
         supplementary_info = (SupplementaryInfo(key=KEY_G1_INFO,
-                                                description=DESC_G1_INFO,
+                                                description=D_DESC_INFO[f"{self.prop}1"],
                                                 message=messages[1]),
                               SupplementaryInfo(key=KEY_G2_INFO,
-                                                description=KEY_G2_INFO,
+                                                description=D_DESC_INFO[f"{self.prop}2"],
                                                 message=messages[2]))
 
         return supplementary_info
@@ -180,10 +185,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
     def report_bad_data(self):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
+        l_supplementary_info = self._get_supplementary_info(extra_g1_message=MSG_NAN_VAL,
+                                                            extra_g2_message=MSG_NAN_VAL,)
         super().report_bad_data(l_supplementary_info)
 
-    def report_zero_slope_err(self):
+    def report_zero_err(self):
 
         # Report -2 as the measured value for this test
         self.requirement_object.MeasuredValue[0].Value.FloatValue = -2.0
@@ -191,56 +197,40 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_ZERO_SLOPE_ERR)
+        l_supplementary_info = self._get_supplementary_info(extra_g1_message=MSG_ZERO_ERR,
+                                                            extra_g2_message=MSG_ZERO_ERR,)
         self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self,
                          measured_value: float):
 
-        # If the slope passes but the intercept doesn't, we should raise a warning
-        if self.slope_pass and not self.intercept_pass:
-            warning = True
-        else:
-            warning = False
-
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info()
+        l_supplementary_info = self._get_supplementary_info()
         super().report_good_data(measured_value=measured_value,
-                                 warning=warning,
+                                 warning=False,
                                  l_supplementary_info=l_supplementary_info)
 
     def _calc_test_results(self,
-                           prop: str):
-        """ Calculate the test results for either the slope or intercept.
+                           i: int):
+        """ Calculate the test results for either component
         """
 
-        # Init each z, pass, and result as empy lists
-        l_prop_z = np.empty(self.num_bins, dtype=float)
-        setattr(self, f"l_{prop}_z", l_prop_z)
-        l_prop_pass = np.empty(self.num_bins, dtype=bool)
-        setattr(self, f"l_{prop}_pass", l_prop_pass)
-        l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
-        setattr(self, f"l_{prop}_result", l_prop_result)
-        l_prop_good_data = np.empty(self.num_bins, dtype=bool)
+        # Init each of pass and result as empty dicts
+        self.test_pass = {}
+        self.result = {}
+        self.good_data = {}
 
-        for bin_index in range(self.num_bins):
-            if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
-                l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = False
-                l_prop_good_data[bin_index] = False
+        for i in (1, 2):
+            if (np.isnan(self.prop[i]) or np.isnan(self.prop_err[i])):
+                self.test_pass[i] = False
+                self.good_data[i] = False
             else:
-                if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
-                    l_prop_z[bin_index] = np.abs(
-                        getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
-                else:
-                    l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
-                l_prop_good_data[bin_index] = True
-            if l_prop_pass[bin_index]:
-                l_prop_result[bin_index] = RESULT_PASS
+                self.test_pass[i] = self.prop_z[i] < self.fail_sigma
+                self.good_data[i] = True
+            if self.test_pass[i]:
+                self.good_data[i] = RESULT_PASS
             else:
-                l_prop_result[bin_index] = RESULT_FAIL
+                self.good_data[i] = RESULT_FAIL
 
         # Pass if there's at least some good data, and all good data passes
         if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data)):
