@@ -25,11 +25,15 @@ import os
 from SHE_PPT import file_io
 from SHE_PPT import products
 from SHE_PPT.logging import getLogger
+from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from astropy.table import Table
 
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_SHEAR_BIAS_TEST_CASES
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
+                                                                     NUM_METHOD_SHEAR_BIAS_TEST_CASES)
 
 from .plot_shear_bias import ShearBiasPlotter
+from .results_reporting import fill_shear_bias_validation_results
+
 
 logger = getLogger(__name__)
 
@@ -52,26 +56,67 @@ def validate_shear_bias_from_args(args):
     plot_filenames[0] = {}
     d_bias_measurements = {}
 
+    # Keep track if we have valid data for any method
+    method_data_exists = False
+
     for method in methods:
 
         method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
         if method_matched_catalog_filename is None:
             continue
 
-        qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
-        logger.info(f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
-        gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
+        # Failsafe block for each method
+        try:
+            qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
+            logger.info(
+                f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
+            gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
 
-        # Perform a linear regression for e1 and e2 to get bias measurements and make plots
+            # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-        shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
+            shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
 
-        shear_bias_plotter.plot_shear_bias()
+            shear_bias_plotter.plot_shear_bias()
 
-        d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
-        d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
+            d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
+            d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
 
-        # Save the filename for each component plot
-        for i in d_method_bias_plot_filename:
-            plot_label = f"{method}-g{i}"
-            plot_filenames[0][plot_label] = plot_label
+            # Save the filename for each component plot
+            for i in d_method_bias_plot_filename:
+                plot_label = f"{method}-g{i}"
+                plot_filenames[0][plot_label] = plot_label
+        except Exception as e:
+            import traceback
+            logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
+                           "Traceback: " + "".join(traceback.format_tb(e.__traceback__)))
+        else:
+            method_data_exists = True
+
+    # Create the observation test results product. We don't have a reference product for this, so we have to
+    # fill it out manually
+    test_result_product = create_validation_test_results_product(num_tests=NUM_METHOD_SHEAR_BIAS_TEST_CASES)
+    test_result_product.Data.TileId = None
+    test_result_product.Data.PointingId = None
+    test_result_product.Data.ExposureProductId = None
+    # Use the last observation ID, having checked they're all the same above
+    test_result_product.Data.ObservationId = matched_catalog_product.Data.ObservationId
+
+    # Fill in the products with the results
+    if not args.dry_run:
+
+        # And fill in the observation product
+        fill_shear_bias_validation_results(test_result_product=test_result_product,
+                                           workdir=args.workdir,
+                                           d_bias_measurements=d_bias_measurements,
+                                           pipeline_config=args.pipeline_config,
+                                           figures=plot_filenames,
+                                           method_data_exists=method_data_exists)
+
+    # Write out test results product
+    file_io.write_xml_product(test_result_product,
+                              args.shear_bias_validation_test_results_product, workdir=args.workdir)
+
+    logger.info("Output shear bias validation test results to: " +
+                os.path.join(args.workdir, args.shear_bias_validation_test_results_product))
+
+    logger.info("Execution complete.")
