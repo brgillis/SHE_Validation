@@ -21,12 +21,17 @@ __updated__ = "2021-07-15"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import argparse
+import os
 
-from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import get_arguments_string
+from EL_PythonUtils.utilities import get_arguments_string
+from SHE_PPT import logging as log
+from SHE_PPT.pipeline_utility import read_config, AnalysisValidationConfigKeys
 
-import SHE_Validation
+from . import __version__
+from .constants.shear_bias_default_config import (SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME)
 from .validate_shear_bias import validate_shear_bias_from_args
+
+logger = log.getLogger(__name__)
 
 
 def defineSpecificProgramOptions():
@@ -37,8 +42,6 @@ def defineSpecificProgramOptions():
     @return
         An  ArgumentParser.
     """
-
-    logger = getLogger(__name__)
 
     logger.debug('#')
     logger.debug('# Entering SHE_Validation_ValidateShearBias defineSpecificProgramOptions()')
@@ -77,27 +80,45 @@ def mainMethod(args):
         similar to a main (and it is why it is called mainMethod()).
     """
 
-    logger = getLogger(__name__)
-
     logger.debug('#')
     logger.debug('# Entering SHE_Validation_ValidateShearBias mainMethod()')
     logger.debug('#')
 
-    exec_cmd = get_arguments_string(args, cmd=f"E-Run SHE_Validation {SHE_Validation.__version__} SHE_Validation_ValidateShearBias",
+    exec_cmd = get_arguments_string(args, cmd=f"E-Run SHE_Validation {__version__} SHE_Validation_ValidateShearBias",
                                     store_true=["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
-    if args.profile:
+    # load the pipeline config in
+    pipeline_config = read_config(args.pipeline_config,
+                                  workdir=args.workdir,
+                                  defaults=SHEAR_BIAS_DEFAULT_CONFIG,
+                                  config_keys=AnalysisValidationConfigKeys)
+
+    # set args.pipeline_config to the read-in pipeline_config
+    args.pipeline_config = pipeline_config
+
+    # check if profiling is to be enabled from the pipeline config
+    profiling = pipeline_config[AnalysisValidationConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+
+    if args.profile or profiling:
         import cProfile
+
+        logger.info("Profiling enabled")
+        filename = os.path.join(args.workdir, args.logdir, PROFILING_FILENAME)
+        logger.info("Writing profiling data to %s", filename)
+
         cProfile.runctx("validate_shear_bias_from_args(args)", {},
                         {"validate_shear_bias_from_args": validate_shear_bias_from_args,
                          "args": args, },
                         filename="validate_shear_bias_from_args.prof")
     else:
+        logger.info("Profiling disabled")
         validate_shear_bias_from_args(args)
 
+    logger.info('#')
     logger.debug('Exiting SHE_Validation_ValidateShearBias mainMethod()')
+    logger.info('#')
 
 
 def main():

@@ -26,6 +26,7 @@ from SHE_Validation.constants.default_config import FailSigmaScaling
 BACKGROUND_LEVEL_UNITS = "ADU/pixel"
 COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
 SIZE_DEFINITION = "Area of segmentation map (pixels)"
+PROFILING_FILENAME = "validate_cti_gal.prof"
 
 
 # Config keys and default values
@@ -38,4 +39,5 @@ CTI_GAL_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.valu
                               "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99"),
                           AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
                           AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
+                          AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
                           }
