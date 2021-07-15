@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

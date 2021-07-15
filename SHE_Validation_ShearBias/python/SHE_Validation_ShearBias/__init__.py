@@ -1,8 +1,8 @@
 """ @file __init__.py
 
-    Created 24 April 2020
+    Created 26 March 2021
 
-    SHE_Validation_CTI package, for validation tests and documentation related to CTI.
+    SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias.
 """
 
 __updated__ = "2021-03-26"
@@ -21,10 +21,4 @@ __updated__ = "2021-03-26"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from pkgutil import extend_path
-
-from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __license__, __version__, __maintainer__,
-                                     __email__, __status__, __url__)
-
 __path__ = extend_path(__path__, __name__)
-
-__description__ = 'Python package for unit tests relating to CTI.'
