@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,7 +23,7 @@ __updated__ = "2021-07-15"
 from copy import deepcopy
 from typing import Dict, List,  Any, Callable, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
@@ -39,7 +39,9 @@ import numpy as np
 from .constants.shear_bias_default_config import FailSigmaScaling
 from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
-                                             D_SHEAR_BIAS_TEST_CASE_INFO)
+                                             D_SHEAR_BIAS_TEST_CASE_INFO,
+                                             SHEAR_BIAS_TEST_CASE_M_INFO,
+                                             SHEAR_BIAS_TEST_CASE_C_INFO)
 from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
@@ -352,10 +354,13 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
+        # Initialise a list of test case info. We'll have one m for each method, and one c for each method
+        l_test_case_info = [SHEAR_BIAS_TEST_CASE_M_INFO] * NUM_METHODS + SHEAR_BIAS_TEST_CASE_C_INFO * NUM_METHODS
+
         super().__init__(test_object=test_object,
                          workdir=workdir,
-                         num_test_cases=NUM_METHOD_SHEAR_BIAS_TEST_CASES,
-                         l_test_case_info=None, *args, **kwargs)
+                         num_test_cases=None,
+                         l_test_case_info=l_test_case_info, *args, **kwargs)
 
         self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
