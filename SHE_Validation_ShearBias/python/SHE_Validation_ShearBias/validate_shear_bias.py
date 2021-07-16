@@ -52,14 +52,14 @@ def validate_shear_bias_from_args(args):
 
     # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
-    plot_filenames = [None] * NUM_SHEAR_BIAS_TEST_CASES
+    plot_filenames = [None] * NUM_METHOD_SHEAR_BIAS_TEST_CASES
     plot_filenames[0] = {}
     d_bias_measurements = {}
 
     # Keep track if we have valid data for any method
     data_exists = False
 
-    for method in methods:
+    for method_index, method in enumerate(methods):
 
         method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
         if method_matched_catalog_filename is None:
@@ -84,7 +84,7 @@ def validate_shear_bias_from_args(args):
             # Save the filename for each component plot
             for i in d_method_bias_plot_filename:
                 plot_label = f"{method}-g{i}"
-                plot_filenames[0][plot_label] = d_method_bias_plot_filename[i]
+                plot_filenames[method_index][plot_label] = d_method_bias_plot_filename[i]
         except Exception as e:
             import traceback
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
