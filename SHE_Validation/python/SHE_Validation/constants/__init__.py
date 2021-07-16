@@ -1,11 +1,7 @@
 """ @file __init__.py
 
-    Created 24 April 2020
-
-    SHE_Validation_CTI package, for validation tests and documentation related to CTI.
+    Created 6 Jan 2021
 """
-
-__updated__ = "2021-03-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -18,13 +14,16 @@ __updated__ = "2021-03-26"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301 USA
 
-from pkgutil import extend_path
+import glob
+from os.path import dirname, basename, isfile
 
-from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __license__, __version__, __maintainer__,
-                                     __email__, __status__, __url__)
+modules = glob.glob(dirname(__file__) + "/*.py")
+__all__ = [basename(f)[:-3]
+           for f in modules if isfile(f) and not f.endswith('__init__.py')]
 
-__path__ = extend_path(__path__, __name__)
+from . import *
 
-__description__ = 'Python package for unit tests relating to CTI.'
+del modules, dirname, basename, isfile, glob

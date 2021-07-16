@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-07-13"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,7 +25,7 @@ from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys
+from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
 from astropy import table
 import scipy.stats
 
@@ -68,9 +68,9 @@ class FailSigmaCalculator():
                  pipeline_config: Dict[str, str],
                  d_bin_limits: Dict[str, str]):
 
-        self.slope_fail_sigma = pipeline_config[AnalysisConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
-        self.intercept_fail_sigma = pipeline_config[AnalysisConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[AnalysisConfigKeys.CGV_FAIL_SIGMA_SCALING.value]
+        self.slope_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
+        self.intercept_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]
+        self.fail_sigma_scaling = pipeline_config[AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value]
 
         self.num_test_cases = len(d_bin_limits)
         self.d_num_bins = {}
@@ -256,7 +256,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
-            report_method = self.report_bad_data
+            report_method = self.report_good_data
 
         # Default to empty dict for report_kwargs
         if report_kwargs is None:

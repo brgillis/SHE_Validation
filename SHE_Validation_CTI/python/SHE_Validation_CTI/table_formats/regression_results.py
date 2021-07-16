@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-07-05"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,7 +30,7 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
-from ..constants.cti_gal_default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
 from ..constants.cti_gal_test_info import CtiGalTestCases
 
 

@@ -15,4 +15,3 @@ elements_add_python_program(SHE_Validation_ValidateShearBias SHE_Validation_Shea
 
 # Install the auxiliary files
 # elements_install_aux_files()
-                

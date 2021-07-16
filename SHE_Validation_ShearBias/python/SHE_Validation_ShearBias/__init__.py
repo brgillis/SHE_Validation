@@ -1,11 +1,11 @@
 """ @file __init__.py
 
-    Created 24 April 2020
+    Created 26 March 2021
 
-    SHE_Validation package, for general-purpose code within the SHE_Validation project.
+    SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias.
 """
 
-__updated__ = "2021-07-14"
+__updated__ = "2021-07-15"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,17 +20,11 @@ __updated__ = "2021-07-14"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-__all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__version__", "__maintainer__", "__email__",
-           "__status__", "__url__"]
+from pkgutil import extend_path
 
-__authors__ = ["Rob Blake", "Bryan Gillis"]
-__copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
-__credits__ = ["Rob Blake", "Bryan Gillis"]
-__license__ = "GNU LGPL 3.0"
-__version__ = "8.1"
-__maintainer__ = "Bryan Gillis"
-__email__ = "b.gillis@roe.ac.uk"
-__status__ = 'Development'
+from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __license__, __version__, __maintainer__,
+                                     __email__, __status__, __url__)
 
-__description__ = 'Elements project for validation tests within PF-SHE.'
-__url__ = 'https://gitlab.euclid-sgs.uk/PF-SHE/SHE_Validation'
+__path__ = extend_path(__path__, __name__)
+
+__description__ = 'Python package for unit tests relating to CTI.'
