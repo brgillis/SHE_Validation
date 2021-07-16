@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -52,6 +52,8 @@ def defineSpecificProgramOptions():
     # Input filenames
     parser.add_argument('--matched_catalog', type=str,
                         help='Desired filename for output matched catalog data product (XML data product).')
+    parser.add_argument('--pipeline_config', type=str,
+                        help='Pipeline configuration file.')
 
     # Output filenames
     parser.add_argument('--shear_bias_validation_test_results_product', type=str,
