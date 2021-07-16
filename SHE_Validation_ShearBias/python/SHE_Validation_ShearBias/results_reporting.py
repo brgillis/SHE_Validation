@@ -421,13 +421,13 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 if self.data_exists and method_data_exists:
 
-                    val = (getattr(d_method_bias_measurements[1], prop),
-                           getattr(d_method_bias_measurements[2], prop))
-                    val_err = (getattr(d_method_bias_measurements[1], f"{prop}_err"), getattr(
-                        d_method_bias_measurements[2], f"{prop}_err"))
+                    val = {1: getattr(d_method_bias_measurements[1], prop),
+                           2: getattr(d_method_bias_measurements[2], prop)}
+                    val_err = {1: getattr(d_method_bias_measurements[1], f"{prop}_err"),
+                               2: getattr(d_method_bias_measurements[2], f"{prop}_err")}
                     val_target = getattr(d_method_bias_measurements[1], f"{prop}_target")
-                    val_z = (getattr(d_method_bias_measurements[1], f"{prop}_z"), getattr(
-                        d_method_bias_measurements[2], f"{prop}_z"))
+                    val_z = {1: getattr(d_method_bias_measurements[1], f"{prop}_z"),
+                             2: getattr(d_method_bias_measurements[2], f"{prop}_z")}
 
                     report_method = None
                     report_kwargs = {}
