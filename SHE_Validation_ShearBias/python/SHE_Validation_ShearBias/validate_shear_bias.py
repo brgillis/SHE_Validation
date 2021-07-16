@@ -24,6 +24,7 @@ import os
 
 from SHE_PPT import file_io
 from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from astropy.table import Table
@@ -36,8 +37,6 @@ from .results_reporting import fill_shear_bias_validation_results
 
 
 logger = getLogger(__name__)
-
-methods = ("KSB", "LensMC", "MomentsML", "REGAUSS")
 
 
 def validate_shear_bias_from_args(args):
@@ -58,7 +57,7 @@ def validate_shear_bias_from_args(args):
     # Keep track if we have valid data for any method
     data_exists = False
 
-    for method_index, method in enumerate(methods):
+    for method_index, method in enumerate(METHODS):
 
         plot_filenames[method_index] = {}
 
