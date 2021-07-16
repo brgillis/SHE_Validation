@@ -41,7 +41,9 @@ from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
                                              D_SHEAR_BIAS_TEST_CASE_INFO,
                                              SHEAR_BIAS_TEST_CASE_M_INFO,
-                                             SHEAR_BIAS_TEST_CASE_C_INFO)
+                                             SHEAR_BIAS_TEST_CASE_C_INFO,
+                                             SHEAR_BIAS_M_REQUIREMENT_INFO,
+                                             SHEAR_BIAS_C_REQUIREMENT_INFO)
 from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
@@ -273,7 +275,12 @@ class ShearBiasRequirementWriter(RequirementWriter):
             result = RESULT_FAIL
         self.requirement_object.ValidationResult = result
 
-        self.requirement_object.MeasuredValue[0].Parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[self.prop].parameter
+        if self.prop == "m":
+            parameter = SHEAR_BIAS_M_REQUIREMENT_INFO.parameter
+        else:
+            parameter = SHEAR_BIAS_C_REQUIREMENT_INFO.parameter
+
+        self.requirement_object.MeasuredValue[0].Parameter = parameter
 
         # Check for data quality issues and report as proper if found
         if self.val_err[1] == 0 or self.val_err[2] == 0:
@@ -327,11 +334,15 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
         # Get whether we're doing m or c from the last letter of the test case id
         prop = test_case_info.test_case_id[-1]
+        if prop == "m":
+            l_requirement_info = SHEAR_BIAS_M_REQUIREMENT_INFO
+        else:
+            l_requirement_info = SHEAR_BIAS_C_REQUIREMENT_INFO
 
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
-                         l_requirement_info=D_SHEAR_BIAS_REQUIREMENT_INFO[prop],
+                         l_requirement_info=l_requirement_info,
                          *args, **kwargs)
 
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
