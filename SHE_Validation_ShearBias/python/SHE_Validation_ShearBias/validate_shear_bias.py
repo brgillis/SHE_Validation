@@ -53,13 +53,14 @@ def validate_shear_bias_from_args(args):
     # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
     plot_filenames = [None] * NUM_METHOD_SHEAR_BIAS_TEST_CASES
-    plot_filenames[0] = {}
     d_bias_measurements = {}
 
     # Keep track if we have valid data for any method
     data_exists = False
 
     for method_index, method in enumerate(methods):
+
+        plot_filenames[method_index] = {}
 
         method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
         if method_matched_catalog_filename is None:
