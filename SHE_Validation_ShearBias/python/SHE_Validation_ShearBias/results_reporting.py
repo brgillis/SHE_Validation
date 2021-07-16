@@ -355,7 +355,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  *args, **kwargs):
 
         # Initialise a list of test case info. We'll have one m for each method, and one c for each method
-        l_test_case_info = [SHEAR_BIAS_TEST_CASE_M_INFO] * NUM_METHODS + SHEAR_BIAS_TEST_CASE_C_INFO * NUM_METHODS
+        l_test_case_info = [SHEAR_BIAS_TEST_CASE_M_INFO] * NUM_METHODS + [SHEAR_BIAS_TEST_CASE_C_INFO] * NUM_METHODS
 
         super().__init__(test_object=test_object,
                          workdir=workdir,
