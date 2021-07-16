@@ -211,11 +211,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
         some_good_data = False
 
         for i in (1, 2):
-            if (np.isnan(self.prop[i]) or np.isnan(self.prop_err[i])):
+            if (np.isnan(self.val[i]) or np.isnan(self.val_err[i])):
                 self.test_pass[i] = False
                 self.good_data[i] = False
             else:
-                self.test_pass[i] = self.prop_z[i] < self.fail_sigma
+                self.test_pass[i] = self.val_z[i] < self.fail_sigma
                 self.good_data[i] = True
                 some_good_data = True
             if self.test_pass[i]:
