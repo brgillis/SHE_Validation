@@ -426,8 +426,8 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                     val_err = {1: getattr(d_method_bias_measurements[1], f"{prop}_err"),
                                2: getattr(d_method_bias_measurements[2], f"{prop}_err")}
                     val_target = getattr(d_method_bias_measurements[1], f"{prop}_target")
-                    val_z = {1: getattr(d_method_bias_measurements[1], f"{prop}_z"),
-                             2: getattr(d_method_bias_measurements[2], f"{prop}_z")}
+                    val_z = {1: getattr(d_method_bias_measurements[1], f"{prop}_sigma"),
+                             2: getattr(d_method_bias_measurements[2], f"{prop}_sigma")}
 
                     report_method = None
                     report_kwargs = {}
