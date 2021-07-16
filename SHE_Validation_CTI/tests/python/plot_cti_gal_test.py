@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,14 +21,7 @@ __updated__ = "2021-07-15"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import time
 
-from SHE_PPT import mdb
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
-from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
-from SHE_PPT.logging import getLogger
-from astropy import table
 import pytest
 
 from ElementsServices.DataSync import DataSync
