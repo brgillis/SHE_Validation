@@ -362,7 +362,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  workdir: str,
                  d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 method_data_exists: bool = True,
+                 data_exists: bool = True,
                  *args, **kwargs):
 
         # Initialise a list of test case info. We'll have one m for each method, and one c for each method
@@ -375,7 +375,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
         self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.method_data_exists = method_data_exists
+        self.data_exists = data_exists
 
     def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter
@@ -413,9 +413,13 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 requirement_writer = test_case_writer.l_requirement_writers[0]
 
-                if self.method_data_exists:
+                if method in self.d_bias_measurements:
+                    d_method_bias_measurements = self.d_bias_measurements[method]
+                    method_data_exists = True
+                else:
+                    method_data_exists = False
 
-                    d_method_bias_measurements = self.d_bias_measurements
+                if self.data_exists and method_data_exists:
 
                     val = (getattr(d_method_bias_measurements[1], prop),
                            getattr(d_method_bias_measurements[2], prop))
@@ -455,7 +459,7 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                        workdir: str,
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
-                                       method_data_exists: bool = True):
+                                       data_exists: bool = True):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
@@ -467,7 +471,7 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                                            workdir=workdir,
                                                            d_bias_measurements=d_bias_measurements,
                                                            fail_sigma_calculator=fail_sigma_calculator,
-                                                           method_data_exists=method_data_exists,
+                                                           data_exists=data_exists,
                                                            figures=figures)
 
     test_results_writer.write()
