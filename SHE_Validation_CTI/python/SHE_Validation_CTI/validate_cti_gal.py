@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -137,8 +137,9 @@ def run_validate_cti_gal_from_args(args):
     data_stack = SHEFrameStack.read(exposure_listfile_filename=args.vis_calibrated_frame_listfile,
                                     detections_listfile_filename=args.mer_final_catalog_listfile,
                                     workdir=args.workdir,
-                                    memmap=False,
-                                    load_images=False,
+                                    memmap=True,
+                                    load_images=True,
+                                    prune_images=False,
                                     mode='denywrite')
     logger.info("Complete!")
 
