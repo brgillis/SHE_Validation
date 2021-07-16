@@ -67,6 +67,8 @@ def defineSpecificProgramOptions():
     # Optional arguments (can't be used with pipeline runner)
     parser.add_argument('--profile', action='store_true',
                         help='Store profiling data for execution.')
+    parser.add_argument('--dry_run', action='store_true',
+                        help='Skip processing and just output dummy data.')
 
     logger.debug('Exiting SHE_Validation_ValidateShearBias defineSpecificProgramOptions()')
 
