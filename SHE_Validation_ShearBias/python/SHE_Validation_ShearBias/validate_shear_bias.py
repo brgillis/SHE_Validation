@@ -84,7 +84,7 @@ def validate_shear_bias_from_args(args):
             # Save the filename for each component plot
             for i in d_method_bias_plot_filename:
                 plot_label = f"{method}-g{i}"
-                plot_filenames[0][plot_label] = plot_label
+                plot_filenames[0][plot_label] = d_method_bias_plot_filename[i]
         except Exception as e:
             import traceback
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
