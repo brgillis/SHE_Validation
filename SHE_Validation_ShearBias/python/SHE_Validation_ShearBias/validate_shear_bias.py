@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -57,7 +57,7 @@ def validate_shear_bias_from_args(args):
     d_bias_measurements = {}
 
     # Keep track if we have valid data for any method
-    method_data_exists = False
+    data_exists = False
 
     for method in methods:
 
@@ -90,7 +90,7 @@ def validate_shear_bias_from_args(args):
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
                            "Traceback: " + "".join(traceback.format_tb(e.__traceback__)))
         else:
-            method_data_exists = True
+            data_exists = True
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
@@ -110,7 +110,7 @@ def validate_shear_bias_from_args(args):
                                            d_bias_measurements=d_bias_measurements,
                                            pipeline_config=args.pipeline_config,
                                            figures=plot_filenames,
-                                           method_data_exists=method_data_exists)
+                                           data_exists=data_exists)
 
     # Write out test results product
     file_io.write_xml_product(test_result_product,
