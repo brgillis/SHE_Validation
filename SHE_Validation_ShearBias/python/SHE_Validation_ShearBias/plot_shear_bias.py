@@ -5,7 +5,8 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-07-12"
+
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,10 +30,12 @@ from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
 from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
+from astropy.table import Table
 from matplotlib import pyplot as plt
 
 import SHE_Validation
 from SHE_Validation.plotting import ValidationPlotter
+import numpy as np
 
 logger = getLogger(__name__)
 
@@ -73,29 +76,51 @@ class ShearBiasPlotter(ValidationPlotter):
     _d_bias_measurements = None
     _d_bias_plot_filename = None
 
-    def __init__(self, gal_matched_table, method, workdir):
+    def __init__(self, l_method_matched_catalog_filenames, method, workdir):
 
         super().__init__()
 
         # Set attrs directly
-        self.gal_matched_table = gal_matched_table
+        self.l_method_matched_catalog_filenames = l_method_matched_catalog_filenames
         self.method = method
         self.workdir = workdir
 
         # Determine attrs from kwargs
         self.sem_tf = shear_estimation_method_table_formats[method]
 
-        good_rows = gal_matched_table[self.sem_tf.fit_flags] == 0
+        # Read in each table and get the data we need out of it
+        l_g1_in = []
+        l_g2_in = []
+        l_g1_out = []
+        l_g2_out = []
+        l_g1_out_err = []
+        l_g2_out_err = []
+        for method_matched_catalog_filename in self.l_method_matched_catalog_filenames:
 
-        g1_in = -gal_matched_table[galcat_gamma1_colname] / (1 - gal_matched_table[galcat_kappa_colname])
-        g2_in = gal_matched_table[galcat_gamma2_colname] / (1 - gal_matched_table[galcat_kappa_colname])
+            qualified_method_matched_catalog_filename = os.path.join(self.workdir, method_matched_catalog_filename)
+            logger.info(
+                f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
+            gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
 
-        self.d_g_in = {1: g1_in[good_rows],
-                       2: g2_in[good_rows]}
-        self.d_g_out = {1: gal_matched_table[self.sem_tf.g1][good_rows],
-                        2: gal_matched_table[self.sem_tf.g2][good_rows]}
-        self.d_g_out_err = {1: gal_matched_table[self.sem_tf.g1_err][good_rows],
-                            2: gal_matched_table[self.sem_tf.g2_err][good_rows]}
+            good_rows = gal_matched_table[self.sem_tf.fit_flags] == 0
+
+            l_g1_in.append((gal_matched_table[galcat_gamma1_colname] /
+                            (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
+            l_g2_in.append((gal_matched_table[galcat_gamma2_colname] /
+                            (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
+
+            l_g1_out.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+            l_g2_out.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+
+            l_g1_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+            l_g2_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+
+        self.d_g_in = {1: np.concatenate(l_g1_in),
+                       2: np.concatenate(l_g2_in)}
+        self.d_g_out = {1: np.concatenate(l_g1_out),
+                        2: np.concatenate(l_g2_out)}
+        self.d_g_out_err = {1: np.concatenate(l_g1_out_err),
+                            2: np.concatenate(l_g2_out_err)}
 
         # Set as None attributes to be set when plotting methods are called
         self.d_bias_measurements = None

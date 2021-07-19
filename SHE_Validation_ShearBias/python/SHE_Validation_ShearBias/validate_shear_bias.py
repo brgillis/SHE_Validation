@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,8 +29,8 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from astropy.table import Table
 
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
-                                                                     NUM_METHOD_SHEAR_BIAS_TEST_CASES)
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import (LOCAL_MODE, GLOBAL_MODE)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 from .plot_shear_bias import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_validation_results
@@ -39,15 +39,40 @@ from .results_reporting import fill_shear_bias_validation_results
 logger = getLogger(__name__)
 
 
-def validate_shear_bias_from_args(args):
+def validate_shear_bias_from_args(args, mode):
     """ @TODO Fill in docstring
     """
 
-    # Read in the shear estimates data product, and get the filenames of the tables for each method from it.
-    qualified_matched_catalog_product_filename = file_io.find_file(args.matched_catalog,
-                                                                   path=args.workdir)
-    logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
-    matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
+    # Get the list of matched catalog products to be read in, depending on mode
+    if mode == LOCAL_MODE:
+        # In local mode, read in the one product and put it in a list of one item
+        logger.info(f"Using matched data from product {args.matched_catalog}")
+        l_matched_catalog_product_filenamew = [args.matched_catalog]
+    elif mode == GLOBAL_MODE:
+        # In global mode, read in the listfile to get the list of filenames
+        logger.info(f"Using matched data from products in listfile {args.matched_catalog_listfile}")
+        qualified_matched_catalog_listfile_filename = file_io.find_file(args.matched_catalog_listfile,
+                                                                        path=args.workdir)
+        l_matched_catalog_product_filenames = file_io.read_listfile(qualified_matched_catalog_listfile_filename)
+    else:
+        raise ValueError(f"Unrecognized operation mode: {mode}")
+
+    num_matched_catalogs = len(l_matched_catalog_product_filenames)
+
+    # Init lists of filenames for each method
+    d_method_l_table_filenames = {}
+    for method in METHODS:
+        d_method_l_table_filenames[method] = [None] * num_matched_catalogs
+
+    # Read in the table filenames from each product, for each method
+    for matched_cat_index, qualified_matched_catalog_product_filename in enumerate(l_matched_catalog_product_filenames):
+
+        logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
+        matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
+
+        # Get the list of table filenames for each method and store it
+        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
+        d_method_l_table_filenames[method][matched_cat_index] = method_matched_catalog_filename
 
     # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -57,24 +82,18 @@ def validate_shear_bias_from_args(args):
     # Keep track if we have valid data for any method
     data_exists = False
 
+    # Perform validation for each shear estimation method
     for method_index, method in enumerate(METHODS):
 
         plot_filenames[method_index] = {}
 
-        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
-        if method_matched_catalog_filename is None:
-            continue
+        l_method_matched_catalog_filenames = d_method_l_table_filenames[method]
 
         # Failsafe block for each method
         try:
-            qualified_method_matched_catalog_filename = os.path.join(args.workdir, method_matched_catalog_filename)
-            logger.info(
-                f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
-            gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
-
             # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-            shear_bias_plotter = ShearBiasPlotter(gal_matched_table, method, workdir=args.workdir)
+            shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames, method, workdir=args.workdir)
 
             shear_bias_plotter.plot_shear_bias()
 
