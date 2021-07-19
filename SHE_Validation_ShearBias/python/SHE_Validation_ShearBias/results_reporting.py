@@ -302,9 +302,18 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for this test.
     """
 
-    def __init__(self, *args, **kwargs):
+    self.method = None
+
+    def __init__(self, method, *args, **kwargs):
         super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
                          *args, **kwargs)
+
+        self.method = method
+
+    def _get_filename_tag(self):
+        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
+        """
+        return self.method
 
     def _generate_directory_filename(self):
         """ Overriding method to generate a filename for a directory file.
@@ -319,10 +328,13 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
 
 class ShearBiasTestCaseWriter(TestCaseWriter):
 
+    method = None
+
     def __init__(self,
                  parent_validation_writer: "ShearBiasValidationResultsWriter",
                  test_case_object,
                  test_case_info: TestCaseInfo,
+                 method=None,
                  *args, **kwargs):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
@@ -337,6 +349,8 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
                          l_requirement_info=requirement_info,
                          *args, **kwargs)
 
+        self.method = method
+
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
         """
@@ -345,7 +359,7 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
     def _init_analysis_writer(self, **kwargs) -> ShearBiasAnalysisWriter:
         """ We override the _init_analysis_writer method to create a writer of the inherited type.
         """
-        return ShearBiasAnalysisWriter(self, **kwargs)
+        return ShearBiasAnalysisWriter(self, method=self.method, **kwargs)
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
@@ -370,7 +384,8 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
         self.data_exists = data_exists
 
     def _init_test_case_writer(self, **kwargs):
-        """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter
+        """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter. Note that we don't
+            set their method attributes here, but rather in the write method, before calling it to write.
         """
         return ShearBiasTestCaseWriter(self, **kwargs)
 
@@ -393,6 +408,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             for method in METHODS:
 
                 test_case_writer = self.l_test_case_writers[test_case_index]
+                test_case_writer.method = method
 
                 # Use a modified test case info object to describe this test, clarifying it's
                 # just for this method

@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-14"
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -318,8 +318,14 @@ class AnalysisWriter():
     @property
     def textfiles_filename(self):
         if self._textfiles_filename is None:
+            filename_tag = self._get_filename_tag()
+            if filename_tag is None:
+                instance_id_tail = ""
+            else:
+                instance_id_tail = f"-{filename_tag.upper()}"
             self._textfiles_filename = file_io.get_allowed_filename(type_name=self.product_type,
-                                                                    instance_id=f"TEXTFILES-{os.getpid()}",
+                                                                    instance_id=(f"TEXTFILES-{os.getpid()}"
+                                                                                 f"{instance_id_tail}"),
                                                                     extension=".tar.gz",
                                                                     version=__version__)
         return self._textfiles_filename
@@ -336,8 +342,14 @@ class AnalysisWriter():
     @property
     def figures_filename(self):
         if self._figures_filename is None:
+            filename_tag = self._get_filename_tag()
+            if filename_tag is None:
+                instance_id_tail = ""
+            else:
+                instance_id_tail = f"-{filename_tag.upper()}"
             self._figures_filename = file_io.get_allowed_filename(type_name=self.product_type,
-                                                                  instance_id=f"FIGURES-{os.getpid()}",
+                                                                  instance_id=(f"FIGURES-{os.getpid()}"
+                                                                               f"{instance_id_tail}"),
                                                                   extension=".tar.gz",
                                                                   version=__version__)
         return self._figures_filename
@@ -375,6 +387,12 @@ class AnalysisWriter():
         return self._qualified_directory_filename
 
     # Private and protected methods
+
+    def _get_filename_tag(self):
+        """ Overridable method to get a tag to add to figure/textfile filenames.
+        """
+        return None
+
     def _generate_directory_filename(self):
         """ Overridable method to generate a filename for a directory file.
         """
