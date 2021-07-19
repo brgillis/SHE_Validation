@@ -113,10 +113,10 @@ class ShearBiasPlotter(ValidationPlotter):
                             (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
 
             l_g1_out.append((gal_matched_table[self.sem_tf.g1])[good_rows])
-            l_g2_out.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+            l_g2_out.append((gal_matched_table[self.sem_tf.g2])[good_rows])
 
-            l_g1_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
-            l_g2_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
+            l_g1_out_err.append((gal_matched_table[self.sem_tf.g1_err])[good_rows])
+            l_g2_out_err.append((gal_matched_table[self.sem_tf.g2_err])[good_rows])
 
         # Check if we have some data, otherwise use empty arrays
         if len(l_g1_in) > 0:
