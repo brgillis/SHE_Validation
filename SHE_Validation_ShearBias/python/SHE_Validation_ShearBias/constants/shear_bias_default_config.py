@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -31,3 +31,7 @@ SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value
                              AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_SCALE.value,
                              AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
                              }
+
+# Execution mode options
+LOCAL_MODE = "local"
+GLOBAL_MODE = "global"

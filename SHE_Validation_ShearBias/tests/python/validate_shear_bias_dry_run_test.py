@@ -1,8 +1,8 @@
-""" @file validate_cti_gal_dry_run_test.py
+""" @file validate_shear_bias_dry_run_test.py
 
     Created 10 December 2020
 
-    Unit tests the input/output interface of the CTI-Gal validation task.
+    Unit tests the input/output interface of the Shear Bias validation task.
 """
 
 __updated__ = "2021-07-16"
@@ -23,21 +23,17 @@ __updated__ = "2021-07-16"
 import os
 import subprocess
 
-from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
-                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                         MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import write_config
 
-from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisValidationConfigKeys
-from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
-from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
-from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
+import pytest
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import AnalysisValidationConfigKeys
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import D_SHEAR_BIAS_TEST_CASE_INFO, ShearBiasTestCases
+from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
+from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 
 # Pipeline config filename
-PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
+PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
 
 # Output data filenames
 
@@ -50,19 +46,9 @@ class Args(object):
     """
 
     def __init__(self):
-        self.vis_calibrated_frame_listfile = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME
-        self.mer_final_catalog_listfile = MER_FINAL_CATALOG_LISTFILE_FILENAME
-        self.she_validated_measurements_product = SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
+        self.matched_catalog = None
         self.pipeline_config = None
-        self.mdb = MDB_PRODUCT_FILENAME
-
-        for test_case_label in CtiGalTestCases:
-            bin_limits_cline_arg = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_cline_arg
-            if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg, None)
-
-        self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
-        self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
+        self.shear_bias_validation_test_results_product = None
 
         self.profile = False
         self.dry_run = True
@@ -79,51 +65,43 @@ class TestCase:
 
     @classmethod
     def setup_class(cls):
-
-        # Download the MDB from WebDAV
-        sync_mdb = DataSync("testdata/sync.conf", "testdata/test_mdb.txt")
-        sync_mdb.download()
-
-        # Download the data stack files from WebDAV
-        sync_datastack = DataSync("testdata/sync.conf", "testdata/test_data_stack.txt")
-        sync_datastack.download()
-        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
-        assert os.path.isfile(
-            qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
-
-        # Get the workdir based on where the data images listfile is
-        cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
-        cls.logdir = os.path.join(cls.workdir, "logs")
-
-        # Set up the args to pass to the task
-        cls.args = Args()
-        cls.args.workdir = cls.workdir
-        cls.args.logdir = cls.logdir
-
-        # Write the pipeline config we'll be using
-        write_config(config_dict={AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 4.,
-                                  AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 10.},
-                     config_filename=PIPELINE_CONFIG_FILENAME,
-                     workdir=cls.args.workdir,
-                     config_keys=AnalysisValidationConfigKeys)
+        return
 
     @classmethod
     def teardown_class(cls):
 
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
+        os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_FILENAME))
 
-    def test_cti_gal_dry_run(self):
+    @pytest.fixture(autouse=True)
+    def setup(self, tmpdir):
+        self.workdir = tmpdir.strpath
+        self.logdir = os.path.join(tmpdir.strpath, "logs")
+        os.makedirs(os.path.join(self.workdir, "data"), exist_ok=True)
+
+        # Set up the args to pass to the task
+        self.args = Args()
+        self.args.workdir = self.workdir
+        self.args.logdir = self.logdir
+
+        # Write the pipeline config we'll be using
+        write_config(config_dict={AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value: 4.,
+                                  AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value: 10.},
+                     config_filename=PIPELINE_CONFIG_FILENAME,
+                     workdir=self.args.workdir,
+                     config_keys=AnalysisValidationConfigKeys)
+
+    def test_shear_bias_dry_run(self):
 
         # Ensure this is a dry run
         self.args.dry_run = True
         self.args.pipeline_config = None
 
         # Call to validation function
-        run_validate_cti_gal_from_args(self.args)
+        validate_shear_bias_from_args(self.args)
 
-    def test_cti_gal_integration(self):
+    def test_shear_bias_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
             this should be skipped.
         """
@@ -133,7 +111,7 @@ class TestCase:
         self.args.pipeline_config = PIPELINE_CONFIG_FILENAME
 
         # Call to validation function
-        run_validate_cti_gal_from_args(self.args)
+        validate_shear_bias_from_args(self.args)
 
         # Check the resulting data product and plot exist
 
@@ -150,7 +128,7 @@ class TestCase:
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
             subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
 
-        qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
+        qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:

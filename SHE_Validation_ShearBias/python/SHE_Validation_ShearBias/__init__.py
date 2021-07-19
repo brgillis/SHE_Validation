@@ -5,7 +5,7 @@
     SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,4 +27,4 @@ from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __
 
 __path__ = extend_path(__path__, __name__)
 
-__description__ = 'Python package for unit tests relating to CTI.'
+__description__ = 'Python package for unit tests relating to Shear Bias.'

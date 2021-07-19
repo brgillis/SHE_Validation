@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,7 +23,7 @@ __updated__ = "2021-07-15"
 from copy import deepcopy
 from typing import Dict, List,  Any, Callable, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
@@ -39,7 +39,9 @@ import numpy as np
 from .constants.shear_bias_default_config import FailSigmaScaling
 from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
-                                             D_SHEAR_BIAS_TEST_CASE_INFO)
+                                             D_SHEAR_BIAS_TEST_CASE_INFO,
+                                             SHEAR_BIAS_TEST_CASE_M_INFO,
+                                             SHEAR_BIAS_TEST_CASE_C_INFO)
 from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
@@ -207,11 +209,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
         some_good_data = False
 
         for i in (1, 2):
-            if (np.isnan(self.prop[i]) or np.isnan(self.prop_err[i])):
+            if (np.isnan(self.val[i]) or np.isnan(self.val_err[i])):
                 self.test_pass[i] = False
                 self.good_data[i] = False
             else:
-                self.test_pass[i] = self.prop_z[i] < self.fail_sigma
+                self.test_pass[i] = self.val_z[i] < self.fail_sigma
                 self.good_data[i] = True
                 some_good_data = True
             if self.test_pass[i]:
@@ -271,7 +273,9 @@ class ShearBiasRequirementWriter(RequirementWriter):
             result = RESULT_FAIL
         self.requirement_object.ValidationResult = result
 
-        self.requirement_object.MeasuredValue[0].Parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[self.prop].parameter
+        parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(self.prop)].parameter
+
+        self.requirement_object.MeasuredValue[0].Parameter = parameter
 
         # Check for data quality issues and report as proper if found
         if self.val_err[1] == 0 or self.val_err[2] == 0:
@@ -298,9 +302,18 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for this test.
     """
 
-    def __init__(self, *args, **kwargs):
+    method = None
+
+    def __init__(self, method, *args, **kwargs):
         super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
                          *args, **kwargs)
+
+        self.method = method
+
+    def _get_filename_tag(self):
+        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
+        """
+        return self.method
 
     def _generate_directory_filename(self):
         """ Overriding method to generate a filename for a directory file.
@@ -315,21 +328,27 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
 
 class ShearBiasTestCaseWriter(TestCaseWriter):
 
+    method = None
+
     def __init__(self,
                  parent_validation_writer: "ShearBiasValidationResultsWriter",
                  test_case_object,
                  test_case_info: TestCaseInfo,
+                 method=None,
                  *args, **kwargs):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
         # Get whether we're doing m or c from the last letter of the test case id
         prop = test_case_info.test_case_id[-1]
+        requirement_info = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(prop)]
+
+        self.method = method
 
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
-                         l_requirement_info=D_SHEAR_BIAS_REQUIREMENT_INFO[prop],
+                         l_requirement_info=requirement_info,
                          *args, **kwargs)
 
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
@@ -340,7 +359,14 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
     def _init_analysis_writer(self, **kwargs) -> ShearBiasAnalysisWriter:
         """ We override the _init_analysis_writer method to create a writer of the inherited type.
         """
-        return ShearBiasAnalysisWriter(self, **kwargs)
+        return ShearBiasAnalysisWriter(parent_test_case_writer=self, method=self.method, **kwargs)
+
+    def write(self, *args, **kwargs):
+        """ Need to override write here to make sure that 'method' is properly set up for each analysis writer.
+        """
+
+        self.analysis_writer.method = self.method
+        super().write(*args, **kwargs)
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
@@ -349,20 +375,24 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  workdir: str,
                  d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 method_data_exists: bool = True,
+                 data_exists: bool = True,
                  *args, **kwargs):
+
+        # Initialise a list of test case info. We'll have one m for each method, and one c for each method
+        l_test_case_info = [SHEAR_BIAS_TEST_CASE_M_INFO] * NUM_METHODS + [SHEAR_BIAS_TEST_CASE_C_INFO] * NUM_METHODS
 
         super().__init__(test_object=test_object,
                          workdir=workdir,
-                         num_test_cases=NUM_METHOD_SHEAR_BIAS_TEST_CASES,
-                         l_test_case_info=None, *args, **kwargs)
+                         num_test_cases=None,
+                         l_test_case_info=l_test_case_info, *args, **kwargs)
 
         self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.method_data_exists = method_data_exists
+        self.data_exists = data_exists
 
     def _init_test_case_writer(self, **kwargs):
-        """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter
+        """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter. Note that we don't
+            set their method attributes here, but rather in the write method, before calling it to write.
         """
         return ShearBiasTestCaseWriter(self, **kwargs)
 
@@ -385,6 +415,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             for method in METHODS:
 
                 test_case_writer = self.l_test_case_writers[test_case_index]
+                test_case_writer.method = method
 
                 # Use a modified test case info object to describe this test, clarifying it's
                 # just for this method
@@ -397,17 +428,21 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 requirement_writer = test_case_writer.l_requirement_writers[0]
 
-                if self.method_data_exists:
+                if method in self.d_bias_measurements:
+                    d_method_bias_measurements = self.d_bias_measurements[method]
+                    method_data_exists = True
+                else:
+                    method_data_exists = False
 
-                    d_method_bias_measurements = self.d_bias_measurements
+                if self.data_exists and method_data_exists:
 
-                    val = (getattr(d_method_bias_measurements[1], prop),
-                           getattr(d_method_bias_measurements[2], prop))
-                    val_err = (getattr(d_method_bias_measurements[1], f"{prop}_err"), getattr(
-                        d_method_bias_measurements[2], f"{prop}_err"))
+                    val = {1: getattr(d_method_bias_measurements[1], prop),
+                           2: getattr(d_method_bias_measurements[2], prop)}
+                    val_err = {1: getattr(d_method_bias_measurements[1], f"{prop}_err"),
+                               2: getattr(d_method_bias_measurements[2], f"{prop}_err")}
                     val_target = getattr(d_method_bias_measurements[1], f"{prop}_target")
-                    val_z = (getattr(d_method_bias_measurements[1], f"{prop}_z"), getattr(
-                        d_method_bias_measurements[2], f"{prop}_z"))
+                    val_z = {1: getattr(d_method_bias_measurements[1], f"{prop}_sigma"),
+                             2: getattr(d_method_bias_measurements[2], f"{prop}_sigma")}
 
                     report_method = None
                     report_kwargs = {}
@@ -439,7 +474,7 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                        workdir: str,
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
-                                       method_data_exists: bool = True):
+                                       data_exists: bool = True):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
@@ -451,7 +486,7 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                                            workdir=workdir,
                                                            d_bias_measurements=d_bias_measurements,
                                                            fail_sigma_calculator=fail_sigma_calculator,
-                                                           method_data_exists=method_data_exists,
+                                                           data_exists=data_exists,
                                                            figures=figures)
 
     test_results_writer.write()

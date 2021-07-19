@@ -6,7 +6,7 @@
 """
 from copy import deepcopy
 
-__updated__ = "2021-03-03"
+__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,25 +22,19 @@ __updated__ = "2021-03-03"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import time
 
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                          LENSMC_MEASUREMENTS_TABLE_FILENAME)
-from SHE_PPT.file_io import read_xml_product, find_file, read_listfile
-from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from astropy.table import Table
-import pytest
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI import constants
 from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearEstimate,
                                            get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
-from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 import numpy as np
 
 
