@@ -302,7 +302,7 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for this test.
     """
 
-    self.method = None
+    method = None
 
     def __init__(self, method, *args, **kwargs):
         super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
