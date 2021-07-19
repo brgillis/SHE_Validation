@@ -107,8 +107,8 @@ class ShearBiasPlotter(ValidationPlotter):
 
             good_rows = gal_matched_table[self.sem_tf.fit_flags] == 0
 
-            l_g1_in.append((gal_matched_table[galcat_gamma1_colname] /
-                            (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
+            l_g1_in.append(-(gal_matched_table[galcat_gamma1_colname] /
+                             (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
             l_g2_in.append((gal_matched_table[galcat_gamma2_colname] /
                             (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
 
