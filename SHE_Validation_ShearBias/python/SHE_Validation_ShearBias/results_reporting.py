@@ -343,13 +343,13 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
         prop = test_case_info.test_case_id[-1]
         requirement_info = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(prop)]
 
+        self.method = method
+
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
                          l_requirement_info=requirement_info,
                          *args, **kwargs)
-
-        self.method = method
 
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
         """ We override the _init_requirement_writer method to create a writer of the inherited type.
@@ -360,6 +360,13 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
         """ We override the _init_analysis_writer method to create a writer of the inherited type.
         """
         return ShearBiasAnalysisWriter(parent_test_case_writer=self, method=self.method, **kwargs)
+
+    def write(self, *args, **kwargs):
+        """ Need to override write here to make sure that 'method' is properly set up for each analysis writer.
+        """
+
+        self.analysis_writer.method = self.method
+        super().write(*args, **kwargs)
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
