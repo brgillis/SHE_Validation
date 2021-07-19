@@ -47,7 +47,7 @@ def validate_shear_bias_from_args(args, mode):
     if mode == LOCAL_MODE:
         # In local mode, read in the one product and put it in a list of one item
         logger.info(f"Using matched data from product {args.matched_catalog}")
-        l_matched_catalog_product_filenamew = [args.matched_catalog]
+        l_matched_catalog_product_filenames = [args.matched_catalog]
     elif mode == GLOBAL_MODE:
         # In global mode, read in the listfile to get the list of filenames
         logger.info(f"Using matched data from products in listfile {args.matched_catalog_listfile}")
