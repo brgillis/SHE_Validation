@@ -359,7 +359,7 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
     def _init_analysis_writer(self, **kwargs) -> ShearBiasAnalysisWriter:
         """ We override the _init_analysis_writer method to create a writer of the inherited type.
         """
-        return ShearBiasAnalysisWriter(self, method=self.method, **kwargs)
+        return ShearBiasAnalysisWriter(parent_test_case_writer=self, method=self.method, **kwargs)
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
