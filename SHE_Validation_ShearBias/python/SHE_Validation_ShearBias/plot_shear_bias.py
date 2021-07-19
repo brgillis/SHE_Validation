@@ -97,6 +97,9 @@ class ShearBiasPlotter(ValidationPlotter):
         l_g2_out_err = []
         for method_matched_catalog_filename in self.l_method_matched_catalog_filenames:
 
+            if method_matched_catalog_filename is None:
+                continue
+
             qualified_method_matched_catalog_filename = os.path.join(self.workdir, method_matched_catalog_filename)
             logger.info(
                 f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
