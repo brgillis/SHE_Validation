@@ -118,12 +118,21 @@ class ShearBiasPlotter(ValidationPlotter):
             l_g1_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
             l_g2_out_err.append((gal_matched_table[self.sem_tf.g1])[good_rows])
 
-        self.d_g_in = {1: np.concatenate(l_g1_in),
-                       2: np.concatenate(l_g2_in)}
-        self.d_g_out = {1: np.concatenate(l_g1_out),
-                        2: np.concatenate(l_g2_out)}
-        self.d_g_out_err = {1: np.concatenate(l_g1_out_err),
-                            2: np.concatenate(l_g2_out_err)}
+        # Check if we have some data, otherwise use empty arrays
+        if len(l_g1_in) > 0:
+            self.d_g_in = {1: np.concatenate(l_g1_in),
+                           2: np.concatenate(l_g2_in)}
+            self.d_g_out = {1: np.concatenate(l_g1_out),
+                            2: np.concatenate(l_g2_out)}
+            self.d_g_out_err = {1: np.concatenate(l_g1_out_err),
+                                2: np.concatenate(l_g2_out_err)}
+        else:
+            self.d_g_in = {1: np.array([], dtype=float),
+                           2: np.array([], dtype=float)}
+            self.d_g_out = {1: np.array([], dtype=float),
+                            2: np.array([], dtype=float)}
+            self.d_g_out_err = {1: np.array([], dtype=float),
+                                2: np.array([], dtype=float)}
 
         # Set as None attributes to be set when plotting methods are called
         self.d_bias_measurements = None
