@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-07-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,9 +41,7 @@ from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
                                              D_SHEAR_BIAS_TEST_CASE_INFO,
                                              SHEAR_BIAS_TEST_CASE_M_INFO,
-                                             SHEAR_BIAS_TEST_CASE_C_INFO,
-                                             SHEAR_BIAS_M_REQUIREMENT_INFO,
-                                             SHEAR_BIAS_C_REQUIREMENT_INFO)
+                                             SHEAR_BIAS_TEST_CASE_C_INFO)
 from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
@@ -275,10 +273,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
             result = RESULT_FAIL
         self.requirement_object.ValidationResult = result
 
-        if self.prop == "m":
-            parameter = SHEAR_BIAS_M_REQUIREMENT_INFO.parameter
-        else:
-            parameter = SHEAR_BIAS_C_REQUIREMENT_INFO.parameter
+        parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(self.prop)].parameter
 
         self.requirement_object.MeasuredValue[0].Parameter = parameter
 
@@ -334,15 +329,12 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
         # Get whether we're doing m or c from the last letter of the test case id
         prop = test_case_info.test_case_id[-1]
-        if prop == "m":
-            l_requirement_info = SHEAR_BIAS_M_REQUIREMENT_INFO
-        else:
-            l_requirement_info = SHEAR_BIAS_C_REQUIREMENT_INFO
+        requirement_info = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(prop)]
 
         super().__init__(parent_validation_writer,
                          test_case_object,
                          test_case_info,
-                         l_requirement_info=l_requirement_info,
+                         l_requirement_info=requirement_info,
                          *args, **kwargs)
 
     def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
