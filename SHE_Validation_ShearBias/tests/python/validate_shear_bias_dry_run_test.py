@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-07-20"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,7 +27,8 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import write_config
 
 import pytest
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import AnalysisValidationConfigKeys
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import (AnalysisValidationConfigKeys,
+                                                                          LOCAL_MODE)
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import D_SHEAR_BIAS_TEST_CASE_INFO, ShearBiasTestCases
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
@@ -99,7 +100,7 @@ class TestCase:
         self.args.pipeline_config = None
 
         # Call to validation function
-        validate_shear_bias_from_args(self.args)
+        validate_shear_bias_from_args(self.args, mode=LOCAL_MODE)
 
     def test_shear_bias_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
