@@ -5,7 +5,7 @@
     Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs.
 """
 
-__updated__ = "2021-07-08"
+__updated__ = "2021-07-20"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -59,6 +59,8 @@ def defineSpecificProgramOptions():
                         help='Filename for True Universe Star Catalog data product (XML data product)')
     parser.add_argument('--tu_output_product', type=str, default=None,
                         help='Filename for True Universe Output Product data product (XML data product)')
+    parser.add_argument('--pipeline_config', type=str, default=None,
+                        help='Pipeline configuration file.')
 
     # Output filenames
     parser.add_argument('--matched_catalog', type=str,
