@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-22"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -63,7 +63,7 @@ MSG_NAN_VAL = "Test failed due to NaN regression results."
 MSG_ZERO_ERR = "Test failed due to zero error."
 
 SHEAR_BIAS_DIRECTORY_FILENAME = "SheShearBiasResultsDirectory.txt"
-SHEAR_BIAS_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
+SHEAR_BIAS_DIRECTORY_HEADER = "### OU-SHE Shear Bias Analysis Results File Directory ###"
 
 
 class FailSigmaCalculator():
@@ -305,7 +305,7 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     method = None
 
     def __init__(self, method, *args, **kwargs):
-        super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
+        super().__init__(product_type="SHEAR-BIAS-ANALYSIS-FILES",
                          *args, **kwargs)
 
         self.method = method
