@@ -6,7 +6,7 @@
 """
 
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-22"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -212,7 +212,6 @@ class ShearBiasPlotter(ValidationPlotter):
         plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
                     bbox_inches="tight", pad_inches=0.05)
         logger.info(f"Saved {self.method} g{i} bias plot to {qualified_bias_plot_filename}")
-        plt.close()
 
         # Record the filename for this plot in the filenams dict
         self.d_bias_plot_filename[i] = bias_plot_filename
@@ -271,6 +270,9 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Save the plot
         self._save_component_plot(i)
+
+        # Clear the plot to make way for future plots
+        self.clear_plots()
 
     def plot_shear_bias(self):
         """ Plot shear bias for both components.

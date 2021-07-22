@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-22"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -91,7 +91,7 @@ def mainMethod(args):
     logger.debug('#')
 
     exec_cmd = get_arguments_string(args, cmd=f"E-Run SHE_Validation {__version__} SHE_Validation_ValidateShearBias",
-                                    store_true=["profile"])
+                                    store_true=["profile", "dry_run"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 

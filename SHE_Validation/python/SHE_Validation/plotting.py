@@ -5,7 +5,7 @@
     Common functions to aid with plotting.
 """
 
-__updated__ = "2021-07-12"
+__updated__ = "2021-07-22"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -140,3 +140,11 @@ class ValidationPlotter():
 
         self.ax.set_xlim(self.xlim)
         self.ax.set_ylim(self.ylim)
+
+    def clear_plots(self):
+        """ Closes the plots and resets self.ax and self.fig.
+        """
+
+        plt.close()
+        self.ax = None
+        self.fig = None
