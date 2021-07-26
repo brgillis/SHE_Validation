@@ -27,7 +27,7 @@ from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 
-from SHE_Validation.constants.default_config import LOCAL_MODE, GLOBAL_MODE
+from SHE_Validation.constants.default_config import LOCAL_MODE
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
                                            WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
