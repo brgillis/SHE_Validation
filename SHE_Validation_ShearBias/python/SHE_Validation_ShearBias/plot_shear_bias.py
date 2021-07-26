@@ -64,6 +64,8 @@ class ShearBiasPlotter(ValidationPlotter):
     gal_matched_table = None
     method = None
     workdir = None
+    bootstrap_seed = 12345
+    n_bootstrap = 1000
 
     # Attributes calculated at init
     sem_tf = None
@@ -231,9 +233,41 @@ class ShearBiasPlotter(ValidationPlotter):
         g_out_err = self.d_g_out_err[i][good_g_in_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
-        linregress_results = linregress_with_errors(x=g_in,
-                                                    y=g_out,
-                                                    y_err=g_out_err)
+        if not bootstrap_errors:
+
+            linregress_results = linregress_with_errors(x=g_in,
+                                                        y=g_out,
+                                                        y_err=g_out_err)
+
+        else:
+
+            g_table = Table([g_in, g_out, g_out_err], names="g_in", "g_out", "g_out_err")
+
+            # Seed the random number generator
+            np.random.seed(self.bootstrap_seed)
+
+            # Get a base object for the m and c calculations
+            linregress_results = linregress_with_errors(x=g_table["g_in"],
+                                                        y=g_table["g_out"],
+                                                        y_err=g_table["g_out_err"])
+
+            # Bootstrap to get errors on slope and intercept
+            n_sample = len(g_table)
+
+            slope_bs = np.empty(self.n_bootstrap)
+            intercept_bs = np.empty(self.n_bootstrap)
+            for i in range(self.n_bootstrap):
+                u = np.random.randint(0, n_sample, n_sample)
+                linregress_results_bs = linregress_with_errors(x=g_table[u]["g_in"],
+                                                               y=g_table[u]["g_out"],
+                                                               y_err=g_table[u]["g_out_err"])
+                slope_bs[i] = linregress_results_bs.slope
+                intercept_bs[i] = linregress_results_bs.intercept
+
+            # Update the bias measurements in the output object
+            linregress_results.slope_err = np.std(slope_bs)
+            linregress_results.intercept_err = np.std(intercept_bs)
+
         bias = BiasMeasurements(linregress_results)
         self.d_bias_measurements[i] = bias
 
