@@ -26,6 +26,7 @@ from SHE_PPT import file_io
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 
 from SHE_Validation.constants.default_config import (LOCAL_MODE, GLOBAL_MODE)
@@ -92,9 +93,13 @@ def validate_shear_bias_from_args(args, mode):
         try:
             # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-            shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames, method, workdir=args.workdir)
+            shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames,
+                                                  method=method,
+                                                  workdir=args.workdir)
 
-            shear_bias_plotter.plot_shear_bias()
+            shear_bias_plotter.plot_shear_bias(
+                bootstrap_errors=args.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value],
+                max_g_in=args.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value])
 
             d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename

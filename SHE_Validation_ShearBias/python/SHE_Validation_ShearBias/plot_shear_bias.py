@@ -6,7 +6,7 @@
 """
 
 
-__updated__ = "2021-07-22"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -216,13 +216,19 @@ class ShearBiasPlotter(ValidationPlotter):
         # Record the filename for this plot in the filenams dict
         self.d_bias_plot_filename[i] = bias_plot_filename
 
-    def plot_component_shear_bias(self, i):
+    def plot_component_shear_bias(self,
+                                  i,
+                                  bootstrap_errors,
+                                  max_g_in):
         """ Plot shear bias for an individual component.
         """
 
-        g_in = self.d_g_in[i]
-        g_out = self.d_g_out[i]
-        g_out_err = self.d_g_out_err[i]
+        # Get data limited to the rows where g_in is less than the allowed max
+        good_g_in_rows = self.d_g_in[i] < max_g_in
+
+        g_in = self.d_g_in[i][good_g_in_rows]
+        g_out = self.d_g_out[i][good_g_in_rows]
+        g_out_err = self.d_g_out_err[i][good_g_in_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         linregress_results = linregress_with_errors(x=g_in,
@@ -274,10 +280,12 @@ class ShearBiasPlotter(ValidationPlotter):
         # Clear the plot to make way for future plots
         self.clear_plots()
 
-    def plot_shear_bias(self):
+    def plot_shear_bias(self,
+                        bootstrap_errors=True,
+                        max_g_in=np.inf):
         """ Plot shear bias for both components.
         """
 
         for i in (1, 2):
 
-            self.plot_component_shear_bias(i)
+            self.plot_component_shear_bias(i, bootstrap_errors=bootstrap_errors, max_g_in=max_g_in)

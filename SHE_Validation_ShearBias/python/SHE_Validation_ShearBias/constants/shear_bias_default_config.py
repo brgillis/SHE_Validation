@@ -20,10 +20,12 @@ __updated__ = "2021-07-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_Validation.constants.default_config import VALIDATION_DEFAULT_CONFIG
 
 PROFILING_FILENAME = "validate_shear_bias.prof"
 
 # Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {**VALIDATION_DEFAULT_CONFIG,
-                             }
+SHEAR_BIAS_DEFAULT_CONFIG = {ValidationConfigKeys.SBV_MAX_G_IN: 0.99,
+                             ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS: True,
+                             **VALIDATION_DEFAULT_CONFIG}
