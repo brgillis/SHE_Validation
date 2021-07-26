@@ -128,7 +128,8 @@ def validate_shear_bias_from_args(args, mode):
                                            d_bias_measurements=d_bias_measurements,
                                            pipeline_config=args.pipeline_config,
                                            figures=plot_filenames,
-                                           data_exists=data_exists)
+                                           data_exists=data_exists,
+                                           mode=mode)
 
     # Write out test results product
     file_io.write_xml_product(test_result_product,

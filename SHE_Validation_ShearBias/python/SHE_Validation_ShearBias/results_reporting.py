@@ -27,6 +27,7 @@ from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 
+from SHE_Validation.constants.default_config import LOCAL_MODE, GLOBAL_MODE
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
                                            WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
@@ -313,6 +314,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                  fail_sigma_calculator: FailSigmaCalculator,
                  data_exists: bool = True,
+                 mode: str = LOCAL_MODE,
                  *args, **kwargs):
 
         # Initialise a list of test case info. We'll have one m for each method, and one c for each method
@@ -412,13 +414,15 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                        workdir: str,
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
-                                       data_exists: bool = True):
+                                       data_exists: bool = True,
+                                       mode: str = LOCAL_MODE):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
-                                                d_bin_limits=d_bin_limits,)
+                                                d_bin_limits=d_bin_limits,
+                                                mode=mode)
 
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object=test_result_product,
@@ -426,6 +430,6 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                                            d_bias_measurements=d_bias_measurements,
                                                            fail_sigma_calculator=fail_sigma_calculator,
                                                            data_exists=data_exists,
-                                                           figures=figures)
+                                                           figures=figures,)
 
     test_results_writer.write()

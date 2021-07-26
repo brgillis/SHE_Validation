@@ -286,9 +286,6 @@ class CtiGalTestCaseWriter(TestCaseWriter):
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
-    # TODO: Add option for local or global mode
-    mode = LOCAL_MODE
-
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
@@ -361,7 +358,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
             l_test_case_bins = self.d_bin_limits[test_case]
 
-            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma(self.mode)[test_case]
+            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma[test_case]
 
             l_test_case_regression_results_tables = self.d_regression_results_tables[test_case]
 
@@ -435,7 +432,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
-                                                d_bin_limits=d_bin_limits)
+                                                d_bin_limits=d_bin_limits,
+                                                mode=LOCAL_MODE)
 
     # Initialize a test results writer
     test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,

@@ -31,7 +31,8 @@ from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from future.builtins.misc import isinstance
 import scipy.stats
 
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, GLOBAL_MODE)
+from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, GLOBAL_MODE,
+                                                     LOCAL_MODE)
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 
@@ -84,6 +85,7 @@ class FailSigmaCalculator():
     def __init__(self,
                  pipeline_config: Dict[str, str],
                  d_bin_limits: Dict[str, str] = None,
+                 mode: str = LOCAL_MODE,
                  test_cases=None):
 
         self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value]
@@ -102,6 +104,7 @@ class FailSigmaCalculator():
         self.d_num_bins = {}
         self.num_test_case_bins = 0
         self.test_cases = test_cases
+        self.mode = mode
 
         if test_cases is not None:
             self.test_cases = test_cases
@@ -128,8 +131,9 @@ class FailSigmaCalculator():
             self._d_scaled_local_sigma = self._calc_d_scaled_sigma(self.local_fail_sigma)
         return self._d_scaled_local_sigma
 
-    def d_scaled_sigma(self, mode):
-        if mode == GLOBAL_MODE:
+    @property
+    def d_scaled_sigma(self):
+        if self.mode == GLOBAL_MODE:
             return self.d_scaled_global_sigma
         else:
             return self.d_scaled_local_sigma
