@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,21 +27,19 @@ import os
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import _make_config_from_defaults
+from SHE_PPT.pipeline_utility import _make_config_from_defaults, GlobalConfigKeys, ValidationConfigKeys
 import pytest
 
 from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS
-from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL, COMMENT_LEVEL_INFO,
-                                           COMMENT_LEVEL_WARNING, COMMENT_MULTIPLE,
+from SHE_Validation.constants.default_config import FailSigmaScaling
+from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL,
                                            INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
                                            KEY_REASON, DESC_NOT_RUN_REASON, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
                                            WARNING_BAD_DATA,)
-from SHE_Validation_CTI import constants
-from SHE_Validation_CTI.constants.cti_gal_default_config import (ValidationConfigKeys, CTI_GAL_DEFAULT_CONFIG,
-                                                                 FailSigmaScaling)
+from SHE_Validation_CTI.constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases,
                                                             CTI_GAL_REQUIREMENT_INFO, D_CTI_GAL_TEST_CASE_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES, NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                            NUM_METHOD_CTI_GAL_TEST_CASES)
 from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
                                                   KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
                                                   DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
@@ -49,6 +47,9 @@ from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_result
                                                   FailSigmaCalculator)
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 import numpy as np
+
+
+logger = getLogger(__name__)
 
 
 class TestCase:
@@ -64,7 +65,7 @@ class TestCase:
         os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        self.pipeline_config = _make_config_from_defaults(config_keys=ValidationConfigKeys,
+        self.pipeline_config = _make_config_from_defaults(config_keys=(GlobalConfigKeys, ValidationConfigKeys,),
                                                           defaults=CTI_GAL_DEFAULT_CONFIG)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
 
@@ -84,8 +85,8 @@ class TestCase:
 
     def test_fail_sigma_scaling(self):
 
-        base_slope_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]
-        base_intercept_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]
+        base_global_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value]
+        base_local_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]
 
         # Make a copy of the pipeline config so we can test with different input
         test_pipeline_config = deepcopy(self.pipeline_config)
@@ -96,8 +97,8 @@ class TestCase:
                                                        d_bin_limits=self.d_bin_limits)
 
         for test_case in CtiGalTestCases:
-            assert np.isclose(ns_fail_sigma_calculator.d_scaled_slope_sigma[test_case], base_slope_fail_sigma)
-            assert np.isclose(ns_fail_sigma_calculator.d_scaled_intercept_sigma[test_case], base_intercept_fail_sigma)
+            assert np.isclose(ns_fail_sigma_calculator.d_scaled_local_sigma[test_case], base_local_fail_sigma)
+            assert np.isclose(ns_fail_sigma_calculator.d_scaled_global_sigma[test_case], base_global_fail_sigma)
 
         # Test with other scaling types, and check that the fail sigmas increase with number of tries
 
@@ -111,46 +112,46 @@ class TestCase:
         tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                         d_bin_limits=self.d_bin_limits)
 
-        first_tc_slope_fail_sigma = None
-        first_tc_intercept_fail_sigma = None
-        first_tcb_slope_fail_sigma = None
-        first_tcb_intercept_fail_sigma = None
+        first_tc_global_fail_sigma = None
+        first_tc_local_fail_sigma = None
+        first_tcb_global_fail_sigma = None
+        first_tcb_local_fail_sigma = None
 
         for test_case in CtiGalTestCases:
 
             # Check that they increase with increasing number of bins
 
-            assert bin_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >= base_slope_fail_sigma
-            assert bin_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >= base_intercept_fail_sigma
+            assert bin_fail_sigma_calculator.d_scaled_global_sigma[test_case] >= base_global_fail_sigma
+            assert bin_fail_sigma_calculator.d_scaled_local_sigma[test_case] >= base_local_fail_sigma
 
-            assert tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case] > base_slope_fail_sigma
-            assert tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] > base_intercept_fail_sigma
+            assert tc_fail_sigma_calculator.d_scaled_global_sigma[test_case] > base_global_fail_sigma
+            assert tc_fail_sigma_calculator.d_scaled_local_sigma[test_case] > base_local_fail_sigma
 
-            assert (tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >
-                    bin_fail_sigma_calculator.d_scaled_slope_sigma[test_case])
-            assert (tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >
-                    bin_fail_sigma_calculator.d_scaled_intercept_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case] >
+                    bin_fail_sigma_calculator.d_scaled_global_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case] >
+                    bin_fail_sigma_calculator.d_scaled_local_sigma[test_case])
 
-            assert (tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case] >
-                    tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case])
-            assert (tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case] >
-                    tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case] >
+                    tc_fail_sigma_calculator.d_scaled_global_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case] >
+                    tc_fail_sigma_calculator.d_scaled_local_sigma[test_case])
 
             # Check that all test_cases and test_case_bins fail sigma are equal between test cases
-            if first_tc_slope_fail_sigma is None:
-                first_tc_slope_fail_sigma = tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case]
-                first_tc_intercept_fail_sigma = tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
-                first_tcb_slope_fail_sigma = tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case]
-                first_tcb_intercept_fail_sigma = tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+            if first_tc_global_fail_sigma is None:
+                first_tc_global_fail_sigma = tc_fail_sigma_calculator.d_scaled_global_sigma[test_case]
+                first_tc_local_fail_sigma = tc_fail_sigma_calculator.d_scaled_local_sigma[test_case]
+                first_tcb_global_fail_sigma = tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case]
+                first_tcb_local_fail_sigma = tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case]
             else:
-                assert np.isclose(tc_fail_sigma_calculator.d_scaled_slope_sigma[test_case],
-                                  first_tc_slope_fail_sigma)
-                assert np.isclose(tc_fail_sigma_calculator.d_scaled_intercept_sigma[test_case],
-                                  first_tc_intercept_fail_sigma)
-                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_slope_sigma[test_case],
-                                  first_tcb_slope_fail_sigma)
-                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_intercept_sigma[test_case],
-                                  first_tcb_intercept_fail_sigma)
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_global_sigma[test_case],
+                                  first_tc_global_fail_sigma)
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_local_sigma[test_case],
+                                  first_tc_local_fail_sigma)
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case],
+                                  first_tcb_global_fail_sigma)
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case],
+                                  first_tcb_local_fail_sigma)
 
         return
 
@@ -245,7 +246,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -256,7 +257,7 @@ class TestCase:
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
         assert ("Maximum allowed intercept_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
@@ -276,7 +277,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -285,7 +286,7 @@ class TestCase:
         assert f"slope_err = nan\n" in exp_slope_info_string
         assert f"slope_z = nan\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 

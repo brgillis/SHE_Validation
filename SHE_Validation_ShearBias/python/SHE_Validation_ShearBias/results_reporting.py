@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-22"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,23 +26,19 @@ from typing import Dict, List,  Any, Callable, Union
 from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
-import scipy.stats
 
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NO_DATA)
+                                           WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
 from SHE_Validation.test_info import TestCaseInfo
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
-from .constants.shear_bias_default_config import FailSigmaScaling
 from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
                                              ShearBiasTestCases,
                                              D_SHEAR_BIAS_TEST_CASE_INFO,
                                              SHEAR_BIAS_TEST_CASE_M_INFO,
                                              SHEAR_BIAS_TEST_CASE_C_INFO)
-from .constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 logger = getLogger(__name__)
 
@@ -64,65 +60,6 @@ MSG_ZERO_ERR = "Test failed due to zero error."
 
 SHEAR_BIAS_DIRECTORY_FILENAME = "SheShearBiasResultsDirectory.txt"
 SHEAR_BIAS_DIRECTORY_HEADER = "### OU-SHE Shear Bias Analysis Results File Directory ###"
-
-
-class FailSigmaCalculator():
-    """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
-    """
-
-    def __init__(self,
-                 pipeline_config: Dict[str, str]):
-
-        self.m_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_M_FAIL_SIGMA.value]
-        self.c_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_C_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
-
-        self.num_test_cases = NUM_METHOD_SHEAR_BIAS_TEST_CASES
-
-        self._d_scaled_m_sigma = None
-        self._d_scaled_c_sigma = None
-
-    @property
-    def d_scaled_m_sigma(self):
-        if self._d_scaled_m_sigma is None:
-            self._d_scaled_m_sigma = self._calc_d_scaled_sigma(self.m_fail_sigma)
-        return self._d_scaled_m_sigma
-
-    @property
-    def d_scaled_c_sigma(self):
-        if self._d_scaled_c_sigma is None:
-            self._d_scaled_c_sigma = self._calc_d_scaled_sigma(self.c_fail_sigma)
-        return self._d_scaled_c_sigma
-
-    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
-
-        d_scaled_sigma = {}
-
-        for test_case in ShearBiasTestCases:
-
-            # Get the number of tries depending on scaling type
-            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
-                num_tries = 1
-            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE.value:
-                num_tries = self.num_test_cases
-            else:
-                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
-
-            d_scaled_sigma[test_case] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                           num_tries=num_tries)
-
-        return d_scaled_sigma
-
-    @classmethod
-    def _calc_scaled_sigma_from_tries(cls,
-                                      base_sigma: float,
-                                      num_tries: int) -> float:
-        # To avoid numeric error, don't calculate if num_tries==1
-        if num_tries == 1:
-            return base_sigma
-
-        p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
-        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
 class ShearBiasRequirementWriter(RequirementWriter):
@@ -471,6 +408,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTestResults,
                                        d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                                        pipeline_config: Dict[str, Any],
+                                       d_bin_limits: Dict[str, np.ndarray],
                                        workdir: str,
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
@@ -479,7 +417,8 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
     """
 
     # Set up a calculator object for scaled fail sigmas
-    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config)
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
+                                                d_bin_limits=d_bin_limits,)
 
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object=test_result_product,

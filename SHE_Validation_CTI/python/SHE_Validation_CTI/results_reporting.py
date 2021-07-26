@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,19 +25,18 @@ from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from astropy import table
-import scipy.stats
 
+from SHE_Validation.constants.default_config import LOCAL_MODE
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA)
+                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
+                                           FailSigmaCalculator)
 from SHE_Validation.test_info import TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
-from .constants.cti_gal_default_config import FailSigmaScaling
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
                                           CtiGalTestCases,
                                           D_CTI_GAL_TEST_CASE_INFO)
@@ -58,75 +57,6 @@ MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
 
 CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
 CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
-
-
-class FailSigmaCalculator():
-    """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
-    """
-
-    def __init__(self,
-                 pipeline_config: Dict[str, str],
-                 d_bin_limits: Dict[str, str]):
-
-        self.slope_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]
-        self.intercept_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
-
-        self.num_test_cases = len(d_bin_limits)
-        self.d_num_bins = {}
-        self.num_test_case_bins = 0
-        for test_case in d_bin_limits:
-            self.d_num_bins[test_case] = len(d_bin_limits[test_case]) - 1
-            self.num_test_case_bins += self.d_num_bins[test_case]
-
-        self._d_scaled_slope_sigma = None
-        self._d_scaled_intercept_sigma = None
-
-    @property
-    def d_scaled_slope_sigma(self):
-        if self._d_scaled_slope_sigma is None:
-            self._d_scaled_slope_sigma = self._calc_d_scaled_sigma(self.slope_fail_sigma)
-        return self._d_scaled_slope_sigma
-
-    @property
-    def d_scaled_intercept_sigma(self):
-        if self._d_scaled_intercept_sigma is None:
-            self._d_scaled_intercept_sigma = self._calc_d_scaled_sigma(self.intercept_fail_sigma)
-        return self._d_scaled_intercept_sigma
-
-    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
-
-        d_scaled_sigma = {}
-
-        for test_case in CtiGalTestCases:
-
-            # Get the number of tries depending on scaling type
-            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
-                num_tries = 1
-            elif self.fail_sigma_scaling == FailSigmaScaling.BIN_SCALE.value:
-                num_tries = self.d_num_bins[test_case]
-            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE.value:
-                num_tries = self.num_test_cases
-            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS_SCALE.value:
-                num_tries = self.num_test_case_bins
-            else:
-                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
-
-            d_scaled_sigma[test_case] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                           num_tries=num_tries)
-
-        return d_scaled_sigma
-
-    @classmethod
-    def _calc_scaled_sigma_from_tries(cls,
-                                      base_sigma: float,
-                                      num_tries: int) -> float:
-        # To avoid numeric error, don't calculate if num_tries==1
-        if num_tries == 1:
-            return base_sigma
-
-        p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
-        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
 class CtiGalRequirementWriter(RequirementWriter):
@@ -156,7 +86,7 @@ class CtiGalRequirementWriter(RequirementWriter):
                 messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
                                    f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
                                    f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self,f'{prop}_fail_sigma')}\n" +
+                                   f"Maximum allowed {prop}_z = {getattr(self,f'fail_sigma')}\n" +
                                    f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
 
         slope_supplementary_info = SupplementaryInfo(key=KEY_SLOPE_INFO,
@@ -227,7 +157,7 @@ class CtiGalRequirementWriter(RequirementWriter):
                         getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
                 else:
                     l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"{prop}_fail_sigma")
+                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
                 l_prop_good_data[bin_index] = True
             if l_prop_pass[bin_index]:
                 l_prop_result[bin_index] = RESULT_PASS
@@ -250,8 +180,7 @@ class CtiGalRequirementWriter(RequirementWriter):
               l_intercept: List[float] = None,
               l_intercept_err: List[float] = None,
               l_bin_limits: List[float] = None,
-              slope_fail_sigma: float = None,
-              intercept_fail_sigma: float = None,
+              fail_sigma: float = None,
               report_kwargs: Dict[str, Any] = None) -> str:
 
         # Default to reporting good data if we're not told otherwise
@@ -275,8 +204,7 @@ class CtiGalRequirementWriter(RequirementWriter):
             self.l_bin_limits = None
         else:
             self.l_bin_limits = np.array(l_bin_limits)
-        self.slope_fail_sigma = slope_fail_sigma
-        self.intercept_fail_sigma = intercept_fail_sigma
+        self.fail_sigma = fail_sigma
 
         self.num_bins = len(l_slope)
 
@@ -358,6 +286,9 @@ class CtiGalTestCaseWriter(TestCaseWriter):
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
+    # TODO: Add option for local or global mode
+    mode = LOCAL_MODE
+
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
@@ -430,8 +361,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
             l_test_case_bins = self.d_bin_limits[test_case]
 
-            slope_fail_sigma = self.fail_sigma_calculator.d_scaled_slope_sigma[test_case]
-            intercept_fail_sigma = self.fail_sigma_calculator.d_scaled_intercept_sigma[test_case]
+            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma(self.mode)[test_case]
 
             l_test_case_regression_results_tables = self.d_regression_results_tables[test_case]
 
@@ -469,8 +399,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                                     "l_intercept": l_intercept,
                                     "l_intercept_err": l_intercept_err,
                                     "l_bin_limits": l_bin_limits,
-                                    "slope_fail_sigma": slope_fail_sigma,
-                                    "intercept_fail_sigma": intercept_fail_sigma}
+                                    "fail_sigma": fail_sigma, }
 
                 elif test_case == CtiGalTestCases.EPOCH:
                     # Report that the test wasn't run due to it not yet being implemented

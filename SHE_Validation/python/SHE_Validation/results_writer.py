@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,20 +20,24 @@ __updated__ = "2021-07-19"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 from copy import deepcopy
 import os
 from typing import List, Union, Dict, Any, Callable
 
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from future.builtins.misc import isinstance
+import scipy.stats
 
+from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, GLOBAL_MODE)
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 
 from . import __version__
+from .constants.default_config import FailSigmaScaling
 from .test_info import RequirementInfo, TestCaseInfo
-
 
 logger = getLogger(__name__)
 
@@ -71,6 +75,98 @@ MSG_BAD_DATA = "Test failed due to NaN results for measured parameter."
 MSG_NO_DATA = "No data is available for this test."
 MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
 MSG_NO_INFO = "No supplementary information available."
+
+
+class FailSigmaCalculator():
+    """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
+    """
+
+    def __init__(self,
+                 pipeline_config: Dict[str, str],
+                 d_bin_limits: Dict[str, str] = None,
+                 test_cases=None):
+
+        self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value]
+        self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]
+        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
+
+        if d_bin_limits is None:
+            if test_cases is None:
+                d_bin_limits = {}
+            else:
+                # Create a default list of bin limits
+                for test_case in test_cases:
+                    d_bin_limits[test_case] = DEFAULT_BIN_LIMITS
+
+        self.num_test_cases = len(d_bin_limits)
+        self.d_num_bins = {}
+        self.num_test_case_bins = 0
+        self.test_cases = test_cases
+
+        if test_cases is not None:
+            self.test_cases = test_cases
+        else:
+            # Get the test cases from the dict of bin limits if not explicitly provided
+            self.test_cases = tuple(d_bin_limits.keys())
+
+        for test_case in self.test_cases:
+            self.d_num_bins[test_case] = len(d_bin_limits[test_case]) - 1
+            self.num_test_case_bins += self.d_num_bins[test_case]
+
+        self._d_scaled_global_sigma = None
+        self._d_scaled_local_sigma = None
+
+    @property
+    def d_scaled_global_sigma(self):
+        if self._d_scaled_global_sigma is None:
+            self._d_scaled_global_sigma = self._calc_d_scaled_sigma(self.global_fail_sigma)
+        return self._d_scaled_global_sigma
+
+    @property
+    def d_scaled_local_sigma(self):
+        if self._d_scaled_local_sigma is None:
+            self._d_scaled_local_sigma = self._calc_d_scaled_sigma(self.local_fail_sigma)
+        return self._d_scaled_local_sigma
+
+    def d_scaled_sigma(self, mode):
+        if mode == GLOBAL_MODE:
+            return self.d_scaled_global_sigma
+        else:
+            return self.d_scaled_local_sigma
+
+    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
+
+        d_scaled_sigma = {}
+
+        for test_case in self.test_cases:
+
+            # Get the number of tries depending on scaling type
+            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
+                num_tries = 1
+            elif self.fail_sigma_scaling == FailSigmaScaling.BIN_SCALE.value:
+                num_tries = self.d_num_bins[test_case]
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE.value:
+                num_tries = self.num_test_cases
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS_SCALE.value:
+                num_tries = self.num_test_case_bins
+            else:
+                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
+
+            d_scaled_sigma[test_case] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                           num_tries=num_tries)
+
+        return d_scaled_sigma
+
+    @classmethod
+    def _calc_scaled_sigma_from_tries(cls,
+                                      base_sigma: float,
+                                      num_tries: int) -> float:
+        # To avoid numeric error, don't calculate if num_tries==1
+        if num_tries == 1:
+            return base_sigma
+
+        p_good = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
+        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
 class SupplementaryInfo():

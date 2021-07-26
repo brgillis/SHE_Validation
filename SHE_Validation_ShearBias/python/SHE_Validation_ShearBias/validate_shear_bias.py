@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,9 +27,8 @@ from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
-from astropy.table import Table
 
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import (LOCAL_MODE, GLOBAL_MODE)
+from SHE_Validation.constants.default_config import (LOCAL_MODE, GLOBAL_MODE)
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
 
 from .plot_shear_bias import ShearBiasPlotter

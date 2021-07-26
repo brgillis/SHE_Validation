@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -31,20 +31,19 @@ from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATI
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import read_config
+from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
-from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS
+from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS, FailSigmaScaling
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_default_config import (ValidationConfigKeys, FailSigmaScaling,
-                                               CTI_GAL_DEFAULT_CONFIG)
+from .constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
                                           CtiGalTestCases)
 from .data_processing import add_readout_register_distance, calculate_regression_results
@@ -104,10 +103,10 @@ def run_validate_cti_gal_from_args(args):
     pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
 
     # Convert to expected data types
-    pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value])
-    pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value])
 
     d_bin_limits = {}
     for test_case_label in CtiGalTestCases:

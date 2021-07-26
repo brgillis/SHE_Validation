@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,9 +25,9 @@ from enum import Enum
 from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 
+from SHE_Validation.constants.default_config import (BACKGROUND_LEVEL_UNITS,
+                                                     COLOUR_DEFINITION, SIZE_DEFINITION)
 from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
-from SHE_Validation_CTI.constants.cti_gal_default_config import (BACKGROUND_LEVEL_UNITS,
-                                                                 COLOUR_DEFINITION, SIZE_DEFINITION)
 
 
 # Metadata about the requirement

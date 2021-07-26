@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,13 +28,14 @@ from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
                                          MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.pipeline_utility import write_config
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_default_config import ValidationConfigKeys
 from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
+
 
 # Pipeline config filename
 PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
@@ -102,8 +103,8 @@ class TestCase:
         cls.args.logdir = cls.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value: 4.,
-                                  ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value: 10.},
+        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: 4.,
+                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: 10.},
                      config_filename=PIPELINE_CONFIG_FILENAME,
                      workdir=cls.args.workdir,
                      config_keys=ValidationConfigKeys)
