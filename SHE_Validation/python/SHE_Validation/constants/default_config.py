@@ -5,7 +5,7 @@
     Constants relating default configurations for validation tests
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,18 @@ __updated__ = "2021-07-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from SHE_PPT.pipeline_utility import ValidationConfigKeys, GlobalConfigKeys
 from SHE_PPT.utility import AllowedEnum
+
+
+# Execution mode options
+LOCAL_MODE = "local"
+GLOBAL_MODE = "global"
+
+# Bin units and definitions
+BACKGROUND_LEVEL_UNITS = "ADU/pixel"
+COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
+SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 
 class FailSigmaScaling(AllowedEnum):
@@ -36,6 +47,20 @@ class FailSigmaScaling(AllowedEnum):
     BIN_SCALE = "bins"
     TEST_CASE_SCALE = "test_cases"
     TEST_CASE_BINS_SCALE = "test_case_bins"
+
+
+# Config keys and default values
+VALIDATION_DEFAULT_CONFIG = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: 2.,
+                             ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: 5.,
+                             ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value: (
+                                 FailSigmaScaling.TEST_CASE_BINS_SCALE.value),
+                             ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
+                             ValidationConfigKeys.VAL_BG_BIN_LIMITS.value: (
+                                 "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99"),
+                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
+                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
+                             GlobalConfigKeys.PIP_PROFILE.value: "False",
+                             }
 
 
 DEFAULT_BIN_LIMIT_MIN = -1e99

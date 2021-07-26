@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-07-20"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,9 +27,8 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import write_config
 
 import pytest
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import (AnalysisValidationConfigKeys,
-                                                                          LOCAL_MODE)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import D_SHEAR_BIAS_TEST_CASE_INFO, ShearBiasTestCases
+from SHE_Validation.constants.default_config import (ValidationConfigKeys,
+                                                     LOCAL_MODE)
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 
@@ -87,11 +86,11 @@ class TestCase:
         self.args.logdir = self.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value: 4.,
-                                  AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value: 10.},
+        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: 4.,
+                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: 10.},
                      config_filename=PIPELINE_CONFIG_FILENAME,
                      workdir=self.args.workdir,
-                     config_keys=AnalysisValidationConfigKeys)
+                     config_keys=ValidationConfigKeys)
 
     def test_shear_bias_dry_run(self):
 

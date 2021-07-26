@@ -31,7 +31,7 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import write_config
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_default_config import AnalysisValidationConfigKeys
+from SHE_Validation_CTI.constants.cti_gal_default_config import ValidationConfigKeys
 from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
@@ -102,11 +102,11 @@ class TestCase:
         cls.args.logdir = cls.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 4.,
-                                  AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 10.},
+        write_config(config_dict={ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value: 4.,
+                                  ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value: 10.},
                      config_filename=PIPELINE_CONFIG_FILENAME,
                      workdir=cls.args.workdir,
-                     config_keys=AnalysisValidationConfigKeys)
+                     config_keys=ValidationConfigKeys)
 
     @classmethod
     def teardown_class(cls):

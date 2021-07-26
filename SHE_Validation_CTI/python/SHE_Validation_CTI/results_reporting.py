@@ -25,7 +25,7 @@ from typing import Dict, List,  Any, Callable, Tuple, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from astropy import table
 import scipy.stats
 
@@ -68,9 +68,9 @@ class FailSigmaCalculator():
                  pipeline_config: Dict[str, str],
                  d_bin_limits: Dict[str, str]):
 
-        self.slope_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value]
-        self.intercept_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value]
+        self.slope_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value]
+        self.intercept_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value]
+        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
 
         self.num_test_cases = len(d_bin_limits)
         self.d_num_bins = {}

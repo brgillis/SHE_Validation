@@ -43,7 +43,7 @@ from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_default_config import (AnalysisValidationConfigKeys, FailSigmaScaling,
+from .constants.cti_gal_default_config import (ValidationConfigKeys, FailSigmaScaling,
                                                CTI_GAL_DEFAULT_CONFIG)
 from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
                                           CtiGalTestCases)
@@ -72,13 +72,13 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the configuration, and convert values in it to the proper type
 
-    bin_limits_cline_args = {AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value:
+    bin_limits_cline_args = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value:
+                             ValidationConfigKeys.VAL_BG_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
+                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value:
+                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value:
                              getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
 
     if type(args.pipeline_config) is str or args.pipeline_config is None:
@@ -86,7 +86,7 @@ def run_validate_cti_gal_from_args(args):
                                       workdir=args.workdir,
                                       cline_args=bin_limits_cline_args,
                                       defaults=CTI_GAL_DEFAULT_CONFIG,
-                                      config_keys=AnalysisValidationConfigKeys)
+                                      config_keys=ValidationConfigKeys)
     elif type(args.pipeline_config) is dict:
         pipeline_config = args.pipeline_config
     else:
@@ -94,20 +94,20 @@ def run_validate_cti_gal_from_args(args):
                         type(args.pipeline_config))
 
     # Check that the fail sigma scaling is in the enum (silently convert to lower case)
-    fail_sigma_scaling_lower = pipeline_config[AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value].lower()
+    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value].lower()
     if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
-        err_string = (f"Fail sigma scaling option {pipeline_config[AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value]}" +
+        err_string = (f"Fail sigma scaling option {pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]}" +
                       " is not recognized. Allowed options are:")
         for allowed_option in FailSigmaScaling:
             err_string += "\n  " + allowed_option.value
         raise ValueError(err_string)
-    pipeline_config[AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
+    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
 
     # Convert to expected data types
-    pipeline_config[AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value] = float(
-        pipeline_config[AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value])
-    pipeline_config[AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value] = float(
-        pipeline_config[AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_SLOPE_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_INTERCEPT_FAIL_SIGMA.value])
 
     d_bin_limits = {}
     for test_case_label in CtiGalTestCases:

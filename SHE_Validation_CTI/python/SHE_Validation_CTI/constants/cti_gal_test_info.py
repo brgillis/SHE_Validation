@@ -23,7 +23,7 @@ __updated__ = "2021-07-15"
 from enum import Enum
 
 from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 
 from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
 from SHE_Validation_CTI.constants.cti_gal_default_config import (BACKGROUND_LEVEL_UNITS,
@@ -67,7 +67,7 @@ CTI_GAL_TEST_CASE_SNR_INFO = TestCaseInfo(test_case_id="TC-SHE-100028-CTI-gal-SN
                                                        "residual galaxy ellipticity with read-out register " +
                                                        "distance (slope) in bins of SNR of galaxies."),
                                           bins_cline_arg="snr_bin_limits",
-                                          bins_config_key=AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value,
+                                          bins_config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value,
                                           name=CtiGalTestCases.SNR.value,
                                           comment=None,)
 CTI_GAL_TEST_CASE_BG_INFO = TestCaseInfo(test_case_id="TC-SHE-100029-CTI-gal-bg",
@@ -75,7 +75,7 @@ CTI_GAL_TEST_CASE_BG_INFO = TestCaseInfo(test_case_id="TC-SHE-100029-CTI-gal-bg"
                                                       "with read-out register distance (slope) in bins of " +
                                                       "sky background levels."),
                                          bins_cline_arg="bg_bin_limits",
-                                         bins_config_key=AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value,
+                                         bins_config_key=ValidationConfigKeys.VAL_BG_BIN_LIMITS.value,
                                          name=CtiGalTestCases.BG.value,
                                          comment=BACKGROUND_LEVEL_UNITS)
 CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal-col",
@@ -83,7 +83,7 @@ CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal
                                                           "ellipticity with read-out register distance " +
                                                           "(slope) in bins of colour of galaxies."),
                                              bins_cline_arg="colour_bin_limits",
-                                             bins_config_key=AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value,
+                                             bins_config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value,
                                              name=CtiGalTestCases.COLOUR.value,
                                              comment=COLOUR_DEFINITION)
 CTI_GAL_TEST_CASE_SIZE_INFO = TestCaseInfo(test_case_id="TC-SHE-100031-CTI-gal-size",
@@ -91,7 +91,7 @@ CTI_GAL_TEST_CASE_SIZE_INFO = TestCaseInfo(test_case_id="TC-SHE-100031-CTI-gal-s
                                                         "with read-out register distance (slope) in bins " +
                                                         "of size of galaxies."),
                                            bins_cline_arg="size_bin_limits",
-                                           bins_config_key=AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value,
+                                           bins_config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value,
                                            name=CtiGalTestCases.SIZE.value,
                                            comment=SIZE_DEFINITION)
 CTI_GAL_TEST_CASE_EPOCH_INFO = TestCaseInfo(test_case_id="TC-SHE-100032-CTI-gal-epoch",

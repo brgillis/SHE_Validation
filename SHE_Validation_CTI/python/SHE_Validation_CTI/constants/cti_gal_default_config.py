@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,24 +20,10 @@ __updated__ = "2021-07-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
-from SHE_Validation.constants.default_config import FailSigmaScaling
+from SHE_Validation.constants.default_config import VALIDATION_DEFAULT_CONFIG
 
-BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
-SIZE_DEFINITION = "Area of segmentation map (pixels)"
+# Create the default config dict for this task by extending the global default config dict
+CTI_GAL_DEFAULT_CONFIG = {**VALIDATION_DEFAULT_CONFIG}
+
+
 PROFILING_FILENAME = "validate_cti_gal.prof"
-
-
-# Config keys and default values
-CTI_GAL_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.CGV_SLOPE_FAIL_SIGMA.value: 5.,
-                          AnalysisValidationConfigKeys.CGV_INTERCEPT_FAIL_SIGMA.value: 5.,
-                          AnalysisValidationConfigKeys.CGV_FAIL_SIGMA_SCALING.value: (
-                              FailSigmaScaling.TEST_CASE_BINS_SCALE.value),
-                          AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
-                          AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value: (
-                              "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99"),
-                          AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
-                          AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
-                          AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
-                          }

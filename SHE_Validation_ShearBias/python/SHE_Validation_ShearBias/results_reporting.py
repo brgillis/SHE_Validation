@@ -26,7 +26,7 @@ from typing import Dict, List,  Any, Callable, Union
 from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
 import scipy.stats
 
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
@@ -73,9 +73,9 @@ class FailSigmaCalculator():
     def __init__(self,
                  pipeline_config: Dict[str, str]):
 
-        self.m_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value]
-        self.c_fail_sigma = pipeline_config[AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value]
+        self.m_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_M_FAIL_SIGMA.value]
+        self.c_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_C_FAIL_SIGMA.value]
+        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
 
         self.num_test_cases = NUM_METHOD_SHEAR_BIAS_TEST_CASES
 

@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-22"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,12 +25,14 @@ import os
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import read_config, AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import read_config, GlobalConfigKeys, ValidationConfigKeys
+
+from SHE_Validation.constants.default_config import GLOBAL_MODE
 
 from . import __version__
-from .constants.shear_bias_default_config import (SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME,
-                                                  GLOBAL_MODE)
+from .constants.shear_bias_default_config import SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME
 from .validate_shear_bias import validate_shear_bias_from_args
+
 
 logger = log.getLogger(__name__)
 
@@ -99,13 +101,13 @@ def mainMethod(args):
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
                                   defaults=SHEAR_BIAS_DEFAULT_CONFIG,
-                                  config_keys=AnalysisValidationConfigKeys)
+                                  config_keys=ValidationConfigKeys)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[AnalysisValidationConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
 
     if args.profile or profiling:
         import cProfile

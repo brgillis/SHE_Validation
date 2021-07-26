@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-07-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,18 +20,10 @@ __updated__ = "2021-07-19"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
-from SHE_Validation.constants.default_config import FailSigmaScaling
+from SHE_Validation.constants.default_config import VALIDATION_DEFAULT_CONFIG
 
 PROFILING_FILENAME = "validate_shear_bias.prof"
 
 # Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value: 5.,
-                             AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value: 5.,
-                             AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_SCALE.value,
-                             AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
+SHEAR_BIAS_DEFAULT_CONFIG = {**VALIDATION_DEFAULT_CONFIG,
                              }
-
-# Execution mode options
-LOCAL_MODE = "local"
-GLOBAL_MODE = "global"
