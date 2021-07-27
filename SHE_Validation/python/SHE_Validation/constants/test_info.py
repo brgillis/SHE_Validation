@@ -184,6 +184,13 @@ D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=B
 
 D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
 
+# Set up the dict relating cline-args to config keys
+D_BIN_LIMITS_CLINE_ARGS = {}
+
+for bin_parameter in BinParameters:
+    bin_parameter_meta = D_BIN_PARAMETER_META[bin_parameter]
+    D_BIN_LIMITS_CLINE_ARGS[bin_parameter_meta.config_key] = bin_parameter_meta.cline_arg
+
 
 class RequirementInfo():
     """ Common class for info about a requirement.

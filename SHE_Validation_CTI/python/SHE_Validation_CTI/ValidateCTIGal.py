@@ -32,7 +32,7 @@ from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys, GlobalConfigKeys
 
-from SHE_Validation.constants.test_info import add_bin_limits_cline_args
+from SHE_Validation.constants.test_info import add_bin_limits_cline_args, D_BIN_LIMITS_CLINE_ARGS
 
 from . import __version__
 from .constants.cti_gal_default_config import (CTI_GAL_DEFAULT_CONFIG, PROFILING_FILENAME)
@@ -119,19 +119,10 @@ def mainMethod(args):
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
-    bin_limits_cline_args = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                             ValidationConfigKeys.VAL_BG_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
-
     # load the pipeline config in
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
-                                  cline_args=bin_limits_cline_args,
+                                  cline_args=D_BIN_LIMITS_CLINE_ARGS,
                                   defaults=CTI_GAL_DEFAULT_CONFIG,
                                   config_keys=ValidationConfigKeys)
 
