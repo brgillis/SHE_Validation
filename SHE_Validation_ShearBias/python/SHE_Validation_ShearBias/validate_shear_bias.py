@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,8 +29,10 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 
-from SHE_Validation.constants.default_config import (LOCAL_MODE, GLOBAL_MODE)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES
+from SHE_Validation.constants.default_config import (LOCAL_MODE, GLOBAL_MODE,
+                                                     DEFAULT_BIN_LIMITS)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES,\
+    ShearBiasTestCases
 
 from .plot_shear_bias import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_validation_results
@@ -127,9 +129,15 @@ def validate_shear_bias_from_args(args, mode):
     # Fill in the products with the results
     if not args.dry_run:
 
+        d_bin_limits = {}
+
+        for test_case_label in ShearBiasTestCases:
+            d_bin_limits[test_case_label] = DEFAULT_BIN_LIMITS
+
         # And fill in the observation product
         fill_shear_bias_validation_results(test_result_product=test_result_product,
                                            workdir=args.workdir,
+                                           d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,
                                            pipeline_config=args.pipeline_config,
                                            figures=plot_filenames,
