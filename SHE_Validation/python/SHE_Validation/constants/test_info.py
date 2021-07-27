@@ -4,7 +4,6 @@
 
     Default values for information about tests and test cases, generic across multiple tests.
 """
-from copy import deepcopy
 
 __updated__ = "2021-07-27"
 
@@ -21,8 +20,9 @@ __updated__ = "2021-07-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 from enum import Enum
-from typing import Iterable
+from typing import Iterable, Union, List
 
 from SHE_PPT.constants.shear_estimation_methods import (METHODS as SHEAR_ESTIMATION_METHODS,
                                                         NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS)
@@ -241,17 +241,15 @@ class TestCaseInfo():
     def __init__(self,
                  test_info=None,
                  test_case_id=None,
-                 description=None,
+                 base_description=None,
                  bins=None,
-                 name=None,
-                 comment=None):
+                 method=None):
 
         self._test_info = test_info
         self._test_case_id = test_case_id
-        self._description = description
+        self._base_description = base_description
         self._bins = bins
-        self._name = name
-        self._comment = comment
+        self._method = method
 
     @property
     def test_info(self):
@@ -267,7 +265,18 @@ class TestCaseInfo():
         return self._test_case_id
 
     @property
+    def base_description(self):
+        return self._base_description
+
+    @property
     def description(self):
+        # Construct the full description if needed
+        if self._description is None:
+            self._description = self._base_description
+            if self.bins is not None:
+                self._description += f" Binned by {D_BIN_PARAMETER_META[self.bins].long_name}."
+            if self.method is not None:
+                self._description += f" Shear estimation method: {self.method}."
         return self._description
 
     @property
@@ -276,10 +285,27 @@ class TestCaseInfo():
 
     @bins.setter()
     def bins(self, bins):
+
         self._bins = bins
-        # Unset cached values for self._bins_cline_arg and self._bins_config_key
+
+        # Unset cached values which depend on self.bins
         self._bins_cline_arg = None
         self._bins_config_key = None
+        self._name = None
+        self._description = None
+
+    @property
+    def method(self):
+        return self._method
+
+    @method.setter()
+    def method(self, method):
+
+        self._method = method
+
+        # Unset cached values which depend on self.methods
+        self._name = None
+        self._description = None
 
     @property
     def bins_cline_arg(self):
@@ -295,6 +321,18 @@ class TestCaseInfo():
 
     @property
     def name(self):
+        if self._name is None:
+            if self.bins is not None:
+                if self.method is not None:
+                    self._name = f"{self.bins.value}-{self.method}"
+                else:
+                    self._name = self.bins.value
+            else:
+                # self.bins is not set in this branch
+                if self.method is not None:
+                    self._name = self.method
+                else:
+                    self._name = None
         return self._name
 
     @property
@@ -302,20 +340,63 @@ class TestCaseInfo():
         return self._comment
 
 
-def make_test_case_info_for_bins(test_case_info: TestCaseInfo,
+def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
                                  l_bin_parameters: Iterable[BinParameters] = BinParameters):
-    """ Takes as input an individual test case, then creates versions of it for each bin parameter in the provided
+    """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the provided
         list.
     """
 
-    d_bin_test_case_info = {}
+    # Silently coerce test_case_info into a list
+    if isinstance(test_case_info, TestCaseInfo):
+        l_test_case_info = [test_case_info]
+    else:
+        l_test_case_info = test_case_info
 
-    for bin_parameter in l_bin_parameters:
+    l_bin_test_case_info = {}
 
-        # Copy the test case info and modify the bins attribute of it
-        bin_test_case_info = deepcopy(test_case_info)
-        bin_test_case_info.bins = bin_parameter
+    for test_case_info in l_test_case_info:
+        for bin_parameter in l_bin_parameters:
 
-        d_bin_test_case_info[bin_parameter] = bin_test_case_info
+            # Copy the test case info and modify the bins attribute of it
+            bin_test_case_info = deepcopy(test_case_info)
+            bin_test_case_info.bins = bin_parameter
 
-    return d_bin_test_case_info
+            l_bin_test_case_info.append(bin_test_case_info)
+
+    return l_bin_test_case_info
+
+
+def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
+                                    l_methods: Iterable[str] = SHEAR_ESTIMATION_METHODS):
+    """ Takes as input a test case or list of test cases, then creates versions of it for each shear estimation method
+        in the provided list.
+    """
+
+    # Silently coerce test_case_info into a list
+    if isinstance(test_case_info, TestCaseInfo):
+        l_test_case_info = [test_case_info]
+    else:
+        l_test_case_info = test_case_info
+
+    l_method_test_case_info = {}
+
+    for test_case_info in l_test_case_info:
+        for method in l_methods:
+
+            # Copy the test case info and modify the bins attribute of it
+            method_test_case_info = deepcopy(test_case_info)
+            method_test_case_info.method = method
+
+            l_method_test_case_info.append(method_test_case_info)
+
+    return l_method_test_case_info
+
+
+def make_test_case_info_for_bins_and_methods(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
+                                             l_bin_parameters: Iterable[BinParameters] = BinParameters,
+                                             l_methods: Iterable[str] = SHEAR_ESTIMATION_METHODS):
+    """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the
+        provided list, for each shear estimation method in the provided list.
+    """
+
+    return make_test_case_info_for_methods(make_test_case_info_for_bins(test_case_info, l_bin_parameters), l_methods)
