@@ -5,7 +5,7 @@
     Constants relating default configurations for validation tests
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,11 +27,6 @@ from SHE_PPT.utility import AllowedEnum
 # Execution mode options
 LOCAL_MODE = "local"
 GLOBAL_MODE = "global"
-
-# Bin units and definitions
-BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
-SIZE_DEFINITION = "Area of segmentation map (pixels)"
 
 
 class FailSigmaScaling(AllowedEnum):
@@ -67,3 +62,14 @@ DEFAULT_BIN_LIMIT_MIN = -1e99
 DEFAULT_BIN_LIMIT_MAX = 1e99
 DEFAULT_BIN_LIMITS = (DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX)
 FAILSAFE_BIN_LIMITS = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
+
+# Command-line arguments for configuration parameters
+
+D_BIN_LIMITS_CLINE_ARGS = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value:
+                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
+                           ValidationConfigKeys.VAL_BG_BIN_LIMITS.value:
+                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
+                           ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value:
+                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
+                           ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value:
+                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
