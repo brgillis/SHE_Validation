@@ -226,7 +226,7 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         # Get data limited to the rows where g_in is less than the allowed max
-        good_g_in_rows = self.d_g_in[i] < max_g_in
+        good_g_in_rows = np.abs(self.d_g_in[i]) < max_g_in
 
         g_in = self.d_g_in[i][good_g_in_rows]
         g_out = self.d_g_out[i][good_g_in_rows]
