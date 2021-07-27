@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -44,8 +44,7 @@ import numpy as np
 
 from . import __version__
 from .constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
-from .constants.cti_gal_test_info import (NUM_METHOD_CTI_GAL_TEST_CASES, D_CTI_GAL_TEST_CASE_INFO,
-                                          CtiGalTestCases)
+from .constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO, L_CTI_GAL_TEST_CASE_INFO
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -53,6 +52,50 @@ from .table_formats.regression_results import initialise_regression_results_tabl
 
 
 logger = getLogger(__name__)
+
+
+def convert_common_config_types(pipeline_config):
+
+    # Check that the fail sigma scaling is in the enum (silently convert to lower case)
+    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value].lower()
+    if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
+        err_string = f"Fail sigma scaling option {pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]}" + \
+            " is not recognized. Allowed options are:"
+        for allowed_option in FailSigmaScaling:
+            err_string += "\n  " + allowed_option.value
+
+        raise ValueError(err_string)
+    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
+
+    # Convert fail sigma values to expected data types
+    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value] = float(
+        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value])
+
+    # Convert the bin limits into a dict of arrays
+    d_bin_limits = {}
+    for test_case_label in CtiGalTestCases:
+        bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
+        if bin_limits_key is None:
+            # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
+            d_bin_limits[test_case_label] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
+            continue
+        bin_limits_string = pipeline_config[bin_limits_key]
+        try:
+            bin_limits_list = list(map(float, bin_limits_string.strip().split()))
+            bin_limits_array = np.array(bin_limits_list, dtype=float)  # Sort bin limits ascending
+            np.sort(bin_limits_array)
+            if len(bin_limits_array) < 2:
+                raise ValueError("At least two bin limits must be provided.")
+        except ValueError as e:
+            logger.warning(
+                f"Cannot interpret bin limits \"{bin_limits_string}\" for {test_case_label} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
+            bin_limits_list = list(map(float, FAILSAFE_BIN_LIMITS.strip().split()))
+            bin_limits_array = np.array(bin_limits_list, dtype=float)
+        d_bin_limits[test_case_label] = bin_limits_array
+
+    return pipeline_config, d_bin_limits
 
 
 def run_validate_cti_gal_from_args(args):
@@ -69,67 +112,8 @@ def run_validate_cti_gal_from_args(args):
     telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
     logger.info("Complete!")
 
-    # Load the configuration, and convert values in it to the proper type
-
-    bin_limits_cline_args = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                             ValidationConfigKeys.VAL_BG_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
-
-    if type(args.pipeline_config) is str or args.pipeline_config is None:
-        pipeline_config = read_config(args.pipeline_config,
-                                      workdir=args.workdir,
-                                      cline_args=bin_limits_cline_args,
-                                      defaults=CTI_GAL_DEFAULT_CONFIG,
-                                      config_keys=ValidationConfigKeys)
-    elif type(args.pipeline_config) is dict:
-        pipeline_config = args.pipeline_config
-    else:
-        raise TypeError("run_validate_cti_gal_from_args: args.pipeline_config is an unexpectedd type - %s" %
-                        type(args.pipeline_config))
-
-    # Check that the fail sigma scaling is in the enum (silently convert to lower case)
-    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value].lower()
-    if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
-        err_string = (f"Fail sigma scaling option {pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]}" +
-                      " is not recognized. Allowed options are:")
-        for allowed_option in FailSigmaScaling:
-            err_string += "\n  " + allowed_option.value
-        raise ValueError(err_string)
-    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
-
-    # Convert to expected data types
-    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value])
-    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value])
-
-    d_bin_limits = {}
-    for test_case_label in CtiGalTestCases:
-        bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
-        if bin_limits_key is None:
-            # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[test_case_label] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
-            continue
-        bin_limits_string = pipeline_config[bin_limits_key]
-        try:
-            bin_limits_list = list(map(float, bin_limits_string.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype=float)
-            # Sort bin limits ascending
-            np.sort(bin_limits_array)
-            if len(bin_limits_array) < 2:
-                raise ValueError("At least two bin limits must be provided.")
-        except ValueError as e:
-            logger.warning(f"Cannot interpret bin limits \"{bin_limits_string}\" for {test_case_label} - " +
-                           f"must be list of floats separated by whitespace. Failsafe limits " +
-                           f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
-            bin_limits_list = list(map(float, FAILSAFE_BIN_LIMITS.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype=float)
-        d_bin_limits[test_case_label] = bin_limits_array
+    # Convert values in the config to the proper type
+    pipeline_config, d_bin_limits = convert_common_config_types(args.pipeline_config)
 
     # Load the image data as a SHEFrameStack
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
