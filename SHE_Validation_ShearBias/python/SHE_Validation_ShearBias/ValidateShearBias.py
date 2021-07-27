@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,6 +28,7 @@ from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import read_config, GlobalConfigKeys, ValidationConfigKeys
 
 from SHE_Validation.constants.default_config import LOCAL_MODE
+from SHE_Validation.constants.test_info import add_bin_limits_cline_args
 
 from . import __version__
 from .constants.shear_bias_default_config import SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME
@@ -72,6 +73,8 @@ def defineSpecificProgramOptions():
                         help='Store profiling data for execution.')
     parser.add_argument('--dry_run', action='store_true',
                         help='Skip processing and just output dummy data.')
+
+    add_bin_limits_cline_args(parser)
 
     logger.debug('Exiting SHE_Validation_ValidateShearBias defineSpecificProgramOptions()')
 

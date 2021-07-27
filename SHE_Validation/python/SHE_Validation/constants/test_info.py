@@ -20,6 +20,7 @@ __updated__ = "2021-07-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import argparse
 from copy import deepcopy
 from enum import Enum
 from typing import Iterable, Union, List
@@ -355,6 +356,17 @@ class TestCaseInfo():
     @property
     def comment(self):
         return self._comment
+
+
+def add_bin_limits_cline_args(parser: argparse.ArgumentParser,
+                              l_bin_parameters: Iterable[BinParameters] = BinParameters):
+    """ Adds bin limits arguments to an argument parser.
+    """
+
+    for bin_parameter in l_bin_parameters:
+        bin_parameter_meta = D_BIN_PARAMETER_META[bin_parameter]
+        parser.add_argument('--' + bin_parameter_meta.cline_arg, type=str, default=None,
+                            help=bin_parameter_meta.help_text)
 
 
 def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
