@@ -98,10 +98,10 @@ def validate_shear_bias_from_args(args, mode):
             shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames,
                                                   method=method,
                                                   workdir=args.workdir)
-
-            shear_bias_plotter.plot_shear_bias(
-                bootstrap_errors=args.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value],
-                max_g_in=float(args.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value]))
+            bootstrap_errors = (args.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in
+                                ['true', 't'])
+            shear_bias_plotter.plot_shear_bias(bootstrap_errors=bootstrap_errors,
+                                               max_g_in=float(args.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value]))
 
             d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
