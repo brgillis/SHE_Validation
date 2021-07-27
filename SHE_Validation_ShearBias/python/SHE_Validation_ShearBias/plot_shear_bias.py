@@ -256,13 +256,13 @@ class ShearBiasPlotter(ValidationPlotter):
 
             slope_bs = np.empty(self.n_bootstrap)
             intercept_bs = np.empty(self.n_bootstrap)
-            for i in range(self.n_bootstrap):
+            for b_i in range(self.n_bootstrap):
                 u = np.random.randint(0, n_sample, n_sample)
                 linregress_results_bs = linregress_with_errors(x=g_table[u]["g_in"],
                                                                y=g_table[u]["g_out"],
                                                                y_err=g_table[u]["g_out_err"])
-                slope_bs[i] = linregress_results_bs.slope
-                intercept_bs[i] = linregress_results_bs.intercept
+                slope_bs[b_i] = linregress_results_bs.slope
+                intercept_bs[b_i] = linregress_results_bs.intercept
 
             # Update the bias measurements in the output object
             linregress_results.slope_err = np.std(slope_bs)
