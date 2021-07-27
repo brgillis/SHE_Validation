@@ -38,12 +38,12 @@ from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
 from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS, FailSigmaScaling
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
 from .constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO, L_CTI_GAL_TEST_CASE_INFO
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
@@ -75,13 +75,17 @@ def convert_common_config_types(pipeline_config):
 
     # Convert the bin limits into a dict of arrays
     d_bin_limits = {}
-    for test_case_label in CtiGalTestCases:
-        bin_limits_key = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_config_key
+    for bin_parameter in BinParameters:
+
+        bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
+
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[test_case_label] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
+            d_bin_limits[bin_parameter] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
             continue
+
         bin_limits_string = pipeline_config[bin_limits_key]
+
         try:
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)  # Sort bin limits ascending
@@ -90,10 +94,11 @@ def convert_common_config_types(pipeline_config):
                 raise ValueError("At least two bin limits must be provided.")
         except ValueError as e:
             logger.warning(
-                f"Cannot interpret bin limits \"{bin_limits_string}\" for {test_case_label} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
+                f"Cannot interpret bin limits \"{bin_limits_string}\" for {bin_parameter.value} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
             bin_limits_list = list(map(float, FAILSAFE_BIN_LIMITS.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
-        d_bin_limits[test_case_label] = bin_limits_array
+
+        d_bin_limits[bin_parameter] = bin_limits_array
 
     return pipeline_config, d_bin_limits
 
