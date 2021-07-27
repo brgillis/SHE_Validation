@@ -57,6 +57,7 @@ class BinParameterMeta():
     # Values set directly from init
     _enum = None
     _long_name = None
+    _id_tail = None
     _units = None
     _definition = None
     _extra_help_text = None
@@ -73,6 +74,7 @@ class BinParameterMeta():
     def __init__(self,
                  bin_parameter_enum: BinParameters,
                  long_name: str = None,
+                 id_tail: str = None,
                  units: str = None,
                  definition: str = None,
                  extra_help_text: str = None,
@@ -91,6 +93,10 @@ class BinParameterMeta():
         self._cline_arg = f"{self.value}_bin_limits"
         if long_name is not None:
             self._long_name = long_name
+        else:
+            self._long_name = self.name
+        if id_tail is not None:
+            self._id_tail = id_tail
         else:
             self._long_name = self.name
 
@@ -159,6 +165,7 @@ D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
                                                            long_name="SNR",
+                                                           id_tail="SNR",
                                                            config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS)
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
@@ -240,13 +247,13 @@ class TestCaseInfo():
 
     def __init__(self,
                  test_info=None,
-                 test_case_id=None,
+                 base_test_case_id=None,
                  base_description=None,
                  bins=None,
                  method=None):
 
         self._test_info = test_info
-        self._test_case_id = test_case_id
+        self._base_test_case_id = base_test_case_id
         self._base_description = base_description
         self._bins = bins
         self._method = method
@@ -256,13 +263,24 @@ class TestCaseInfo():
         return self._test_info
 
     @property
+    def base_test_case_id(self):
+        return self._base_test_case_id
+
+    @property
     def test_case_id(self):
+        # Construct the full test_case_id if needed
+        if self._test_case_id is None:
+            self._test_case_id = self._base_test_case_id
+            if self.bins is not None:
+                self._test_case_id += f"-{D_BIN_PARAMETER_META[self.bins].id_tail}"
+            if self.method is not None:
+                self._test_case_id += f"-{self.method}"
         return self._test_case_id
 
     @property
     def id(self):
         # Alias to test_case_id
-        return self._test_case_id
+        return self.test_case_id
 
     @property
     def base_description(self):
