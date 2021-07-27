@@ -6,7 +6,7 @@
 """
 
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -241,7 +241,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
         else:
 
-            g_table = Table([g_in, g_out, g_out_err], names="g_in", "g_out", "g_out_err")
+            g_table = Table([g_in, g_out, g_out_err], names=("g_in", "g_out", "g_out_err"))
 
             # Seed the random number generator
             np.random.seed(self.bootstrap_seed)
