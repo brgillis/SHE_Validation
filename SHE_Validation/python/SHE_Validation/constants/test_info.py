@@ -24,8 +24,7 @@ from copy import deepcopy
 from enum import Enum
 from typing import Iterable, Union, List
 
-from SHE_PPT.constants.shear_estimation_methods import (METHODS as SHEAR_ESTIMATION_METHODS,
-                                                        NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS)
+from SHE_PPT.constants.shear_estimation_methods import METHODS as SHEAR_ESTIMATION_METHODS
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 
 
