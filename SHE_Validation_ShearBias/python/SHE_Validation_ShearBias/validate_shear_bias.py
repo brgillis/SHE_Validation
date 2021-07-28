@@ -47,10 +47,12 @@ def fix_pipeline_config_types(pipeline_config):
 
     pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value] = float(
         pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value])
-    pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value] = (
-        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in ['true', 't'])
-    pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value] = (
-        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value].lower() in ['true', 't'])
+    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value], bool):
+        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value] = (
+            pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in ['true', 't'])
+    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value], bool):
+        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value] = (
+            pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value].lower() in ['true', 't'])
 
     return pipeline_config
 
