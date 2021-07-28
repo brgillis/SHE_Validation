@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-07-28"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,9 +41,26 @@ from .results_reporting import fill_shear_bias_validation_results
 logger = getLogger(__name__)
 
 
+def fix_pipeline_config_types(pipeline_config):
+    """ Fixes data types in the pipeline config so they aren't all just strings.
+    """
+
+    pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value] = float(
+        pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value])
+    pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value] = (
+        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in ['true', 't'])
+    pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value] = (
+        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value].lower() in ['true', 't'])
+
+    return pipeline_config
+
+
 def validate_shear_bias_from_args(args, mode):
     """ @TODO Fill in docstring
     """
+
+    # Fix types in the pipeline_config
+    pipeline_config = fix_pipeline_config_types(args.pipeline_config)
 
     # Get the list of matched catalog products to be read in, depending on mode
     if mode == LOCAL_MODE:
@@ -98,10 +115,7 @@ def validate_shear_bias_from_args(args, mode):
             shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames,
                                                   method=method,
                                                   workdir=args.workdir)
-            bootstrap_errors = (args.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in
-                                ['true', 't'])
-            shear_bias_plotter.plot_shear_bias(bootstrap_errors=bootstrap_errors,
-                                               max_g_in=float(args.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value]))
+            shear_bias_plotter.plot_shear_bias(pipeline_config=pipeline_config)
 
             d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
@@ -139,7 +153,7 @@ def validate_shear_bias_from_args(args, mode):
                                            workdir=args.workdir,
                                            d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,
-                                           pipeline_config=args.pipeline_config,
+                                           pipeline_config=pipeline_config,
                                            figures=plot_filenames,
                                            data_exists=data_exists,
                                            mode=mode)

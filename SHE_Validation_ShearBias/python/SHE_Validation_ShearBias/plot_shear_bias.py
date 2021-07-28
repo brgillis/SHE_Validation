@@ -5,8 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-
-__updated__ = "2021-07-27"
+__updated__ = "2021-07-28"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,6 +25,8 @@ import os
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, linregress_with_errors
+from SHE_PPT.pipeline_utility import _make_config_from_defaults,\
+    GlobalConfigKeys, ValidationConfigKeys
 from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
 from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
@@ -35,6 +36,7 @@ from matplotlib import pyplot as plt
 
 import SHE_Validation
 from SHE_Validation.plotting import ValidationPlotter
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import SHEAR_BIAS_DEFAULT_CONFIG
 import numpy as np
 
 logger = getLogger(__name__)
@@ -70,6 +72,7 @@ class ShearBiasPlotter(ValidationPlotter):
     # Attributes calculated at init
     sem_tf = None
     good_rows = None
+    fitclass_zero_rows = None
     _d_g_in = None
     _d_g_out = None
     _d_g_out_err = None
@@ -97,6 +100,7 @@ class ShearBiasPlotter(ValidationPlotter):
         l_g2_out = []
         l_g1_out_err = []
         l_g2_out_err = []
+        l_fitclass_zero_rows = []
         for method_matched_catalog_filename in self.l_method_matched_catalog_filenames:
 
             if method_matched_catalog_filename is None:
@@ -120,6 +124,8 @@ class ShearBiasPlotter(ValidationPlotter):
             l_g1_out_err.append((gal_matched_table[self.sem_tf.g1_err])[good_rows])
             l_g2_out_err.append((gal_matched_table[self.sem_tf.g2_err])[good_rows])
 
+            l_fitclass_zero_rows.append(gal_matched_table[self.sem_tf.fitclass][good_rows])
+
         # Check if we have some data, otherwise use empty arrays
         if len(l_g1_in) > 0:
             self.d_g_in = {1: np.concatenate(l_g1_in),
@@ -128,6 +134,7 @@ class ShearBiasPlotter(ValidationPlotter):
                             2: np.concatenate(l_g2_out)}
             self.d_g_out_err = {1: np.concatenate(l_g1_out_err),
                                 2: np.concatenate(l_g2_out_err)}
+            self.fitclass_zero_rows = np.concatenate(l_fitclass_zero_rows)
         else:
             self.d_g_in = {1: np.array([], dtype=float),
                            2: np.array([], dtype=float)}
@@ -135,6 +142,7 @@ class ShearBiasPlotter(ValidationPlotter):
                             2: np.array([], dtype=float)}
             self.d_g_out_err = {1: np.array([], dtype=float),
                                 2: np.array([], dtype=float)}
+            self.fitclass_zero_rows = np.array([], dtype=bool)
 
         # Set as None attributes to be set when plotting methods are called
         self.d_bias_measurements = None
@@ -221,16 +229,24 @@ class ShearBiasPlotter(ValidationPlotter):
     def plot_component_shear_bias(self,
                                   i,
                                   bootstrap_errors,
+                                  require_fitclass_zero,
                                   max_g_in):
         """ Plot shear bias for an individual component.
         """
 
         # Get data limited to the rows where g_in is less than the allowed max
-        good_g_in_rows = np.abs(self.d_g_in[i]) < max_g_in
+        g = np.sqrt(self.d_g_in[1]**2 + self.d_g_in[2]**2)
+        good_g_in_rows = g < max_g_in
 
         g_in = self.d_g_in[i][good_g_in_rows]
         g_out = self.d_g_out[i][good_g_in_rows]
         g_out_err = self.d_g_out_err[i][good_g_in_rows]
+
+        # Limit to FITCLASS==0 if desired
+        if require_fitclass_zero:
+            g_in = g_in[self.fitclass_zero_rows]
+            g_out = g_out[self.fitclass_zero_rows]
+            g_out_err = g_out_err[self.fitclass_zero_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         if not bootstrap_errors:
@@ -315,11 +331,20 @@ class ShearBiasPlotter(ValidationPlotter):
         self.clear_plots()
 
     def plot_shear_bias(self,
-                        bootstrap_errors=True,
-                        max_g_in=np.inf):
+                        pipeline_config=None):
         """ Plot shear bias for both components.
         """
 
+        if pipeline_config is None:
+            pipeline_config = SHEAR_BIAS_DEFAULT_CONFIG
+
+        bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value]
+        require_fitclass_zero = pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value]
+        max_g_in = pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value]
+
         for i in (1, 2):
 
-            self.plot_component_shear_bias(i, bootstrap_errors=bootstrap_errors, max_g_in=max_g_in)
+            self.plot_component_shear_bias(i,
+                                           bootstrap_errors=bootstrap_errors,
+                                           require_fitclass_zero=require_fitclass_zero,
+                                           max_g_in=max_g_in)
