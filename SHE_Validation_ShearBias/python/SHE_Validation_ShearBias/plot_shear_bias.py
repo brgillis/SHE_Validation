@@ -244,9 +244,10 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Limit to FITCLASS==0 if desired
         if require_fitclass_zero:
-            g_in = g_in[self.fitclass_zero_rows]
-            g_out = g_out[self.fitclass_zero_rows]
-            g_out_err = g_out_err[self.fitclass_zero_rows]
+            good_fitclass_zero_rows = self.fitclass_zero_rows[good_g_in_rows]
+            g_in = g_in[good_fitclass_zero_rows]
+            g_out = g_out[good_fitclass_zero_rows]
+            g_out_err = g_out_err[good_fitclass_zero_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         if not bootstrap_errors:
