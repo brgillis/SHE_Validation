@@ -124,7 +124,7 @@ class ShearBiasPlotter(ValidationPlotter):
             l_g1_out_err.append((gal_matched_table[self.sem_tf.g1_err])[good_rows])
             l_g2_out_err.append((gal_matched_table[self.sem_tf.g2_err])[good_rows])
 
-            l_fitclass_zero_rows.append(gal_matched_table[self.sem_tf.fit_class][good_rows])
+            l_fitclass_zero_rows.append((gal_matched_table[self.sem_tf.fit_class] == 0)[good_rows])
 
         # Check if we have some data, otherwise use empty arrays
         if len(l_g1_in) > 0:
