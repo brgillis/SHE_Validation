@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-07-28"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -328,6 +328,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
         self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
         self.data_exists = data_exists
+        self.mode = mode
 
     def _init_test_case_writer(self, **kwargs):
         """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter. Note that we don't
@@ -349,7 +350,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             test_case_info = D_SHEAR_BIAS_TEST_CASE_INFO[test_case]
             prop = test_case_info.test_case_id[-1]
 
-            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{prop}_sigma")[test_case]
+            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode}_sigma")[test_case]
 
             for method in METHODS:
 
