@@ -14,7 +14,6 @@ from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
-from ..constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 
 
 __updated__ = "2021-08-03"

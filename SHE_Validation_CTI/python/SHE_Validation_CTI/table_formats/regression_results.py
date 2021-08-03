@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -31,7 +31,7 @@ from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
-from ..constants.cti_gal_test_info import CtiGalTestCases
+from ..constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 
 
 FITS_VERSION = "8.0"
@@ -116,7 +116,7 @@ TF = REGRESSION_RESULTS_TABLE_FORMAT
 
 
 def make_regression_results_table_header(product_type: str = None,
-                                         test_case: str = CtiGalTestCases.GLOBAL,
+                                         test_case: str = L_CTI_GAL_TEST_CASE_INFO[0].test_case_id,
                                          bin_limit_min: float = DEFAULT_BIN_LIMIT_MIN,
                                          bin_limit_max: float = DEFAULT_BIN_LIMIT_MAX):
     """
