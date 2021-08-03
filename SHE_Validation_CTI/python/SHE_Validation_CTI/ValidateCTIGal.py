@@ -35,7 +35,8 @@ from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys, GlobalCo
 from SHE_Validation.constants.test_info import add_bin_limits_cline_args, D_BIN_LIMITS_CLINE_ARGS
 
 from . import __version__
-from .constants.cti_gal_default_config import (CTI_GAL_DEFAULT_CONFIG, PROFILING_FILENAME)
+from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
+                                               D_CTI_GAL_CONFIG_CLINE_ARGS, PROFILING_FILENAME)
 from .validate_cti_gal import run_validate_cti_gal_from_args
 
 logger = log.getLogger(__name__)
@@ -123,14 +124,15 @@ def mainMethod(args):
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
                                   cline_args=D_BIN_LIMITS_CLINE_ARGS,
-                                  defaults=CTI_GAL_DEFAULT_CONFIG,
-                                  config_keys=ValidationConfigKeys)
+                                  defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                  config_keys=ValidationConfigKeys,
+                                  d_types=D_CTI_GAL_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile

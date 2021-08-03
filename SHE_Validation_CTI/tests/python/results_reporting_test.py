@@ -36,7 +36,8 @@ from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL,
                                            INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
                                            KEY_REASON, DESC_NOT_RUN_REASON, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
                                            WARNING_BAD_DATA,)
-from SHE_Validation_CTI.constants.cti_gal_default_config import CTI_GAL_DEFAULT_CONFIG
+from SHE_Validation_CTI.constants.cti_gal_default_config import D_CTI_GAL_CONFIG_DEFAULTS,\
+    D_CTI_GAL_CONFIG_TYPES
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CtiGalTestCases,
                                                             CTI_GAL_REQUIREMENT_INFO, D_CTI_GAL_TEST_CASE_INFO,
                                                             NUM_METHOD_CTI_GAL_TEST_CASES)
@@ -66,7 +67,8 @@ class TestCase:
 
         # Make a pipeline_config using the default values
         self.pipeline_config = _make_config_from_defaults(config_keys=(GlobalConfigKeys, ValidationConfigKeys,),
-                                                          defaults=CTI_GAL_DEFAULT_CONFIG)
+                                                          defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                                          d_types=D_CTI_GAL_CONFIG_TYPES)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NO_SCALE
 
         # Make a dictionary of bin limits
@@ -76,7 +78,7 @@ class TestCase:
             if bins_config_key is None:
                 bin_limits_string = FAILSAFE_BIN_LIMITS
             else:
-                bin_limits_string = CTI_GAL_DEFAULT_CONFIG[bins_config_key]
+                bin_limits_string = D_CTI_GAL_CONFIG_DEFAULTS[bins_config_key]
 
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
@@ -246,7 +248,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -257,7 +259,7 @@ class TestCase:
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
         assert ("Maximum allowed intercept_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
@@ -277,7 +279,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -286,7 +288,7 @@ class TestCase:
         assert f"slope_err = nan\n" in exp_slope_info_string
         assert f"slope_z = nan\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 

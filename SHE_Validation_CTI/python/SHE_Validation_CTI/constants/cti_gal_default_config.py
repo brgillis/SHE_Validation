@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,10 +20,14 @@ __updated__ = "2021-07-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.default_config import VALIDATION_DEFAULT_CONFIG
+from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_DEFAULTS,
+                                                     D_VALIDATION_CONFIG_TYPES,
+                                                     D_VALIDATION_CONFIG_CLINE_ARGS)
 
-# Create the default config dict for this task by extending the global default config dict
-CTI_GAL_DEFAULT_CONFIG = {**VALIDATION_DEFAULT_CONFIG}
+# Create the default config dicts for this task by extending the global default config dicts
+D_CTI_GAL_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
+D_CTI_GAL_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
+D_CTI_GAL_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
 
 
 PROFILING_FILENAME = "validate_cti_gal.prof"

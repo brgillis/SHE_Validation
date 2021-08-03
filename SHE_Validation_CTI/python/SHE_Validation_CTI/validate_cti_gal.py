@@ -31,20 +31,18 @@ from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATI
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
-from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS, FailSigmaScaling
+from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
-from .constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO, L_CTI_GAL_TEST_CASE_INFO
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
@@ -54,26 +52,10 @@ from .table_formats.regression_results import initialise_regression_results_tabl
 logger = getLogger(__name__)
 
 
-def convert_common_config_types(pipeline_config):
+def get_d_bin_limits(pipeline_config):
+    """ Convert the bin limits into a dict of arrays.
+    """
 
-    # Check that the fail sigma scaling is in the enum (silently convert to lower case)
-    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING].lower()
-    if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
-        err_string = f"Fail sigma scaling option {pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]}" + \
-            " is not recognized. Allowed options are:"
-        for allowed_option in FailSigmaScaling:
-            err_string += "\n  " + allowed_option.value
-
-        raise ValueError(err_string)
-    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = fail_sigma_scaling_lower
-
-    # Convert fail sigma values to expected data types
-    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA] = float(
-        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA])
-    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA] = float(
-        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA])
-
-    # Convert the bin limits into a dict of arrays
     d_bin_limits = {}
     for bin_parameter in BinParameters:
 
@@ -100,7 +82,7 @@ def convert_common_config_types(pipeline_config):
 
         d_bin_limits[bin_parameter] = bin_limits_array
 
-    return pipeline_config, d_bin_limits
+    return d_bin_limits
 
 
 def run_validate_cti_gal_from_args(args):
@@ -118,7 +100,7 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Complete!")
 
     # Convert values in the config to the proper type
-    pipeline_config, d_bin_limits = convert_common_config_types(args.pipeline_config)
+    d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
     # Load the image data as a SHEFrameStack
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
@@ -245,7 +227,7 @@ def run_validate_cti_gal_from_args(args):
                                             workdir=args.workdir,
                                             regression_results_row_index=product_index,
                                             d_regression_results_tables=d_exposure_regression_results_tables,
-                                            pipeline_config=pipeline_config,
+                                            pipeline_config=args.pipeline_config,
                                             d_bin_limits=d_bin_limits,
                                             method_data_exists=method_data_exists)
 
@@ -254,7 +236,7 @@ def run_validate_cti_gal_from_args(args):
                                         workdir=args.workdir,
                                         regression_results_row_index=0,
                                         d_regression_results_tables=d_observation_regression_results_tables,
-                                        pipeline_config=pipeline_config,
+                                        pipeline_config=args.pipeline_config,
                                         d_bin_limits=d_bin_limits,
                                         figures=plot_filenames,
                                         method_data_exists=method_data_exists)
