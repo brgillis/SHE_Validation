@@ -32,7 +32,7 @@ from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys, GlobalConfigKeys
 
-from SHE_Validation.constants.test_info import add_bin_limits_cline_args, D_BIN_LIMITS_CLINE_ARGS
+from SHE_Validation.constants.test_info import add_bin_limits_cline_args
 
 from . import __version__
 from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
@@ -123,8 +123,8 @@ def mainMethod(args):
     # load the pipeline config in
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
-                                  cline_args=D_BIN_LIMITS_CLINE_ARGS,
                                   defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                  cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
                                   config_keys=ValidationConfigKeys,
                                   d_types=D_CTI_GAL_CONFIG_TYPES)
 

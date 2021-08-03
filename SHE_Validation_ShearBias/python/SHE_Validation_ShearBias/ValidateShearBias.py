@@ -105,6 +105,7 @@ def mainMethod(args):
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
                                   defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                  cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
                                   config_keys=ValidationConfigKeys,
                                   d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
