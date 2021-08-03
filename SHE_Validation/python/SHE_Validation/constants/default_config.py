@@ -23,6 +23,7 @@ __updated__ = "2021-08-03"
 from SHE_PPT.pipeline_utility import ValidationConfigKeys, GlobalConfigKeys
 from SHE_PPT.utility import AllowedEnum
 
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 # Execution mode options
 LOCAL_MODE = "local"
@@ -66,10 +67,10 @@ FAILSAFE_BIN_LIMITS = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
 # Command-line arguments for configuration parameters
 
 D_BIN_LIMITS_CLINE_ARGS = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS:
-                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
+                           D_BIN_PARAMETER_META[BinParameters.SNR].cline_arg,
                            ValidationConfigKeys.VAL_BG_BIN_LIMITS:
-                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
+                           D_BIN_PARAMETER_META[BinParameters.BG].cline_arg,
                            ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS:
-                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
+                           D_BIN_PARAMETER_META[BinParameters.COLOUR].cline_arg,
                            ValidationConfigKeys.VAL_SIZE_BIN_LIMITS:
-                           getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
+                           D_BIN_PARAMETER_META[BinParameters.SIZE].cline_arg, }
