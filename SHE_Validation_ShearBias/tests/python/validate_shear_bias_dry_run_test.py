@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -86,8 +86,8 @@ class TestCase:
         self.args.logdir = self.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: 4.,
-                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: 10.},
+        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 4.,
+                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
                      config_filename=PIPELINE_CONFIG_FILENAME,
                      workdir=self.args.workdir,
                      config_keys=ValidationConfigKeys)

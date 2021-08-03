@@ -5,7 +5,7 @@
     Utility functions related to configuration.
 """
 
-__updated__ = "2021-07-29"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -35,13 +35,13 @@ from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 logger = getLogger(__name__)
 
 # Set up the common types and enum types for configs
-COMMON_VAL_TYPES = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: float,
-                    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: float}
+COMMON_VAL_TYPES = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: float,
+                    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: float}
 for bin_parameter in BinParameters:
     bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
     COMMON_VAL_TYPES[bin_limits_key] = np.ndarray
 
-COMMON_VAL_ENUM_TYPES = {ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value: FailSigmaScaling}
+COMMON_VAL_ENUM_TYPES = {ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling}
 
 
 def get_d_bin_limits(pipeline_config: Dict[str, Any]) -> Dict[BinParameters, np.ndarray]:

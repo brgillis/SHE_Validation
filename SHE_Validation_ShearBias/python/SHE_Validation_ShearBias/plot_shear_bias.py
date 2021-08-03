@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-07-28"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -339,9 +339,9 @@ class ShearBiasPlotter(ValidationPlotter):
         if pipeline_config is None:
             pipeline_config = SHEAR_BIAS_DEFAULT_CONFIG
 
-        bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value]
-        require_fitclass_zero = pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value]
-        max_g_in = pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value]
+        bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
+        require_fitclass_zero = pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]
+        max_g_in = pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
 
         for i in (1, 2):
 

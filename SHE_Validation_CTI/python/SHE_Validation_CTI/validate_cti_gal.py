@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -57,7 +57,7 @@ logger = getLogger(__name__)
 def convert_common_config_types(pipeline_config):
 
     # Check that the fail sigma scaling is in the enum (silently convert to lower case)
-    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value].lower()
+    fail_sigma_scaling_lower = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING].lower()
     if not FailSigmaScaling.is_allowed_value(fail_sigma_scaling_lower):
         err_string = f"Fail sigma scaling option {pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]}" + \
             " is not recognized. Allowed options are:"
@@ -65,13 +65,13 @@ def convert_common_config_types(pipeline_config):
             err_string += "\n  " + allowed_option.value
 
         raise ValueError(err_string)
-    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = fail_sigma_scaling_lower
+    pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = fail_sigma_scaling_lower
 
     # Convert fail sigma values to expected data types
-    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value])
-    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value] = float(
-        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value])
+    pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA] = float(
+        pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA])
+    pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA] = float(
+        pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA])
 
     # Convert the bin limits into a dict of arrays
     d_bin_limits = {}

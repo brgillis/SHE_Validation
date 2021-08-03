@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-28"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,7 +26,7 @@ from SHE_Validation.constants.default_config import VALIDATION_DEFAULT_CONFIG
 PROFILING_FILENAME = "validate_shear_bias.prof"
 
 # Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {ValidationConfigKeys.SBV_MAX_G_IN.value: 0.99,
-                             ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value: True,
-                             ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value: False,
+SHEAR_BIAS_DEFAULT_CONFIG = {ValidationConfigKeys.SBV_MAX_G_IN: 0.99,
+                             ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS: True,
+                             ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO: False,
                              **VALIDATION_DEFAULT_CONFIG}

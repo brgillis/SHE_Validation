@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -67,7 +67,7 @@ class TestCase:
         # Make a pipeline_config using the default values
         self.pipeline_config = _make_config_from_defaults(config_keys=(GlobalConfigKeys, ValidationConfigKeys,),
                                                           defaults=CTI_GAL_DEFAULT_CONFIG)
-        self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
+        self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NO_SCALE
 
         # Make a dictionary of bin limits
         self.d_bin_limits = {}
@@ -85,14 +85,14 @@ class TestCase:
 
     def test_fail_sigma_scaling(self):
 
-        base_global_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value]
-        base_local_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]
+        base_global_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
+        base_local_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
 
         # Make a copy of the pipeline config so we can test with different input
         test_pipeline_config = deepcopy(self.pipeline_config)
 
         # Test with no scaling - all sigma should be unchanged
-        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.NO_SCALE.value
+        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NO_SCALE
         ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                        d_bin_limits=self.d_bin_limits)
 
@@ -102,13 +102,13 @@ class TestCase:
 
         # Test with other scaling types, and check that the fail sigmas increase with number of tries
 
-        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.BIN_SCALE.value
+        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.BIN_SCALE
         bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                         d_bin_limits=self.d_bin_limits)
-        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.TEST_CASE_SCALE.value
+        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_SCALE
         tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                        d_bin_limits=self.d_bin_limits)
-        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value] = FailSigmaScaling.TEST_CASE_BINS_SCALE.value
+        test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_BINS_SCALE
         tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
                                                         d_bin_limits=self.d_bin_limits)
 
@@ -246,7 +246,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -257,7 +257,7 @@ class TestCase:
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
         assert ("Maximum allowed intercept_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
@@ -277,7 +277,7 @@ class TestCase:
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -286,7 +286,7 @@ class TestCase:
         assert f"slope_err = nan\n" in exp_slope_info_string
         assert f"slope_z = nan\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]}\n"
+                f"{CTI_GAL_DEFAULT_CONFIG[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 

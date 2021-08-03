@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-08-03"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -130,7 +130,7 @@ def mainMethod(args):
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE].lower() in ['true', 't']
 
     if args.profile or profiling:
         import cProfile

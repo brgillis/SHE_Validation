@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-07-28"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -45,14 +45,14 @@ def fix_pipeline_config_types(pipeline_config):
     """ Fixes data types in the pipeline config so they aren't all just strings.
     """
 
-    pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value] = float(
-        pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN.value])
-    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value], bool):
-        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value] = (
-            pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS.value].lower() in ['true', 't'])
-    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value], bool):
-        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value] = (
-            pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO.value].lower() in ['true', 't'])
+    pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN] = float(
+        pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN])
+    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS], bool):
+        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS] = (
+            pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS].lower() in ['true', 't'])
+    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO], bool):
+        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO] = (
+            pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO].lower() in ['true', 't'])
 
     return pipeline_config
 

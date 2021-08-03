@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -88,9 +88,9 @@ class FailSigmaCalculator():
                  mode: str = LOCAL_MODE,
                  test_cases=None):
 
-        self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value]
-        self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value]
-        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value]
+        self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
+        self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
+        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
 
         if d_bin_limits is None:
             if test_cases is None:
@@ -145,13 +145,13 @@ class FailSigmaCalculator():
         for test_case in self.test_cases:
 
             # Get the number of tries depending on scaling type
-            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE.value:
+            if self.fail_sigma_scaling == FailSigmaScaling.NO_SCALE:
                 num_tries = 1
-            elif self.fail_sigma_scaling == FailSigmaScaling.BIN_SCALE.value:
+            elif self.fail_sigma_scaling == FailSigmaScaling.BIN_SCALE:
                 num_tries = self.d_num_bins[test_case]
-            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE.value:
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_SCALE:
                 num_tries = self.num_test_cases
-            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS_SCALE.value:
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS_SCALE:
                 num_tries = self.num_test_case_bins
             else:
                 raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
@@ -561,7 +561,7 @@ class AnalysisWriter():
 
         # Get a list of the files
         if isinstance(filenames, dict):
-            l_filenames = list(filenames.values())
+            l_filenames = list(filenames())
         else:
             l_filenames = filenames
 

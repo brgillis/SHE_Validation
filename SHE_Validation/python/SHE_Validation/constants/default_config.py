@@ -5,7 +5,7 @@
     Constants relating default configurations for validation tests
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -45,16 +45,16 @@ class FailSigmaScaling(AllowedEnum):
 
 
 # Config keys and default values
-VALIDATION_DEFAULT_CONFIG = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA.value: 2.,
-                             ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA.value: 5.,
-                             ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING.value: (
-                                 FailSigmaScaling.TEST_CASE_BINS_SCALE.value),
-                             ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value: "0 5 10 30 100 1e99",
-                             ValidationConfigKeys.VAL_BG_BIN_LIMITS.value: (
+VALIDATION_DEFAULT_CONFIG = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 2.,
+                             ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 5.,
+                             ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: (
+                                 FailSigmaScaling.TEST_CASE_BINS_SCALE),
+                             ValidationConfigKeys.VAL_SNR_BIN_LIMITS: "0 5 10 30 100 1e99",
+                             ValidationConfigKeys.VAL_BG_BIN_LIMITS: (
                                  "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99"),
-                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
-                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value: "0 10 30 100 300 1000 1e99",
-                             GlobalConfigKeys.PIP_PROFILE.value: "False",
+                             ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
+                             ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: "0 10 30 100 300 1000 1e99",
+                             GlobalConfigKeys.PIP_PROFILE: "False",
                              }
 
 
@@ -65,11 +65,11 @@ FAILSAFE_BIN_LIMITS = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
 
 # Command-line arguments for configuration parameters
 
-D_BIN_LIMITS_CLINE_ARGS = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS.value:
+D_BIN_LIMITS_CLINE_ARGS = {ValidationConfigKeys.VAL_SNR_BIN_LIMITS:
                            getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                           ValidationConfigKeys.VAL_BG_BIN_LIMITS.value:
+                           ValidationConfigKeys.VAL_BG_BIN_LIMITS:
                            getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                           ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS.value:
+                           ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS:
                            getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                           ValidationConfigKeys.VAL_SIZE_BIN_LIMITS.value:
+                           ValidationConfigKeys.VAL_SIZE_BIN_LIMITS:
                            getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
