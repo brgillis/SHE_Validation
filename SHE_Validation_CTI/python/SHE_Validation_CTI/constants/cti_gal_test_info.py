@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,8 +20,8 @@ __updated__ = "2021-07-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo,\
-    make_test_case_info_for_bins_and_methods
+from SHE_Validation.constants.test_info import (RequirementInfo, TestInfo, TestCaseInfo,
+                                                make_test_case_info_for_bins_and_methods)
 
 
 # Metadata about the requirement
@@ -37,12 +37,12 @@ CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
                                           "(slope)."))
 
 
-CTI_GAL_TEST_CASE_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
-                                      description=("Linear dependence of " +
-                                                   "residual galaxy ellipticity with read-out " +
-                                                   "register distance (slope)."),)
+BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
+                                           description=("Linear dependence of " +
+                                                        "residual galaxy ellipticity with read-out " +
+                                                        "register distance (slope)."),)
 
 # Create a dict of the test case info
-L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(CTI_GAL_TEST_CASE_INFO)
+L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(BASE_CTI_GAL_TEST_CASE_INFO)
 
 NUM_CTI_GAL_TEST_CASES = len(L_CTI_GAL_TEST_CASE_INFO)

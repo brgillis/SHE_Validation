@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-07-27"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -130,6 +130,13 @@ class BinParameterMeta():
         return self._cline_arg
 
     @property
+    def comment(self):
+        # Generate comment on demand if not already generated
+        if self._comment is None:
+            self._determine_comment()
+        return self._comment
+
+    @property
     def help_text(self):
         # Generate help_text on demand if not already generated
         if self._help_text is None:
@@ -137,6 +144,20 @@ class BinParameterMeta():
         return self._help_text
 
     # Private and protected methods
+    def _determine_comment(self):
+        """Construct self._comment in pieces depending on what information is available.
+        """
+
+        comment = ""
+
+        if self.definition is not None:
+            comment += f"{self.definition}. "
+
+        if self.units is not None:
+            comment += f"Units: {self.units}. "
+
+        self._comment = comment
+
     def _determine_help_text(self):
         """Construct self._help_text in pieces depending on what information is available.
         """

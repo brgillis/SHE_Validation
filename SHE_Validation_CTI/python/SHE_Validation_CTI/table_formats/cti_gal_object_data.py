@@ -13,11 +13,11 @@ from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
-from ..constants.cti_gal_test_info import (CtiGalTestCases,
-                                           D_CTI_GAL_TEST_CASE_INFO)
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from ..constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 
 
-__updated__ = "2021-07-05"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -85,9 +85,9 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
         self.readout_dist = self.set_column_properties("READOUT_DIST", comment="pixels", is_optional=True)
 
         # Data we might bin by
-        for test_case in CtiGalTestCases:
-            name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
-            comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
+        for test_case in BinParameters:
+            name = D_BIN_PARAMETER_META[test_case].name
+            comment = D_BIN_PARAMETER_META[test_case].comment
             setattr(self, name, self.set_column_properties(name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
