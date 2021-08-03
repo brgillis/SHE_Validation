@@ -31,7 +31,8 @@ from SHE_Validation.constants.default_config import LOCAL_MODE
 from SHE_Validation.constants.test_info import add_bin_limits_cline_args
 
 from . import __version__
-from .constants.shear_bias_default_config import SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME
+from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS, D_SHEAR_BIAS_CONFIG_TYPES,
+                                                  D_SHEAR_BIAS_CONFIG_CLINE_ARGS, LOCAL_PROFILING_FILENAME)
 from .validate_shear_bias import validate_shear_bias_from_args
 
 
@@ -103,20 +104,21 @@ def mainMethod(args):
     # load the pipeline config in
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
-                                  defaults=SHEAR_BIAS_DEFAULT_CONFIG,
-                                  config_keys=ValidationConfigKeys)
+                                  defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                  config_keys=ValidationConfigKeys,
+                                  d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile
 
         logger.info("Profiling enabled")
-        filename = os.path.join(args.workdir, args.logdir, PROFILING_FILENAME)
+        filename = os.path.join(args.workdir, args.logdir, LOCAL_PROFILING_FILENAME)
         logger.info("Writing profiling data to %s", filename)
 
         cProfile.runctx("validate_shear_bias_from_args(args, mode=LOCAL_MODE)", {},

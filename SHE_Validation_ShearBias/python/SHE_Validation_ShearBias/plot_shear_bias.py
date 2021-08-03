@@ -36,7 +36,7 @@ from matplotlib import pyplot as plt
 
 import SHE_Validation
 from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import SHEAR_BIAS_DEFAULT_CONFIG
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_DEFAULTS
 import numpy as np
 
 logger = getLogger(__name__)
@@ -337,7 +337,7 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         if pipeline_config is None:
-            pipeline_config = SHEAR_BIAS_DEFAULT_CONFIG
+            pipeline_config = D_SHEAR_BIAS_CONFIG_DEFAULTS
 
         bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
         require_fitclass_zero = pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]
