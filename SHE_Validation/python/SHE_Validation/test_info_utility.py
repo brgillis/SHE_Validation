@@ -22,9 +22,10 @@ __updated__ = "2021-08-04"
 
 import argparse
 from copy import deepcopy
-from typing import Iterable, Union, List
+from typing import Iterable, List, Union
 
 from SHE_PPT.constants.shear_estimation_methods import METHODS as SHEAR_ESTIMATION_METHODS
+from SHE_PPT.utility import coerce_to_list
 
 from .constants.test_info import BinParameters, TestCaseInfo, D_BIN_PARAMETER_META
 
@@ -41,7 +42,7 @@ def add_bin_limits_cline_args(parser: argparse.ArgumentParser,
 
 
 def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
-                                 l_bin_parameters: Iterable[BinParameters] = BinParameters):
+                                 l_bin_parameters: Iterable[BinParameters] = BinParameters) -> List[TestCaseInfo]:
     """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the provided
         list.
     """
@@ -52,7 +53,7 @@ def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCa
     else:
         l_test_case_info = test_case_info
 
-    l_bin_test_case_info = {}
+    l_bin_test_case_info = []
 
     for test_case_info in l_test_case_info:
         for bin_parameter in l_bin_parameters:
@@ -78,7 +79,7 @@ def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[Tes
     else:
         l_test_case_info = test_case_info
 
-    l_method_test_case_info = {}
+    l_method_test_case_info = []
 
     for test_case_info in l_test_case_info:
         for method in l_methods:
@@ -100,3 +101,43 @@ def make_test_case_info_for_bins_and_methods(test_case_info: Union[TestCaseInfo,
     """
 
     return make_test_case_info_for_methods(make_test_case_info_for_bins(test_case_info, l_bin_parameters), l_methods)
+
+
+def find_test_case_info(l_test_case_info: List[TestCaseInfo],
+                        methods: Union[None, str, List[str]] = None,
+                        bin_parameters:  Union[None, BinParameters, List[BinParameters]] = None,
+                        return_one=False) -> Union[List[TestCaseInfo], TestCaseInfo]:
+    """ Finds all test_case_info in the provided list matching the method and bin_parameter provided, and returns as a
+        list.
+
+        If return_one is set to True, will check if the list contains only one element. If so, returns that element.
+        If it contains more than one element, will raise a ValueError.
+    """
+
+    # Make sure methods and bin_parameters input are always lists if they aren't None
+    l_methods = coerce_to_list(methods, keep_none=True)
+    l_bin_parameters = coerce_to_list(bin_parameters, keep_none=True)
+
+    # Init list which will store all matching test cases
+    l_matching_test_case_info = []
+
+    for test_case_info in l_test_case_info:
+        # Check both methods and bin_parameters, and continue if we don't have a match
+        if l_methods and not test_case_info.method in l_methods:
+            continue
+        if l_bin_parameters and not test_case_info.bins in l_bin_parameters:
+            continue
+        l_matching_test_case_info.append(test_case_info)
+
+    # If we're not asked to return just one, we can return now
+    if not return_one:
+        return l_matching_test_case_info
+
+    # Check we have just one matching test case, and raise a ValueError if not
+    if len(l_matching_test_case_info) == 1:
+        return l_matching_test_case_info[0]
+
+    raise ValueError(f"More than one TestCaseInfo in l_test_case_info ({l_test_case_info}) matches the criteria:\n"
+                     f"methods = {methods}\n"
+                     f"bin_parameters = {bin_parameters}\n"
+                     f"Matching TestCaseInfo are: {l_matching_test_case_info}")
