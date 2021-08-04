@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,101 +23,118 @@ __updated__ = "2021-08-03"
 
 from copy import deepcopy
 import os
-from typing import List, Union, Dict, Any, Callable
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from future.builtins.misc import isinstance
 import scipy.stats
 
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, GLOBAL_MODE,
-                                                     LOCAL_MODE)
+                                                     LOCAL_MODE,
+                                                     D_VALIDATION_CONFIG_DEFAULTS)
+from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
+import numpy as np
 
 from . import __version__
 from .constants.default_config import FailSigmaScaling
-from .test_info import RequirementInfo, TestCaseInfo
+from .constants.test_info import RequirementInfo, TestCaseInfo
+
 
 logger = getLogger(__name__)
 
 # Constants related to writing directory files
 
-DEFAULT_DIRECTORY_FILENAME = "SheAnalysisResultsDirectory.txt"
-DEFAULT_DIRECTORY_HEADER = "### OU-SHE Analysis Results File Directory ###"
-TEXTFILES_SECTION_HEADER = "# Textfiles:"
-FIGURES_SECTION_HEADER = "# Figures:"
-DIRECTORY_KEY = "Directory"
+DEFAULT_DIRECTORY_FILENAME: str = "SheAnalysisResultsDirectory.txt"
+DEFAULT_DIRECTORY_HEADER: str = "### OU-SHE Analysis Results File Directory ###"
+TEXTFILES_SECTION_HEADER: str = "# Textfiles:"
+FIGURES_SECTION_HEADER: str = "# Figures:"
+DIRECTORY_KEY: str = "Directory"
 
 
 # Define constants for various messages
 
-RESULT_PASS = "PASSED"
-RESULT_FAIL = "FAILED"
+RESULT_PASS: str = "PASSED"
+RESULT_FAIL: str = "FAILED"
 
-COMMENT_LEVEL_INFO = "INFO"
-COMMENT_LEVEL_WARNING = "WARNING"
-COMMENT_MULTIPLE = "Multiple notes; see SupplementaryInformation."
+COMMENT_LEVEL_INFO: str = "INFO"
+COMMENT_LEVEL_WARNING: str = "WARNING"
+COMMENT_MULTIPLE: str = "Multiple notes; see SupplementaryInformation."
 
-INFO_MULTIPLE = COMMENT_LEVEL_INFO + ": " + COMMENT_MULTIPLE
+INFO_MULTIPLE: str = f"{COMMENT_LEVEL_INFO}: {COMMENT_MULTIPLE}"
 
-WARNING_TEST_NOT_RUN = "WARNING: Test not run."
-WARNING_MULTIPLE = COMMENT_LEVEL_WARNING + ": " + COMMENT_MULTIPLE
-WARNING_BAD_DATA = "WARNING: Bad data; see SupplementaryInformation"
+WARNING_TEST_NOT_RUN: str = "WARNING: Test not run."
+WARNING_MULTIPLE: str = f"{COMMENT_LEVEL_WARNING}: {COMMENT_MULTIPLE}"
+WARNING_BAD_DATA: str = "WARNING: Bad data; see SupplementaryInformation"
 
-KEY_REASON = "REASON"
-KEY_INFO = "INFO"
+KEY_REASON: str = "REASON"
+KEY_INFO: str = "INFO"
 
-DESC_NOT_RUN_REASON = "Why the test was not run."
-DESC_INFO = "Information about the results of the test."
+DESC_NOT_RUN_REASON: str = "Why the test was not run."
+DESC_INFO: str = "Information about the results of the test."
 
-MSG_BAD_DATA = "Test failed due to NaN results for measured parameter."
-MSG_NO_DATA = "No data is available for this test."
-MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
-MSG_NO_INFO = "No supplementary information available."
+MSG_BAD_DATA: str = "Test failed due to NaN results for measured parameter."
+MSG_NO_DATA: str = "No data is available for this test."
+MSG_NOT_IMPLEMENTED: str = "This test has not yet been implemented."
+MSG_NO_INFO: str = "No supplementary information available."
 
 
 class FailSigmaCalculator():
     """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
     """
 
-    def __init__(self,
-                 pipeline_config: Dict[str, str],
-                 d_bin_limits: Dict[str, str] = None,
-                 mode: str = LOCAL_MODE,
-                 test_cases=None):
+    # Attributes set from args at init
+    global_fail_sigma: float = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
+    local_fail_sigma = float = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
+    fail_sigma_scaling: FailSigmaScaling = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
+    mode: str = LOCAL_MODE
+    l_test_cases: List[TestCaseInfo]
 
+    # Attributes determined at init
+    num_test_cases: int = 1
+    num_bin_parameters: int = 1
+    num_test_case_bin_parameters: int = 1
+    d_num_bins: Dict
+    num_test_case_bin_parameters_bins: int = 1
+
+    # Attributes determined on demand
+    _d_scaled_global_sigma: Optional[Dict[BinParameters, float]] = None
+    _d_scaled_local_sigma: Optional[Dict[BinParameters, float]] = None
+
+    def __init__(self,
+                 pipeline_config: Dict[ConfigKeys, Any],
+                 d_bin_limits: Dict[BinParameters, np.ndarray] = None,
+                 mode: str = LOCAL_MODE,
+                 l_test_cases: List[TestCaseInfo] = None):
+
+        # Set attributes directly from args
         self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
         self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
         self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
+        self.mode = mode
+        self.l_test_cases = l_test_cases
 
         if d_bin_limits is None:
-            if test_cases is None:
-                d_bin_limits = {}
-            else:
-                # Create a default list of bin limits
-                for test_case in test_cases:
-                    d_bin_limits[test_case] = DEFAULT_BIN_LIMITS
+            # Create a default list of bin limits
+            for bin_parameter in BinParameters:
+                d_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
 
-        self.num_test_cases = len(d_bin_limits)
+        self.num_test_cases = len(l_test_cases)
         self.d_num_bins = {}
-        self.num_test_case_bins = 0
-        self.test_cases = test_cases
-        self.mode = mode
 
-        if test_cases is not None:
-            self.test_cases = test_cases
+        if l_test_cases is not None:
+            self.l_test_cases = l_test_cases
         else:
             # Get the test cases from the dict of bin limits if not explicitly provided
-            self.test_cases = tuple(d_bin_limits.keys())
+            self.l_test_cases = tuple(d_bin_limits.keys())
 
+        self.num_test_case_bins = 0
         for test_case in self.test_cases:
             self.d_num_bins[test_case] = len(d_bin_limits[test_case]) - 1
             self.num_test_case_bins += self.d_num_bins[test_case]
-
-        self._d_scaled_global_sigma = None
-        self._d_scaled_local_sigma = None
 
     @property
     def d_scaled_global_sigma(self):
