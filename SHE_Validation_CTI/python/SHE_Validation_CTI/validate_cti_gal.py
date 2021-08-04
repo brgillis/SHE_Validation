@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -272,10 +272,11 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # First, we'll need to get the pixel coords of each object in the table in each exposure, along with the detector
     # and quadrant where it's found and e1/2 in world coords. We'll start by
     # getting them in a raw format by looping over objects
-    l_raw_object_data = get_raw_cti_gal_object_data(data_stack=data_stack, shear_estimate_tables=shear_estimate_tables)
+    l_raw_object_data = get_raw_cti_gal_object_data(data_stack=data_stack,
+                                                    l_shear_estimate_tables=shear_estimate_tables)
 
     # Now sort the raw data into tables (one for each exposure)
-    l_object_data_table = sort_raw_object_data_into_table(raw_object_data_list=l_raw_object_data)
+    l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
 
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_exposure_regression_results_tables = {}
