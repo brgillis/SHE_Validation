@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-07-14"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,7 +23,7 @@ __updated__ = "2021-07-14"
 # The size for the stamp used for calculating the background level
 
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from SHE_PPT import shear_utility
 from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
@@ -32,6 +32,7 @@ from SHE_PPT.flags import is_flagged_failure
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.she_image import SHEImage
 from SHE_PPT.shear_utility import ShearEstimate
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from astropy import table
@@ -49,70 +50,69 @@ class PositionInfo():
     """ Class to store all data related to the position of an object across multiple exposures.
     """
 
-    def __init__(self, stamp=None,
-                 world_shear_info=None,
-                 ra=None,
-                 dec=None):
+    x_pix: float = np.NaN
+    y_pix: float = np.NaN
+    det_ix: int = 0
+    det_iy: int = 0
+    quadrant: str = "X"
+    exposure_shear_info: Dict[str, ShearEstimate]
 
-        # Get input data from the provided stamp; otherwise use initializer input
-        if stamp is not None:
+    def _init_default_exp_shear_info(self):
+        self.exposure_shear_info = {}
+        for method in METHODS:
+            self.exposure_shear_info[method] = ShearEstimate()
 
-            if ra is None or dec is None:
-                self.x_pix = stamp.offset[0]
-                self.y_pix = stamp.offset[1]
-            else:
-                x_pix_stamp, y_pix_stamp = stamp.world2pix(ra, dec)
-                self.x_pix = stamp.offset[0] + x_pix_stamp
-                self.y_pix = stamp.offset[1] + y_pix_stamp
+    def __init__(self,
+                 stamp: Optional[SHEImage] = None,
+                 world_shear_info: Optional[ShearEstimate] = None,
+                 ra: Optional[float] = None,
+                 dec: Optional[float] = None):
 
-            ccdid = stamp.header[ccdid_label]
-            if len(ccdid) == 3:
-                # Short form
-                self.det_ix = int(ccdid[0])
-                self.det_iy = int(ccdid[2])
-            elif len(ccdid) == 9:
-                # Long form
-                self.det_ix = int(ccdid[6])
-                self.det_iy = int(ccdid[8])
+        # Default initialise if stamp isn't provided
+        if stamp is None:
+            self._init_default_exp_shear_info()
+            return
 
-            self.quadrant = get_vis_quadrant(x_pix=self.x_pix, y_pix=self.y_pix, det_iy=self.det_iy)
-
-            # Calculate the shear in the image coords for this exposure for each method
-
-            self.exposure_shear_info = {}
-
-            if world_shear_info is not None:
-                for method in METHODS:
-
-                    method_world_shear_info = world_shear_info[method]
-
-                    if method_world_shear_info is None:
-                        self.exposure_shear_info[method] = ShearEstimate()
-                        continue
-
-                    shear_estimate = deepcopy(method_world_shear_info)
-                    shear_utility.uncorrect_for_wcs_shear_and_rotation(shear_estimate, stamp)
-
-                    self.exposure_shear_info[method] = shear_estimate
-
-            else:
-                for method in METHODS:
-                    self.exposure_shear_info[method] = ShearEstimate()
-
-        # Default initialize
+        # Get input data from the provided stamp
+        if ra is None or dec is None:
+            self.x_pix = stamp.offset[0]
+            self.y_pix = stamp.offset[1]
         else:
+            x_pix_stamp, y_pix_stamp = stamp.world2pix(ra, dec)
+            self.x_pix = stamp.offset[0] + x_pix_stamp
+            self.y_pix = stamp.offset[1] + y_pix_stamp
 
-            self.x_pix = np.NaN
-            self.y_pix = np.NaN
+        ccdid: str = stamp.header[ccdid_label]
+        if len(ccdid) == 3:
+            # Short form
+            self.det_ix = int(ccdid[0])
+            self.det_iy = int(ccdid[2])
+        elif len(ccdid) == 9:
+            # Long form
+            self.det_ix = int(ccdid[6])
+            self.det_iy = int(ccdid[8])
 
-            self.det_ix = 0
-            self.det_iy = 0
+        self.quadrant = get_vis_quadrant(x_pix=self.x_pix, y_pix=self.y_pix, det_iy=self.det_iy)
 
-            self.quadrant = "X"
+        # Init default exposure shear if we don't have any world shear info
+        if world_shear_info is None:
+            self._init_default_exp_shear_info()
+            return
 
-            self.exposure_shear_info = {}
-            for method in METHODS:
+        # Calculate the shear in the image coords for this exposure for each method
+        self.exposure_shear_info = {}
+        for method in METHODS:
+
+            method_world_shear_info: ShearEstimate = world_shear_info[method]
+
+            if method_world_shear_info is None:
                 self.exposure_shear_info[method] = ShearEstimate()
+                continue
+
+            shear_estimate = deepcopy(method_world_shear_info)
+            shear_utility.uncorrect_for_wcs_shear_and_rotation(shear_estimate, stamp)
+
+            self.exposure_shear_info[method] = shear_estimate
 
 
 class SingleObjectData():
@@ -120,9 +120,9 @@ class SingleObjectData():
     """
 
     def __init__(self,
-                 object_id: int=None,
-                 num_exposures: int=1,
-                 data_stack: SHEFrameStack=None,
+                 object_id: Optional[int] = None,
+                 num_exposures: int = 1,
+                 data_stack: Optional[SHEFrameStack] = None,
                  ):
         self.id = object_id
 
