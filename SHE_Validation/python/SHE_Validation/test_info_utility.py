@@ -115,11 +115,11 @@ def find_test_case_info(l_test_case_info: List[TestCaseInfo],
     """
 
     # Make sure methods and bin_parameters input are always lists if they aren't None
-    l_methods = coerce_to_list(methods, keep_none=True)
-    l_bin_parameters = coerce_to_list(bin_parameters, keep_none=True)
+    l_methods: List[str] = coerce_to_list(methods, keep_none=True)
+    l_bin_parameters: List[BinParameters] = coerce_to_list(bin_parameters, keep_none=True)
 
     # Init list which will store all matching test cases
-    l_matching_test_case_info = []
+    l_matching_test_case_info: List[TestCaseInfo] = []
 
     for test_case_info in l_test_case_info:
         # Check both methods and bin_parameters, and continue if we don't have a match
