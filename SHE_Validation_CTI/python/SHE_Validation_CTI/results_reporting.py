@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-07-26"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,19 +28,19 @@ from SHE_PPT.logging import getLogger
 from astropy import table
 
 from SHE_Validation.constants.default_config import LOCAL_MODE
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
                                            WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
                                            FailSigmaCalculator)
-from SHE_Validation.test_info import TestCaseInfo
-from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_METHOD_CTI_GAL_TEST_CASES
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
-                                          CtiGalTestCases,
-                                          D_CTI_GAL_TEST_CASE_INFO)
+                                          CTI_GAL_TEST_INFO,
+                                          L_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.regression_results import TF as RR_TF
+
 
 logger = getLogger(__name__)
 
@@ -298,8 +298,8 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         super().__init__(test_object=test_object,
                          workdir=workdir,
-                         num_test_cases=NUM_METHOD_CTI_GAL_TEST_CASES,
-                         l_test_case_info=None, *args, **kwargs)
+                         l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                         *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
         self.d_regression_results_tables = d_regression_results_tables
@@ -341,7 +341,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
             l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
         # For the global case, override the bin limits with None
-        if test_case == CtiGalTestCases.GLOBAL:
+        if test_case == BinParameters.GLOBAL:
             l_bin_limits = None
 
         return l_slope, l_slope_err, l_intercept, l_intercept_err, l_bin_limits
@@ -354,7 +354,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         test_case_index = 0
 
-        for test_case in CtiGalTestCases:
+        for test_case in BinParameters:
 
             l_test_case_bins = self.d_bin_limits[test_case]
 
@@ -377,7 +377,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
                 requirement_writer = test_case_writer.l_requirement_writers[0]
 
-                if self.method_data_exists and test_case != CtiGalTestCases.EPOCH:
+                if self.method_data_exists and test_case != BinParameters.EPOCH:
 
                     (l_slope,
                      l_slope_err,
@@ -398,7 +398,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                                     "l_bin_limits": l_bin_limits,
                                     "fail_sigma": fail_sigma, }
 
-                elif test_case == CtiGalTestCases.EPOCH:
+                elif test_case == BinParameters.EPOCH:
                     # Report that the test wasn't run due to it not yet being implemented
                     report_method = requirement_writer.report_test_not_run
                     report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
