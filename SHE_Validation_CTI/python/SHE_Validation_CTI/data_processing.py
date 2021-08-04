@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,10 +29,9 @@ from SHE_PPT.math import linregress_with_errors
 from astropy import table
 
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 import numpy as np
 
-from .constants.cti_gal_test_info import (CtiGalTestCases,
-                                          D_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
 
@@ -61,23 +60,24 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
 
-def get_rows_in_bin(object_data_table, test_case, bin_limits):
-    """ Get an array of good indices based on the test_case and bin_limits
+def get_rows_in_bin(object_data_table, bin_parameter, bin_limits):
+    """ Get an array of good indices based on the bin_parameter and bin_limits
     """
 
-    if test_case == CtiGalTestCases.GLOBAL:
+    if bin_parameter == BinParameters.GLOBAL:
 
         # Set all to True
         rows_in_bin = np.ones(len(object_data_table), dtype=bool)
 
-    elif test_case == CtiGalTestCases.EPOCH:
+    elif bin_parameter == BinParameters.EPOCH:
 
         # Not yet implemented, so set all to False
         rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
 
     else:
 
-        colname = getattr(CGOD_TF, D_CTI_GAL_TEST_CASE_INFO[test_case].name)
+        # Get the column name
+        colname = getattr(CGOD_TF, D_BIN_PARAMETER_META[bin_parameter].name)
         if not colname in object_data_table.colnames:
             raise ValueError(
                 f"Column {colname} is not preset in object_data_table - make sure it's added earlier " + "in the code.")
@@ -91,7 +91,7 @@ def get_rows_in_bin(object_data_table, test_case, bin_limits):
 
 def calculate_regression_results(object_data_table: table.Table,
                                  product_type: str = "UNKNOWN",
-                                 test_case: CtiGalTestCases = CtiGalTestCases.GLOBAL,
+                                 bin_parameter: BinParameters = BinParameters.GLOBAL,
                                  bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
@@ -102,7 +102,7 @@ def calculate_regression_results(object_data_table: table.Table,
 
     rr_row = regression_results_table[0]
 
-    rows_in_bin = get_rows_in_bin(object_data_table, test_case, bin_limits)
+    rows_in_bin = get_rows_in_bin(object_data_table, bin_parameter, bin_limits)
 
     object_data_table_in_bin = object_data_table[rows_in_bin]
 
