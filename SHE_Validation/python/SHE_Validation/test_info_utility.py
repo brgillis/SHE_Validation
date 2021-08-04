@@ -27,6 +27,8 @@ from typing import Iterable, List, Union
 from SHE_PPT.constants.shear_estimation_methods import METHODS as SHEAR_ESTIMATION_METHODS
 from SHE_PPT.utility import coerce_to_list
 
+from SHE_Validation.constants.test_info import BinParameterMeta
+
 from .constants.test_info import BinParameters, TestCaseInfo, D_BIN_PARAMETER_META
 
 
@@ -36,7 +38,7 @@ def add_bin_limits_cline_args(parser: argparse.ArgumentParser,
     """
 
     for bin_parameter in l_bin_parameters:
-        bin_parameter_meta = D_BIN_PARAMETER_META[bin_parameter]
+        bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
         parser.add_argument('--' + bin_parameter_meta.cline_arg, type=str, default=None,
                             help=bin_parameter_meta.help_text)
 
@@ -48,18 +50,15 @@ def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCa
     """
 
     # Silently coerce test_case_info into a list
-    if isinstance(test_case_info, TestCaseInfo):
-        l_test_case_info = [test_case_info]
-    else:
-        l_test_case_info = test_case_info
+    l_test_case_info: List[TestCaseInfo] = coerce_to_list(test_case_info)
 
-    l_bin_test_case_info = []
+    l_bin_test_case_info: List[TestCaseInfo] = []
 
     for test_case_info in l_test_case_info:
         for bin_parameter in l_bin_parameters:
 
             # Copy the test case info and modify the bins attribute of it
-            bin_test_case_info = deepcopy(test_case_info)
+            bin_test_case_info: TestCaseInfo = deepcopy(test_case_info)
             bin_test_case_info.bins = bin_parameter
 
             l_bin_test_case_info.append(bin_test_case_info)
@@ -74,18 +73,15 @@ def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[Tes
     """
 
     # Silently coerce test_case_info into a list
-    if isinstance(test_case_info, TestCaseInfo):
-        l_test_case_info = [test_case_info]
-    else:
-        l_test_case_info = test_case_info
+    l_test_case_info: List[TestCaseInfo] = coerce_to_list(test_case_info)
 
-    l_method_test_case_info = []
+    l_method_test_case_info: List[TestCaseInfo] = []
 
     for test_case_info in l_test_case_info:
         for method in l_methods:
 
             # Copy the test case info and modify the bins attribute of it
-            method_test_case_info = deepcopy(test_case_info)
+            method_test_case_info: TestCaseInfo = deepcopy(test_case_info)
             method_test_case_info.method = method
 
             l_method_test_case_info.append(method_test_case_info)
