@@ -36,7 +36,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
-from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
@@ -63,7 +63,7 @@ def get_d_bin_limits(pipeline_config):
 
         if bin_limits_key is None:
             # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[bin_parameter] = np.array(list(map(float, FAILSAFE_BIN_LIMITS.strip().split())), dtype=float)
+            d_bin_limits[bin_parameter] = np.array(list(map(float, DEFAULT_BIN_LIMITS_STR.strip().split())), dtype=float)
             continue
 
         bin_limits_string = pipeline_config[bin_limits_key]
@@ -76,8 +76,8 @@ def get_d_bin_limits(pipeline_config):
                 raise ValueError("At least two bin limits must be provided.")
         except ValueError as e:
             logger.warning(
-                f"Cannot interpret bin limits \"{bin_limits_string}\" for {bin_parameter.value} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({FAILSAFE_BIN_LIMITS}) will be used. Exception was: {e}")
-            bin_limits_list = list(map(float, FAILSAFE_BIN_LIMITS.strip().split()))
+                f"Cannot interpret bin limits \"{bin_limits_string}\" for {bin_parameter.value} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({DEFAULT_BIN_LIMITS_STR}) will be used. Exception was: {e}")
+            bin_limits_list = list(map(float, DEFAULT_BIN_LIMITS_STR.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
 
         d_bin_limits[bin_parameter] = bin_limits_array

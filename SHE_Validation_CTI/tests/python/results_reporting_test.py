@@ -30,7 +30,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import _make_config_from_defaults, GlobalConfigKeys, ValidationConfigKeys
 import pytest
 
-from SHE_Validation.constants.default_config import FAILSAFE_BIN_LIMITS
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
 from SHE_Validation.constants.default_config import FailSigmaScaling
 from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL,
                                            INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
@@ -76,7 +76,7 @@ class TestCase:
         for test_case in CtiGalTestCases:
             bins_config_key = D_CTI_GAL_TEST_CASE_INFO[test_case].bins_config_key
             if bins_config_key is None:
-                bin_limits_string = FAILSAFE_BIN_LIMITS
+                bin_limits_string = DEFAULT_BIN_LIMITS_STR
             else:
                 bin_limits_string = D_CTI_GAL_CONFIG_DEFAULTS[bins_config_key]
 
