@@ -5,7 +5,7 @@
     Constants relating default configurations for validation tests
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,8 +28,9 @@ import numpy as np
 
 
 # Execution mode options
-LOCAL_MODE = "local"
-GLOBAL_MODE = "global"
+class ExecutionMode(AllowedEnum):
+    LOCAL = "local"
+    GLOBAL = "global"
 
 
 class FailSigmaScaling(AllowedEnum):
@@ -41,10 +42,10 @@ class FailSigmaScaling(AllowedEnum):
         test_cases: Scale failure thresholds based on the number of test cases
         test_case_bins: Scale failure thresholds based on the total number of bins, across all test cases
     """
-    NO_SCALE = "none"
-    BIN_SCALE = "bins"
-    TEST_CASE_SCALE = "test_cases"
-    TEST_CASE_BINS_SCALE = "test_case_bins"
+    NONE = "none"
+    BINS = "bins"
+    TEST_CASES = "test_cases"
+    TEST_CASE_BINS = "test_case_bins"
 
 
 # Config keys, default values, types, and associated cline-args

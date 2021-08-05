@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,8 +27,8 @@ from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import read_config, GlobalConfigKeys, ValidationConfigKeys
 
-from SHE_Validation.constants.default_config import GLOBAL_MODE
-from SHE_Validation.constants.test_info import add_bin_limits_cline_args
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.test_info_utility import add_bin_limits_cline_args
 
 from . import __version__
 from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS, D_SHEAR_BIAS_CONFIG_TYPES,
@@ -125,12 +125,12 @@ def mainMethod(args):
         cProfile.runctx("validate_shear_bias_from_args(args, mode=GLOBAL_MODE)", {},
                         {"validate_shear_bias_from_args": validate_shear_bias_from_args,
                          "args": args,
-                         "GLOBAL_MODE": GLOBAL_MODE},
+                         "GLOBAL_MODE": ExecutionMode.GLOBAL},
                         filename="validate_shear_bias_from_args.prof")
     else:
         logger.info("Profiling disabled")
         validate_shear_bias_from_args(args,
-                                      mode=GLOBAL_MODE)
+                                      mode=ExecutionMode.GLOBAL)
 
     logger.info('#')
     logger.debug('Exiting SHE_Validation_ValidateGlobalShearBias mainMethod()')
