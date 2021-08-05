@@ -20,8 +20,8 @@ __updated__ = "2021-08-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
 from copy import deepcopy
+from io import IOBase
 import os
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -32,9 +32,7 @@ from SHE_PPT.utility import coerce_to_list
 from future.builtins.misc import isinstance
 import scipy.stats
 
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS,
-                                                     D_VALIDATION_CONFIG_DEFAULTS,
-                                                     ExecutionMode)
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
@@ -374,28 +372,30 @@ class AnalysisWriter():
     """
 
     # Attributes set at init
-    _parent_test_case_writer = None
-    _analysis_object = None
-    _product_type = None
-    _workdir = None
-    _textfiles = None
-    _figures = None
+    _parent_test_case_writer: Optional["TestCaseWriter"] = None
+    _product_type: str = "UNKNOWN-TYPE"
+    _textfiles: Union[None, Dict[str, str], List[str]] = None
+    _figures: Union[None, Dict[str, str], List[str]] = None
+
+    # Attributes determined at init
+    _workdir: str
+    _analysis_object: Any
 
     # Attributes set when requested
-    _textfiles_filename = None
-    _qualified_textfiles_filename = None
-    _figures_filename = None
-    _qualified_figures_filename = None
+    _textfiles_filename: Optional[str] = None
+    _qualified_textfiles_filename: Optional[str] = None
+    _figures_filename: Optional[str] = None
+    _qualified_figures_filename: Optional[str] = None
 
     # Attributes set when write is called
-    _directory_filename = None
-    _qualified__directory_filename = None
+    _directory_filename: Optional[str] = None
+    _qualified__directory_filename: Optional[str] = None
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
-                 product_type="UNKNOWN-TYPE",
-                 textfiles: Union[Dict[str, str], List[str]] = None,
-                 figures: Union[Dict[str, str], List[str]] = None):
+                 product_type: str = "UNKNOWN-TYPE",
+                 textfiles: Union[None, Dict[str, str], List[str]] = None,
+                 figures: Union[None, Dict[str, str], List[str]] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
@@ -452,9 +452,10 @@ class AnalysisWriter():
 
     # Getters/setters for attributes set when requested
     @property
-    def textfiles_filename(self):
+    def textfiles_filename(self) -> str:
         if self._textfiles_filename is None:
-            filename_tag = self._get_filename_tag()
+            filename_tag: str = self._get_filename_tag()
+            instance_id_tail: str
             if filename_tag is None:
                 instance_id_tail = ""
             else:
@@ -467,7 +468,7 @@ class AnalysisWriter():
         return self._textfiles_filename
 
     @property
-    def qualified_textfiles_filename(self):
+    def qualified_textfiles_filename(self) -> str:
         if self._qualified_textfiles_filename is None:
             if self.workdir is not None:
                 self._qualified_textfiles_filename = os.path.join(self.workdir, self.textfiles_filename)
@@ -476,7 +477,7 @@ class AnalysisWriter():
         return self._qualified_textfiles_filename
 
     @property
-    def figures_filename(self):
+    def figures_filename(self) -> str:
         if self._figures_filename is None:
             filename_tag = self._get_filename_tag()
             if filename_tag is None:
@@ -491,7 +492,7 @@ class AnalysisWriter():
         return self._figures_filename
 
     @property
-    def qualified_figures_filename(self):
+    def qualified_figures_filename(self) -> str:
         if self._qualified_figures_filename is None:
             if self.workdir is not None:
                 self._qualified_figures_filename = os.path.join(self.workdir, self.figures_filename)
@@ -500,11 +501,11 @@ class AnalysisWriter():
         return self._qualified_figures_filename
 
     @property
-    def directory_filename(self):
+    def directory_filename(self) -> Optional[str]:
         return self._directory_filename
 
     @directory_filename.setter
-    def directory_filename(self, directory_filename):
+    def directory_filename(self, directory_filename: Optional[str]):
 
         # Unset _qualified_directory_filename
         self._qualified_directory_filename = None
@@ -512,7 +513,7 @@ class AnalysisWriter():
         self._directory_filename = directory_filename
 
     @property
-    def qualified_directory_filename(self):
+    def qualified_directory_filename(self) -> Optional[str]:
         if self.directory_filename is None:
             return None
         if self._qualified_directory_filename is None:
@@ -524,22 +525,24 @@ class AnalysisWriter():
 
     # Private and protected methods
 
-    def _get_filename_tag(self):
+    def _get_filename_tag(self) -> Optional[str]:
         """ Overridable method to get a tag to add to figure/textfile filenames.
         """
         return None
 
-    def _generate_directory_filename(self):
+    def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.
         """
         self.directory_filename = DEFAULT_DIRECTORY_FILENAME
 
-    def _get_directory_header(self):
+    def _get_directory_header(self) -> str:
         """ Overridable method to get the desired header for a directory file.
         """
         return DEFAULT_DIRECTORY_HEADER
 
-    def _write_filenames_to_directory(self, fo, filenames):
+    def _write_filenames_to_directory(self,
+                                      fo: IOBase,
+                                      filenames: Union[Dict[str, str], List[str]]) -> None:
         """ Write a dict or list of filenames to an open, writable directory file,
             with different functionality depending on if a list or dict is passed.
         """
@@ -553,7 +556,9 @@ class AnalysisWriter():
             for filename in filenames:
                 fo.write(f"{filename}\n")
 
-    def _write_directory(self, textfiles, figures):
+    def _write_directory(self,
+                         textfiles: Union[Dict[str, str], List[str]],
+                         figures: Union[Dict[str, str], List[str]]) -> None:
 
         # Generate a filename for the directory if needed
         if self._directory_filename is None:
@@ -573,7 +578,7 @@ class AnalysisWriter():
             fo.write(f"{FIGURES_SECTION_HEADER}\n")
             self._write_filenames_to_directory(fo, figures)
 
-    def _add_directory_to_textfiles(self, textfiles):
+    def _add_directory_to_textfiles(self, textfiles: Union[Dict[str, str], List[str]]) -> None:
         """ Adds the directory filename to a dict or list of textfiles.
         """
 
@@ -583,21 +588,23 @@ class AnalysisWriter():
             textfiles.append(self.directory_filename)
 
     @staticmethod
-    def _write_dummy_data(qualified_filename):
+    def _write_dummy_data(qualified_filename: str) -> None:
         """ Write dummy data to a file.
         """
         with open(qualified_filename, "w") as fo:
             fo.write("Dummy data")
-        return fo
 
-    def _tar_files(self, tarball_filename, filenames, delete_files):
+    def _tar_files(self,
+                   tarball_filename: str,
+                   filenames: Union[Dict[str, str], List[str]],
+                   delete_files: bool = False) -> None:
         """ Tar the set of files in {files} into the tarball {qualified_filename}. Optionally delete these files
             afterwards.
         """
 
         # Get a list of the files
         if isinstance(filenames, dict):
-            l_filenames = list(filenames())
+            l_filenames = list(filenames.values())
         else:
             l_filenames = filenames
 
@@ -614,11 +621,11 @@ class AnalysisWriter():
                           delete_files=delete_files)
 
     def _write_files(self,
-                     files,
-                     tarball_filename,
-                     data_container_attr,
-                     write_dummy_files,
-                     delete_files):
+                     files: Union[Dict[str, str], List[str]],
+                     tarball_filename: str,
+                     data_container_attr: str,
+                     write_dummy_files: bool = False,
+                     delete_files: bool = False) -> None:
         """ Tar a set of files and update the data product with the filename of the tarball. Optionally delete
             files now included in the tarball.
         """
@@ -639,9 +646,9 @@ class AnalysisWriter():
     # Public methods
 
     def write(self,
-              write_directory=True,
-              write_dummy_files=False,
-              delete_files=True) -> str:
+              write_directory: bool = True,
+              write_dummy_files: bool = False,
+              delete_files: bool = True) -> None:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
 
