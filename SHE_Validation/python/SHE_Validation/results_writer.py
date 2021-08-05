@@ -87,18 +87,18 @@ class FailSigmaCalculator():
     """
 
     # Attributes set from args at init
-    global_fail_sigma: float = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
-    local_fail_sigma = float = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
-    fail_sigma_scaling: FailSigmaScaling = D_VALIDATION_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
+    global_fail_sigma: float
+    local_fail_sigma = float
+    fail_sigma_scaling: FailSigmaScaling
     mode: ExecutionMode = ExecutionMode.LOCAL
     l_test_cases: List[TestCaseInfo]
 
     # Attributes determined at init
-    num_test_cases: int = 1
-    num_bin_parameters: int = 1
-    num_test_case_bin_parameters: int = 1
+    num_test_cases: int
+    num_bin_parameters: int
+    num_test_case_bin_parameters: int
     d_num_bins: Dict
-    num_test_case_bin_parameters_bins: int = 1
+    num_test_case_bin_parameters_bins: int
 
     # Attributes determined on demand
     _d_scaled_global_sigma: Optional[Dict[BinParameters, float]] = None
