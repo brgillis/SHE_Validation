@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,19 +20,21 @@ __updated__ = "2021-08-04"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from enum import Enum
+from typing import Any, Dict, List, Tuple, Union, Optional
 
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.utility import AllowedEnum
 
 
 # Bin units and definitions
-BACKGROUND_LEVEL_UNITS = "ADU/pixel"
-COLOUR_DEFINITION = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
-SIZE_UNITS = "pixels"
-SIZE_DEFINITION = "area of segmentation map"
+BACKGROUND_LEVEL_UNITS: str = "ADU/pixel"
+COLOUR_DEFINITION: str = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
+SIZE_UNITS: str = "pixels"
+SIZE_DEFINITION: str = "area of segmentation map"
 
 
-class BinParameters(Enum):
+class BinParameters(AllowedEnum):
     """ Enum of possible binning parameters for test cases.
     """
     GLOBAL = "global"
@@ -43,7 +45,7 @@ class BinParameters(Enum):
     EPOCH = "epoch"
 
 
-NUM_BIN_PARAMETERS = len(BinParameters)
+NUM_BIN_PARAMETERS: int = len(BinParameters)
 
 
 class BinParameterMeta():
@@ -51,21 +53,21 @@ class BinParameterMeta():
     """
 
     # Values set directly from init
-    _enum = None
-    _long_name = None
-    _id_tail = None
-    _units = None
-    _definition = None
-    _extra_help_text = None
-    _config_key = None
+    _enum: BinParameters = BinParameters.GLOBAL
+    _long_name: Optional[str] = None
+    _id_tail: Optional[str] = None
+    _units: Optional[str] = None
+    _definition: Optional[str] = None
+    _extra_help_text: Optional[str] = None
+    _config_key: Optional[ConfigKeys] = None
 
     # Values derived from init
-    _name = None
-    _value = None
-    _cline_arg = None
+    _name: str
+    _value: str
+    _cline_arg: str
 
     # Values determined on-demand
-    _help_text = None
+    _help_text: Optional[str] = None
 
     def __init__(self,
                  bin_parameter_enum: BinParameters,
@@ -74,7 +76,7 @@ class BinParameterMeta():
                  units: str = None,
                  definition: str = None,
                  extra_help_text: str = None,
-                 config_key: str = None):
+                 config_key: ConfigKeys = None):
 
         # Set values directly from init
         self._enum = bin_parameter_enum
@@ -98,53 +100,53 @@ class BinParameterMeta():
 
     # Accessors for attributes
     @property
-    def enum(self):
+    def enum(self) -> BinParameters:
         return self._enum
 
     @property
-    def units(self):
+    def units(self) -> Optional[str]:
         return self._units
 
     @property
-    def definition(self):
+    def definition(self) -> Optional[str]:
         return self._definition
 
     @property
-    def extra_help_text(self):
+    def extra_help_text(self) -> Optional[str]:
         return self._extra_help_text
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def value(self):
+    def value(self) -> str:
         return self._value
 
     @property
-    def cline_arg(self):
+    def cline_arg(self) -> str:
         return self._cline_arg
 
     @property
-    def comment(self):
+    def comment(self) -> str:
         # Generate comment on demand if not already generated
         if self._comment is None:
             self._determine_comment()
         return self._comment
 
     @property
-    def help_text(self):
+    def help_text(self) -> str:
         # Generate help_text on demand if not already generated
         if self._help_text is None:
             self._determine_help_text()
         return self._help_text
 
     # Private and protected methods
-    def _determine_comment(self):
+    def _determine_comment(self) -> None:
         """Construct self._comment in pieces depending on what information is available.
         """
 
-        comment = ""
+        comment: str = ""
 
         if self.definition is not None:
             comment += f"{self.definition}. "
@@ -154,12 +156,12 @@ class BinParameterMeta():
 
         self._comment = comment
 
-    def _determine_help_text(self):
+    def _determine_help_text(self) -> None:
         """Construct self._help_text in pieces depending on what information is available.
         """
 
-        help_text = (f"The bin limits for the {self.long_name} test case, expressed as a string of space-separated "
-                     f"float values")
+        help_text: str = (f"The bin limits for the {self.long_name} test case, expressed as a string of "
+                          f"space-separated float values")
 
         if self.units is not None:
             help_text += f", in units of {self.units}"
@@ -176,7 +178,7 @@ class BinParameterMeta():
 
 
 # Set up BinParameterMeta for each binning parameter
-D_BIN_PARAMETER_META = {}
+D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
 D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum=BinParameters.GLOBAL)
 
@@ -202,7 +204,7 @@ D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=B
 D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
 
 # Set up the dict relating cline-args to config keys
-D_BIN_LIMITS_CLINE_ARGS = {}
+D_BIN_LIMITS_CLINE_ARGS: Dict[BinParameters, str] = {}
 
 for bin_parameter in BinParameters:
     bin_parameter_meta = D_BIN_PARAMETER_META[bin_parameter]
@@ -213,30 +215,34 @@ class RequirementInfo():
     """ Common class for info about a requirement.
     """
 
+    _requirement_id: Optional[str] = None
+    _description: Optional[str] = None
+    _parameter: Optional[str] = None
+
     def __init__(self,
-                 requirement_id=None,
-                 description=None,
-                 parameter=None,):
+                 requirement_id: Optional[str] = None,
+                 description: Optional[str] = None,
+                 parameter: Optional[str] = None):
 
         self._requirement_id = requirement_id
         self._description = description
         self._parameter = parameter
 
     @property
-    def requirement_id(self):
+    def requirement_id(self) -> Optional[str]:
         return self._requirement_id
 
     @property
-    def id(self):
+    def id(self) -> Optional[str]:
         # Alias to requirement_id
         return self._requirement_id
 
     @property
-    def description(self):
+    def description(self) -> Optional[str]:
         return self._description
 
     @property
-    def parameter(self):
+    def parameter(self) -> Optional[str]:
         return self._parameter
 
 
@@ -244,24 +250,27 @@ class TestInfo():
     """ Common class for info about a test.
     """
 
+    _test_id: Optional[str] = None
+    _description: Optional[str] = None
+
     def __init__(self,
-                 test_id=None,
-                 description=None,):
+                 test_id: Optional[str] = None,
+                 description: Optional[str] = None,):
 
         self._test_id = test_id
         self._description = description
 
     @property
-    def test_id(self):
+    def test_id(self) -> Optional[str]:
         return self._test_id
 
     @property
-    def id(self):
+    def id(self) -> Optional[str]:
         # Alias to test_id
         return self._test_id
 
     @property
-    def description(self):
+    def description(self) -> Optional[str]:
         return self._description
 
 
@@ -269,12 +278,18 @@ class TestCaseInfo():
     """ Common class for info about a test case.
     """
 
+    _test_info: Optional[TestInfo] = None
+    _base_test_case_id: Optional[str] = None
+    _base_description: Optional[str] = None
+    _bins: Optional[BinParameters] = None
+    _method: Optional[ShearEstimationMethods] = None
+
     def __init__(self,
-                 test_info=None,
-                 base_test_case_id=None,
-                 base_description=None,
-                 bins=None,
-                 method=None):
+                 test_info: Optional[TestInfo] = None,
+                 base_test_case_id: Optional[str] = None,
+                 base_description: Optional[str] = None,
+                 bins: Optional[BinParameters] = None,
+                 method: Optional[ShearEstimationMethods] = None):
 
         self._test_info = test_info
         self._base_test_case_id = base_test_case_id
@@ -283,15 +298,15 @@ class TestCaseInfo():
         self._method = method
 
     @property
-    def test_info(self):
+    def test_info(self) -> Optional[TestInfo]:
         return self._test_info
 
     @property
-    def base_test_case_id(self):
+    def base_test_case_id(self) -> Optional[str]:
         return self._base_test_case_id
 
     @property
-    def test_case_id(self):
+    def test_case_id(self) -> Optional[str]:
         # Construct the full test_case_id if needed
         if self._test_case_id is None:
             self._test_case_id = self._base_test_case_id
@@ -302,18 +317,20 @@ class TestCaseInfo():
         return self._test_case_id
 
     @property
-    def id(self):
+    def id(self) -> Optional[str]:
         # Alias to test_case_id
         return self.test_case_id
 
     @property
-    def base_description(self):
+    def base_description(self) -> Optional[str]:
         return self._base_description
 
     @property
-    def description(self):
-        # Construct the full description if needed
+    def description(self) -> Optional[str]:
+        # Construct the full description if needed and possible
         if self._description is None:
+            if not self._base_description:
+                return None
             self._description = self._base_description
             if self.bins is not None:
                 self._description += f" Binned by {D_BIN_PARAMETER_META[self.bins].long_name}."
@@ -322,11 +339,11 @@ class TestCaseInfo():
         return self._description
 
     @property
-    def bins(self):
+    def bins(self) -> Optional[str]:
         return self._bins
 
     @bins.setter()
-    def bins(self, bins):
+    def bins(self, bins: BinParameters) -> None:
 
         self._bins = bins
 
@@ -337,11 +354,11 @@ class TestCaseInfo():
         self._description = None
 
     @property
-    def method(self):
+    def method(self) -> Optional[str]:
         return self._method
 
     @method.setter()
-    def method(self, method):
+    def method(self, method: ShearEstimationMethods) -> None:
 
         self._method = method
 
@@ -350,19 +367,19 @@ class TestCaseInfo():
         self._description = None
 
     @property
-    def bins_cline_arg(self):
+    def bins_cline_arg(self) -> Optional[str]:
         if self._bins_cline_arg is None and self.bins is not None:
             self._bins_cline_arg = D_BIN_PARAMETER_META[self.bins].cline_arg
         return self._bins_cline_arg
 
     @property
-    def bins_config_key(self):
+    def bins_config_key(self) -> Optional[str]:
         if self._bins_config_key is None and self.bins is not None:
             self._bins_config_key = D_BIN_PARAMETER_META[self.bins].config_key
         return self._bins_config_key
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
         if self._name is None:
             if self.bins is not None:
                 if self.method is not None:
@@ -378,5 +395,5 @@ class TestCaseInfo():
         return self._name
 
     @property
-    def comment(self):
+    def comment(self) -> Optional[str]:
         return self._comment
