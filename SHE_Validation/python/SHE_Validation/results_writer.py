@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.utility import coerce_to_list
 from future.builtins.misc import isinstance
 import scipy.stats
 
@@ -206,9 +207,9 @@ class SupplementaryInfo():
     """
 
     # Attrs set at init
-    _key = None
-    _description = None
-    _message = None
+    _key: str = KEY_INFO
+    _description: str = DESC_INFO
+    _message: str = MSG_NO_INFO
 
     def __init__(self,
                  key: str = KEY_INFO,
@@ -220,15 +221,15 @@ class SupplementaryInfo():
 
     # Getters/setters for attrs set at init
     @property
-    def key(self):
+    def key(self) -> str:
         return self._key
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self._description
 
     @property
-    def message(self):
+    def message(self) -> str:
         return self._message
 
 
@@ -237,12 +238,12 @@ class RequirementWriter():
     """
 
     # Attrs set at init
-    _parent_test_case_writer = None
-    _requirement_object = None
-    _requirement_info = None
+    _parent_test_case_writer: Optional["TestCaseWriter"] = None
+    _requirement_object: Optional[Any] = None
+    _requirement_info: Optional[RequirementInfo] = None
 
     def __init__(self,
-                 parent_test_case_writer: "TestCaseWriter" = None,
+                 parent_test_case_writer: Optional["TestCaseWriter"] = None,
                  requirement_object=None,
                  requirement_info: RequirementInfo = None):
 
@@ -252,32 +253,36 @@ class RequirementWriter():
 
     # Getters/setters for attrs set at init
     @property
-    def requirement_object(self):
+    def requirement_object(self) -> Optional[Any]:
         return self._requirement_object
 
     @property
-    def requirement_info(self):
+    def requirement_info(self) -> Optional[RequirementInfo]:
         return self._requirement_info
 
     # Public methods
     def add_supplementary_info(self,
-                               l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                               l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                               ) -> None:
         """ Fills out supplementary information in the data model object for one or more items,
             modifying self._requirement_object.
         """
 
         # Silently coerce single item into list
-        if isinstance(l_supplementary_info, SupplementaryInfo):
-            l_supplementary_info = [l_supplementary_info]
+        l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none=True)
+
         # Use defaults if None provided
-        elif l_supplementary_info is None:
+        if l_supplementary_info is None:
             l_supplementary_info = [SupplementaryInfo()]
 
-        base_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        base_supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
 
-        l_supplementary_info_parameter = [None] * len(l_supplementary_info)
+        l_supplementary_info_parameter: List[str] = [None] * len(l_supplementary_info)
+
+        i: int
+        supplementary_info: SupplementaryInfo
         for i, supplementary_info in enumerate(l_supplementary_info):
-            supplementary_info_parameter = deepcopy(base_supplementary_info_parameter)
+            supplementary_info_parameter: Any = deepcopy(base_supplementary_info_parameter)
 
             supplementary_info_parameter.Key = supplementary_info.key
             supplementary_info_parameter.Description = supplementary_info.description
@@ -288,7 +293,8 @@ class RequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = l_supplementary_info_parameter
 
     def report_bad_data(self,
-                        l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                        l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                        ) -> None:
         """ Reports bad data in the data model object for one or more items, modifying self._requirement_object.
         """
 
@@ -303,7 +309,8 @@ class RequirementWriter():
     def report_good_data(self,
                          measured_value: float = -99.,
                          warning: bool = False,
-                         l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                         l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                         ) -> None:
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
 
@@ -322,7 +329,8 @@ class RequirementWriter():
         self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
 
     def report_test_not_run(self,
-                            reason: str = "Unspecified reason."):
+                            reason: str = "Unspecified reason."
+                            ) -> None:
         """ Fills in the data model with the fact that a test was not run and the reason.
         """
 
@@ -330,7 +338,7 @@ class RequirementWriter():
         self.requirement_object.ValidationResult = RESULT_PASS
         self.requirement_object.Comment = WARNING_TEST_NOT_RUN
 
-        supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
         supplementary_info_parameter.Key = KEY_REASON
         supplementary_info_parameter.Description = DESC_NOT_RUN_REASON
         supplementary_info_parameter.StringValue = reason
