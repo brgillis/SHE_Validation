@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,8 +20,8 @@ __updated__ = "2021-08-03"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.test_info import (RequirementInfo, TestInfo, TestCaseInfo,
-                                                make_test_case_info_for_bins_and_methods)
+from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 
 # Metadata about the requirement

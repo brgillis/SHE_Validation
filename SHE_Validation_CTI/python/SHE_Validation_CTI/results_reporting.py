@@ -278,7 +278,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                  regression_results_row_index: int,
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 d_bin_limits: Dict[str, np.ndarray],
+                 d_bin_limits: Dict[BinParameters, np.ndarray],
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
@@ -381,7 +381,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[str, Any],
-                                    d_bin_limits: Dict[str, np.ndarray],
+                                    d_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                    List[Union[Dict[str, str], List[str]]], ] = None,
@@ -403,6 +403,6 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         fail_sigma_calculator=fail_sigma_calculator,
                                                         d_bin_limits=d_bin_limits,
                                                         method_data_exists=method_data_exists,
-                                                        figures=figures)
+                                                        figures=figures,)
 
     test_results_writer.write()

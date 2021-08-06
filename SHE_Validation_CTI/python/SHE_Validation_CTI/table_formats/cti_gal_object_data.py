@@ -7,7 +7,7 @@
 from collections import OrderedDict
 from typing import List
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
@@ -16,7 +16,7 @@ from astropy import table
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -91,9 +91,9 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in METHODS:
+        for method in ShearEstimationMethods:
 
-            upper_method = method.upper()
+            upper_method = method.value.upper()
 
             setattr(self, f"g1_world_{method}", self.set_column_properties(
                 f"G1_WORLD_{upper_method}", is_optional=True))

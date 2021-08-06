@@ -5,7 +5,7 @@
     Code to make plots for CTI-Gal Validation test.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -54,7 +54,7 @@ class CtiGalPlotter(ValidationPlotter):
 
     # Attributes set directly at init
     _object_table: Table
-    method: str
+    method_name: str
     bin_parameter: BinParameters
     bin_index: int
     workdir: str
@@ -71,7 +71,7 @@ class CtiGalPlotter(ValidationPlotter):
 
     def __init__(self,
                  object_table: Table,
-                 method: str,
+                 method_name: str,
                  bin_parameter: BinParameters,
                  d_bin_limits: Dict[str, float],
                  bin_index: int,
@@ -81,14 +81,14 @@ class CtiGalPlotter(ValidationPlotter):
 
         # Set attrs directly
         self.object_table = object_table
-        self.method = method
+        self.method_name = method_name
         self.bin_parameter = bin_parameter
         self.bin_index = bin_index
         self.workdir = workdir
 
         # Determine attrs from kwargs
-        self._g1_colname = getattr(CGOD_TF, f"g1_image_{method}")
-        self._weight_colname = getattr(CGOD_TF, f"weight_{method}")
+        self._g1_colname = getattr(CGOD_TF, f"g1_image_{method_name}")
+        self._weight_colname = getattr(CGOD_TF, f"weight_{method_name}")
 
         self.bin_limits = d_bin_limits[bin_parameter][bin_index:bin_index + 2]
         self.l_rows_in_bin = get_rows_in_bin(self.object_table, self.bin_parameter, self.bin_limits)
@@ -144,10 +144,10 @@ class CtiGalPlotter(ValidationPlotter):
         if len(l_rr_dist) <= 1:
             # We'll always make the global plot for testing purposes, but log a warning if no data
             if self.bin_parameter == BinParameters.GLOBAL:
-                logger.warning(f"Insufficient valid data to plot for method {self.method} and test case "
+                logger.warning(f"Insufficient valid data to plot for method {self.method_name} and test case "
                                f"{self.bin_parameter.value}, but making plot anyway for testing purposes.")
             else:
-                logger.debug(f"Insufficient valid valid data to plot for method {self.method}, test case "
+                logger.debug(f"Insufficient valid valid data to plot for method {self.method_name}, test case "
                              f"{self.bin_parameter.value}, bin {self.bin_limits}, so skipping plot.")
                 return
 
@@ -157,7 +157,7 @@ class CtiGalPlotter(ValidationPlotter):
                                                                        y_err=l_g1_err)
 
         # Log the bias measurements, and save these strings for the plot
-        logger.info(f"Linear regression for method {self.method}, test case {self.bin_parameter.value}, "
+        logger.info(f"Linear regression for method {self.method_name}, test case {self.bin_parameter.value}, "
                     f"bin {self.bin_limits}:")
         d_linregress_strings: Dict[str, str] = {}
         for a, d in ("slope", SLOPE_DIGITS), ("intercept", INTERCEPT_DIGITS):
@@ -174,7 +174,7 @@ class CtiGalPlotter(ValidationPlotter):
 
         self.density_scatter(l_rr_dist, l_g1, sort=True, bins=200, colorbar=False, s=4)
 
-        plot_title: str = f"{self.method} CTI-Gal Validation - {self.bin_parameter.value} {self.bin_limits}"
+        plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value} {self.bin_limits}"
         plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
         self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize=AXISLABEL_FONTSIZE)
@@ -198,7 +198,7 @@ class CtiGalPlotter(ValidationPlotter):
         # Save the plot
 
         # Get the filename to save to
-        instance_id: str = f"{self.method}-{self.bin_parameter.value}-{self.bin_index}-{os.getpid()}".upper()
+        instance_id: str = f"{self.method_name}-{self.bin_parameter.value}-{self.bin_index}-{os.getpid()}".upper()
         plot_filename: str = file_io.get_allowed_filename(type_name="CTI-GAL-VAL",
                                                           instance_id=instance_id,
                                                           extension=PLOT_FORMAT,
@@ -208,7 +208,7 @@ class CtiGalPlotter(ValidationPlotter):
         # Save the figure and close it
         plt.savefig(qualified_plot_filename, format=PLOT_FORMAT,
                     bbox_inches="tight", pad_inches=0.05)
-        logger.info(f"Saved {self.method} CTI-Gal plot to {qualified_plot_filename}")
+        logger.info(f"Saved {self.method_name} CTI-Gal plot to {qualified_plot_filename}")
         plt.close()
 
         # Record the filename for this plot in the filenams dict

@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,7 +27,7 @@ from typing import Dict
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import METHODS, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
                              get_allowed_filename, filename_exists)
 from SHE_PPT.logging import getLogger
@@ -36,9 +36,8 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
-from SHE_Validation_CTI.constants.cti_gal_test_info import NUM_CTI_GAL_TEST_CASES
+from SHE_Validation.config_utility import get_d_bin_limits
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
@@ -50,39 +49,6 @@ from .table_formats.regression_results import initialise_regression_results_tabl
 
 
 logger = getLogger(__name__)
-
-
-def get_d_bin_limits(pipeline_config):
-    """ Convert the bin limits into a dict of arrays.
-    """
-
-    d_bin_limits = {}
-    for bin_parameter in BinParameters:
-
-        bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
-
-        if bin_limits_key is None:
-            # None signifies not relevant to this test or not yet set up. Fill in with the failsafe limits just in case
-            d_bin_limits[bin_parameter] = np.array(list(map(float, DEFAULT_BIN_LIMITS_STR.strip().split())), dtype=float)
-            continue
-
-        bin_limits_string = pipeline_config[bin_limits_key]
-
-        try:
-            bin_limits_list = list(map(float, bin_limits_string.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype=float)  # Sort bin limits ascending
-            np.sort(bin_limits_array)
-            if len(bin_limits_array) < 2:
-                raise ValueError("At least two bin limits must be provided.")
-        except ValueError as e:
-            logger.warning(
-                f"Cannot interpret bin limits \"{bin_limits_string}\" for {bin_parameter.value} - " + f"must be list of floats separated by whitespace. Failsafe limits " + f"({DEFAULT_BIN_LIMITS_STR}) will be used. Exception was: {e}")
-            bin_limits_list = list(map(float, DEFAULT_BIN_LIMITS_STR.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype=float)
-
-        d_bin_limits[bin_parameter] = bin_limits_array
-
-    return d_bin_limits
 
 
 def run_validate_cti_gal_from_args(args):
@@ -137,7 +103,7 @@ def run_validate_cti_gal_from_args(args):
 
     # Load the table for each method
     d_shear_estimate_tables = {}
-    for method in METHODS:
+    for method in ShearEstimationMethods:
 
         filename = shear_estimates_prod.get_method_filename(method)
 
@@ -182,7 +148,7 @@ def run_validate_cti_gal_from_args(args):
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product,
-                                                                         num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                                         l_test_case_info=L_CTI_GAL_TEST_CASE_INFO)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
@@ -209,7 +175,7 @@ def run_validate_cti_gal_from_args(args):
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product),
-                                                                     num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
+                                                                     l_test_case_info=L_CTI_GAL_TEST_CASE_INFO)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
@@ -281,13 +247,13 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_exposure_regression_results_tables = {}
     d_observation_regression_results_tables = {}
-    plot_filenames = [None] * NUM_CTI_GAL_TEST_CASES
+    plot_filenames = {}
 
-    for test_case_index, test_case in enumerate(CtiGalTestCases):
+    for test_case_info in enumerate(L_CTI_GAL_TEST_CASE_INFO):
 
         # Initialise for this test case
-        plot_filenames[test_case_index] = {}
-        test_case_bin_limits = d_bin_limits[test_case]
+        plot_filenames[test_case_info.name] = {}
+        test_case_bin_limits = d_bin_limits[test_case_info.bins]
         num_bins = len(test_case_bin_limits) - 1
 
         # Double check we have at least one bin
@@ -310,29 +276,29 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
                 # Calculate the results of the regression and add it to the results table
                 exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
-                                                                               test_case=test_case,
+                                                                               bin_parameter=test_case_info.bins,
                                                                                bin_limits=test_case_bin_limits[
                                                                                    bin_index:bin_index + 2])[0]
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot for each method
-                for method in METHODS:
+                for method in ShearEstimationMethods:
                     plotter = CtiGalPlotter(object_table=object_data_table,
-                                            method=method,
-                                            test_case=test_case,
+                                            method_name=method.value,
+                                            bin_parameter=test_case_info.bins,
                                             d_bin_limits=d_bin_limits,
                                             bin_index=bin_index,
                                             workdir=workdir,)
                     plotter.plot_cti_gal()
-                    plot_label = f"{method}-{test_case.value}-{bin_index}"
-                    plot_filenames[test_case_index][plot_label] = plotter.cti_gal_plot_filename
+                    plot_label = f"{method}-{test_case_info.bins.value}-{bin_index}"
+                    plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table.vstack(tables=l_object_data_table)
 
             observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
                                                                                 product_type="OBS",
-                                                                                test_case=test_case,
+                                                                                bin_parameter=test_case_info.bins,
                                                                                 bin_limits=test_case_bin_limits[
                                                                                     bin_index:bin_index + 2])
 
@@ -340,8 +306,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             l_test_case_observation_regression_results_tables[bin_index] = observation_regression_results_table
 
         # Fill in the results of this test case in the output dict
-        d_exposure_regression_results_tables[test_case] = l_test_case_exposure_regression_results_tables
-        d_observation_regression_results_tables[test_case] = l_test_case_observation_regression_results_tables
+        d_exposure_regression_results_tables[test_case_info.name] = l_test_case_exposure_regression_results_tables
+        d_observation_regression_results_tables[test_case_info.name] = l_test_case_observation_regression_results_tables
 
     # And we're done here, so return the results and object tables
     return (d_exposure_regression_results_tables, d_observation_regression_results_tables, plot_filenames)

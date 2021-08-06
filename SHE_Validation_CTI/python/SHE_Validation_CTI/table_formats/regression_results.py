@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,7 @@ __updated__ = "2021-08-03"
 from collections import OrderedDict
 from typing import List
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
@@ -87,16 +87,17 @@ class SheRegressionResultsFormat(SheTableFormat):
 
         # Set up separate result columns for each shear estimation method
 
-        for method in METHODS:
+        for method in ShearEstimationMethods:
 
-            upper_method = method.upper()
+            method_name = method.value
+            upper_method = method_name.upper()
 
-            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
-            setattr(self, f"slope_{method}", self.set_column_properties(f"M_{upper_method}"))
-            setattr(self, f"intercept_{method}", self.set_column_properties(f"B_{upper_method}"))
-            setattr(self, f"slope_err_{method}", self.set_column_properties(f"M_ERR_{upper_method}"))
-            setattr(self, f"intercept_err_{method}", self.set_column_properties(f"B_ERR_{upper_method}"))
-            setattr(self, f"slope_intercept_covar_{method}", self.set_column_properties(f"MB_COV_{upper_method}"))
+            setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
+            setattr(self, f"slope_{method_name}", self.set_column_properties(f"M_{upper_method}"))
+            setattr(self, f"intercept_{method_name}", self.set_column_properties(f"B_{upper_method}"))
+            setattr(self, f"slope_err_{method_name}", self.set_column_properties(f"M_ERR_{upper_method}"))
+            setattr(self, f"intercept_err_{method_name}", self.set_column_properties(f"B_ERR_{upper_method}"))
+            setattr(self, f"slope_intercept_covar_{method_name}", self.set_column_properties(f"MB_COV_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())

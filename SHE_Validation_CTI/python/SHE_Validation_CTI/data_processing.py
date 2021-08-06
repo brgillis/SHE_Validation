@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,7 +23,7 @@ __updated__ = "2021-08-04"
 from typing import Tuple
 
 from SHE_PPT import mdb
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 from astropy import table
@@ -109,22 +109,24 @@ def calculate_regression_results(object_data_table: table.Table,
     readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
 
     # Perform a regression for each method
-    for method in METHODS:
+    for method in ShearEstimationMethods:
+
+        method_name = method.value
 
         # Get required data
-        g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method}")]
-        weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method}")]
+        g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
+        weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method_name}")]
 
         tot_weight = np.nansum(weight_data)
 
         # If there's no weight, skip the regression and output NaN for all values
         if tot_weight <= 0.:
-            rr_row[getattr(RR_TF, f"weight_{method}")] = 0.
-            rr_row[getattr(RR_TF, f"slope_{method}")] = np.NaN
-            rr_row[getattr(RR_TF, f"intercept_{method}")] = np.NaN
-            rr_row[getattr(RR_TF, f"slope_err_{method}")] = np.NaN
-            rr_row[getattr(RR_TF, f"intercept_err_{method}")] = np.NaN
-            rr_row[getattr(RR_TF, f"slope_intercept_covar_{method}")] = np.NaN
+            rr_row[getattr(RR_TF, f"weight_{method_name}")] = 0.
+            rr_row[getattr(RR_TF, f"slope_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = np.NaN
             continue
 
         # Get a mask for the data where the weight is > 0 and not NaN
@@ -141,11 +143,11 @@ def calculate_regression_results(object_data_table: table.Table,
                                                     masked_g1_err_data[~bad_data_mask])
 
         # Save the results in the output table
-        rr_row[getattr(RR_TF, f"weight_{method}")] = tot_weight
-        rr_row[getattr(RR_TF, f"slope_{method}")] = linregress_results.slope
-        rr_row[getattr(RR_TF, f"intercept_{method}")] = linregress_results.intercept
-        rr_row[getattr(RR_TF, f"slope_err_{method}")] = linregress_results.slope_err
-        rr_row[getattr(RR_TF, f"intercept_err_{method}")] = linregress_results.intercept_err
-        rr_row[getattr(RR_TF, f"slope_intercept_covar_{method}")] = linregress_results.slope_intercept_covar
+        rr_row[getattr(RR_TF, f"weight_{method_name}")] = tot_weight
+        rr_row[getattr(RR_TF, f"slope_{method_name}")] = linregress_results.slope
+        rr_row[getattr(RR_TF, f"intercept_{method_name}")] = linregress_results.intercept
+        rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = linregress_results.slope_err
+        rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = linregress_results.intercept_err
+        rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = linregress_results.slope_intercept_covar
 
     return regression_results_table
