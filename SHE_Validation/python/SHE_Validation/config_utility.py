@@ -5,7 +5,7 @@
     Utility functions related to configuration.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-03"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Any, Type, Tuple
+from typing import Dict, Any, Type
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys, convert_config_types

@@ -26,7 +26,7 @@ import SHE_Validation
 import numpy as np
 
 
-__updated__ = "2021-07-09"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -86,10 +86,10 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
 
         try:
             catalog = Table.read(qualified_filename, format="fits")
-        except OSError as e:
+        except OSError:
             logger.error(filename + " is corrupt or missing")
             raise
-        except Exception as e:
+        except Exception:
             logger.error("Error reading in catalog " + filename)
             raise
 
@@ -555,5 +555,3 @@ def match_to_tu_from_args(args):
                                                                                  args.matched_catalog))
     file_io.write_xml_product(matched_catalog_product, args.matched_catalog,
                               workdir=args.workdir)
-
-    return

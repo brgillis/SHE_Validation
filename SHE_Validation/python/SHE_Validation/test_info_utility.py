@@ -5,7 +5,7 @@
     Utility functions related to requirement, test, and test case info.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,7 @@ import argparse
 from copy import deepcopy
 from typing import Iterable, List, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS as SHEAR_ESTIMATION_METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.utility import coerce_to_list
 
 from SHE_Validation.constants.test_info import BinParameterMeta
@@ -67,7 +67,7 @@ def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCa
 
 
 def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
-                                    l_methods: Iterable[str] = SHEAR_ESTIMATION_METHODS):
+                                    l_methods: Iterable[ShearEstimationMethods] = ShearEstimationMethods):
     """ Takes as input a test case or list of test cases, then creates versions of it for each shear estimation method
         in the provided list.
     """
@@ -91,7 +91,7 @@ def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[Tes
 
 def make_test_case_info_for_bins_and_methods(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
                                              l_bin_parameters: Iterable[BinParameters] = BinParameters,
-                                             l_methods: Iterable[str] = SHEAR_ESTIMATION_METHODS):
+                                             l_methods: Iterable[ShearEstimationMethods] = ShearEstimationMethods):
     """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the
         provided list, for each shear estimation method in the provided list.
     """
