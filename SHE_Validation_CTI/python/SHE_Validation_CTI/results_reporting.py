@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,14 +20,12 @@ __updated__ = "2021-08-04"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
 from typing import Dict, List,  Any, Callable, Tuple, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
 from SHE_PPT.logging import getLogger
 from astropy import table
 
-from SHE_Validation.constants.default_config import LOCAL_MODE
+from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
@@ -37,7 +35,6 @@ from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValida
 import numpy as np
 
 from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
-                                          CTI_GAL_TEST_INFO,
                                           L_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.regression_results import TF as RR_TF
 
@@ -259,32 +256,21 @@ class CtiGalAnalysisWriter(AnalysisWriter):
 
 class CtiGalTestCaseWriter(TestCaseWriter):
 
-    def __init__(self,
-                 parent_validation_writer: "CtiGalValidationResultsWriter",
-                 test_case_object,
-                 test_case_info: TestCaseInfo,
-                 *args, **kwargs):
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = CtiGalRequirementWriter
+    analysis_writer_type = CtiGalAnalysisWriter
+
+    def __init__(self, *args, **kwargs):
         """ We override __init__ since we'll be using a known set of requirement info.
         """
 
-        super().__init__(parent_validation_writer,
-                         test_case_object,
-                         test_case_info,
-                         l_requirement_info=CTI_GAL_REQUIREMENT_INFO,
-                         *args, **kwargs)
-
-    def _init_requirement_writer(self, **kwargs) -> CtiGalRequirementWriter:
-        """ We override the _init_requirement_writer method to create a writer of the inherited type.
-        """
-        return CtiGalRequirementWriter(self, **kwargs)
-
-    def _init_analysis_writer(self, **kwargs) -> CtiGalAnalysisWriter:
-        """ We override the _init_analysis_writer method to create a writer of the inherited type.
-        """
-        return CtiGalAnalysisWriter(self, **kwargs)
+        super().__init__(*args, l_requirement_info=CTI_GAL_REQUIREMENT_INFO, **kwargs)
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
+
+    # Types of child classes
+    test_case_writer_type = CtiGalTestCaseWriter
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
@@ -307,22 +293,18 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
-    def _init_test_case_writer(self, **kwargs):
-        """ Override _init_test_case_writer to create a CtiGalTestCaseWriter
-        """
-        return CtiGalTestCaseWriter(self, **kwargs)
-
     def _get_method_info(self,
-                         method: str,
-                         test_case: str,
-                         l_test_case_bins: List[float],
-                         l_test_case_regression_results_tables: List[table.Table]) -> Tuple[List[float],
-                                                                                            List[float],
-                                                                                            List[float],
-                                                                                            List[float],
-                                                                                            List[List[float]]]:
+                         test_case_info: TestCaseInfo) -> Tuple[List[float],
+                                                                List[float],
+                                                                List[float],
+                                                                List[float],
+                                                                List[List[float]]]:
         """ Sort the data out from the tables for this method.
         """
+
+        l_test_case_bins = self.d_bin_limits[test_case_info.bins]
+        l_test_case_regression_results_tables = self.d_regression_results_tables[test_case_info.name]
+        method = test_case_info.method
 
         num_bins = len(l_test_case_bins) - 1
 
@@ -341,7 +323,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
             l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
         # For the global case, override the bin limits with None
-        if test_case == BinParameters.GLOBAL:
+        if test_case_info.bins == BinParameters.GLOBAL:
             l_bin_limits = None
 
         return l_slope, l_slope_err, l_intercept, l_intercept_err, l_bin_limits
@@ -352,69 +334,47 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         # The results of this each test will be stored in an item of the ValidationTestList.
         # We'll iterate over the methods, test cases, and bins, and fill in each in turn
 
-        test_case_index = 0
+        for test_case_info, test_case_writer in zip(self.l_test_case_info, self.test_case_writer):
 
-        for test_case in BinParameters:
+            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma[test_case_info.bins]
 
-            l_test_case_bins = self.d_bin_limits[test_case]
+            # Fill in metadata about the test
 
-            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma[test_case]
+            requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            l_test_case_regression_results_tables = self.d_regression_results_tables[test_case]
+            if self.method_data_exists and test_case_info.bins != BinParameters.EPOCH:
 
-            for method in METHODS:
+                (l_slope,
+                 l_slope_err,
+                 l_intercept,
+                 l_intercept_err,
+                 l_bin_limits) = self._get_method_info(test_case_info)
 
-                test_case_writer = self.l_test_case_writers[test_case_index]
+                report_method = None
+                report_kwargs = {}
+                write_kwargs = {"have_data": True,
+                                "l_slope": l_slope,
+                                "l_slope_err": l_slope_err,
+                                "l_intercept": l_intercept,
+                                "l_intercept_err": l_intercept_err,
+                                "l_bin_limits": l_bin_limits,
+                                "fail_sigma": fail_sigma, }
 
-                # Use a modified test case info object to describe this test, clarifying it's
-                # just for this method
-                test_case_info = deepcopy(D_CTI_GAL_TEST_CASE_INFO[test_case])
-                test_case_info._test_case_id = test_case_info.id + "-" + method
+            elif test_case_info.bins == BinParameters.EPOCH:
+                # Report that the test wasn't run due to it not yet being implemented
+                report_method = requirement_writer.report_test_not_run
+                report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
+                write_kwargs = {}
+            else:
+                # Report that the test wasn't run due to a lack of data
+                report_method = requirement_writer.report_test_not_run
+                report_kwargs = {"reason": MSG_NO_DATA}
+                write_kwargs = {}
 
-                test_case_writer._test_case_info = test_case_info
+            write_kwargs["report_method"] = report_method
+            write_kwargs["report_kwargs"] = report_kwargs
 
-                # Fill in metadata about the test
-
-                requirement_writer = test_case_writer.l_requirement_writers[0]
-
-                if self.method_data_exists and test_case != BinParameters.EPOCH:
-
-                    (l_slope,
-                     l_slope_err,
-                     l_intercept,
-                     l_intercept_err,
-                     l_bin_limits) = self._get_method_info(method,
-                                                           test_case,
-                                                           l_test_case_bins,
-                                                           l_test_case_regression_results_tables)
-
-                    report_method = None
-                    report_kwargs = {}
-                    write_kwargs = {"have_data": True,
-                                    "l_slope": l_slope,
-                                    "l_slope_err": l_slope_err,
-                                    "l_intercept": l_intercept,
-                                    "l_intercept_err": l_intercept_err,
-                                    "l_bin_limits": l_bin_limits,
-                                    "fail_sigma": fail_sigma, }
-
-                elif test_case == BinParameters.EPOCH:
-                    # Report that the test wasn't run due to it not yet being implemented
-                    report_method = requirement_writer.report_test_not_run
-                    report_kwargs = {"reason": MSG_NOT_IMPLEMENTED}
-                    write_kwargs = {}
-                else:
-                    # Report that the test wasn't run due to a lack of data
-                    report_method = requirement_writer.report_test_not_run
-                    report_kwargs = {"reason": MSG_NO_DATA}
-                    write_kwargs = {}
-
-                write_kwargs["report_method"] = report_method
-                write_kwargs["report_kwargs"] = report_kwargs
-
-                test_case_writer.write(requirements_kwargs=write_kwargs,)
-
-                test_case_index += 1
+            test_case_writer.write(requirements_kwargs=write_kwargs,)
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -433,7 +393,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
                                                 d_bin_limits=d_bin_limits,
-                                                mode=LOCAL_MODE)
+                                                mode=ExecutionMode.LOCAL)
 
     # Initialize a test results writer
     test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,

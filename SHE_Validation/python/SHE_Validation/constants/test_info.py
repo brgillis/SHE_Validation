@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-05"
+__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Dict, Optional
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
@@ -339,7 +339,7 @@ class TestCaseInfo():
         return self._description
 
     @property
-    def bins(self) -> Optional[str]:
+    def bins(self) -> Optional[BinParameters]:
         return self._bins
 
     @bins.setter()
@@ -354,7 +354,7 @@ class TestCaseInfo():
         self._description = None
 
     @property
-    def method(self) -> Optional[str]:
+    def method(self) -> Optional[ShearEstimationMethods]:
         return self._method
 
     @method.setter()

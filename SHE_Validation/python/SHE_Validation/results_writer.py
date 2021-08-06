@@ -680,6 +680,10 @@ class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
+    # Types of child objects, which can be overriden by derived classes
+    requirement_writer_type = RequirementWriter
+    analysis_writer_type = AnalysisWriter
+
     # Attributes set from kwargs at init
     _parent_val_results_writer: Optional["ValidationResultsWriter"] = None
     _test_case_object: Optional[Any] = None
@@ -808,14 +812,16 @@ class TestCaseWriter():
 
     # Private and protected methods
     def _make_requirement_writer(self, **kwargs) -> RequirementWriter:
-        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
+        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this
+            in case they need to alter the kwargs in any way..
         """
-        return RequirementWriter(self, **kwargs)
+        return self.requirement_writer_type(self, **kwargs)
 
     def _make_analysis_writer(self, **kwargs) -> AnalysisWriter:
-        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this.
+        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
+            in case they need to alter the kwargs in any way..
         """
-        return AnalysisWriter(self, **kwargs)
+        return self.analysis_writer_type(self, **kwargs)
 
     # Public methods
     def write_meta(self) -> None:
@@ -873,6 +879,9 @@ class TestCaseWriter():
 class ValidationResultsWriter():
     """ Base class to handle the writing out of validation test results.
     """
+
+    # Types of child classes, which can be overriden by derived classes
+    test_case_writer_type = TestCaseWriter
 
     # Attributes set at init from arguments
     _test_object: dpdSheValidationTestResults
@@ -1068,9 +1077,10 @@ class ValidationResultsWriter():
         self.l_test_case_objects[i] = test_case_object
 
     def _make_test_case_writer(self, **kwargs) -> TestCaseWriter:
-        """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
+        """ Method to initialize a test case writer, which we use to allow inherited classes to override this,
+            in case they need to change the kwargs in any way.
         """
-        return TestCaseWriter(self, **kwargs)
+        return self.test_case_writer_type(self, **kwargs)
 
     # Public methods
     def add_test_case_writer(self,
