@@ -205,7 +205,7 @@ def run_validate_cti_gal_from_args(args):
                                         d_regression_results_tables=d_observation_regression_results_tables,
                                         pipeline_config=args.pipeline_config,
                                         d_bin_limits=d_bin_limits,
-                                        figures=plot_filenames,
+                                        dl_l_figures=plot_filenames,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
@@ -250,7 +250,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     d_observation_regression_results_tables = {}
     plot_filenames = {}
 
-    for test_case_info in enumerate(L_CTI_GAL_TEST_CASE_INFO):
+    for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
         # Initialise for this test case
         plot_filenames[test_case_info.name] = {}
@@ -291,7 +291,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                             bin_index=bin_index,
                                             workdir=workdir,)
                     plotter.plot_cti_gal()
-                    plot_label = f"{method}-{test_case_info.bins.value}-{bin_index}"
+                    plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
                     plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table

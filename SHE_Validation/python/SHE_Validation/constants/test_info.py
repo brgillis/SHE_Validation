@@ -404,13 +404,13 @@ class TestCaseInfo():
         if self._name is None:
             if self.bins is not None:
                 if self.method is not None:
-                    self._name = f"{self.bins.value}-{self.method}"
+                    self._name = f"{self.bins.value}-{self.method.value}"
                 else:
                     self._name = self.bins.value
             else:
                 # self.bins is not set in this branch
                 if self.method is not None:
-                    self._name = self.method
+                    self._name = self.method.value
                 else:
                     self._name = None
         return self._name
