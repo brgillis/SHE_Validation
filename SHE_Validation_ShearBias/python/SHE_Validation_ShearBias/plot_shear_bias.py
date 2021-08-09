@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,17 +21,15 @@ __updated__ = "2021-08-03"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from typing import Dict, List, Optional, Sequence
 
 from SHE_PPT import file_io
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, linregress_with_errors
-from SHE_PPT.pipeline_utility import _make_config_from_defaults,\
-    GlobalConfigKeys, ValidationConfigKeys
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
-from astropy.table import Table
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.table_utility import SheTableFormat
+from astropy.table import Column, Table
 from matplotlib import pyplot as plt
 
 import SHE_Validation
@@ -39,49 +37,50 @@ from SHE_Validation.plotting import ValidationPlotter
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_DEFAULTS
 import numpy as np
 
+
 logger = getLogger(__name__)
 
 
-galcat_gamma1_colname = "GAMMA1"
-galcat_gamma2_colname = "GAMMA2"
-galcat_kappa_colname = "KAPPA"
+galcat_gamma1_colname: str = "GAMMA1"
+galcat_gamma2_colname: str = "GAMMA2"
+galcat_kappa_colname: str = "KAPPA"
 
-TITLE_FONTSIZE = 12
-AXISLABEL_FONTSIZE = 12
-TEXT_SIZE = 12
-PLOT_FORMAT = "png"
-C_DIGITS = 5
-M_DIGITS = 3
-SIGMA_DIGITS = 1
-
-shear_estimation_method_table_formats = {"KSB": ksbm_tf,
-                                         "REGAUSS": regm_tf,
-                                         "MomentsML": mmlm_tf,
-                                         "LensMC": lmcm_tf}
+TITLE_FONTSIZE: float = 12
+AXISLABEL_FONTSIZE: float = 12
+TEXT_SIZE: float = 12
+PLOT_FORMAT: str = "png"
+C_DIGITS: int = 5
+M_DIGITS: int = 3
+SIGMA_DIGITS: int = 1
 
 
 class ShearBiasPlotter(ValidationPlotter):
 
+    # Attributes with fixed values
+    bootstrap_seed: int = 12345
+    n_bootstrap: int = 1000
+
     # Attributes set directly at init
-    gal_matched_table = None
-    method = None
-    workdir = None
-    bootstrap_seed = 12345
-    n_bootstrap = 1000
+    gal_matched_table: Table
+    method: ShearEstimationMethods
+    workdir: str
 
     # Attributes calculated at init
-    sem_tf = None
-    good_rows = None
-    fitclass_zero_rows = None
-    _d_g_in = None
-    _d_g_out = None
-    _d_g_out_err = None
+    sem_tf: SheTableFormat
+    good_rows: Sequence[bool]
+    fitclass_zero_rows: Sequence[bool]
+    _d_g_in = Dict[int, Sequence[float]]
+    _d_g_out = Dict[int, Sequence[float]]
+    _d_g_out_err = Dict[int, Sequence[float]]
 
     # Attributes calculated when plotting methods are called
-    _d_bias_measurements = None
-    _d_bias_plot_filename = None
+    _d_bias_measurements: Optional[Dict[int, BiasMeasurements]] = None
+    _d_bias_plot_filename: Optional[Dict[int, str]] = None
 
-    def __init__(self, l_method_matched_catalog_filenames, method, workdir):
+    def __init__(self,
+                 l_method_matched_catalog_filenames: List[str],
+                 method: ShearEstimationMethods,
+                 workdir: str) -> None:
 
         super().__init__()
 
@@ -91,27 +90,29 @@ class ShearBiasPlotter(ValidationPlotter):
         self.workdir = workdir
 
         # Determine attrs from kwargs
-        self.sem_tf = shear_estimation_method_table_formats[method]
+        self.sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
         # Read in each table and get the data we need out of it
-        l_g1_in = []
-        l_g2_in = []
-        l_g1_out = []
-        l_g2_out = []
-        l_g1_out_err = []
-        l_g2_out_err = []
-        l_fitclass_zero_rows = []
+        l_g1_in: List[Column] = []
+        l_g2_in: List[Column] = []
+        l_g1_out: List[Column] = []
+        l_g2_out: List[Column] = []
+        l_g1_out_err: List[Column] = []
+        l_g2_out_err: List[Column] = []
+        l_fitclass_zero_rows: List[Sequence[bool]] = []
+
+        method_matched_catalog_filename: str
         for method_matched_catalog_filename in self.l_method_matched_catalog_filenames:
 
             if method_matched_catalog_filename is None:
                 continue
 
-            qualified_method_matched_catalog_filename = os.path.join(self.workdir, method_matched_catalog_filename)
+            qualified_method_matched_catalog_filename: str = os.path.join(self.workdir, method_matched_catalog_filename)
             logger.info(
                 f"Reading in matched catalog for method {method} from {qualified_method_matched_catalog_filename}.")
-            gal_matched_table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
+            gal_matched_table: Table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
 
-            good_rows = gal_matched_table[self.sem_tf.fit_flags] == 0
+            good_rows: Sequence[bool] = gal_matched_table[self.sem_tf.fit_flags] == 0
 
             l_g1_in.append(-(gal_matched_table[galcat_gamma1_colname] /
                              (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
@@ -143,10 +144,6 @@ class ShearBiasPlotter(ValidationPlotter):
             self.d_g_out_err = {1: np.array([], dtype=float),
                                 2: np.array([], dtype=float)}
             self.fitclass_zero_rows = np.array([], dtype=bool)
-
-        # Set as None attributes to be set when plotting methods are called
-        self.d_bias_measurements = None
-        self.d_bias_plot_filename = None
 
     # Property getters and setters
 
