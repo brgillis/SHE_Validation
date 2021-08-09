@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,11 +22,12 @@ __updated__ = "2021-07-16"
 
 import os
 
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
+from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 import numpy as np
@@ -56,7 +57,7 @@ class TestCase:
 
     def test_plot_cti_gal(self):
 
-        method = "LensMC"
+        method = ShearEstimationMethods.LENSMC
 
         # Make some mock data
         m = 1e-4
@@ -87,9 +88,9 @@ class TestCase:
 
         # Run the plotting
         plotter = CtiGalPlotter(object_table=object_data_table,
-                                method=method,
-                                test_case=CtiGalTestCases.GLOBAL,
-                                d_bin_limits={CtiGalTestCases.GLOBAL: DEFAULT_BIN_LIMITS},
+                                method_name=method.value,
+                                bin_parameter=BinParameters.GLOBAL,
+                                d_bin_limits={BinParameters.GLOBAL: DEFAULT_BIN_LIMITS},
                                 bin_index=0,
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
