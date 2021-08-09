@@ -64,7 +64,7 @@ class TestCase:
     def test_add_readout_register_distance(self):
 
         # Get the detector y-size from the MDB
-        det_size_y = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
+        det_size_y: int = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
         assert det_size_y == 4136  # Calculations here rely on this being the value
 
         # Make some mock data
@@ -153,13 +153,13 @@ class TestCase:
         assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
-            if test_case.bins == BinParameters.GLOBAL or test_case.bins == BinParameters.EPOCH:
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
                 continue
             for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
                                                                             product_type="OBS",
-                                                                            bin_parameter=test_case.bins,
+                                                                            bin_parameter=test_case_info.bins,
                                                                             bin_limits=bin_limits)
                 rr_row = bin_regression_results_table[0]
 
