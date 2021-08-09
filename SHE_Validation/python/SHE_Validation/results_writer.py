@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,7 +23,7 @@ __updated__ = "2021-08-06"
 from copy import deepcopy
 from io import IOBase
 import os
-from typing import Any, Callable, Dict, List, Optional, Union, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Union, TypeVar, Set
 
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
@@ -94,12 +94,12 @@ class FailSigmaCalculator():
     local_fail_sigma = float
     fail_sigma_scaling: FailSigmaScaling
     mode: ExecutionMode = ExecutionMode.LOCAL
-    l_test_cases: List[TestCaseInfo]
+    l_test_case_info: Set[TestCaseInfo]
 
     # Attributes determined at init
-    num_test_cases: int
-    num_bin_parameters: int
-    num_test_case_bin_parameters: int
+    bin_parameters: List[BinParameters]
+    num_test_cases: int = 1
+    num_test_case_bins: int = 1
     d_num_bins: Dict
     num_test_case_bin_parameters_bins: int
 
@@ -109,43 +109,41 @@ class FailSigmaCalculator():
 
     def __init__(self,
                  pipeline_config: Dict[ConfigKeys, Any],
+                 l_test_case_info: List[TestCaseInfo],
                  d_bin_limits: Dict[BinParameters, np.ndarray] = None,
-                 mode: ExecutionMode = ExecutionMode.LOCAL,
-                 l_test_cases: List[TestCaseInfo] = None):
+                 mode: ExecutionMode = ExecutionMode.LOCAL,):
 
         # Set attributes directly from args
         self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
         self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
         self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
         self.mode = mode
-        self.l_test_cases = l_test_cases
+        self.l_test_case_info = l_test_case_info
 
+        # Get a set of all bin parameters in the test cases
+        s_bin_parameters: Set[BinParameters] = set()
+        for test_case_info in self.l_test_case_info:
+            s_bin_parameters.add(test_case_info.bins)
+
+        # Create a default list of bin limits if necessary
         if d_bin_limits is None:
-            # Create a default list of bin limits
-            for bin_parameter in BinParameters:
+            for bin_parameter in s_bin_parameters:
                 d_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
-
-        if l_test_cases is not None:
-            self.l_test_cases = l_test_cases
-        else:
-            # Get the test cases from the dict of bin limits if not explicitly provided
-            self.l_test_cases = tuple(d_bin_limits.keys())
-
-        self.num_test_cases = len(l_test_cases)
 
         # Calculate the number of bins for each test case, and in total
 
         self.d_num_bins = {}
 
         bin_parameter: BinParameters
-        for bin_parameter in BinParameters:
+        for bin_parameter in s_bin_parameters:
             self.d_num_bins[bin_parameter] = len(d_bin_limits[bin_parameter]) - 1
 
+        self.num_test_cases = len(self.l_test_case_info)
         self.num_test_case_bins = 0
 
-        test_case: TestCaseInfo
-        for test_case in self.l_test_cases:
-            bin_parameter: BinParameters = test_case.bins
+        test_case_info: TestCaseInfo
+        for test_case_info in self.l_test_case_info:
+            bin_parameter: BinParameters = test_case_info.bins
             self.num_test_case_bins += self.d_num_bins[bin_parameter]
 
     @property
@@ -171,15 +169,15 @@ class FailSigmaCalculator():
 
         d_scaled_sigma: Dict[TestCaseInfo, float] = {}
 
-        test_case: TestCaseInfo
-        for test_case in self.l_test_cases:
+        test_case_info: TestCaseInfo
+        for test_case_info in self.l_test_case_info:
 
             # Get the number of tries depending on scaling type
             num_tries: int
             if self.fail_sigma_scaling == FailSigmaScaling.NONE:
                 num_tries = 1
             elif self.fail_sigma_scaling == FailSigmaScaling.BINS:
-                num_tries = self.d_num_bins[test_case]
+                num_tries = self.d_num_bins[test_case_info]
             elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASES:
                 num_tries = self.num_test_cases
             elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS:
@@ -187,8 +185,8 @@ class FailSigmaCalculator():
             else:
                 raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
 
-            d_scaled_sigma[test_case] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                           num_tries=num_tries)
+            d_scaled_sigma[test_case_info] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                                num_tries=num_tries)
 
         return d_scaled_sigma
 

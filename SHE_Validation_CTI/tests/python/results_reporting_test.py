@@ -97,6 +97,7 @@ class TestCase:
         # Test with no scaling - all sigma should be unchanged
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
         ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
                                                        d_bin_limits=self.d_bin_limits)
 
         for test_case in L_CTI_GAL_TEST_CASE_INFO:
@@ -107,12 +108,15 @@ class TestCase:
 
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.BINS
         bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
                                                         d_bin_limits=self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASES
         tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
                                                        d_bin_limits=self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_BINS
         tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
                                                         d_bin_limits=self.d_bin_limits)
 
         first_tc_global_fail_sigma = None
@@ -202,7 +206,7 @@ class TestCase:
         # Set up the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests=NUM_METHOD_CTI_GAL_TEST_CASES)
+                num_tests=NUM_CTI_GAL_TEST_CASES)
 
             fill_cti_gal_validation_results(test_result_product=exp_product,
                                             regression_results_row_index=exp_index,

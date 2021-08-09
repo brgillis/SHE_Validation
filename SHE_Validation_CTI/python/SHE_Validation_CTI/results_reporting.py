@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -392,6 +392,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
+                                                l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
                                                 d_bin_limits=d_bin_limits,
                                                 mode=ExecutionMode.LOCAL)
 
