@@ -334,7 +334,7 @@ class TestCaseInfo():
             if self.bins is not None:
                 self._test_case_id += f"-{D_BIN_PARAMETER_META[self.bins].id_tail}"
             if self.method is not None:
-                self._test_case_id += f"-{self.method}"
+                self._test_case_id += f"-{self.method.value}"
         return self._test_case_id
 
     @property

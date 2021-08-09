@@ -225,14 +225,13 @@ class TestCase:
         # Figure out the index for LensMC Global and Colour test results and save it for each check
         test_case_index = 0
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            for method in ShearEstimationMethods:
-                if method == ShearEstimationMethods.LENSMC:
-                    if test_case_info.bins == BinParameters.GLOBAL:
-                        lensmc_global_test_case_index = test_case_index
-                    elif test_case_info.bins == BinParameters.COLOUR:
-                        lensmc_colour_test_case_index = test_case_index
+            if test_case_info.method == ShearEstimationMethods.LENSMC:
+                if test_case_info.bins == BinParameters.GLOBAL:
+                    lensmc_global_test_case_index = test_case_index
+                elif test_case_info.bins == BinParameters.COLOUR:
+                    lensmc_colour_test_case_index = test_case_index
 
-                test_case_index += 1
+            test_case_index += 1
 
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -356,8 +355,8 @@ class TestCase:
 
         d_obs_results_tables = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            num_bins = len(self.d_bin_limits[test_case_info]) - 1
-            d_obs_results_tables[test_case_info] = [obs_results_table] * num_bins
+            num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
+            d_obs_results_tables[test_case_info.name] = [obs_results_table] * num_bins
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row_index=exp_index,
@@ -371,23 +370,22 @@ class TestCase:
         obs_product.validateBinding()
 
         # Check metadata for all test cases
-        test_case_index = 0
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            for method in ShearEstimationMethods:
-                obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-                assert test_case_info.id in obs_test_result.TestId
-                assert method in obs_test_result.TestId
-                assert obs_test_result.TestDescription == test_case_info.description
+        for test_case_index, test_case_info in enumerate(L_CTI_GAL_TEST_CASE_INFO):
 
-                # Check that the product indeed reports no data
-                assert obs_test_result.GlobalResult == RESULT_PASS
-                assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == WARNING_TEST_NOT_RUN
-                obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
-                assert obs_info.Parameter[0].Key == KEY_REASON
-                assert obs_info.Parameter[0].Description == DESC_NOT_RUN_REASON
-                if test_case_info.bins == BinParameters.EPOCH:
-                    assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
-                else:
-                    assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
+            method = test_case_info.method
+            obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
 
-                test_case_index += 1
+            assert test_case_info.id in obs_test_result.TestId
+            assert method.value in obs_test_result.TestId
+            assert obs_test_result.TestDescription == test_case_info.description
+
+            # Check that the product indeed reports no data
+            assert obs_test_result.GlobalResult == RESULT_PASS
+            assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == WARNING_TEST_NOT_RUN
+            obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
+            assert obs_info.Parameter[0].Key == KEY_REASON
+            assert obs_info.Parameter[0].Description == DESC_NOT_RUN_REASON
+            if test_case_info.bins == BinParameters.EPOCH:
+                assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
+            else:
+                assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
