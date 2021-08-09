@@ -54,6 +54,11 @@ class Args(object):
         self.profile = False
         self.dry_run = True
 
+        for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
+            bin_limits_cline_arg = test_case_info.bins_cline_arg
+            if bin_limits_cline_arg is not None:
+                setattr(self, bin_limits_cline_arg, None)
+
         self.workdir = None  # Needs to be set in setup_class
         self.logdir = None  # Needs to be set in setup_class
 

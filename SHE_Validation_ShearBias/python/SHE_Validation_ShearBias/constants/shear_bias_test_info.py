@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,9 +22,8 @@ __updated__ = "2021-07-16"
 
 from enum import Enum
 
-from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
-
-from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 
 # Metadata about the requirements
@@ -51,23 +50,29 @@ class ShearBiasTestCases(Enum):
     C = "c"
 
 
-SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(test_case_id="TC-SHE-100017-shear-bias-m",
-                                           description=("Multiplicative shear bias."),
-                                           name=ShearBiasTestCases.M.value,
-                                           comment=None,)
-SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(test_case_id="TC-SHE-100018-shear-bias-c",
-                                           description=("Additive shear bias."),
-                                           name=ShearBiasTestCases.C.value,
-                                           comment=None,)
+M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
+BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(test_case_id=M_TEST_CASE_ID,
+                                                description=("Multiplicative shear bias."),
+                                                name=ShearBiasTestCases.M.value,
+                                                comment=None,)
+C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
+BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(test_case_id=C_TEST_CASE_ID,
+                                                description=("Additive shear bias."),
+                                                name=ShearBiasTestCases.C.value,
+                                                comment=None,)
 
-# Create a dict of the test case info and requirement info
-D_SHEAR_BIAS_REQUIREMENT_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_M_REQUIREMENT_INFO,
-                                 ShearBiasTestCases.C: SHEAR_BIAS_C_REQUIREMENT_INFO, }
-D_SHEAR_BIAS_TEST_CASE_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_TEST_CASE_M_INFO,
-                               ShearBiasTestCases.C: SHEAR_BIAS_TEST_CASE_C_INFO, }
+# Create a dict of the test case info
+L_SHEAR_BIAS_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                        BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
 
-SHEAR_BIAS_TEST_CASES = D_SHEAR_BIAS_TEST_CASE_INFO.keys()
+NUM_SHEAR_BIAS_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_INFO)
 
-NUM_SHEAR_BIAS_TEST_CASES = len(ShearBiasTestCases)
-
-NUM_METHOD_SHEAR_BIAS_TEST_CASES = NUM_SHEAR_ESTIMATION_METHODS * NUM_SHEAR_BIAS_TEST_CASES
+# Create a dict of the requirement info
+D_L_SHEAR_BIAS_REQUIREMENT_INFO = {}
+for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
+    if M_TEST_CASE_ID in test_case_info.id:
+        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_M_REQUIREMENT_INFO
+    elif C_TEST_CASE_ID in test_case_info.id:
+        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_C_REQUIREMENT_INFO
+    else:
+        raise ValueError(f"Unrecognized test case ID: {test_case_info.id}")
