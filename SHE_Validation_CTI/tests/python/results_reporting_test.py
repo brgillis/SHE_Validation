@@ -74,8 +74,8 @@ class TestCase:
 
         # Make a dictionary of bin limits
         self.d_bin_limits = {}
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
-            bins_config_key = test_case.bins_config_key
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            bins_config_key = test_case_info.bins_config_key
             if bins_config_key is None:
                 bin_limits_string = DEFAULT_BIN_LIMITS_STR
             else:
@@ -84,7 +84,7 @@ class TestCase:
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype=float)
 
-            self.d_bin_limits[test_case] = bin_limits_array
+            self.d_bin_limits[test_case_info.bins] = bin_limits_array
 
     def test_fail_sigma_scaling(self):
 
@@ -182,11 +182,11 @@ class TestCase:
 
         d_exp_results_tables = {}
         for test_case in L_CTI_GAL_TEST_CASE_INFO:
-            num_bins = len(self.d_bin_limits[test_case]) - 1
-            d_exp_results_tables[test_case] = [None] * num_bins
+            num_bins = len(self.d_bin_limits[test_case.bins]) - 1
+            d_exp_results_tables[test_case.name] = [None] * num_bins
             for bin_index in range(num_bins):
                 exp_results_table = deepcopy(base_exp_results_table)
-                d_exp_results_tables[test_case][bin_index] = exp_results_table
+                d_exp_results_tables[test_case.name][bin_index] = exp_results_table
 
                 # Set up data for each test case
                 for exp_index, exp_results in enumerate(exp_results_list):

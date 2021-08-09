@@ -1022,12 +1022,12 @@ class ValidationResultsWriter():
 
         if (self.dl_num_requirements is None) and (self.dl_l_requirement_info is None):
             # Assume one requirement if no info provided
-            if self.num_test_cases:
-                self.dl_num_requirements = [1] * self.num_test_cases
-            else:
+            if self.l_test_case_info:
                 self.dl_num_requirements = {}
                 for test_case in self.test_case_keys:
                     self.dl_num_requirements[test_case] = 1
+            else:
+                self.dl_num_requirements = [1] * self.num_test_cases
 
         # Align dl_l_requirement_info and dl_num_requirements based on which was provided
         if self.dl_l_requirement_info:
@@ -1041,6 +1041,9 @@ class ValidationResultsWriter():
         """ Get an item out of a list or dictionary depending on the type. If not found, returns None instead of
             raising an exception
         """
+
+        if not dl:
+            return None
 
         item = None
         try:

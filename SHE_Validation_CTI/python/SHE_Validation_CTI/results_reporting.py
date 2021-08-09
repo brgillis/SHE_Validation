@@ -383,8 +383,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     pipeline_config: Dict[str, Any],
                                     d_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
-                                    figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                   List[Union[Dict[str, str], List[str]]], ] = None,
+                                    dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                        List[Union[Dict[str, str], List[str]]], ] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -404,6 +404,6 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         fail_sigma_calculator=fail_sigma_calculator,
                                                         d_bin_limits=d_bin_limits,
                                                         method_data_exists=method_data_exists,
-                                                        figures=figures,)
+                                                        dl_l_figures=dl_l_figures,)
 
     test_results_writer.write()
