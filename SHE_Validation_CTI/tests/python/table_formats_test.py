@@ -5,7 +5,7 @@
     Unit tests relating to table formats.
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,13 +22,10 @@ __updated__ = "2021-01-06"
 
 import os
 
-from astropy.table import Column, Table
-import pytest
-
 from SHE_PPT.table_testing import _test_is_in_format
+
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
-import numpy as np
 
 
 class TestTableFormats:
@@ -50,8 +47,6 @@ class TestTableFormats:
 
         cls.filenames = [cls.filename_base + ".ecsv", cls.filename_base + ".fits"]
 
-        return
-
     @classmethod
     def teardown_class(cls):
         del cls.formats, cls.initializers
@@ -60,11 +55,7 @@ class TestTableFormats:
             if os.path.exists(filename):
                 os.remove(filename)
 
-        return
-
     def test_is_in_format(self):
 
         # Call the test stored in the table_testing module
         _test_is_in_format(self)
-
-        return
