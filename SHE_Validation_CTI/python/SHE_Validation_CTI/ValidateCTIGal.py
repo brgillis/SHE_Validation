@@ -125,7 +125,7 @@ def mainMethod(args):
                                   workdir=args.workdir,
                                   defaults=D_CTI_GAL_CONFIG_DEFAULTS,
                                   d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                  cline_args=args,
+                                  parsed_args=args,
                                   config_keys=ValidationConfigKeys,
                                   d_types=D_CTI_GAL_CONFIG_TYPES)
 

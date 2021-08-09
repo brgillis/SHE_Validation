@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-08-05"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -105,7 +105,8 @@ def mainMethod(args):
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
                                   defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                  cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                  d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                  parsed_args=args,
                                   config_keys=ValidationConfigKeys,
                                   d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
