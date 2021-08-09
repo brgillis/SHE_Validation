@@ -16,7 +16,7 @@ from astropy import table
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -93,18 +93,19 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
 
         for method in ShearEstimationMethods:
 
+            method_name = method.value
             upper_method = method.value.upper()
 
-            setattr(self, f"g1_world_{method}", self.set_column_properties(
+            setattr(self, f"g1_world_{method_name}", self.set_column_properties(
                 f"G1_WORLD_{upper_method}", is_optional=True))
-            setattr(self, f"g2_world_{method}", self.set_column_properties(
+            setattr(self, f"g2_world_{method_name}", self.set_column_properties(
                 f"G2_WORLD_{upper_method}", is_optional=True))
 
-            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
+            setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
 
-            setattr(self, f"g1_image_{method}",
+            setattr(self, f"g1_image_{method_name}",
                     self.set_column_properties(f"G1_IMAGE_{upper_method}"))
-            setattr(self, f"g2_image_{method}",
+            setattr(self, f"g2_image_{method_name}",
                     self.set_column_properties(f"G2_IMAGE_{upper_method}"))
 
         # A list of columns in the desired order

@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -68,6 +68,7 @@ class BinParameterMeta():
 
     # Values determined on-demand
     _help_text: Optional[str] = None
+    _comment: Optional[str] = None
 
     def __init__(self,
                  bin_parameter_enum: BinParameters,
@@ -104,6 +105,14 @@ class BinParameterMeta():
         return self._enum
 
     @property
+    def long_name(self) -> BinParameters:
+        return self._long_name
+
+    @property
+    def id_tail(self) -> BinParameters:
+        return self._id_tail
+
+    @property
     def units(self) -> Optional[str]:
         return self._units
 
@@ -114,6 +123,10 @@ class BinParameterMeta():
     @property
     def extra_help_text(self) -> Optional[str]:
         return self._extra_help_text
+
+    @property
+    def config_key(self) -> Optional[str]:
+        return self._config_key
 
     @property
     def name(self) -> str:
@@ -278,11 +291,19 @@ class TestCaseInfo():
     """ Common class for info about a test case.
     """
 
+    # Attributes set at init
     _test_info: Optional[TestInfo] = None
     _base_test_case_id: Optional[str] = None
     _base_description: Optional[str] = None
     _bins: Optional[BinParameters] = None
     _method: Optional[ShearEstimationMethods] = None
+
+    # Attributes generated on-demand
+    _test_case_id: Optional[str] = None
+    _description: Optional[str] = None
+    _bins_cline_arg: Optional[str] = None
+    _bins_config_key: Optional[str] = None
+    _name: Optional[str] = None
 
     def __init__(self,
                  test_info: Optional[TestInfo] = None,
@@ -342,7 +363,7 @@ class TestCaseInfo():
     def bins(self) -> Optional[BinParameters]:
         return self._bins
 
-    @bins.setter()
+    @bins.setter
     def bins(self, bins: BinParameters) -> None:
 
         self._bins = bins
@@ -357,7 +378,7 @@ class TestCaseInfo():
     def method(self) -> Optional[ShearEstimationMethods]:
         return self._method
 
-    @method.setter()
+    @method.setter
     def method(self, method: ShearEstimationMethods) -> None:
 
         self._method = method
@@ -393,7 +414,3 @@ class TestCaseInfo():
                 else:
                     self._name = None
         return self._name
-
-    @property
-    def comment(self) -> Optional[str]:
-        return self._comment

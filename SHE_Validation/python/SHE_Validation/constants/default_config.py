@@ -59,7 +59,7 @@ class FailSigmaScaling(AllowedEnum):
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 2.,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 5.,
-    ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling.TEST_CASE_BINS_SCALE,
+    ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling.TEST_CASE_BINS,
     ValidationConfigKeys.VAL_SNR_BIN_LIMITS: "0 5 10 30 100 1e99",
     ValidationConfigKeys.VAL_BG_BIN_LIMITS: "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99",
     ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",

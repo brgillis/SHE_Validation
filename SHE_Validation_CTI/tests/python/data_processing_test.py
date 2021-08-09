@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,7 +26,8 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_test_info import CtiGalTestCases
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
@@ -56,11 +57,8 @@ class TestCase:
         cls.workdir = os.path.split(qualified_mdb_filename)[0]
         cls.logdir = os.path.join(cls.workdir, "logs")
 
-        return
-
     @classmethod
     def teardown_class(cls):
-
         return
 
     def test_add_readout_register_distance(self):
@@ -81,8 +79,6 @@ class TestCase:
         ro_dist = mock_data_table[CGOD_TF.readout_dist]
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
-
-        return
 
     def test_calculate_regression_results(self):
 
@@ -133,7 +129,7 @@ class TestCase:
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
                                                                 product_type="EXP",
-                                                                test_case=CtiGalTestCases.GLOBAL,)
+                                                                test_case=BinParameters.GLOBAL,)
 
         # Check the results
 
@@ -157,8 +153,8 @@ class TestCase:
         assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
-        for test_case in CtiGalTestCases:
-            if test_case == CtiGalTestCases.GLOBAL or test_case == CtiGalTestCases.EPOCH:
+        for test_case in L_CTI_GAL_TEST_CASE_INFO:
+            if test_case.bins == BinParameters.GLOBAL or test_case.bins == BinParameters.EPOCH:
                 continue
             for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
@@ -169,5 +165,3 @@ class TestCase:
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
                 assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=np.sqrt(2.) * sigmal_tol * ex_slope_err)
-
-        return

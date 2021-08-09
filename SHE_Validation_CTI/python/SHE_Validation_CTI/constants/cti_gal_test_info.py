@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,10 +37,10 @@ CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
                                           "(slope)."))
 
 
-BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
-                                           description=("Linear dependence of " +
-                                                        "residual galaxy ellipticity with read-out " +
-                                                        "register distance (slope)."),)
+BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="T-SHE-000010-CTI-gal",
+                                           base_description=("Linear dependence of " +
+                                                             "residual galaxy ellipticity with read-out " +
+                                                             "register distance (slope)."),)
 
 # Create a dict of the test case info
 L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(BASE_CTI_GAL_TEST_CASE_INFO)
