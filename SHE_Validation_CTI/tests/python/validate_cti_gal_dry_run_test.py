@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,11 +28,12 @@ from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
                                          MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
-from SHE_PPT.pipeline_utility import write_config
+from SHE_PPT.pipeline_utility import read_config, write_config, ValidationConfigKeys
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.constants.cti_gal_test_info import D_CTI_GAL_TEST_CASE_INFO, CtiGalTestCases
+from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
+                                                                 D_CTI_GAL_CONFIG_CLINE_ARGS)
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 
@@ -57,8 +58,8 @@ class Args(object):
         self.pipeline_config = None
         self.mdb = MDB_PRODUCT_FILENAME
 
-        for test_case_label in CtiGalTestCases:
-            bin_limits_cline_arg = D_CTI_GAL_TEST_CASE_INFO[test_case_label].bins_cline_arg
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            bin_limits_cline_arg = test_case_info.bins_cline_arg
             if bin_limits_cline_arg is not None:
                 setattr(self, bin_limits_cline_arg, None)
 
@@ -119,7 +120,13 @@ class TestCase:
 
         # Ensure this is a dry run
         self.args.dry_run = True
-        self.args.pipeline_config = None
+        self.args.pipeline_config = read_config(None,
+                                                workdir=self.args.workdir,
+                                                defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                parsed_args=self.args,
+                                                config_keys=ValidationConfigKeys,
+                                                d_types=D_CTI_GAL_CONFIG_TYPES)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
@@ -131,7 +138,13 @@ class TestCase:
 
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
-        self.args.pipeline_config = PIPELINE_CONFIG_FILENAME
+        self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
+                                                workdir=self.args.workdir,
+                                                defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                parsed_args=self.args,
+                                                config_keys=ValidationConfigKeys,
+                                                d_types=D_CTI_GAL_CONFIG_TYPES)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)

@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -37,7 +37,8 @@ from SHE_PPT.table_utility import is_in_format
 from astropy import table
 
 from SHE_Validation.config_utility import get_d_bin_limits
-from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO,\
+    NUM_CTI_GAL_TEST_CASES
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
@@ -105,7 +106,7 @@ def run_validate_cti_gal_from_args(args):
     d_shear_estimate_tables = {}
     for method in ShearEstimationMethods:
 
-        filename = shear_estimates_prod.get_method_filename(method)
+        filename = shear_estimates_prod.get_method_filename(method.value)
 
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
@@ -148,7 +149,7 @@ def run_validate_cti_gal_from_args(args):
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(reference_product=vis_calibrated_frame_product,
-                                                                         l_test_case_info=L_CTI_GAL_TEST_CASE_INFO)
+                                                                         num_tests=NUM_CTI_GAL_TEST_CASES)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
@@ -175,7 +176,7 @@ def run_validate_cti_gal_from_args(args):
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(num_exposures=len(l_vis_calibrated_frame_product),
-                                                                     l_test_case_info=L_CTI_GAL_TEST_CASE_INFO)
+                                                                     num_tests=NUM_CTI_GAL_TEST_CASES)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
@@ -239,7 +240,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # and quadrant where it's found and e1/2 in world coords. We'll start by
     # getting them in a raw format by looping over objects
     l_raw_object_data = get_raw_cti_gal_object_data(data_stack=data_stack,
-                                                    l_shear_estimate_tables=shear_estimate_tables)
+                                                    d_shear_estimate_tables=shear_estimate_tables)
 
     # Now sort the raw data into tables (one for each exposure)
     l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
