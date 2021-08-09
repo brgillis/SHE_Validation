@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -77,7 +77,7 @@ def get_rows_in_bin(object_data_table, bin_parameter, bin_limits):
     else:
 
         # Get the column name
-        colname = getattr(CGOD_TF, D_BIN_PARAMETER_META[bin_parameter].name)
+        colname = getattr(CGOD_TF, D_BIN_PARAMETER_META[bin_parameter].value)
         if not colname in object_data_table.colnames:
             raise ValueError(
                 f"Column {colname} is not preset in object_data_table - make sure it's added earlier " + "in the code.")

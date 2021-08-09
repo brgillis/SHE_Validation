@@ -85,7 +85,7 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
 
         # Data we might bin by
         for bin_parameter in BinParameters:
-            name = D_BIN_PARAMETER_META[bin_parameter].name
+            name = D_BIN_PARAMETER_META[bin_parameter].value
             comment = D_BIN_PARAMETER_META[bin_parameter].comment
             setattr(self, name, self.set_column_properties(name.upper(), comment=comment, is_optional=True))
 

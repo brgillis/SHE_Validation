@@ -129,7 +129,7 @@ class TestCase:
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
                                                                 product_type="EXP",
-                                                                test_case=BinParameters.GLOBAL,)
+                                                                bin_parameter=BinParameters.GLOBAL)
 
         # Check the results
 
@@ -159,7 +159,7 @@ class TestCase:
             for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
                                                                             product_type="OBS",
-                                                                            test_case=test_case,
+                                                                            bin_parameter=test_case.bins,
                                                                             bin_limits=bin_limits)
                 rr_row = bin_regression_results_table[0]
 
