@@ -177,7 +177,7 @@ class FailSigmaCalculator():
             if self.fail_sigma_scaling == FailSigmaScaling.NONE:
                 num_tries = 1
             elif self.fail_sigma_scaling == FailSigmaScaling.BINS:
-                num_tries = self.d_num_bins[test_case_info]
+                num_tries = self.d_num_bins[test_case_info.bins]
             elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASES:
                 num_tries = self.num_test_cases
             elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS:
@@ -185,8 +185,8 @@ class FailSigmaCalculator():
             else:
                 raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
 
-            d_scaled_sigma[test_case_info] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                                num_tries=num_tries)
+            d_scaled_sigma[test_case_info.name] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                                     num_tries=num_tries)
 
         return d_scaled_sigma
 

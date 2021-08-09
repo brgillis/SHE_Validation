@@ -124,40 +124,42 @@ class TestCase:
         first_tcb_global_fail_sigma = None
         first_tcb_local_fail_sigma = None
 
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
             # Check that they increase with increasing number of bins
 
-            assert bin_fail_sigma_calculator.d_scaled_global_sigma[test_case] >= base_global_fail_sigma
-            assert bin_fail_sigma_calculator.d_scaled_local_sigma[test_case] >= base_local_fail_sigma
+            test_case_name = test_case_info.name
 
-            assert tc_fail_sigma_calculator.d_scaled_global_sigma[test_case] > base_global_fail_sigma
-            assert tc_fail_sigma_calculator.d_scaled_local_sigma[test_case] > base_local_fail_sigma
+            assert bin_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] >= base_global_fail_sigma
+            assert bin_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] >= base_local_fail_sigma
 
-            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case] >
-                    bin_fail_sigma_calculator.d_scaled_global_sigma[test_case])
-            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case] >
-                    bin_fail_sigma_calculator.d_scaled_local_sigma[test_case])
+            assert tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] > base_global_fail_sigma
+            assert tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] > base_local_fail_sigma
 
-            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case] >
-                    tc_fail_sigma_calculator.d_scaled_global_sigma[test_case])
-            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case] >
-                    tc_fail_sigma_calculator.d_scaled_local_sigma[test_case])
+            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] >
+                    bin_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
+            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] >
+                    bin_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
+
+            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] >
+                    tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
+            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] >
+                    tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
 
             # Check that all test_cases and test_case_bins fail sigma are equal between test cases
             if first_tc_global_fail_sigma is None:
-                first_tc_global_fail_sigma = tc_fail_sigma_calculator.d_scaled_global_sigma[test_case]
-                first_tc_local_fail_sigma = tc_fail_sigma_calculator.d_scaled_local_sigma[test_case]
-                first_tcb_global_fail_sigma = tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case]
-                first_tcb_local_fail_sigma = tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case]
+                first_tc_global_fail_sigma = tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name]
+                first_tc_local_fail_sigma = tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name]
+                first_tcb_global_fail_sigma = tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name]
+                first_tcb_local_fail_sigma = tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name]
             else:
-                assert np.isclose(tc_fail_sigma_calculator.d_scaled_global_sigma[test_case],
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name],
                                   first_tc_global_fail_sigma)
-                assert np.isclose(tc_fail_sigma_calculator.d_scaled_local_sigma[test_case],
+                assert np.isclose(tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tc_local_fail_sigma)
-                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case],
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name],
                                   first_tcb_global_fail_sigma)
-                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case],
+                assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tcb_local_fail_sigma)
 
     def test_fill_cti_gal_validation_results(self):
@@ -181,12 +183,12 @@ class TestCase:
         base_exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
 
         d_exp_results_tables = {}
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
-            num_bins = len(self.d_bin_limits[test_case.bins]) - 1
-            d_exp_results_tables[test_case.name] = [None] * num_bins
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
+            d_exp_results_tables[test_case_info.name] = [None] * num_bins
             for bin_index in range(num_bins):
                 exp_results_table = deepcopy(base_exp_results_table)
-                d_exp_results_tables[test_case.name][bin_index] = exp_results_table
+                d_exp_results_tables[test_case_info.name][bin_index] = exp_results_table
 
                 # Set up data for each test case
                 for exp_index, exp_results in enumerate(exp_results_list):
@@ -222,12 +224,12 @@ class TestCase:
 
         # Figure out the index for LensMC Global and Colour test results and save it for each check
         test_case_index = 0
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             for method in ShearEstimationMethods:
                 if method == ShearEstimationMethods.LENSMC:
-                    if test_case.bins == BinParameters.GLOBAL:
+                    if test_case_info.bins == BinParameters.GLOBAL:
                         lensmc_global_test_case_index = test_case_index
-                    elif test_case.bins == BinParameters.COLOUR:
+                    elif test_case_info.bins == BinParameters.COLOUR:
                         lensmc_colour_test_case_index = test_case_index
 
                 test_case_index += 1
@@ -353,9 +355,9 @@ class TestCase:
             num_tests=NUM_CTI_GAL_TEST_CASES)
 
         d_obs_results_tables = {}
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
-            num_bins = len(self.d_bin_limits[test_case]) - 1
-            d_obs_results_tables[test_case] = [obs_results_table] * num_bins
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            num_bins = len(self.d_bin_limits[test_case_info]) - 1
+            d_obs_results_tables[test_case_info] = [obs_results_table] * num_bins
 
         fill_cti_gal_validation_results(test_result_product=obs_product,
                                         regression_results_row_index=exp_index,
@@ -370,12 +372,12 @@ class TestCase:
 
         # Check metadata for all test cases
         test_case_index = 0
-        for test_case in L_CTI_GAL_TEST_CASE_INFO:
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             for method in ShearEstimationMethods:
                 obs_test_result = obs_product.Data.ValidationTestList[test_case_index]
-                assert test_case.id in obs_test_result.TestId
+                assert test_case_info.id in obs_test_result.TestId
                 assert method in obs_test_result.TestId
-                assert obs_test_result.TestDescription == test_case.description
+                assert obs_test_result.TestDescription == test_case_info.description
 
                 # Check that the product indeed reports no data
                 assert obs_test_result.GlobalResult == RESULT_PASS
@@ -383,7 +385,7 @@ class TestCase:
                 obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
                 assert obs_info.Parameter[0].Key == KEY_REASON
                 assert obs_info.Parameter[0].Description == DESC_NOT_RUN_REASON
-                if test_case.bins == BinParameters.EPOCH:
+                if test_case_info.bins == BinParameters.EPOCH:
                     assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
                 else:
                     assert obs_info.Parameter[0].StringValue == MSG_NO_DATA

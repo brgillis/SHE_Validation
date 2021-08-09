@@ -34,7 +34,7 @@ from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter,
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
-from .constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO,
+from .constants.cti_gal_test_info import (D_L_CTI_GAL_REQUIREMENT_INFO,
                                           L_CTI_GAL_TEST_CASE_INFO)
 from .table_formats.regression_results import TF as RR_TF
 
@@ -211,7 +211,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         # Report the result based on whether or not the slope passed.
         self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue[0].Parameter = CTI_GAL_REQUIREMENT_INFO.parameter
+        self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
 
         # Check for data quality issues and report as proper if found
         if np.all(self.l_slope_err == 0.):
@@ -260,12 +260,6 @@ class CtiGalTestCaseWriter(TestCaseWriter):
     requirement_writer_type = CtiGalRequirementWriter
     analysis_writer_type = CtiGalAnalysisWriter
 
-    def __init__(self, *args, **kwargs):
-        """ We override __init__ since we'll be using a known set of requirement info.
-        """
-
-        super().__init__(*args, l_requirement_info=CTI_GAL_REQUIREMENT_INFO, **kwargs)
-
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
@@ -285,6 +279,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         super().__init__(test_object=test_object,
                          workdir=workdir,
                          l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                         dl_l_requirement_info=D_L_CTI_GAL_REQUIREMENT_INFO,
                          *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
@@ -304,7 +299,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         l_test_case_bins = self.d_bin_limits[test_case_info.bins]
         l_test_case_regression_results_tables = self.d_regression_results_tables[test_case_info.name]
-        method = test_case_info.method
+        method_name = test_case_info.method.value
 
         num_bins = len(l_test_case_bins) - 1
 
@@ -316,10 +311,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         for bin_index, bin_test_case_regression_results_table in enumerate(l_test_case_regression_results_tables):
             regression_results_row = bin_test_case_regression_results_table[self.regression_results_row_index]
-            l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method}")]
-            l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method}")]
-            l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method}")]
-            l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method}")]
+            l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method_name}")]
+            l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method_name}")]
+            l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method_name}")]
+            l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method_name}")]
             l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
         # For the global case, override the bin limits with None
@@ -334,9 +329,9 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         # The results of this each test will be stored in an item of the ValidationTestList.
         # We'll iterate over the methods, test cases, and bins, and fill in each in turn
 
-        for test_case_info, test_case_writer in zip(self.l_test_case_info, self.test_case_writer):
+        for test_case_info, test_case_writer in zip(self.l_test_case_info, self.l_test_case_writers):
 
-            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma[test_case_info.bins]
+            fail_sigma = self.fail_sigma_calculator.d_scaled_sigma[test_case_info.name]
 
             # Fill in metadata about the test
 

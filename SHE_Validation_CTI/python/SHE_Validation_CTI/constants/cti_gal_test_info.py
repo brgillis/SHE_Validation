@@ -46,3 +46,8 @@ BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="T-SHE-000010-CTI-g
 L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(BASE_CTI_GAL_TEST_CASE_INFO)
 
 NUM_CTI_GAL_TEST_CASES = len(L_CTI_GAL_TEST_CASE_INFO)
+
+# Create a dict of the requirement info
+D_L_CTI_GAL_REQUIREMENT_INFO = {}
+for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+    D_L_CTI_GAL_REQUIREMENT_INFO[test_case_info.name] = CTI_GAL_REQUIREMENT_INFO
