@@ -4,9 +4,8 @@
 
     Unit tests of the input_data.py module
 """
-from copy import deepcopy
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,9 +20,11 @@ __updated__ = "2021-07-16"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 import os
 
-from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
+                                                        D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS)
 from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                          LENSMC_MEASUREMENTS_TABLE_FILENAME)
@@ -78,16 +79,16 @@ class TestCase:
     def test_get_raw_cti_gal_object_data(self):
 
         # Read in the mock shear estimates
-        lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS["LensMC"]
+        lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]
         lensmc_shear_estimates_table = Table.read(os.path.join(
             self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
-        d_shear_estimates_tables = {"KSB": None,
-                                    "LensMC": lensmc_shear_estimates_table,
-                                    "MomentsML": None,
-                                    "REGAUSS": None}
+        d_shear_estimates_tables = {ShearEstimationMethods.KSB: None,
+                                    ShearEstimationMethods.LENSMC: lensmc_shear_estimates_table,
+                                    ShearEstimationMethods.MOMENTSML: None,
+                                    ShearEstimationMethods.REGAUSS: None}
 
         raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack=self.data_stack,
-                                                              shear_estimate_tables=d_shear_estimates_tables)
+                                                              d_shear_estimate_tables=d_shear_estimates_tables)
 
         # Check the results
 
@@ -109,14 +110,14 @@ class TestCase:
 
             # Check that the world shear info is correct
 
-            lensmc_world_shear_info = object_data.world_shear_info["LensMC"]
+            lensmc_world_shear_info = object_data.world_shear_info[ShearEstimationMethods.LENSMC]
             assert lensmc_world_shear_info.g1 == lmcm_row[lmcm_tf.g1]
             assert lensmc_world_shear_info.g2 == lmcm_row[lmcm_tf.g2]
             assert lensmc_world_shear_info.weight == lmcm_row[lmcm_tf.weight]
 
-            assert np.isnan(object_data.world_shear_info["KSB"].g1)
-            assert np.isnan(object_data.world_shear_info["MomentsML"].g1)
-            assert np.isnan(object_data.world_shear_info["REGAUSS"].g1)
+            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.KSB].g1)
+            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.MOMENTSML].g1)
+            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
             # Check the shear info for each exposure
             ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width=1)
@@ -140,21 +141,21 @@ class TestCase:
                 assert position_info.det_iy == 1
                 assert position_info.quadrant == "E"
 
-                lensmc_exposure_shear_info = position_info.exposure_shear_info["LensMC"]
+                lensmc_exposure_shear_info = position_info.exposure_shear_info[ShearEstimationMethods.LENSMC]
 
                 # No rotation here, so all shear values should be the same as the world value
                 assert lensmc_exposure_shear_info.g1 == lmcm_row[lmcm_tf.g1]
                 assert lensmc_exposure_shear_info.g2 == lmcm_row[lmcm_tf.g2]
                 assert lensmc_exposure_shear_info.weight == lmcm_row[lmcm_tf.weight]
 
-                assert np.isnan(position_info.exposure_shear_info["KSB"].g1)
-                assert np.isnan(position_info.exposure_shear_info["MomentsML"].g1)
-                assert np.isnan(position_info.exposure_shear_info["REGAUSS"].g1)
+                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.KSB].g1)
+                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.MOMENTSML].g1)
+                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
     def test_sort_raw_object_data_into_table(self):
 
         # Set up test data
-        raw_object_data_list = []
+        l_raw_object_data = []
         num_exposures = 4
 
         dx_dexp = 100
@@ -194,30 +195,30 @@ class TestCase:
                 assert np.isclose(bg_level, self.ex_bg_level)
             assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
 
-            object_data.world_shear_info["LensMC"] = ShearEstimate(g1=g1,
-                                                                   g2=g2,
-                                                                   weight=weight)
-            object_data.world_shear_info["KSB"] = ShearEstimate()
-            object_data.world_shear_info["MomentsML"] = ShearEstimate()
-            object_data.world_shear_info["REGAUSS"] = ShearEstimate()
+            object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
+                                                                                        g2=g2,
+                                                                                        weight=weight)
+            object_data.world_shear_info[ShearEstimationMethods.KSB] = ShearEstimate()
+            object_data.world_shear_info[ShearEstimationMethods.MOMENTSML] = ShearEstimate()
+            object_data.world_shear_info[ShearEstimationMethods.REGAUSS] = ShearEstimate()
 
             for exp_index in range(num_exposures):
                 position_info = PositionInfo()
                 position_info.x_pix = x + dx_dexp * exp_index
                 position_info.y_pix = y + dy_dexp * exp_index
-                position_info.exposure_shear_info["LensMC"] = ShearEstimate(g1=g1 + dg1_dexp * exp_index,
-                                                                            g2=g2 + dg2_dexp * exp_index,
-                                                                            weight=weight + dweight_dexp * exp_index)
+                position_info.exposure_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1 + dg1_dexp * exp_index,
+                                                                                                 g2=g2 + dg2_dexp * exp_index,
+                                                                                                 weight=weight + dweight_dexp * exp_index)
                 object_data.position_info[exp_index] = position_info
 
-            raw_object_data_list.append(object_data)
+            l_raw_object_data.append(object_data)
 
-        object_data_table_list = sort_raw_object_data_into_table(raw_object_data_list=raw_object_data_list)
+        object_data_table_list = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
 
         # Check that the tables are as expected
         for exp_index, object_data_table in enumerate(object_data_table_list):
 
-            for object_data, row in zip(raw_object_data_list, object_data_table):
+            for object_data, row in zip(l_raw_object_data, object_data_table):
 
                 assert object_data.id == row[CGOD_TF.ID]
 
@@ -227,9 +228,9 @@ class TestCase:
 
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g1,
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g1,
                                   row[getattr(CGOD_TF, "g1_image_LensMC")])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].g2,
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g2,
                                   row[getattr(CGOD_TF, "g2_image_LensMC")])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info["LensMC"].weight,
+                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].weight,
                                   row[getattr(CGOD_TF, "weight_LensMC")])
