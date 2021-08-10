@@ -4,26 +4,6 @@
 
     Utility functions for Shear Bias validation, for reporting results.
 """
-from copy import deepcopy
-from typing import Dict, List,  Any, Callable, Union
-
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, NUM_METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import BiasMeasurements
-
-from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
-                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import get_prop_from_id
-from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
-from .constants.shear_bias_test_info import (ShearBiasTestCases,
-                                             L_SHEAR_BIAS_TEST_CASE_INFO,
-                                             D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
-
 
 __updated__ = "2021-08-10"
 
@@ -40,6 +20,24 @@ __updated__ = "2021-08-10"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from typing import Dict, List,  Any, Callable, Optional, Union
+
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import BiasMeasurements
+
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
+                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
+                                           WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import get_prop_from_id
+from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
+import numpy as np
+
+from .constants.shear_bias_test_info import (ShearBiasTestCases,
+                                             L_SHEAR_BIAS_TEST_CASE_INFO,
+                                             D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
 
 logger = getLogger(__name__)
 
@@ -67,15 +65,16 @@ class ShearBiasRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
 
-    prop = None
-    val = None
-    val_err = None
-    val_target = None
-    val_z = None
-    fail_sigma = None
-    test_pass = None
-    result = None
-    good_data = None
+    # Attributes set and used while writing
+    prop: Optional[ShearBiasTestCases] = None
+    val: Optional[Dict[int, float]] = None
+    val_err: Optional[Dict[int, float]] = None
+    val_target: Optional[float] = None
+    val_z: Optional[Dict[int, float]] = None
+    fail_sigma: Optional[float] = None
+    test_pass: Optional[Dict[int, bool]] = None
+    result: Optional[Dict[int, str]] = None
+    good_data: Optional[Dict[int, bool]] = None
 
     def _get_supplementary_info(self,
                                 extra_g1_message: str = "",
@@ -88,24 +87,24 @@ class ShearBiasRequirementWriter(RequirementWriter):
             extra_g2_message = extra_g2_message + "\n"
 
         # Set up result messages for each component
-        messages = {1: extra_g1_message + "\n",
-                    2: extra_g2_message + "\n"}
+        d_messages: Dict[int, str] = {1: extra_g1_message + "\n",
+                                      2: extra_g2_message + "\n"}
         for i in (1, 2):
 
-            messages[i] += (f"{self.prop}{i} = {self.val[i]}\n" +
-                            f"{self.prop}{i}_err = {self.val_err[i]}\n" +
-                            f"{self.prop}{i}_z = {self.val_z[i]}\n" +
-                            f"Maximum allowed {self.prop}_z = {self.fail_sigma}\n" +
-                            f"Result: {self.result[i]}\n\n")
+            d_messages[i] += (f"{self.prop}{i} = {self.val[i]}\n" +
+                              f"{self.prop}{i}_err = {self.val_err[i]}\n" +
+                              f"{self.prop}{i}_z = {self.val_z[i]}\n" +
+                              f"Maximum allowed {self.prop}_z = {self.fail_sigma}\n" +
+                              f"Result: {self.result[i]}\n\n")
 
-        supplementary_info = (SupplementaryInfo(key=KEY_G1_INFO,
-                                                description=D_DESC_INFO[f"{self.prop}1"],
-                                                message=messages[1]),
-                              SupplementaryInfo(key=KEY_G2_INFO,
-                                                description=D_DESC_INFO[f"{self.prop}2"],
-                                                message=messages[2]))
+        l_supplementary_info = (SupplementaryInfo(key=KEY_G1_INFO,
+                                                  description=D_DESC_INFO[f"{self.prop}1"],
+                                                  message=d_messages[1]),
+                                SupplementaryInfo(key=KEY_G2_INFO,
+                                                  description=D_DESC_INFO[f"{self.prop}2"],
+                                                  message=d_messages[2]))
 
-        return supplementary_info
+        return l_supplementary_info
 
     def report_bad_data(self):
 
@@ -122,15 +121,15 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_supplementary_info(extra_g1_message=MSG_ZERO_ERR,
-                                                            extra_g2_message=MSG_ZERO_ERR,)
+        l_supplementary_info: List[SupplementaryInfo] = self._get_supplementary_info(extra_g1_message=MSG_ZERO_ERR,
+                                                                                     extra_g2_message=MSG_ZERO_ERR,)
         self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self,
                          measured_value: float):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_supplementary_info()
+        l_supplementary_info: List[SupplementaryInfo] = self._get_supplementary_info()
         super().report_good_data(measured_value=measured_value,
                                  warning=False,
                                  l_supplementary_info=l_supplementary_info)
@@ -143,7 +142,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.test_pass = {}
         self.result = {}
         self.good_data = {}
-        some_good_data = False
+        some_good_data: bool = False
 
         for i in (1, 2):
             if (np.isnan(self.val[i]) or np.isnan(self.val_err[i])):
@@ -170,13 +169,13 @@ class ShearBiasRequirementWriter(RequirementWriter):
     def write(self,
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
-              prop: Dict[int, float] = None,
-              val: Dict[int, float] = None,
-              val_err: Dict[int, float] = None,
-              val_target: float = None,
-              val_z: Dict[int, float] = None,
-              fail_sigma: float = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+              prop: Optional[ShearBiasTestCases] = None,
+              val: Optional[Dict[int, float]] = None,
+              val_err: Optional[Dict[int, float]] = None,
+              val_target: Optional[float] = None,
+              val_z: Optional[Dict[int, float]] = None,
+              fail_sigma: Optional[float] = None,
+              report_kwargs: Optional[Dict[str, Any]] = None) -> str:
 
         self.prop = prop
         self.val = val
@@ -185,7 +184,12 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.val_z = val_z
         self.fail_sigma = fail_sigma
 
-        # Default to reporting good data if we're not told otherwise
+        # This implementation determines report_method here, so any setting of it is improper
+        if report_method:
+            raise ValueError("The ShearBiasRequirementWriter determines the report method - it shouldn't be passed to "
+                             "the write method of it.")
+
+        # Default to reporting good data
         if report_method is None:
             report_method = self.report_good_data
 
@@ -202,14 +206,15 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self._calc_test_results()
 
         # Report the result based on whether or not bothc components passed
-        test_pass = self.test_pass[1] and self.test_pass[2]
+        test_pass: bool = self.test_pass[1] and self.test_pass[2]
+        result: str
         if test_pass:
             result = RESULT_PASS
         else:
             result = RESULT_FAIL
         self.requirement_object.ValidationResult = result
 
-        parameter = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(self.prop)].parameter
+        parameter: str = self.requirement_info.parameter
 
         self.requirement_object.MeasuredValue[0].Parameter = parameter
 
