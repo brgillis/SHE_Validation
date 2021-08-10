@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,23 +23,57 @@ __updated__ = "2021-08-09"
 import os
 import subprocess
 
+from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
+                                                        D_MATCHED_CATALOG_TABLE_FORMATS,
+                                                        D_MATCHED_CATALOG_TABLE_INITIALISERS)
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import write_config
-
+from astropy.table import Table
 import pytest
+
 from SHE_Validation.constants.default_config import (ValidationConfigKeys,
                                                      ExecutionMode)
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
+
 
 # Pipeline config filename
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
 MATCHED_CATALOG_FILENAME = "shear_bias_matched_catalog.xml"
 
 # Output data filenames
-
 SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
+
+# Test data description
+
+# Info about the shear estimation method and its associated tables
+TEST_METHOD = ShearEstimationMethods.LENSMC
+MATCHED_TF = D_MATCHED_CATALOG_TABLE_FORMATS[TEST_METHOD]
+MATCHED_INIT = D_MATCHED_CATALOG_TABLE_INITIALISERS[TEST_METHOD]
+
+# Input shear info
+INPUT_SEED = 124515
+NUM_TEST_POINTS = 1000
+INPUT_G_MIN = -0.9
+INPUT_G_MAX = 0.9
+
+# Estimated shear info
+EST_SEED = 6413
+EST_G_ERR = 0.25
+EXTRA_EST_G_ERR = 0.05
+EXTRA_EST_G_ERR_ERR = 0.05
+G1_M = 0.05
+G1_C = -0.2
+G2_M = -0.1
+G2_C = 0.01
+
+
+def make_mock_matched_table() -> Table:
+    """ Function to generate a mock matched catalog table.
+    """
+    # TODO: Fill in
+    pass
 
 
 class Args(object):
