@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,8 @@ import os
 from typing import Dict, List, Optional, Sequence
 
 from SHE_PPT import file_io
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, linregress_with_errors
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
@@ -39,11 +40,6 @@ import numpy as np
 
 
 logger = getLogger(__name__)
-
-
-galcat_gamma1_colname: str = "GAMMA1"
-galcat_gamma2_colname: str = "GAMMA2"
-galcat_kappa_colname: str = "KAPPA"
 
 TITLE_FONTSIZE: float = 12
 AXISLABEL_FONTSIZE: float = 12
@@ -90,7 +86,7 @@ class ShearBiasPlotter(ValidationPlotter):
         self.workdir = workdir
 
         # Determine attrs from kwargs
-        self.sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        self.sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
         # Read in each table and get the data we need out of it
         l_g1_in: List[Column] = []
@@ -114,10 +110,10 @@ class ShearBiasPlotter(ValidationPlotter):
 
             good_rows: Sequence[bool] = gal_matched_table[self.sem_tf.fit_flags] == 0
 
-            l_g1_in.append(-(gal_matched_table[galcat_gamma1_colname] /
-                             (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
-            l_g2_in.append((gal_matched_table[galcat_gamma2_colname] /
-                            (1 - gal_matched_table[galcat_kappa_colname]))[good_rows])
+            l_g1_in.append(-(gal_matched_table[self.sem_tf.tu_gamma1] /
+                             (1 - gal_matched_table[self.sem_tf.tu_kappa]))[good_rows])
+            l_g2_in.append((gal_matched_table[self.sem_tf.tu_gamma2] /
+                            (1 - gal_matched_table[self.sem_tf.tu_kappa]))[good_rows])
 
             l_g1_out.append((gal_matched_table[self.sem_tf.g1])[good_rows])
             l_g2_out.append((gal_matched_table[self.sem_tf.g2])[good_rows])
