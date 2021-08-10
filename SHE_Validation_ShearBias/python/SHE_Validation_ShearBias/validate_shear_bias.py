@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2021-08-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,15 +24,14 @@ import os
 
 from SHE_PPT import file_io
 from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 
-from SHE_Validation.constants.default_config import (LOCAL_MODE, GLOBAL_MODE,
-                                                     DEFAULT_BIN_LIMITS)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import NUM_METHOD_SHEAR_BIAS_TEST_CASES,\
-    ShearBiasTestCases
+from SHE_Validation.constants.default_config import (ExecutionMode, DEFAULT_BIN_LIMITS)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
+                                                                     ShearBiasTestCases)
 
 from .plot_shear_bias import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_validation_results
@@ -65,11 +64,11 @@ def validate_shear_bias_from_args(args, mode):
     pipeline_config = fix_pipeline_config_types(args.pipeline_config)
 
     # Get the list of matched catalog products to be read in, depending on mode
-    if mode == LOCAL_MODE:
+    if mode == ExecutionMode.LOCAL:
         # In local mode, read in the one product and put it in a list of one item
         logger.info(f"Using matched data from product {args.matched_catalog}")
         l_matched_catalog_product_filenames = [args.matched_catalog]
-    elif mode == GLOBAL_MODE:
+    elif mode == ExecutionMode.GLOBAL:
         # In global mode, read in the listfile to get the list of filenames
         logger.info(f"Using matched data from products in listfile {args.matched_catalog_listfile}")
         qualified_matched_catalog_listfile_filename = file_io.find_file(args.matched_catalog_listfile,
@@ -82,7 +81,7 @@ def validate_shear_bias_from_args(args, mode):
 
     # Init lists of filenames for each method
     d_method_l_table_filenames = {}
-    for method in METHODS:
+    for method in ShearEstimationMethods:
         d_method_l_table_filenames[method] = [None] * num_matched_catalogs
 
     # Read in the table filenames from each product, for each method
@@ -97,14 +96,14 @@ def validate_shear_bias_from_args(args, mode):
 
     # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
-    plot_filenames = [None] * NUM_METHOD_SHEAR_BIAS_TEST_CASES
+    plot_filenames = [None] * NUM_SHEAR_BIAS_TEST_CASES
     d_bias_measurements = {}
 
     # Keep track if we have valid data for any method
     data_exists = False
 
     # Perform validation for each shear estimation method
-    for method_index, method in enumerate(METHODS):
+    for method_index, method in enumerate(ShearEstimationMethods):
 
         plot_filenames[method_index] = {}
 
@@ -135,7 +134,7 @@ def validate_shear_bias_from_args(args, mode):
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
-    test_result_product = create_validation_test_results_product(num_tests=NUM_METHOD_SHEAR_BIAS_TEST_CASES)
+    test_result_product = create_validation_test_results_product(num_tests=NUM_SHEAR_BIAS_TEST_CASES)
     test_result_product.Data.TileId = None
     test_result_product.Data.PointingId = None
     test_result_product.Data.ExposureProductId = None

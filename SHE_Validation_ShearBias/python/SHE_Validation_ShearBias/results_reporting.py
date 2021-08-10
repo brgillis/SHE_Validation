@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-07-28"
+__updated__ = "2021-08-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,23 +23,22 @@ __updated__ = "2021-07-28"
 from copy import deepcopy
 from typing import Dict, List,  Any, Callable, Union
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS, NUM_METHODS
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, NUM_METHODS
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 
-from SHE_Validation.constants.default_config import LOCAL_MODE
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.constants.test_info import TestCaseInfo
 from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
                                            TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
                                            WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
-from SHE_Validation.test_info import TestCaseInfo
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 import numpy as np
 
-from .constants.shear_bias_test_info import (D_SHEAR_BIAS_REQUIREMENT_INFO,
-                                             ShearBiasTestCases,
-                                             D_SHEAR_BIAS_TEST_CASE_INFO,
-                                             SHEAR_BIAS_TEST_CASE_M_INFO,
-                                             SHEAR_BIAS_TEST_CASE_C_INFO)
+from .constants.shear_bias_test_info import (ShearBiasTestCases,
+                                             L_SHEAR_BIAS_TEST_CASE_INFO,
+                                             D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
+
 
 logger = getLogger(__name__)
 
@@ -135,9 +134,8 @@ class ShearBiasRequirementWriter(RequirementWriter):
                                  warning=False,
                                  l_supplementary_info=l_supplementary_info)
 
-    def _calc_test_results(self,
-                           i: int):
-        """ Calculate the test results for either component
+    def _calc_test_results(self):
+        """ Calculate the test results
         """
 
         # Init each of pass and result as empty dicts
@@ -200,8 +198,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
             return RESULT_PASS
 
         # Calculate test results for both components
-        for i in (1, 2):
-            self._calc_test_results(i)
+        self._calc_test_results()
 
         # Report the result based on whether or not bothc components passed
         test_pass = self.test_pass[1] and self.test_pass[2]
@@ -352,7 +349,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
             fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode}_sigma")[test_case]
 
-            for method in METHODS:
+            for method in ShearEstimationMethods:
 
                 test_case_writer = self.l_test_case_writers[test_case_index]
                 test_case_writer.method = method
@@ -416,7 +413,7 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                        figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                       List[Union[Dict[str, str], List[str]]], ] = None,
                                        data_exists: bool = True,
-                                       mode: str = LOCAL_MODE):
+                                       mode: str = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
