@@ -234,34 +234,6 @@ class ShearBiasRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
-class ShearBiasAnalysisWriter(AnalysisWriter):
-    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
-    """
-
-    method = None
-
-    def __init__(self, method, *args, **kwargs):
-        super().__init__(product_type="SHEAR-BIAS-ANALYSIS-FILES",
-                         *args, **kwargs)
-
-        self.method = method
-
-    def _get_filename_tag(self):
-        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
-        """
-        return self.method
-
-    def _generate_directory_filename(self):
-        """ Overriding method to generate a filename for a directory file.
-        """
-        self.directory_filename = SHEAR_BIAS_DIRECTORY_FILENAME
-
-    def _get_directory_header(self):
-        """ Overriding method to get the desired header for a directory file.
-        """
-        return SHEAR_BIAS_DIRECTORY_HEADER
-
-
 class ShearBiasTestCaseWriter(TestCaseWriter):
 
     method = None
@@ -303,6 +275,36 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
         self.analysis_writer.method = self.method
         super().write(*args, **kwargs)
+
+
+class ShearBiasAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+    """
+
+    method: ShearEstimationMethods
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 *args, **kwargs):
+        super().__init__(product_type="SHEAR-BIAS-ANALYSIS-FILES",
+                         *args, **kwargs)
+
+        self.method = method
+
+    def _get_filename_tag(self):
+        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
+        """
+        return self.method.value
+
+    def _generate_directory_filename(self):
+        """ Overriding method to generate a filename for a directory file.
+        """
+        self.directory_filename = SHEAR_BIAS_DIRECTORY_FILENAME
+
+    def _get_directory_header(self):
+        """ Overriding method to get the desired header for a directory file.
+        """
+        return SHEAR_BIAS_DIRECTORY_HEADER
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
