@@ -234,49 +234,6 @@ class ShearBiasRequirementWriter(RequirementWriter):
                              report_kwargs={**report_kwargs, **extra_report_kwargs},)
 
 
-class ShearBiasTestCaseWriter(TestCaseWriter):
-
-    method = None
-
-    def __init__(self,
-                 parent_validation_writer: "ShearBiasValidationResultsWriter",
-                 test_case_object,
-                 test_case_info: TestCaseInfo,
-                 method=None,
-                 *args, **kwargs):
-        """ We override __init__ since we'll be using a known set of requirement info.
-        """
-
-        # Get whether we're doing m or c from the last letter of the test case id
-        prop = test_case_info.test_case_id[-1]
-        requirement_info = D_SHEAR_BIAS_REQUIREMENT_INFO[ShearBiasTestCases(prop)]
-
-        self.method = method
-
-        super().__init__(parent_validation_writer,
-                         test_case_object,
-                         test_case_info,
-                         l_requirement_info=requirement_info,
-                         *args, **kwargs)
-
-    def _init_requirement_writer(self, **kwargs) -> ShearBiasRequirementWriter:
-        """ We override the _init_requirement_writer method to create a writer of the inherited type.
-        """
-        return ShearBiasRequirementWriter(self, **kwargs)
-
-    def _init_analysis_writer(self, **kwargs) -> ShearBiasAnalysisWriter:
-        """ We override the _init_analysis_writer method to create a writer of the inherited type.
-        """
-        return ShearBiasAnalysisWriter(parent_test_case_writer=self, method=self.method, **kwargs)
-
-    def write(self, *args, **kwargs):
-        """ Need to override write here to make sure that 'method' is properly set up for each analysis writer.
-        """
-
-        self.analysis_writer.method = self.method
-        super().write(*args, **kwargs)
-
-
 class ShearBiasAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for this test.
     """
@@ -284,12 +241,12 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     method: ShearEstimationMethods
 
     def __init__(self,
-                 method: ShearEstimationMethods,
                  *args, **kwargs):
         super().__init__(product_type="SHEAR-BIAS-ANALYSIS-FILES",
                          *args, **kwargs)
 
-        self.method = method
+        # Get the shear estimation method from the parent's test case info
+        self.method = self.parent_test_case_writer.test_case_info.method
 
     def _get_filename_tag(self):
         """ Overriding method to get a tag to add to figure/textfile filenames with method name.
@@ -305,6 +262,12 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
         """ Overriding method to get the desired header for a directory file.
         """
         return SHEAR_BIAS_DIRECTORY_HEADER
+
+
+class ShearBiasTestCaseWriter(TestCaseWriter):
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = ShearBiasRequirementWriter
+    analysis_writer_type = ShearBiasAnalysisWriter
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
