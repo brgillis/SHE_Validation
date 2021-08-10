@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -67,12 +67,23 @@ L_SHEAR_BIAS_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods([BASE_SHE
 
 NUM_SHEAR_BIAS_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_INFO)
 
+
+def get_prop_from_id(test_case_id: str):
+    """ Utility function to determine whether a test case refers to M or C from the test case ID.
+    """
+    if M_TEST_CASE_ID in test_case_info.id:
+        return ShearBiasTestCases.M
+    elif C_TEST_CASE_ID in test_case_info.id:
+        return ShearBiasTestCases.C
+    else:
+        raise ValueError(f"Unrecognized test case ID: {test_case_id}")
+
+
 # Create a dict of the requirement info
 D_L_SHEAR_BIAS_REQUIREMENT_INFO = {}
 for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
-    if M_TEST_CASE_ID in test_case_info.id:
+    prop = get_prop_from_id(test_case_info.id)
+    if prop == ShearBiasTestCases.M:
         D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_M_REQUIREMENT_INFO
-    elif C_TEST_CASE_ID in test_case_info.id:
-        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_C_REQUIREMENT_INFO
     else:
-        raise ValueError(f"Unrecognized test case ID: {test_case_info.id}")
+        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_C_REQUIREMENT_INFO

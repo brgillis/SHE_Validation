@@ -4,6 +4,26 @@
 
     Utility functions for Shear Bias validation, for reporting results.
 """
+from copy import deepcopy
+from typing import Dict, List,  Any, Callable, Union
+
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, NUM_METHODS
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import BiasMeasurements
+
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
+                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
+                                           WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import get_prop_from_id
+from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
+import numpy as np
+
+from .constants.shear_bias_test_info import (ShearBiasTestCases,
+                                             L_SHEAR_BIAS_TEST_CASE_INFO,
+                                             D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
+
 
 __updated__ = "2021-08-10"
 
@@ -19,25 +39,6 @@ __updated__ = "2021-08-10"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-from copy import deepcopy
-from typing import Dict, List,  Any, Callable, Union
-
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, NUM_METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import BiasMeasurements
-
-from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation.constants.test_info import TestCaseInfo
-from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
-                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NO_DATA, FailSigmaCalculator)
-from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
-from .constants.shear_bias_test_info import (ShearBiasTestCases,
-                                             L_SHEAR_BIAS_TEST_CASE_INFO,
-                                             D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
 
 
 logger = getLogger(__name__)
@@ -305,33 +306,29 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
+
+    # Types of child classes
+    test_case_writer_type = ShearBiasTestCaseWriter
+
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
                  d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 data_exists: bool = True,
-                 mode: str = LOCAL_MODE,
+                 method_data_exists: bool = True,
+                 mode: ExecutionMode = ExecutionMode,
                  *args, **kwargs):
-
-        # Initialise a list of test case info. We'll have one m for each method, and one c for each method
-        l_test_case_info = [SHEAR_BIAS_TEST_CASE_M_INFO] * NUM_METHODS + [SHEAR_BIAS_TEST_CASE_C_INFO] * NUM_METHODS
 
         super().__init__(test_object=test_object,
                          workdir=workdir,
-                         num_test_cases=None,
-                         l_test_case_info=l_test_case_info, *args, **kwargs)
+                         l_test_case_info=L_SHEAR_BIAS_TEST_CASE_INFO,
+                         dl_l_requirement_info=D_L_SHEAR_BIAS_REQUIREMENT_INFO,
+                         *args, **kwargs)
 
         self.d_bias_measurements = d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.data_exists = data_exists
+        self.method_data_exists = method_data_exists
         self.mode = mode
-
-    def _init_test_case_writer(self, **kwargs):
-        """ Override _init_test_case_writer to create a ShearBiasTestCaseWriter. Note that we don't
-            set their method attributes here, but rather in the write method, before calling it to write.
-        """
-        return ShearBiasTestCaseWriter(self, **kwargs)
 
     def write_test_case_objects(self):
         """ Writes all data for each requirement subobject, modifying self._test_object.
@@ -339,86 +336,68 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
         # The results of this each test will be stored in an item of the ValidationTestList.
         # We'll iterate over the methods, test cases, and bins, and fill in each in turn
 
-        test_case_index = 0
+        for test_case_info, test_case_writer in zip(self.l_test_case_info, self.l_test_case_writers):
 
-        for test_case in ShearBiasTestCases:
+            test_case_name = test_case_info.name
 
             # Get whether this relates to m or c from the test case info's test_case_id's last letter
-            test_case_info = D_SHEAR_BIAS_TEST_CASE_INFO[test_case]
-            prop = test_case_info.test_case_id[-1]
+            prop = get_prop_from_id(test_case_info.id)
 
-            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode}_sigma")[test_case]
+            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode}_sigma")[test_case_info.name]
 
-            for method in ShearEstimationMethods:
+            # Fill in metadata about the test
 
-                test_case_writer = self.l_test_case_writers[test_case_index]
-                test_case_writer.method = method
+            requirement_writer = test_case_writer.l_requirement_writers[0]
 
-                # Use a modified test case info object to describe this test, clarifying it's
-                # just for this method
-                method_test_case_info = deepcopy(test_case_info)
-                method_test_case_info._test_case_id = method_test_case_info.id + "-" + method
+            if self.data_exists and test_case_info.bins != BinParameters.EPOCH:
 
-                test_case_writer._test_case_info = method_test_case_info
+                d_test_case_bias_measurements = self.d_bias_measurements[test_case_name]
 
-                # Fill in metadata about the test
+                val = {1: getattr(d_test_case_bias_measurements[1], prop),
+                       2: getattr(d_test_case_bias_measurements[2], prop)}
+                val_err = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
+                           2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
+                val_target = getattr(d_test_case_bias_measurements[1], f"{prop}_target")
+                val_z = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
+                         2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
 
-                requirement_writer = test_case_writer.l_requirement_writers[0]
+                report_method = None
+                report_kwargs = {}
+                write_kwargs = {"have_data": True,
+                                "prop": prop,
+                                "val": val,
+                                "val_err": val_err,
+                                "val_target": val_target,
+                                "val_z": val_z,
+                                "fail_sigma": fail_sigma}
 
-                if method in self.d_bias_measurements:
-                    d_method_bias_measurements = self.d_bias_measurements[method]
-                    method_data_exists = True
-                else:
-                    method_data_exists = False
+            else:
+                # Report that the test wasn't run due to a lack of data
+                report_method = requirement_writer.report_test_not_run
+                report_kwargs = {"reason": MSG_NO_DATA}
+                write_kwargs = {}
 
-                if self.data_exists and method_data_exists:
+            write_kwargs["report_method"] = report_method
+            write_kwargs["report_kwargs"] = report_kwargs
 
-                    val = {1: getattr(d_method_bias_measurements[1], prop),
-                           2: getattr(d_method_bias_measurements[2], prop)}
-                    val_err = {1: getattr(d_method_bias_measurements[1], f"{prop}_err"),
-                               2: getattr(d_method_bias_measurements[2], f"{prop}_err")}
-                    val_target = getattr(d_method_bias_measurements[1], f"{prop}_target")
-                    val_z = {1: getattr(d_method_bias_measurements[1], f"{prop}_sigma"),
-                             2: getattr(d_method_bias_measurements[2], f"{prop}_sigma")}
-
-                    report_method = None
-                    report_kwargs = {}
-                    write_kwargs = {"have_data": True,
-                                    "prop": prop,
-                                    "val": val,
-                                    "val_err": val_err,
-                                    "val_target": val_target,
-                                    "val_z": val_z,
-                                    "fail_sigma": fail_sigma}
-
-                else:
-                    # Report that the test wasn't run due to a lack of data
-                    report_method = requirement_writer.report_test_not_run
-                    report_kwargs = {"reason": MSG_NO_DATA}
-                    write_kwargs = {}
-
-                write_kwargs["report_method"] = report_method
-                write_kwargs["report_kwargs"] = report_kwargs
-
-                test_case_writer.write(requirements_kwargs=write_kwargs,)
-
-                test_case_index += 1
+            test_case_writer.write(requirements_kwargs=write_kwargs,)
 
 
 def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTestResults,
                                        d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                                        pipeline_config: Dict[str, Any],
-                                       d_bin_limits: Dict[str, np.ndarray],
+                                       d_bin_limits: Dict[BinParameters, np.ndarray],
                                        workdir: str,
-                                       figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                      List[Union[Dict[str, str], List[str]]], ] = None,
-                                       data_exists: bool = True,
-                                       mode: str = ExecutionMode.LOCAL):
+                                       dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                           List[Union[Dict[str, str], List[str]]], ] = None,
+                                       method_data_exists: bool = True,
+                                       mode: ExecutionMode = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
+                                                l_test_case_info=L_SHEAR_BIAS_TEST_CASE_INFO,
                                                 d_bin_limits=d_bin_limits,
                                                 mode=mode)
 
@@ -427,7 +406,8 @@ def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTest
                                                            workdir=workdir,
                                                            d_bias_measurements=d_bias_measurements,
                                                            fail_sigma_calculator=fail_sigma_calculator,
-                                                           data_exists=data_exists,
-                                                           figures=figures,)
+                                                           method_data_exists=method_data_exists,
+                                                           dl_l_figures=dl_l_figures,
+                                                           mode=mode)
 
     test_results_writer.write()
