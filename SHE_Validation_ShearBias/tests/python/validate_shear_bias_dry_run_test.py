@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,41 +22,44 @@ __updated__ = "2021-08-10"
 
 import os
 import subprocess
+from SHE_PPT import products
 
 from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
-                                                        D_MATCHED_CATALOG_TABLE_FORMATS,
-                                                        D_MATCHED_CATALOG_TABLE_INITIALISERS)
-from SHE_PPT.file_io import read_xml_product
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        )
+from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.pipeline_utility import write_config
+from SHE_PPT.table_utility import SheTableFormat
 from astropy.table import Table
 import pytest
 
 from SHE_Validation.constants.default_config import (ValidationConfigKeys,
                                                      ExecutionMode)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import L_SHEAR_BIAS_TEST_CASE_INFO
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
+import numpy as np
 
 
-# Pipeline config filename
+# Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
-MATCHED_CATALOG_FILENAME = "shear_bias_matched_catalog.xml"
+MATCHED_CATALOG_PRODUCT_FILENAME = "shear_bias_matched_catalog.xml"
+MATCHED_CATALOG_FILENAME = "shear_bias_matched_catalog.fits"
 
-# Output data filenames
-SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
-SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
+# Output data filename
+SHE_BIAS_TEST_RESULT_FILENAME = "she_observation_validation_test_results.xml"
 
 # Test data description
 
 # Info about the shear estimation method and its associated tables
 TEST_METHOD = ShearEstimationMethods.LENSMC
-MATCHED_TF = D_MATCHED_CATALOG_TABLE_FORMATS[TEST_METHOD]
-MATCHED_INIT = D_MATCHED_CATALOG_TABLE_INITIALISERS[TEST_METHOD]
+MATCHED_TF = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[TEST_METHOD]
+MATCHED_INIT = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[TEST_METHOD].init_table
 
 # Input shear info
-INPUT_SEED = 124515
 NUM_TEST_POINTS = 1000
-INPUT_G_MIN = -0.9
-INPUT_G_MAX = 0.9
+INPUT_G_MIN = -0.7
+INPUT_G_MAX = 0.7
 
 # Estimated shear info
 EST_SEED = 6413
@@ -69,11 +72,36 @@ G2_M = -0.1
 G2_C = 0.01
 
 
-def make_mock_matched_table() -> Table:
+def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
+                            seed: int = EST_SEED) -> Table:
     """ Function to generate a mock matched catalog table.
     """
-    # TODO: Fill in
-    pass
+
+    # Seed the random number generator
+    rng = np.random.default_rng(seed)
+
+    # Create the table
+    matched_table = tf.init_table(size=NUM_TEST_POINTS)
+
+    # Fill in rows with input data
+    matched_table[tf.tu_gamma1] = np.linspace(INPUT_G_MIN, INPUT_G_MAX, NUM_TEST_POINTS)
+    matched_table[tf.tu_gamma2] = np.linspace(INPUT_G_MAX, INPUT_G_MIN, NUM_TEST_POINTS)
+    matched_table[tf.tu_kappa] = np.zeros_like(matched_table[MATCHED_TF.tu_gamma1])
+
+    # Generate random noise for output data
+    l_extra_g_err = EXTRA_EST_G_ERR + EXTRA_EST_G_ERR_ERR * rng.standard_normal(NUM_TEST_POINTS)
+    l_g_err = np.sqrt(EST_G_ERR**2 + l_extra_g_err**2)
+    l_g1_deviates = l_g_err * rng.standard_normal(NUM_TEST_POINTS)
+    l_g2_deviates = l_g_err * rng.standard_normal(NUM_TEST_POINTS)
+
+    # Fill in rows with mock output data
+    matched_table[tf.g1] = matched_table[tf.tu_gamma1] + l_g1_deviates
+    matched_table[tf.g2] = matched_table[tf.tu_gamma2] + l_g2_deviates
+    matched_table[tf.g1_err] = l_g_err
+    matched_table[tf.g2_err] = l_g_err
+    matched_table[tf.weight] = 0.5 * l_g_err**-2
+
+    return matched_table
 
 
 class Args(object):
@@ -81,9 +109,9 @@ class Args(object):
     """
 
     def __init__(self):
-        self.matched_catalog = None
-        self.pipeline_config = None
-        self.shear_bias_validation_test_results_product = None
+        self.matched_catalog = MATCHED_CATALOG_FILENAME
+        self.pipeline_config = PIPELINE_CONFIG_FILENAME
+        self.shear_bias_validation_test_results_product = SHE_BIAS_TEST_RESULT_FILENAME
 
         self.profile = False
         self.dry_run = True
@@ -113,6 +141,7 @@ class TestCase:
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
         os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_FILENAME))
+        os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
 
     @pytest.fixture(autouse=True)
     def setup(self, tmpdir):
@@ -131,6 +160,14 @@ class TestCase:
                      config_filename=PIPELINE_CONFIG_FILENAME,
                      workdir=self.args.workdir,
                      config_keys=ValidationConfigKeys)
+
+        # Write the matched catalog we'll be using and its data product
+        matched_table = make_mock_matched_table()
+        matched_table.write(os.path.join(self.workdir, MATCHED_CATALOG_FILENAME))
+
+        matched_table_product = products.she_measurements.create_dpd_she_measurements()
+        matched_table_product.set_method_filename(method=TEST_METHOD.value, filename=MATCHED_CATALOG_FILENAME)
+        write_xml_product(matched_table_product, MATCHED_CATALOG_PRODUCT_FILENAME, workdir=self.workdir)
 
     def test_shear_bias_dry_run(self):
 
