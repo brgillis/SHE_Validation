@@ -213,8 +213,12 @@ class TestCase:
         p = read_xml_product(xml_filename=output_filename)
 
         test_list = p.Data.ValidationTestList
+        plot_filename = None
 
         for test in test_list:
+
+            if not test.AnalysisResult.AnalysisFiles.TextFiles or not test.AnalysisResult.AnalysisFiles.Figures:
+                continue
 
             textfiles_tarball_filename = test.AnalysisResult.AnalysisFiles.TextFiles.FileName
             figures_tarball_filename = test.AnalysisResult.AnalysisFiles.Figures.FileName
@@ -223,7 +227,6 @@ class TestCase:
                 subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
 
             qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
-            plot_filename = None
             with open(qualified_directory_filename, "r") as fi:
                 for line in fi:
                     if line[0] == "#":
