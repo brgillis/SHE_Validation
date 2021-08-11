@@ -4,6 +4,23 @@
 
     Code to implement shear bias validation test.
 """
+import os
+
+from SHE_PPT import file_io
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
+
+from SHE_Validation.config_utility import get_d_bin_limits
+from SHE_Validation.constants.default_config import (ExecutionMode, DEFAULT_BIN_LIMITS)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
+                                                                     ShearBiasTestCases)
+
+from .plot_shear_bias import ShearBiasPlotter
+from .results_reporting import fill_shear_bias_validation_results
+
 
 __updated__ = "2021-08-11"
 
@@ -19,22 +36,6 @@ __updated__ = "2021-08-11"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-import os
-
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
-from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
-
-from SHE_Validation.constants.default_config import (ExecutionMode, DEFAULT_BIN_LIMITS)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
-                                                                     ShearBiasTestCases)
-
-from .plot_shear_bias import ShearBiasPlotter
-from .results_reporting import fill_shear_bias_validation_results
 
 
 logger = getLogger(__name__)
@@ -145,10 +146,7 @@ def validate_shear_bias_from_args(args, mode):
     # Fill in the products with the results
     if not args.dry_run:
 
-        d_bin_limits = {}
-
-        for test_case_label in ShearBiasTestCases:
-            d_bin_limits[test_case_label] = DEFAULT_BIN_LIMITS
+        d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
         # And fill in the observation product
         fill_shear_bias_validation_results(test_result_product=test_result_product,
@@ -156,8 +154,8 @@ def validate_shear_bias_from_args(args, mode):
                                            d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,
                                            pipeline_config=pipeline_config,
-                                           figures=plot_filenames,
-                                           data_exists=data_exists,
+                                           dl_l_figures=plot_filenames,
+                                           method_data_exists=data_exists,
                                            mode=mode)
 
     # Write out test results product
