@@ -57,10 +57,13 @@ C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
 BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id=C_TEST_CASE_ID,
                                                 base_description=("Additive shear bias."),)
 
-# Create a dict of the test case info
-L_SHEAR_BIAS_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                                                        BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
+# Create lists of the test case info for just m, just c, and combined
+L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
+L_SHEAR_BIAS_TEST_CASE_C_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
+L_SHEAR_BIAS_TEST_CASE_INFO = [*L_SHEAR_BIAS_TEST_CASE_M_INFO, *L_SHEAR_BIAS_TEST_CASE_C_INFO]
 
+NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_M_INFO)
+NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_C_INFO)
 NUM_SHEAR_BIAS_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_INFO)
 
 

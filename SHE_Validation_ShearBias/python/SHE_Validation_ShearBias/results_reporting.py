@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -184,10 +184,10 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.val_z = val_z
         self.fail_sigma = fail_sigma
 
-        # This implementation determines report_method here, so any setting of it is improper
+        # If report method is supplied, go with that rather than figuring it out
         if report_method:
-            raise ValueError("The ShearBiasRequirementWriter determines the report method - it shouldn't be passed to "
-                             "the write method of it.")
+            return super().write(report_method=report_method,
+                                 report_kwargs=report_kwargs,)
 
         # Default to reporting good data
         if report_method is None:
@@ -313,13 +313,13 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             # Get whether this relates to m or c from the test case info's test_case_id's last letter
             prop = get_prop_from_id(test_case_info.id)
 
-            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode}_sigma")[test_case_info.name]
+            fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode.value}_sigma")[test_case_info.name]
 
             # Fill in metadata about the test
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if self.data_exists and test_case_info.bins != BinParameters.EPOCH:
+            if self.method_data_exists and test_case_info.bins != BinParameters.EPOCH:
 
                 d_test_case_bias_measurements = self.d_bias_measurements[test_case_name]
 

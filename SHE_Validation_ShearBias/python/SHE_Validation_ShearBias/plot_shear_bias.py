@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -70,8 +70,8 @@ class ShearBiasPlotter(ValidationPlotter):
     _d_g_out_err = Dict[int, Sequence[float]]
 
     # Attributes calculated when plotting methods are called
-    _d_bias_measurements: Optional[Dict[int, BiasMeasurements]] = None
-    _d_bias_plot_filename: Optional[Dict[int, str]] = None
+    _d_bias_measurements: Dict[int, BiasMeasurements]
+    _d_bias_plot_filename: Dict[int, str]
 
     def __init__(self,
                  l_method_matched_catalog_filenames: List[str],
@@ -84,6 +84,10 @@ class ShearBiasPlotter(ValidationPlotter):
         self.l_method_matched_catalog_filenames = l_method_matched_catalog_filenames
         self.method = method
         self.workdir = workdir
+
+        # Init empty dicts for intermediate data used when plotting
+        self._d_bias_measurements = {}
+        self._d_bias_plot_filename = {}
 
         # Determine attrs from kwargs
         self.sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
@@ -206,7 +210,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Get the filename to save to
         bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
-                                                          instance_id=f"{self.method}-g{i}-{os.getpid()}".upper(),
+                                                          instance_id=f"{self.method.value}-g{i}-{os.getpid()}".upper(),
                                                           extension=PLOT_FORMAT,
                                                           version=SHE_Validation.__version__)
         qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)

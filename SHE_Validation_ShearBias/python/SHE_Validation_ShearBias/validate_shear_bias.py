@@ -4,23 +4,6 @@
 
     Code to implement shear bias validation test.
 """
-import os
-
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
-from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
-
-from SHE_Validation.config_utility import get_d_bin_limits
-from SHE_Validation.constants.default_config import (ExecutionMode, DEFAULT_BIN_LIMITS)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (NUM_SHEAR_BIAS_TEST_CASES,
-                                                                     ShearBiasTestCases)
-
-from .plot_shear_bias import ShearBiasPlotter
-from .results_reporting import fill_shear_bias_validation_results
-
 
 __updated__ = "2021-08-11"
 
@@ -37,6 +20,24 @@ __updated__ = "2021-08-11"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+
+from SHE_PPT import file_io
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
+
+from SHE_Validation.config_utility import get_d_bin_limits
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                     L_SHEAR_BIAS_TEST_CASE_C_INFO,
+                                                                     NUM_SHEAR_BIAS_TEST_CASES,
+                                                                     ShearBiasTestCases)
+
+from .plot_shear_bias import ShearBiasPlotter
+from .results_reporting import fill_shear_bias_validation_results
 
 logger = getLogger(__name__)
 
@@ -96,18 +97,23 @@ def validate_shear_bias_from_args(args, mode):
         method_matched_catalog_filename = matched_catalog_product.get_method_filename(method.value)
         d_method_l_table_filenames[method][matched_cat_index] = method_matched_catalog_filename
 
-    # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
+    # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
-    plot_filenames = [None] * NUM_SHEAR_BIAS_TEST_CASES
+    d_d_plot_filenames = {}
     d_bias_measurements = {}
 
     # Keep track if we have valid data for any method
     data_exists = False
 
     # Perform validation for each shear estimation method
-    for method_index, method in enumerate(ShearEstimationMethods):
+    for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
 
-        plot_filenames[method_index] = {}
+        test_case_name = test_case_info.name
+        method = test_case_info.method
+        bin_parameter = test_case_info.bins
+
+        test_case_plot_filenames = {}
+        d_d_plot_filenames[test_case_name] = test_case_plot_filenames
 
         l_method_matched_catalog_filenames = d_method_l_table_filenames[method]
 
@@ -120,13 +126,18 @@ def validate_shear_bias_from_args(args, mode):
                                                   workdir=args.workdir)
             shear_bias_plotter.plot_shear_bias(pipeline_config=pipeline_config)
 
-            d_bias_measurements[method] = shear_bias_plotter.d_bias_measurements
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
+
+            d_bias_measurements[test_case_name] = shear_bias_plotter.d_bias_measurements
+
+            # Get the name of the corresponding C test case, and store the info for that too
+            c_test_case_name = L_SHEAR_BIAS_TEST_CASE_C_INFO[test_case_index].name
+            d_bias_measurements[c_test_case_name] = shear_bias_plotter.d_bias_measurements
 
             # Save the filename for each component plot
             for i in d_method_bias_plot_filename:
                 plot_label = f"{method}-g{i}"
-                plot_filenames[method_index][plot_label] = d_method_bias_plot_filename[i]
+                test_case_plot_filenames[plot_label] = d_method_bias_plot_filename[i]
         except Exception as e:
             import traceback
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
@@ -136,7 +147,8 @@ def validate_shear_bias_from_args(args, mode):
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
-    test_result_product = create_validation_test_results_product(num_tests=NUM_SHEAR_BIAS_TEST_CASES)
+    test_result_product = products.she_validation_test_results.create_validation_test_results_product(
+        num_tests=NUM_SHEAR_BIAS_TEST_CASES)
     test_result_product.Data.TileId = None
     test_result_product.Data.PointingId = None
     test_result_product.Data.ExposureProductId = None
@@ -154,7 +166,7 @@ def validate_shear_bias_from_args(args, mode):
                                            d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,
                                            pipeline_config=pipeline_config,
-                                           dl_l_figures=plot_filenames,
+                                           dl_l_figures=d_d_plot_filenames,
                                            method_data_exists=data_exists,
                                            mode=mode)
 

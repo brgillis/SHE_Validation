@@ -45,7 +45,7 @@ import numpy as np
 # Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
 MATCHED_CATALOG_PRODUCT_FILENAME = "shear_bias_matched_catalog.xml"
-MATCHED_CATALOG_FILENAME = "shear_bias_matched_catalog.fits"
+MATCHED_CATALOG_FILENAME = "data/shear_bias_matched_catalog.fits"
 
 # Output data filename
 SHE_BIAS_TEST_RESULT_FILENAME = "she_observation_validation_test_results.xml"
@@ -206,7 +206,7 @@ class TestCase:
         # Check the resulting data product and plot exist
 
         workdir = self.args.workdir
-        output_filename = os.path.join(workdir, self.args.she_observation_validation_test_results_product)
+        output_filename = os.path.join(workdir, self.args.shear_bias_validation_test_results_product)
 
         assert os.path.isfile(output_filename)
 
