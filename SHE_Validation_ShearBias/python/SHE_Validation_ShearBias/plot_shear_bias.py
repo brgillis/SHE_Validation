@@ -286,7 +286,7 @@ class ShearBiasPlotter(ValidationPlotter):
         self.d_bias_measurements[i] = bias
 
         # Log the bias measurements, and save these strings for the plot
-        logger.info(f"Bias measurements for method {self.method}:")
+        logger.info(f"Bias measurements for method {self.method.value}:")
         d_bias_strings = {}
         for a, d in ("c", C_DIGITS), ("m", M_DIGITS):
             d_bias_strings[f"{a}{i}"] = f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "\

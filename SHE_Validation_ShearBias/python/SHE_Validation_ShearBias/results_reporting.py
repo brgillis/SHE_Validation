@@ -311,7 +311,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             test_case_name = test_case_info.name
 
             # Get whether this relates to m or c from the test case info's test_case_id's last letter
-            prop = get_prop_from_id(test_case_info.id)
+            prop = get_prop_from_id(test_case_info.id).value
 
             fail_sigma = getattr(self.fail_sigma_calculator, f"d_scaled_{self.mode.value}_sigma")[test_case_info.name]
 

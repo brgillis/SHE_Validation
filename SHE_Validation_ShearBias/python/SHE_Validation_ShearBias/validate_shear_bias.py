@@ -136,7 +136,7 @@ def validate_shear_bias_from_args(args, mode):
 
             # Save the filename for each component plot
             for i in d_method_bias_plot_filename:
-                plot_label = f"{method}-g{i}"
+                plot_label = f"{method.value}-{bin_parameter.value}-g{i}"
                 test_case_plot_filenames[plot_label] = d_method_bias_plot_filename[i]
         except Exception as e:
             import traceback
