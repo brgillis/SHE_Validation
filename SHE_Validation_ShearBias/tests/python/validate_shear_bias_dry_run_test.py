@@ -212,21 +212,25 @@ class TestCase:
 
         p = read_xml_product(xml_filename=output_filename)
 
-        textfiles_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.TextFiles.FileName
-        figures_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.Figures.FileName
+        test_list = p.Data.ValidationTestList
 
-        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+        for test in test_list:
 
-        qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
-        plot_filename = None
-        with open(qualified_directory_filename, "r") as fi:
-            for line in fi:
-                if line[0] == "#":
-                    continue
-                key, value = line.strip().split(": ")
-                if key == "LensMC-global-0":
-                    plot_filename = value
+            textfiles_tarball_filename = test.AnalysisResult.AnalysisFiles.TextFiles.FileName
+            figures_tarball_filename = test.AnalysisResult.AnalysisFiles.Figures.FileName
+
+            for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
+                subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+
+            qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
+            plot_filename = None
+            with open(qualified_directory_filename, "r") as fi:
+                for line in fi:
+                    if line[0] == "#":
+                        continue
+                    key, value = line.strip().split(": ")
+                    if key == "LensMC-global-g1":
+                        plot_filename = value
 
         assert plot_filename is not None
         assert os.path.isfile(os.path.join(workdir, plot_filename))
