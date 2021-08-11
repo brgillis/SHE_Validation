@@ -85,7 +85,7 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
     matched_table = tf.init_table(size=NUM_TEST_POINTS)
 
     # Fill in rows with input data
-    matched_table[tf.tu_gamma1] = np.linspace(INPUT_G_MIN, INPUT_G_MAX, NUM_TEST_POINTS)
+    matched_table[tf.tu_gamma1] = -np.linspace(INPUT_G_MIN, INPUT_G_MAX, NUM_TEST_POINTS)
     matched_table[tf.tu_gamma2] = np.linspace(INPUT_G_MAX, INPUT_G_MIN, NUM_TEST_POINTS)
     matched_table[tf.tu_kappa] = np.zeros_like(matched_table[MATCHED_TF.tu_gamma1])
 
@@ -96,8 +96,8 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
     l_g2_deviates = l_g_err * rng.standard_normal(NUM_TEST_POINTS)
 
     # Fill in rows with mock output data
-    matched_table[tf.g1] = matched_table[tf.tu_gamma1] + l_g1_deviates
-    matched_table[tf.g2] = matched_table[tf.tu_gamma2] + l_g2_deviates
+    matched_table[tf.g1] = G1_C + G1_M * matched_table[tf.tu_gamma1] + l_g1_deviates
+    matched_table[tf.g2] = G2_C + G2_M * matched_table[tf.tu_gamma2] + l_g2_deviates
     matched_table[tf.g1_err] = l_g_err
     matched_table[tf.g2_err] = l_g_err
     matched_table[tf.weight] = 0.5 * l_g_err**-2
