@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -51,15 +51,11 @@ class ShearBiasTestCases(Enum):
 
 
 M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
-BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(test_case_id=M_TEST_CASE_ID,
-                                                description=("Multiplicative shear bias."),
-                                                name=ShearBiasTestCases.M.value,
-                                                comment=None,)
+BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id=M_TEST_CASE_ID,
+                                                base_description=("Multiplicative shear bias."),)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
-BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(test_case_id=C_TEST_CASE_ID,
-                                                description=("Additive shear bias."),
-                                                name=ShearBiasTestCases.C.value,
-                                                comment=None,)
+BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id=C_TEST_CASE_ID,
+                                                base_description=("Additive shear bias."),)
 
 # Create a dict of the test case info
 L_SHEAR_BIAS_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO,

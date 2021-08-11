@@ -22,24 +22,25 @@ __updated__ = "2021-08-11"
 
 import os
 import subprocess
-from SHE_PPT import products
 
+from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         )
 from SHE_PPT.file_io import read_xml_product, write_xml_product
-from SHE_PPT.pipeline_utility import write_config
+from SHE_PPT.pipeline_utility import write_config, read_config
 from SHE_PPT.table_utility import SheTableFormat
 from astropy.table import Table
 import pytest
 
 from SHE_Validation.constants.default_config import (ValidationConfigKeys,
                                                      ExecutionMode)
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                                          D_SHEAR_BIAS_CONFIG_CLINE_ARGS, D_SHEAR_BIAS_CONFIG_TYPES)
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import L_SHEAR_BIAS_TEST_CASE_INFO
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 import numpy as np
-
 
 # Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
@@ -109,7 +110,7 @@ class Args(object):
     """
 
     def __init__(self):
-        self.matched_catalog = MATCHED_CATALOG_FILENAME
+        self.matched_catalog = MATCHED_CATALOG_PRODUCT_FILENAME
         self.pipeline_config = PIPELINE_CONFIG_FILENAME
         self.shear_bias_validation_test_results_product = SHE_BIAS_TEST_RESULT_FILENAME
 
@@ -133,15 +134,16 @@ class TestCase:
 
     @classmethod
     def setup_class(cls):
-        return
+        cls.args = Args()
 
     @classmethod
     def teardown_class(cls):
 
         # Delete the pipeline config file
-        os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
-        os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_FILENAME))
-        os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
+        if cls.args.workdir:
+            os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
+            os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_FILENAME))
+            os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
 
     @pytest.fixture(autouse=True)
     def setup(self, tmpdir):
@@ -150,7 +152,6 @@ class TestCase:
         os.makedirs(os.path.join(self.workdir, "data"), exist_ok=True)
 
         # Set up the args to pass to the task
-        self.args = Args()
         self.args.workdir = self.workdir
         self.args.logdir = self.logdir
 
@@ -171,9 +172,15 @@ class TestCase:
 
     def test_shear_bias_dry_run(self):
 
-        # Ensure this is a dry run
+        # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
-        self.args.pipeline_config = None
+        self.args.pipeline_config = read_config(None,
+                                                workdir=self.args.workdir,
+                                                defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                parsed_args=self.args,
+                                                config_keys=ValidationConfigKeys,
+                                                d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
         # Call to validation function
         validate_shear_bias_from_args(self.args, mode=ExecutionMode.LOCAL)
@@ -185,10 +192,16 @@ class TestCase:
 
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
-        self.args.pipeline_config = PIPELINE_CONFIG_FILENAME
+        self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
+                                                workdir=self.args.workdir,
+                                                defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                parsed_args=self.args,
+                                                config_keys=ValidationConfigKeys,
+                                                d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
         # Call to validation function
-        validate_shear_bias_from_args(self.args)
+        validate_shear_bias_from_args(self.args, mode=ExecutionMode.LOCAL)
 
         # Check the resulting data product and plot exist
 

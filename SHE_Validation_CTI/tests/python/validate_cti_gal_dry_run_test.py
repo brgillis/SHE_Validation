@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -118,7 +118,7 @@ class TestCase:
 
     def test_cti_gal_dry_run(self):
 
-        # Ensure this is a dry run
+        # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
         self.args.pipeline_config = read_config(None,
                                                 workdir=self.args.workdir,

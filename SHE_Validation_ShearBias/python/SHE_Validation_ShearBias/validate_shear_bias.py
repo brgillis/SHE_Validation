@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -85,13 +85,14 @@ def validate_shear_bias_from_args(args, mode):
         d_method_l_table_filenames[method] = [None] * num_matched_catalogs
 
     # Read in the table filenames from each product, for each method
-    for matched_cat_index, qualified_matched_catalog_product_filename in enumerate(l_matched_catalog_product_filenames):
+    for matched_cat_index, matched_catalog_product_filename in enumerate(l_matched_catalog_product_filenames):
 
+        qualified_matched_catalog_product_filename = os.path.join(args.workdir, matched_catalog_product_filename)
         logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
         matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
 
         # Get the list of table filenames for each method and store it
-        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
+        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method.value)
         d_method_l_table_filenames[method][matched_cat_index] = method_matched_catalog_filename
 
     # Keep a list of filenams for all plots, which we'll tarball up at the end. We'll only save the plots
