@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -295,6 +295,7 @@ class TestCaseInfo():
     _test_info: Optional[TestInfo] = None
     _base_test_case_id: Optional[str] = None
     _base_description: Optional[str] = None
+    _base_name: str = ""
     _bins: Optional[BinParameters] = None
     _method: Optional[ShearEstimationMethods] = None
 
@@ -309,12 +310,14 @@ class TestCaseInfo():
                  test_info: Optional[TestInfo] = None,
                  base_test_case_id: Optional[str] = None,
                  base_description: Optional[str] = None,
+                 base_name: Optional[str] = None,
                  bins: Optional[BinParameters] = None,
                  method: Optional[ShearEstimationMethods] = None):
 
         self._test_info = test_info
         self._base_test_case_id = base_test_case_id
         self._base_description = base_description
+        self.base_name = base_name
         self._bins = bins
         self._method = method
 
@@ -400,17 +403,22 @@ class TestCaseInfo():
         return self._bins_config_key
 
     @property
+    def base_name(self) -> str:
+        return self._base_name
+
+    @base_name.setter
+    def base_name(self, base_name: Optional[str]):
+        if base_name:
+            self._base_name = base_name
+        else:
+            self._base_name = self.base_test_case_id
+
+    @property
     def name(self) -> Optional[str]:
         if self._name is None:
+            self._name = f"{self.base_name}"
+            if self.method is not None:
+                self._name += f"-{self.method.value}"
             if self.bins is not None:
-                if self.method is not None:
-                    self._name = f"{self.bins.value}-{self.method.value}"
-                else:
-                    self._name = self.bins.value
-            else:
-                # self.bins is not set in this branch
-                if self.method is not None:
-                    self._name = self.method.value
-                else:
-                    self._name = None
+                self._name += f"-{self.bins.value}"
         return self._name
