@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,11 +26,11 @@ from copy import deepcopy
 from typing import Dict, List, Optional, Set
 
 from SHE_PPT import shear_utility
+from SHE_PPT.constants.fits import CCDID_LABEL
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.detector import get_vis_quadrant
 from SHE_PPT.flags import is_flagged_failure
 from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import ccdid_label
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.she_image import SHEImage
 from SHE_PPT.she_image_stack import SHEImageStack
@@ -43,6 +43,7 @@ from astropy.table import Row, Table
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+
 
 BG_STAMP_SIZE = 1
 
@@ -85,7 +86,7 @@ class PositionInfo():
             self.x_pix = stamp.offset[0] + x_pix_stamp
             self.y_pix = stamp.offset[1] + y_pix_stamp
 
-        ccdid: str = stamp.header[ccdid_label]
+        ccdid: str = stamp.header[CCDID_LABEL]
         if len(ccdid) == 3:
             # Short form
             self.det_ix = int(ccdid[0])

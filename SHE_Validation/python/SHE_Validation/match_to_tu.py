@@ -5,7 +5,7 @@
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
 
-__updated__ = "2021-08-10"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,6 +28,7 @@ from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
 from SHE_PPT.file_io import read_listfile
 from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
 from SHE_PPT.utility import is_any_type_of_none
 from astropy import units
 from astropy.coordinates import SkyCoord
@@ -35,7 +36,6 @@ from astropy.io import fits
 from astropy.io.fits import table_to_hdu
 from astropy.table import Table, Column, join, vstack
 
-from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
 import SHE_Validation
 import numpy as np
 
@@ -163,7 +163,7 @@ def match_to_tu_from_args(args):
     shear_tables = {}
 
     for method in ShearEstimationMethods:
-        fn = shear_estimates_product.get_method_filename(method.value)
+        fn = shear_estimates_product.get_method_filename(method)
         if is_any_type_of_none(fn):
             shear_tables[method] = None
             logger.warning(f"No filename for method {method.value}.")

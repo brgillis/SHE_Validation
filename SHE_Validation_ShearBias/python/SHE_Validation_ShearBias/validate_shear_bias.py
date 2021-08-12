@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,11 +30,9 @@ from SHE_PPT.pipeline_utility import ValidationConfigKeys
 
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_C_INFO,
-                                                                     NUM_SHEAR_BIAS_TEST_CASES,
-                                                                     ShearBiasTestCases)
+                                                                     NUM_SHEAR_BIAS_TEST_CASES)
 
 from .plot_shear_bias import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_validation_results
@@ -94,7 +92,7 @@ def validate_shear_bias_from_args(args, mode):
         matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
 
         # Get the list of table filenames for each method and store it
-        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method.value)
+        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
         d_method_l_table_filenames[method][matched_cat_index] = method_matched_catalog_filename
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots

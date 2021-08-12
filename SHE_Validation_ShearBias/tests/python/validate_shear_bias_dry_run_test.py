@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -167,7 +167,7 @@ class TestCase:
         matched_table.write(os.path.join(self.workdir, MATCHED_CATALOG_FILENAME))
 
         matched_table_product = products.she_measurements.create_dpd_she_measurements()
-        matched_table_product.set_method_filename(method=TEST_METHOD.value, filename=MATCHED_CATALOG_FILENAME)
+        matched_table_product.set_method_filename(method=TEST_METHOD, filename=MATCHED_CATALOG_FILENAME)
         write_xml_product(matched_table_product, MATCHED_CATALOG_PRODUCT_FILENAME, workdir=self.workdir)
 
     def test_shear_bias_dry_run(self):

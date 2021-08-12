@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -106,7 +106,7 @@ def run_validate_cti_gal_from_args(args):
     d_shear_estimate_tables = {}
     for method in ShearEstimationMethods:
 
-        filename = shear_estimates_prod.get_method_filename(method.value)
+        filename = shear_estimates_prod.get_method_filename(method)
 
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')

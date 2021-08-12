@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,13 +24,14 @@ __updated__ = "2021-08-09"
 from collections import OrderedDict
 from typing import List
 
+from SHE_PPT.constants.fits import FITS_VERSION_LABEL, FITS_DEF_LABEL
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import fits_version_label, fits_def_label
 from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
 from astropy import table
 
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
+
 from ..constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 
 
@@ -51,8 +52,8 @@ class SheRegressionResultsMeta():
         self.table_format = FITS_DEF
 
         # Table metadata labels
-        self.fits_version = fits_version_label
-        self.fits_def = fits_def_label
+        self.fits_version = FITS_VERSION_LABEL
+        self.fits_def = FITS_DEF_LABEL
         self.product_type = "PRODTYPE"
         self.test_case = "TESTCASE"
         self.bin_limit_min = "BIN_MIN"

@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,7 +21,7 @@ __updated__ = "2021-08-11"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Sequence
 
 from SHE_PPT import file_io
 from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
