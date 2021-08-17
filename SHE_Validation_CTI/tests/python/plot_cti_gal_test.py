@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,7 @@ from ElementsServices.DataSync import DataSync
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 import numpy as np
 
 
@@ -82,9 +82,9 @@ class TestCase:
         g1_data[-lnan - lzero:-lzero] = np.NaN
         weight_data[-lzero:] = 0
 
-        object_data_table = initialise_cti_gal_object_data_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
-                                                                            CGOD_TF.readout_dist: readout_dist_data,
-                                                                            CGOD_TF.g1_image_LensMC: g1_data})
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
+                                                          CGOD_TF.readout_dist: readout_dist_data,
+                                                          CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the plotting
         plotter = CtiGalPlotter(object_table=object_data_table,

@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -33,7 +33,7 @@ from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_ME
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
-from .table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
+from .table_formats.regression_results import TF as RR_TF
 
 
 logger = getLogger(__name__)
@@ -98,7 +98,7 @@ def calculate_regression_results(object_data_table: table.Table,
     """
 
     # Initialize a table for the output data
-    regression_results_table = initialise_regression_results_table(product_type=product_type, size=1)
+    regression_results_table = RR_TF.init_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
 

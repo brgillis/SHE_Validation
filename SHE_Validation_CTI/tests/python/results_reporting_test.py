@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -48,7 +48,7 @@ from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_result
                                                   DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
                                                   MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
                                                   FailSigmaCalculator)
-from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 import numpy as np
 
 logger = getLogger(__name__)
@@ -180,7 +180,7 @@ class TestCase:
         exp_product_list = [None] * num_exposures
 
         # Set up mock input data and fill the products for each set of possible results
-        base_exp_results_table = initialise_regression_results_table(product_type="EXP", size=len(exp_results_list))
+        base_exp_results_table = RR_TF.init_table(product_type="EXP", size=len(exp_results_list))
 
         d_exp_results_tables = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
@@ -348,7 +348,7 @@ class TestCase:
         assert MSG_NAN_SLOPE in exp_slope_info_string
 
         # With the observation, test saying we have no data
-        obs_results_table = initialise_regression_results_table(product_type="OBS", size=1)
+        obs_results_table = RR_TF.init_table(product_type="OBS", size=1)
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests=NUM_CTI_GAL_TEST_CASES)

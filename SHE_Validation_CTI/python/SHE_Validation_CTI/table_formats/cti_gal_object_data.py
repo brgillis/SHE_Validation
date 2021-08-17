@@ -4,19 +4,8 @@
 
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
-from collections import OrderedDict
-from typing import List
 
-from SHE_PPT.constants.fits import FITS_VERSION_LABEL, FITS_DEF_LABEL
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
-from astropy import table
-
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
-
-
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,6 +21,16 @@ __updated__ = "2021-08-12"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
+from collections import OrderedDict
+from typing import List
+
+from SHE_PPT.constants.fits import FITS_VERSION_LABEL, FITS_DEF_LABEL
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat, SheTableMeta
+from astropy import table
+
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 FITS_VERSION = "8.0"
 FITS_DEF = "she.ctiGalObjectData"
@@ -39,7 +38,7 @@ FITS_DEF = "she.ctiGalObjectData"
 logger = getLogger(__name__)
 
 
-class SheCtiGalObjectDataMeta():
+class SheCtiGalObjectDataMeta(SheTableMeta):
     """
         @brief A class defining the metadata for CTI-Gal Object Data tables.
     """
@@ -123,46 +122,3 @@ CTI_GAL_OBJECT_DATA_TABLE_FORMAT = SheCtiGalObjectDataFormat()
 
 # And a convient alias for it
 TF = CTI_GAL_OBJECT_DATA_TABLE_FORMAT
-
-
-def make_cti_gal_object_data_table_header():
-    """
-        @brief Generate a header for a CTI-Gal Object Data table.
-
-        @return header <OrderedDict>
-    """
-
-    header = OrderedDict()
-
-    header[TF.m.fits_version] = TF.__version__
-    header[TF.m.fits_def] = FITS_DEF
-
-    return header
-
-
-def initialise_cti_gal_object_data_table(optional_columns: List[str] = None,
-                                         init_cols: List[table.Column] = None,
-                                         size: int = None):
-    """
-        @brief Initialise a CTI-Gal Object Data table.
-
-        @param optional_columns <list<str>> List of names for optional columns to include.
-
-        @return cti_gal_object_data_table <astropy.Table>
-    """
-
-    if optional_columns is None:
-        optional_columns = []
-    else:
-        # Check all optional columns are valid
-        for colname in optional_columns:
-            if colname not in TF.all:
-                raise ValueError("Invalid optional column name: " + colname)
-
-    cti_gal_object_data_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
-
-    cti_gal_object_data_table.meta = make_cti_gal_object_data_table_header()
-
-    assert is_in_format(cti_gal_object_data_table, TF, verbose=True)
-
-    return cti_gal_object_data_table

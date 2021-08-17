@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -42,7 +42,7 @@ from astropy.table import Row, Table
 
 import numpy as np
 
-from .table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
 BG_STAMP_SIZE = 1
@@ -317,13 +317,13 @@ def sort_raw_object_data_into_table(l_raw_object_data: List[SingleObjectData]) -
     for exp_index in range(num_exposures):
 
         # Initialise the table with one row for each object
-        object_data_table: Table = initialise_cti_gal_object_data_table(size=num_objects,
-                                                                        optional_columns=[CGOD_TF.quadrant,
-                                                                                          CGOD_TF.snr,
-                                                                                          CGOD_TF.bg,
-                                                                                          CGOD_TF.colour,
-                                                                                          CGOD_TF.size,
-                                                                                          ])
+        object_data_table: Table = CGOD_TF.init_table(size=num_objects,
+                                                      optional_columns=[CGOD_TF.quadrant,
+                                                                        CGOD_TF.snr,
+                                                                        CGOD_TF.bg,
+                                                                        CGOD_TF.colour,
+                                                                        CGOD_TF.size,
+                                                                        ])
 
         # Fill in the data for each object
         for object_data, row in zip(l_raw_object_data, object_data_table):

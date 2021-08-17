@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -46,7 +46,7 @@ from . import __version__
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
-from .table_formats.regression_results import initialise_regression_results_table
+from .table_formats.regression_results import TF as RR_TF
 
 
 logger = getLogger(__name__)
@@ -268,7 +268,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
 
-            exposure_regression_results_table = initialise_regression_results_table(product_type="EXP")
+            exposure_regression_results_table = RR_TF.init_table(product_type="EXP")
 
             for object_data_table in l_object_data_table:
 
