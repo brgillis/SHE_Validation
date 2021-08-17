@@ -5,7 +5,7 @@
     Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs.
 """
 
-__updated__ = "2021-07-20"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,10 +22,11 @@ __updated__ = "2021-07-20"
 
 import argparse
 
+from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import get_arguments_string
 
 import SHE_Validation
+
 from .match_to_tu import match_to_tu_from_args
 
 

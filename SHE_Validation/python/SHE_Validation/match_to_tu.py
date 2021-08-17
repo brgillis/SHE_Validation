@@ -4,29 +4,8 @@
 
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
-import os
 
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.file_io import read_listfile
-from SHE_PPT.logging import getLogger
-from SHE_PPT.table_formats.she_bfd_moments import tf as bfdm_tf
-from SHE_PPT.table_formats.she_ksb_measurements import tf as ksbm_tf
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as lmcm_tf
-from SHE_PPT.table_formats.she_momentsml_measurements import tf as mmlm_tf
-from SHE_PPT.table_formats.she_regauss_measurements import tf as regm_tf
-from SHE_PPT.utility import is_any_type_of_none
-from astropy import units
-from astropy.coordinates import SkyCoord
-from astropy.io import fits
-from astropy.io.fits import table_to_hdu
-from astropy.table import Table, Column, join, vstack
-
-import SHE_Validation
-import numpy as np
-
-
-__updated__ = "2021-07-09"
+__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -41,29 +20,29 @@ __updated__ = "2021-07-09"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+
+from SHE_PPT import file_io
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
+from SHE_PPT.file_io import read_listfile
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
+from SHE_PPT.utility import is_any_type_of_none
+from astropy import units
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.io.fits import table_to_hdu
+from astropy.table import Table, Column, join, vstack
+
+import SHE_Validation
+import numpy as np
+
 
 logger = getLogger(__name__)
 
-methods = ("BFD", "KSB", "LensMC", "MomentsML", "REGAUSS")
-
-star_index_colname = "STAR_INDEX"
-gal_index_colname = "GAL_INDEX"
-
 max_coverage = 1.0  # deg
-
-shear_estimation_method_table_formats = {"KSB": ksbm_tf,
-                                         "REGAUSS": regm_tf,
-                                         "MomentsML": mmlm_tf,
-                                         "LensMC": lmcm_tf,
-                                         "BFD": bfdm_tf}
-
-galcat_g1_colname = "GAMMA1"
-galcat_g2_colname = "GAMMA2"
-galcat_kappa_colname = "KAPPA"
-galcat_bulge_angle_colname = "DISK_ANGLE"
-galcat_bulge_axis_ratio_colname = "DISK_AXIS_RATIO"
-galcat_disk_angle_colname = "DISK_ANGLE"
-galcat_disk_axis_ratio_colname = "DISK_AXIS_RATIO"
 
 
 def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
@@ -86,10 +65,10 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
 
         try:
             catalog = Table.read(qualified_filename, format="fits")
-        except OSError as e:
+        except OSError:
             logger.error(filename + " is corrupt or missing")
             raise
-        except Exception as e:
+        except Exception:
             logger.error("Error reading in catalog " + filename)
             raise
 
@@ -183,11 +162,11 @@ def match_to_tu_from_args(args):
 
     shear_tables = {}
 
-    for method in methods:
+    for method in ShearEstimationMethods:
         fn = shear_estimates_product.get_method_filename(method)
         if is_any_type_of_none(fn):
             shear_tables[method] = None
-            logger.warning("No filename for method " + method + ".")
+            logger.warning(f"No filename for method {method.value}.")
         else:
             qualified_filename = os.path.join(args.workdir, fn)
             logger.debug("Reading in shear estimates table from " + qualified_filename)
@@ -200,17 +179,13 @@ def match_to_tu_from_args(args):
     full_ra_range = np.array((1e99, -1e99))
     full_dec_range = np.array((1e99, -1e99))
 
-    for method in methods:
-
-        # BFD has a bug in determining the range, so skip it here unless it's the only method
-        if method == "BFD" and len(methods) > 1:
-            continue
+    for method in ShearEstimationMethods:
 
         shear_table = shear_tables[method]
         if shear_table is None:
             continue
 
-        sem_tf = shear_estimation_method_table_formats[method]
+        sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
         ra_col = shear_table[sem_tf.ra]
         dec_col = shear_table[sem_tf.dec]
@@ -262,7 +237,7 @@ def match_to_tu_from_args(args):
     star_matched_tables = {}
     gal_matched_tables = {}
 
-    for method in methods:
+    for method in ShearEstimationMethods:
         star_matched_tables[method] = []
         gal_matched_tables[method] = []
 
@@ -334,24 +309,24 @@ def match_to_tu_from_args(args):
             dec_star = overlapping_star_catalog["DEC"]
             sky_coord_star = SkyCoord(ra=ra_star, dec=dec_star)
 
-            overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name=star_index_colname))
+            overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name=tum_tf.tu_star_index))
 
-            ra_gal = overlapping_galaxy_catalog["RA_MAG"]
-            dec_gal = overlapping_galaxy_catalog["DEC_MAG"]
+            ra_gal = overlapping_galaxy_catalog[tum_tf.tu_ra]
+            dec_gal = overlapping_galaxy_catalog[tum_tf.tu_dec]
             sky_coord_gal = SkyCoord(ra=ra_gal, dec=dec_gal)
 
-            overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name=gal_index_colname))
+            overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name=tum_tf.tu_gal_index))
 
             # Perform match to SIM's tables for each method
 
-            for method in methods:
+            for method in ShearEstimationMethods:
 
                 unpruned_shear_table = shear_tables[method]
                 if unpruned_shear_table is None:
-                    logger.info("No catalog provided for method " + method + ".")
+                    logger.info(f"No catalog provided for method {method.value}.")
                     continue
 
-                sem_tf = shear_estimation_method_table_formats[method]
+                sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
                 # Prune any rows with NaN for R.A. or Dec. from the shear table
                 good_rows = ~np.logical_or(np.isnan(unpruned_shear_table[sem_tf.ra]),
@@ -359,7 +334,7 @@ def match_to_tu_from_args(args):
                 shear_table = unpruned_shear_table[good_rows]
 
                 if len(shear_table) == 0:
-                    logger.info("No valid rows in catalog for method " + method + ".")
+                    logger.info(f"No valid rows in catalog for method {method.value}.")
                     continue
 
                 ra_se = shear_table[sem_tf.ra]
@@ -432,27 +407,27 @@ def match_to_tu_from_args(args):
                     best_gal_id = np.zeros(len(in_range), dtype=int)
 
                 # Add columns to the shear estimates table so we can match to it
-                if star_index_colname in shear_table.colnames:
+                if tum_tf.tu_star_index in shear_table.colnames:
                     if len(best_star_id) > 0:
-                        shear_table[star_index_colname] = best_star_id
+                        shear_table[tum_tf.tu_star_index] = best_star_id
                 else:
-                    shear_table.add_column(Column(best_star_id, name=star_index_colname))
-                if gal_index_colname in shear_table.colnames:
+                    shear_table.add_column(Column(best_star_id, name=tum_tf.tu_star_index))
+                if tum_tf.tu_gal_index in shear_table.colnames:
                     if len(best_gal_id) > 0:
-                        shear_table[gal_index_colname] = best_gal_id
+                        shear_table[tum_tf.tu_gal_index] = best_gal_id
                 else:
-                    shear_table.add_column(Column(best_gal_id, name=gal_index_colname))
+                    shear_table.add_column(Column(best_gal_id, name=tum_tf.tu_gal_index))
 
                 # Match to the star and galaxy tables
 
                 if len(sky_coord_star) > 0:
-                    star_matched_table = join(shear_table, overlapping_star_catalog, keys=star_index_colname)
+                    star_matched_table = join(shear_table, overlapping_star_catalog, keys=tum_tf.tu_star_index)
                     logger.info("Matched " + str(len(star_matched_table)) + " objects to stars.")
                 else:
                     star_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
 
                 if len(sky_coord_gal) > 0:
-                    gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys=gal_index_colname)
+                    gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys=tum_tf.tu_gal_index)
                     logger.info("Matched " + str(len(gal_matched_table)) + " objects to galaxies.")
                 else:
                     gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
@@ -463,8 +438,8 @@ def match_to_tu_from_args(args):
                 shear_table.remove_rows(matched_indices)
 
                 # Remove extra columns we no longer need
-                star_matched_table.remove_columns([star_index_colname, gal_index_colname])
-                gal_matched_table.remove_columns([star_index_colname, gal_index_colname])
+                star_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
+                gal_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
 
                 # Add these tables to the dictionaries of tables
                 star_matched_tables[method].append(star_matched_table)
@@ -478,45 +453,43 @@ def match_to_tu_from_args(args):
 
                 # Details about estimated shear
 
-                if not method == "BFD":
+                gal_matched_table.add_column(
+                    Column(np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
+                           name=sem_tf.tu_g_beta))
 
-                    gal_matched_table.add_column(
-                        Column(np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
-                               name="Beta_Est_Shear"))
-
-                    g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
-                    gal_matched_table.add_column(Column(g_mag, name="Mag_Est_Shear"))
+                g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
+                gal_matched_table.add_column(Column(g_mag, name=sem_tf.tu_g_mag))
 
                 # Details about the input shear
 
-                g1_in = -gal_matched_table[galcat_g1_colname] / (1 - gal_matched_table[galcat_kappa_colname])
-                g2_in = gal_matched_table[galcat_g2_colname] / (1 - gal_matched_table[galcat_kappa_colname])
+                g1_in = -gal_matched_table[sem_tf.tu_gamma1] / (1 - gal_matched_table[sem_tf.tu_kappa])
+                g2_in = gal_matched_table[sem_tf.tu_gamma2] / (1 - gal_matched_table[sem_tf.tu_kappa])
 
                 gal_matched_table.add_column(
-                    Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name="Beta_Input_Shear"))
+                    Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name=sem_tf.g_beta))
 
                 gal_matched_table.add_column(
-                    Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name="Mag_Input_Shear"))
+                    Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name=sem_tf.g_mag))
 
                 # Details about the input bulge shape
 
-                bulge_angle = gal_matched_table[galcat_bulge_angle_colname] + 90
+                bulge_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
                 regularized_bulge_angle = np.where(bulge_angle < -90, bulge_angle + 180,
                                                    np.where(bulge_angle > 90, bulge_angle - 180, bulge_angle))
                 gal_matched_table.add_column(Column(regularized_bulge_angle,
-                                                    name="Beta_Input_Bulge_Unsheared_Shape"))
+                                                    name=sem_tf.tu_bulge_beta))
 
                 # Details about the input disk shape
 
-                disk_angle = gal_matched_table[galcat_disk_angle_colname] + 90
+                disk_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
                 regularized_disk_angle = np.where(disk_angle < -90, disk_angle + 180,
                                                   np.where(disk_angle > 90, disk_angle - 180, disk_angle))
                 gal_matched_table.add_column(Column(regularized_disk_angle,
-                                                    name="Beta_Input_Disk_Unsheared_Shape"))
+                                                    name=sem_tf.tu_disk_beta))
 
     # Create output data product
     matched_catalog_product = products.she_measurements.create_dpd_she_measurements()
-    for method in methods:
+    for method in ShearEstimationMethods:
 
         if len(gal_matched_tables[method]) == 0:
             matched_catalog_product.set_method_filename(method, None)
@@ -524,15 +497,15 @@ def match_to_tu_from_args(args):
 
         gal_matched_table = vstack(gal_matched_tables[method])
         if len(gal_matched_table) == 0:
-            logger.warn(f"No measurements with method {method} were matched to galaxies.")
+            logger.warn(f"No measurements with method {method.value} were matched to galaxies.")
         star_matched_table = vstack(star_matched_tables[method])
         if len(star_matched_table) == 0:
-            logger.warn(f"No measurements with method {method} were matched to stars.")
+            logger.warn(f"No measurements with method {method.value} were matched to stars.")
 
         unmatched_table = shear_tables[method]
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
-                                                       instance_id=method.upper() + "-" + str(os.getpid()),
+                                                       instance_id=method.value.upper() + "-" + str(os.getpid()),
                                                        extension=".fits", version=SHE_Validation.__version__, subdir="data",)
         matched_catalog_product.set_method_filename(method, method_filename)
 
@@ -546,14 +519,11 @@ def match_to_tu_from_args(args):
         hdulist.append(table_to_hdu(unmatched_table))
 
         # Write out the HDU list to a file
-        logger.info("Writing output matched catalogs for method " + method + " to " + os.path.join(args.workdir,
-                                                                                                   method_filename))
+        logger.info(
+            f"Writing output matched catalogs for method {method} to {os.path.join(args.workdir,method_filename)}")
         hdulist.writeto(os.path.join(args.workdir, method_filename), overwrite=True)
 
     # Write the data product
-    logger.info("Writing output matched catalog data product to " + os.path.join(args.workdir,
-                                                                                 args.matched_catalog))
+    logger.info(f"Writing output matched catalog data product to {os.path.join(args.workdir,args.matched_catalog)}")
     file_io.write_xml_product(matched_catalog_product, args.matched_catalog,
                               workdir=args.workdir)
-
-    return

@@ -5,7 +5,7 @@
     Unit tests relating to table formats.
 """
 
-__updated__ = "2021-01-06"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,13 +22,10 @@ __updated__ = "2021-01-06"
 
 import os
 
-from astropy.table import Column, Table
-import pytest
+from SHE_PPT.testing.tables import _test_is_in_format
 
-from SHE_PPT.table_testing import _test_is_in_format
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF, initialise_cti_gal_object_data_table
-from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF, initialise_regression_results_table
-import numpy as np
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 
 class TestTableFormats:
@@ -40,31 +37,21 @@ class TestTableFormats:
     @classmethod
     def setup_class(cls):
         # Define a list of the table formats we'll be testing
-        cls.formats_and_initializers = [(CGOD_TF, initialise_cti_gal_object_data_table),
-                                        (RR_TF, initialise_regression_results_table),
-                                        ]
-
-        cls.formats, cls.initializers = zip(*cls.formats_and_initializers)
+        cls.formats = [CGOD_TF, RR_TF, ]
 
         cls.filename_base = "test_table"
 
         cls.filenames = [cls.filename_base + ".ecsv", cls.filename_base + ".fits"]
 
-        return
-
     @classmethod
     def teardown_class(cls):
-        del cls.formats, cls.initializers
+        del cls.formats
 
         for filename in cls.filenames:
             if os.path.exists(filename):
                 os.remove(filename)
 
-        return
-
     def test_is_in_format(self):
 
         # Call the test stored in the table_testing module
-        _test_is_in_format(self)
-
-        return
+        _test_is_in_format(self.formats)

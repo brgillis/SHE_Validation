@@ -4,20 +4,8 @@
 
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
-from collections import OrderedDict
-from typing import List
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
-from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import fits_version_label, fits_def_label
-from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
-from astropy import table
-
-from ..constants.cti_gal_test_info import (CtiGalTestCases,
-                                           D_CTI_GAL_TEST_CASE_INFO)
-
-
-__updated__ = "2021-07-05"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -33,6 +21,16 @@ __updated__ = "2021-07-05"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
+from collections import OrderedDict
+from typing import List
+
+from SHE_PPT.constants.fits import FITS_VERSION_LABEL, FITS_DEF_LABEL
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat, SheTableMeta
+from astropy import table
+
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 FITS_VERSION = "8.0"
 FITS_DEF = "she.ctiGalObjectData"
@@ -40,7 +38,7 @@ FITS_DEF = "she.ctiGalObjectData"
 logger = getLogger(__name__)
 
 
-class SheCtiGalObjectDataMeta():
+class SheCtiGalObjectDataMeta(SheTableMeta):
     """
         @brief A class defining the metadata for CTI-Gal Object Data tables.
     """
@@ -51,8 +49,8 @@ class SheCtiGalObjectDataMeta():
         self.table_format = FITS_DEF
 
         # Table metadata labels
-        self.fits_version = fits_version_label
-        self.fits_def = fits_def_label
+        self.fits_version = FITS_VERSION_LABEL
+        self.fits_def = FITS_DEF_LABEL
 
         # Store the less-used comments in a dict
         self.comments = OrderedDict(((self.fits_version, None),
@@ -85,27 +83,28 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
         self.readout_dist = self.set_column_properties("READOUT_DIST", comment="pixels", is_optional=True)
 
         # Data we might bin by
-        for test_case in CtiGalTestCases:
-            name = D_CTI_GAL_TEST_CASE_INFO[test_case].name
-            comment = D_CTI_GAL_TEST_CASE_INFO[test_case].comment
+        for bin_parameter in BinParameters:
+            name = D_BIN_PARAMETER_META[bin_parameter].value
+            comment = D_BIN_PARAMETER_META[bin_parameter].comment
             setattr(self, name, self.set_column_properties(name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
 
-        for method in METHODS:
+        for method in ShearEstimationMethods:
 
-            upper_method = method.upper()
+            method_name = method.value
+            upper_method = method.value.upper()
 
-            setattr(self, f"g1_world_{method}", self.set_column_properties(
+            setattr(self, f"g1_world_{method_name}", self.set_column_properties(
                 f"G1_WORLD_{upper_method}", is_optional=True))
-            setattr(self, f"g2_world_{method}", self.set_column_properties(
+            setattr(self, f"g2_world_{method_name}", self.set_column_properties(
                 f"G2_WORLD_{upper_method}", is_optional=True))
 
-            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
+            setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
 
-            setattr(self, f"g1_image_{method}",
+            setattr(self, f"g1_image_{method_name}",
                     self.set_column_properties(f"G1_IMAGE_{upper_method}"))
-            setattr(self, f"g2_image_{method}",
+            setattr(self, f"g2_image_{method_name}",
                     self.set_column_properties(f"G2_IMAGE_{upper_method}"))
 
         # A list of columns in the desired order
@@ -123,46 +122,3 @@ CTI_GAL_OBJECT_DATA_TABLE_FORMAT = SheCtiGalObjectDataFormat()
 
 # And a convient alias for it
 TF = CTI_GAL_OBJECT_DATA_TABLE_FORMAT
-
-
-def make_cti_gal_object_data_table_header():
-    """
-        @brief Generate a header for a CTI-Gal Object Data table.
-
-        @return header <OrderedDict>
-    """
-
-    header = OrderedDict()
-
-    header[TF.m.fits_version] = TF.__version__
-    header[TF.m.fits_def] = FITS_DEF
-
-    return header
-
-
-def initialise_cti_gal_object_data_table(optional_columns: List[str] = None,
-                                         init_cols: List[table.Column] = None,
-                                         size: int = None):
-    """
-        @brief Initialise a CTI-Gal Object Data table.
-
-        @param optional_columns <list<str>> List of names for optional columns to include.
-
-        @return cti_gal_object_data_table <astropy.Table>
-    """
-
-    if optional_columns is None:
-        optional_columns = []
-    else:
-        # Check all optional columns are valid
-        for colname in optional_columns:
-            if colname not in TF.all:
-                raise ValueError("Invalid optional column name: " + colname)
-
-    cti_gal_object_data_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
-
-    cti_gal_object_data_table.meta = make_cti_gal_object_data_table_header()
-
-    assert is_in_format(cti_gal_object_data_table, TF, verbose=True)
-
-    return cti_gal_object_data_table

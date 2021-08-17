@@ -5,7 +5,7 @@
     Constants relating to CTI-Gal test and test case
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,18 +20,21 @@ __updated__ = "2021-07-19"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
-from SHE_Validation.constants.default_config import FailSigmaScaling
+from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_DEFAULTS,
+                                                     D_VALIDATION_CONFIG_TYPES,
+                                                     D_VALIDATION_CONFIG_CLINE_ARGS)
 
-PROFILING_FILENAME = "validate_shear_bias.prof"
+LOCAL_PROFILING_FILENAME = "validate_local_shear_bias.prof"
+GLOBAL_PROFILING_FILENAME = "validate_global_shear_bias.prof"
 
-# Config keys and default values
-SHEAR_BIAS_DEFAULT_CONFIG = {AnalysisValidationConfigKeys.SBV_M_FAIL_SIGMA.value: 5.,
-                             AnalysisValidationConfigKeys.SBV_C_FAIL_SIGMA.value: 5.,
-                             AnalysisValidationConfigKeys.SBV_FAIL_SIGMA_SCALING.value: FailSigmaScaling.TEST_CASE_SCALE.value,
-                             AnalysisValidationConfigKeys.PIP_PROFILE.value: "False",
-                             }
-
-# Execution mode options
-LOCAL_MODE = "local"
-GLOBAL_MODE = "global"
+# Create the default config dicts for this task by extending the global default config dicts
+D_SHEAR_BIAS_CONFIG_DEFAULTS = {ValidationConfigKeys.SBV_MAX_G_IN: 0.99,
+                                ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS: True,
+                                ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO: False,
+                                **D_VALIDATION_CONFIG_DEFAULTS}
+D_SHEAR_BIAS_CONFIG_TYPES = {ValidationConfigKeys.SBV_MAX_G_IN: float,
+                             ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS: bool,
+                             ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO: bool,
+                             **D_VALIDATION_CONFIG_TYPES}
+D_SHEAR_BIAS_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}

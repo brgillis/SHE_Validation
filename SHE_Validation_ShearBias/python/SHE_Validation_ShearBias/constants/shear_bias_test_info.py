@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-07-16"
+__updated__ = "2021-08-11"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,9 +22,8 @@ __updated__ = "2021-07-16"
 
 from enum import Enum
 
-from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
-
-from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 
 # Metadata about the requirements
@@ -51,23 +50,39 @@ class ShearBiasTestCases(Enum):
     C = "c"
 
 
-SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(test_case_id="TC-SHE-100017-shear-bias-m",
-                                           description=("Multiplicative shear bias."),
-                                           name=ShearBiasTestCases.M.value,
-                                           comment=None,)
-SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(test_case_id="TC-SHE-100018-shear-bias-c",
-                                           description=("Additive shear bias."),
-                                           name=ShearBiasTestCases.C.value,
-                                           comment=None,)
+M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
+BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id=M_TEST_CASE_ID,
+                                                base_description=("Multiplicative shear bias."),)
+C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
+BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id=C_TEST_CASE_ID,
+                                                base_description=("Additive shear bias."),)
 
-# Create a dict of the test case info and requirement info
-D_SHEAR_BIAS_REQUIREMENT_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_M_REQUIREMENT_INFO,
-                                 ShearBiasTestCases.C: SHEAR_BIAS_C_REQUIREMENT_INFO, }
-D_SHEAR_BIAS_TEST_CASE_INFO = {ShearBiasTestCases.M: SHEAR_BIAS_TEST_CASE_M_INFO,
-                               ShearBiasTestCases.C: SHEAR_BIAS_TEST_CASE_C_INFO, }
+# Create lists of the test case info for just m, just c, and combined
+L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
+L_SHEAR_BIAS_TEST_CASE_C_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
+L_SHEAR_BIAS_TEST_CASE_INFO = [*L_SHEAR_BIAS_TEST_CASE_M_INFO, *L_SHEAR_BIAS_TEST_CASE_C_INFO]
 
-SHEAR_BIAS_TEST_CASES = D_SHEAR_BIAS_TEST_CASE_INFO.keys()
+NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_M_INFO)
+NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_C_INFO)
+NUM_SHEAR_BIAS_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_INFO)
 
-NUM_SHEAR_BIAS_TEST_CASES = len(ShearBiasTestCases)
 
-NUM_METHOD_SHEAR_BIAS_TEST_CASES = NUM_SHEAR_ESTIMATION_METHODS * NUM_SHEAR_BIAS_TEST_CASES
+def get_prop_from_id(test_case_id: str):
+    """ Utility function to determine whether a test case refers to M or C from the test case ID.
+    """
+    if M_TEST_CASE_ID in test_case_info.id:
+        return ShearBiasTestCases.M
+    elif C_TEST_CASE_ID in test_case_info.id:
+        return ShearBiasTestCases.C
+    else:
+        raise ValueError(f"Unrecognized test case ID: {test_case_id}")
+
+
+# Create a dict of the requirement info
+D_L_SHEAR_BIAS_REQUIREMENT_INFO = {}
+for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
+    prop = get_prop_from_id(test_case_info.id)
+    if prop == ShearBiasTestCases.M:
+        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_M_REQUIREMENT_INFO
+    else:
+        D_L_SHEAR_BIAS_REQUIREMENT_INFO[test_case_info.name] = SHEAR_BIAS_C_REQUIREMENT_INFO

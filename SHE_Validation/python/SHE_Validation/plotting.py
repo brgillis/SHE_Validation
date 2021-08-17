@@ -5,7 +5,7 @@
     Common functions to aid with plotting.
 """
 
-__updated__ = "2021-07-22"
+__updated__ = "2021-08-04"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,10 +22,12 @@ __updated__ = "2021-07-22"
 # Boston, MA 02110-1301 USA
 
 from copy import deepcopy
+from typing import Iterable, Optional, Tuple
+from SHE_PPT.math import LinregressResults
 
-from matplotlib import cm
-from matplotlib import pyplot as plt
+from matplotlib import cm, pyplot as plt
 from matplotlib.colors import Normalize
+from matplotlib.figure import Figure, Axes
 from scipy.interpolate import interpn
 
 import numpy as np
@@ -33,105 +35,109 @@ import numpy as np
 
 class ValidationPlotter():
 
-    fig = None
-    ax = None
-    xlim = None
-    ylim = None
-
-    def __init__(self):
-        self._ax = None
-        self._fig = None
-        self._xlim = None
-        self._ylim = None
+    _fig: Optional[Figure] = None
+    _ax: Optional[Axes] = None
+    _xlim: Optional[Tuple[float, float]] = None
+    _ylim: Optional[Tuple[float, float]] = None
 
     @property
-    def ax(self):
+    def ax(self) -> Axes:
         if self._ax is None:
             self._fig, self._ax = plt.subplots()
         return self._ax
 
     @ax.setter
-    def ax(self, ax):
+    def ax(self, ax: Axes):
         self._ax = ax
         self._xlim = None
         self._ylim = None
 
     @property
-    def fig(self):
+    def fig(self) -> Figure:
         if self._fig is None:
             self._fig, self._ax = plt.subplots()
         return self._fig
 
     @fig.setter
-    def fig(self, fig):
+    def fig(self, fig: Figure):
         self._fig = fig
         self._xlim = None
         self._ylim = None
 
     @property
-    def xlim(self):
+    def xlim(self) -> Tuple[float, float]:
         if self._xlim is None:
             self._xlim = deepcopy(self.ax.get_xlim())
         return self._xlim
 
     @property
-    def ylim(self):
+    def ylim(self) -> Tuple[float, float]:
         if self._ylim is None:
             self._ylim = deepcopy(self.ax.get_ylim())
         return self._ylim
 
-    def density_scatter(self, x, y, sort=True, bins=20, colorbar=False, **kwargs):
+    def density_scatter(self,
+                        l_x: Iterable[float],
+                        l_y: Iterable[float],
+                        sort: bool = True,
+                        bins: int = 20,
+                        colorbar: bool = False,
+                        **kwargs):
         """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
             Credit: Guillaume on StackOverflow
         """
 
-        data, x_e, y_e = np.histogram2d(x, y, bins=bins, density=True)
-        z = interpn((0.5 * (x_e[1:] + x_e[:-1]), 0.5 * (y_e[1:] + y_e[:-1])), data,
-                    np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
+        data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins=bins, density=True)
+        l_z: Iterable[float] = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
+                                       np.vstack([l_x, l_y]).T, method="splinef2d", bounds_error=False)
 
         # To be sure to plot all data
-        z[np.where(np.isnan(z))] = 0.0
+        l_z[np.where(np.isnan(l_z))] = 0.0
 
         # Sort the points by density, so that the densest points are plotted last
         if sort:
-            idx = z.argsort()
-            x, y, z = x[idx], y[idx], z[idx]
+            idx: Iterable[int] = l_z.argsort()
+            l_x, l_y, l_z = l_x[idx], l_y[idx], l_z[idx]
 
-        self.ax.scatter(x, y, c=z, **kwargs)
+        self.ax.scatter(l_x, l_y, c=l_z, **kwargs)
 
         if colorbar:
-            if len(z) == 0:
+            if len(l_z) == 0:
                 norm = Normalize(vmin=0, vmax=1)
             else:
-                norm = Normalize(vmin=np.min(z), vmax=np.max(z))
+                norm = Normalize(vmin=np.min(l_z), vmax=np.max(l_z))
             cbar = self.fig.colorbar(cm.ScalarMappable(norm=norm), ax=self.ax)
             cbar.ax.set_ylabel('Density')
 
-    def draw_x_axis(self, color="k", linestyle="solid", **kwargs):
+    def draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis on a plot.
         """
 
         self.ax.plot(self.xlim, [0, 0], label=None, color=color, linestyle=linestyle, **kwargs)
 
-    def draw_y_axis(self, color="k", linestyle="solid", **kwargs):
+    def draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws a y-axis on a plot.
         """
 
         self.ax.plot([0, 0], self.ylim, label=None, color=color, linestyle=linestyle, **kwargs)
 
-    def draw_axes(self, color="k", linestyle="solid", **kwargs):
+    def draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis and y-axis on a plot.
         """
 
         self.draw_x_axis(color, linestyle, **kwargs)
         self.draw_y_axis(color, linestyle, **kwargs)
 
-    def draw_bestfit_line(self, linregress_results, label=None, color="r", linestyle="solid"):
+    def draw_bestfit_line(self,
+                          linregress_results: LinregressResults,
+                          label: Optional[str] = None,
+                          color: str = "r",
+                          linestyle: str = "solid"):
         """ Draw a line of bestfit on a plot.
         """
 
-        bestfit_x = np.array(self.xlim)
-        bestfit_y = linregress_results.slope * bestfit_x + linregress_results.intercept
+        bestfit_x: Iterable[float] = np.array(self.xlim)
+        bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
         self.ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
 
     def reset_axes(self):

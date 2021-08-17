@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-08-09"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -30,15 +30,14 @@ import os
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import read_config, AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys, GlobalConfigKeys
+
+from SHE_Validation.test_info_utility import add_bin_limits_cline_args
 
 from . import __version__
-from .constants.cti_gal_default_config import (BACKGROUND_LEVEL_UNITS, COLOUR_DEFINITION, SIZE_DEFINITION,
-                                               CTI_GAL_DEFAULT_CONFIG, PROFILING_FILENAME)
-from .constants.cti_gal_test_info import (D_CTI_GAL_TEST_CASE_INFO,
-                                          CtiGalTestCases)
+from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
+                                               D_CTI_GAL_CONFIG_CLINE_ARGS, PROFILING_FILENAME)
 from .validate_cti_gal import run_validate_cti_gal_from_args
-
 
 logger = log.getLogger(__name__)
 
@@ -93,25 +92,7 @@ def defineSpecificProgramOptions():
     parser.add_argument('--dry_run', action="store_true",
                         help=f'If set, will only read in input data and output dummy output data products')
 
-    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg, type=str, default=None,
-                        help="The bin limits for the SNR test case, expressed as a string of space-separated float " +
-                        "values. If used, overrides values in the pipeline_config file.")
-
-    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg, type=str, default=None,
-                        help="The bin limits for the background level test case, expressed as a string of " +
-                        f"space-separated float values in units of {BACKGROUND_LEVEL_UNITS}. If used, overrides " +
-                        "values in the pipeline_config file.")
-
-    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg, type=str,
-                        default=None,
-                        help="The bin limits for the colour test case, expressed as a string of space-separated " +
-                        f"float values, expressing colour as {COLOUR_DEFINITION}. If used, overrides values in the " +
-                        "pipeline_config file.")
-
-    parser.add_argument('--' + D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg, type=str, default=None,
-                        help="The bin limits for the size test case, expressed as a string of space-separated " +
-                        f"float values, expressing size as {SIZE_DEFINITION}. If used, overrides values in the " +
-                        "pipeline_config file.")
+    add_bin_limits_cline_args(parser)
 
     # Arguments needed by the pipeline runner
     parser.add_argument('--workdir', type=str, default=".")
@@ -139,27 +120,20 @@ def mainMethod(args):
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
-    bin_limits_cline_args = {AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SNR].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.BG].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.COLOUR].bins_cline_arg),
-                             AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value:
-                             getattr(args, D_CTI_GAL_TEST_CASE_INFO[CtiGalTestCases.SIZE].bins_cline_arg), }
-
     # load the pipeline config in
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
-                                  cline_args=bin_limits_cline_args,
-                                  defaults=CTI_GAL_DEFAULT_CONFIG,
-                                  config_keys=AnalysisValidationConfigKeys)
+                                  defaults=D_CTI_GAL_CONFIG_DEFAULTS,
+                                  d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                  parsed_args=args,
+                                  config_keys=ValidationConfigKeys,
+                                  d_types=D_CTI_GAL_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[AnalysisValidationConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile

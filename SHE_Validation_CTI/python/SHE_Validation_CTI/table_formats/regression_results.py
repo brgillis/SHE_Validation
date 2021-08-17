@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,14 +24,15 @@ __updated__ = "2021-07-15"
 from collections import OrderedDict
 from typing import List
 
-from SHE_PPT.constants.shear_estimation_methods import METHODS
+from SHE_PPT.constants.fits import FITS_VERSION_LABEL, FITS_DEF_LABEL
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.magic_values import fits_version_label, fits_def_label
-from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat
+from SHE_PPT.table_utility import is_in_format, init_table, SheTableFormat, SheTableMeta
 from astropy import table
 
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX
-from ..constants.cti_gal_test_info import CtiGalTestCases
+
+from ..constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 
 
 FITS_VERSION = "8.0"
@@ -40,7 +41,7 @@ FITS_DEF = "she.regressionResults"
 logger = getLogger(__name__)
 
 
-class SheRegressionResultsMeta():
+class SheRegressionResultsMeta(SheTableMeta):
     """
         @brief A class defining the metadata for Regression Results tables.
     """
@@ -51,8 +52,8 @@ class SheRegressionResultsMeta():
         self.table_format = FITS_DEF
 
         # Table metadata labels
-        self.fits_version = fits_version_label
-        self.fits_def = fits_def_label
+        self.fits_version = FITS_VERSION_LABEL
+        self.fits_def = FITS_DEF_LABEL
         self.product_type = "PRODTYPE"
         self.test_case = "TESTCASE"
         self.bin_limit_min = "BIN_MIN"
@@ -87,16 +88,17 @@ class SheRegressionResultsFormat(SheTableFormat):
 
         # Set up separate result columns for each shear estimation method
 
-        for method in METHODS:
+        for method in ShearEstimationMethods:
 
-            upper_method = method.upper()
+            method_name = method.value
+            upper_method = method_name.upper()
 
-            setattr(self, f"weight_{method}", self.set_column_properties(f"WEIGHT_{upper_method}"))
-            setattr(self, f"slope_{method}", self.set_column_properties(f"M_{upper_method}"))
-            setattr(self, f"intercept_{method}", self.set_column_properties(f"B_{upper_method}"))
-            setattr(self, f"slope_err_{method}", self.set_column_properties(f"M_ERR_{upper_method}"))
-            setattr(self, f"intercept_err_{method}", self.set_column_properties(f"B_ERR_{upper_method}"))
-            setattr(self, f"slope_intercept_covar_{method}", self.set_column_properties(f"MB_COV_{upper_method}"))
+            setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
+            setattr(self, f"slope_{method_name}", self.set_column_properties(f"M_{upper_method}"))
+            setattr(self, f"intercept_{method_name}", self.set_column_properties(f"B_{upper_method}"))
+            setattr(self, f"slope_err_{method_name}", self.set_column_properties(f"M_ERR_{upper_method}"))
+            setattr(self, f"intercept_err_{method_name}", self.set_column_properties(f"B_ERR_{upper_method}"))
+            setattr(self, f"slope_intercept_covar_{method_name}", self.set_column_properties(f"MB_COV_{upper_method}"))
 
         # A list of columns in the desired order
         self.all = list(self.is_optional.keys())
@@ -113,55 +115,3 @@ REGRESSION_RESULTS_TABLE_FORMAT = SheRegressionResultsFormat()
 
 # And a convenient alias for it
 TF = REGRESSION_RESULTS_TABLE_FORMAT
-
-
-def make_regression_results_table_header(product_type: str = None,
-                                         test_case: str = CtiGalTestCases.GLOBAL,
-                                         bin_limit_min: float = DEFAULT_BIN_LIMIT_MIN,
-                                         bin_limit_max: float = DEFAULT_BIN_LIMIT_MAX):
-    """
-        @brief Generate a header for a Regression Results table.
-
-        @return header <OrderedDict>
-    """
-
-    header = OrderedDict()
-
-    header[TF.m.fits_version] = TF.__version__
-    header[TF.m.fits_def] = FITS_DEF
-
-    header[TF.m.product_type] = product_type
-    header[TF.m.test_case] = test_case
-    header[TF.m.bin_limit_min] = bin_limit_min
-    header[TF.m.bin_limit_max] = bin_limit_max
-
-    return header
-
-
-def initialise_regression_results_table(optional_columns: List[str] = None,
-                                        init_cols: List[table.Column] = None,
-                                        size: int = None,
-                                        product_type: str = None):
-    """
-        @brief Initialise a Regression Results table.
-
-        @param optional_columns <list<str>> List of names for optional columns to include.
-
-        @return regression_results_table <astropy.Table>
-    """
-
-    if optional_columns is None:
-        optional_columns = []
-    else:
-        # Check all optional columns are valid
-        for colname in optional_columns:
-            if colname not in TF.all:
-                raise ValueError("Invalid optional column name: " + colname)
-
-    regression_results_table = init_table(TF, optional_columns=optional_columns, init_cols=init_cols, size=size)
-
-    regression_results_table.meta = make_regression_results_table_header(product_type=product_type)
-
-    assert is_in_format(regression_results_table, TF, verbose=True)
-
-    return regression_results_table

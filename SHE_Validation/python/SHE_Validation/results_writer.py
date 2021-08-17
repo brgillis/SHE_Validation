@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-07-19"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,56 +21,185 @@ __updated__ = "2021-07-19"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
+from io import IOBase
 import os
-from typing import List, Union, Dict, Any, Callable
+from typing import Any, Callable, Dict, List, Optional, Union, TypeVar, Set
 
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.utility import coerce_to_list
 from future.builtins.misc import isinstance
+import scipy.stats
 
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
+from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
+import numpy as np
 
 from . import __version__
-from .test_info import RequirementInfo, TestCaseInfo
+from .constants.default_config import FailSigmaScaling
+from .constants.test_info import RequirementInfo, TestCaseInfo
 
+# Set up a custom type definition for when either a dict or list is accepted
+K = TypeVar('K')
+V = TypeVar('V')
+DictOrList = Union[Dict[K, V], List[V]]
 
 logger = getLogger(__name__)
 
 # Constants related to writing directory files
 
-DEFAULT_DIRECTORY_FILENAME = "SheAnalysisResultsDirectory.txt"
-DEFAULT_DIRECTORY_HEADER = "### OU-SHE Analysis Results File Directory ###"
-TEXTFILES_SECTION_HEADER = "# Textfiles:"
-FIGURES_SECTION_HEADER = "# Figures:"
-DIRECTORY_KEY = "Directory"
+DEFAULT_DIRECTORY_FILENAME: str = "SheAnalysisResultsDirectory.txt"
+DEFAULT_DIRECTORY_HEADER: str = "### OU-SHE Analysis Results File Directory ###"
+TEXTFILES_SECTION_HEADER: str = "# Textfiles:"
+FIGURES_SECTION_HEADER: str = "# Figures:"
+DIRECTORY_KEY: str = "Directory"
 
 
 # Define constants for various messages
 
-RESULT_PASS = "PASSED"
-RESULT_FAIL = "FAILED"
+RESULT_PASS: str = "PASSED"
+RESULT_FAIL: str = "FAILED"
 
-COMMENT_LEVEL_INFO = "INFO"
-COMMENT_LEVEL_WARNING = "WARNING"
-COMMENT_MULTIPLE = "Multiple notes; see SupplementaryInformation."
+COMMENT_LEVEL_INFO: str = "INFO"
+COMMENT_LEVEL_WARNING: str = "WARNING"
+COMMENT_MULTIPLE: str = "Multiple notes; see SupplementaryInformation."
 
-INFO_MULTIPLE = COMMENT_LEVEL_INFO + ": " + COMMENT_MULTIPLE
+INFO_MULTIPLE: str = f"{COMMENT_LEVEL_INFO}: {COMMENT_MULTIPLE}"
 
-WARNING_TEST_NOT_RUN = "WARNING: Test not run."
-WARNING_MULTIPLE = COMMENT_LEVEL_WARNING + ": " + COMMENT_MULTIPLE
-WARNING_BAD_DATA = "WARNING: Bad data; see SupplementaryInformation"
+WARNING_TEST_NOT_RUN: str = "WARNING: Test not run."
+WARNING_MULTIPLE: str = f"{COMMENT_LEVEL_WARNING}: {COMMENT_MULTIPLE}"
+WARNING_BAD_DATA: str = "WARNING: Bad data; see SupplementaryInformation"
 
-KEY_REASON = "REASON"
-KEY_INFO = "INFO"
+KEY_REASON: str = "REASON"
+KEY_INFO: str = "INFO"
 
-DESC_NOT_RUN_REASON = "Why the test was not run."
-DESC_INFO = "Information about the results of the test."
+DESC_NOT_RUN_REASON: str = "Why the test was not run."
+DESC_INFO: str = "Information about the results of the test."
 
-MSG_BAD_DATA = "Test failed due to NaN results for measured parameter."
-MSG_NO_DATA = "No data is available for this test."
-MSG_NOT_IMPLEMENTED = "This test has not yet been implemented."
-MSG_NO_INFO = "No supplementary information available."
+MSG_BAD_DATA: str = "Test failed due to NaN results for measured parameter."
+MSG_NO_DATA: str = "No data is available for this test."
+MSG_NOT_IMPLEMENTED: str = "This test has not yet been implemented."
+MSG_NO_INFO: str = "No supplementary information available."
+
+
+class FailSigmaCalculator():
+    """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
+    """
+
+    # Attributes set from args at init
+    global_fail_sigma: float
+    local_fail_sigma = float
+    fail_sigma_scaling: FailSigmaScaling
+    mode: ExecutionMode = ExecutionMode.LOCAL
+    l_test_case_info: Set[TestCaseInfo]
+
+    # Attributes determined at init
+    bin_parameters: List[BinParameters]
+    num_test_cases: int = 1
+    num_test_case_bins: int = 1
+    d_num_bins: Dict
+    num_test_case_bin_parameters_bins: int
+
+    # Attributes determined on demand
+    _d_scaled_global_sigma: Optional[Dict[BinParameters, float]] = None
+    _d_scaled_local_sigma: Optional[Dict[BinParameters, float]] = None
+
+    def __init__(self,
+                 pipeline_config: Dict[ConfigKeys, Any],
+                 l_test_case_info: List[TestCaseInfo],
+                 d_bin_limits: Dict[BinParameters, np.ndarray] = None,
+                 mode: ExecutionMode = ExecutionMode.LOCAL,):
+
+        # Set attributes directly from args
+        self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
+        self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
+        self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
+        self.mode = mode
+        self.l_test_case_info = l_test_case_info
+
+        # Get a set of all bin parameters in the test cases
+        s_bin_parameters: Set[BinParameters] = set()
+        for test_case_info in self.l_test_case_info:
+            s_bin_parameters.add(test_case_info.bins)
+
+        # Create a default list of bin limits if necessary
+        if d_bin_limits is None:
+            for bin_parameter in s_bin_parameters:
+                d_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
+
+        # Calculate the number of bins for each test case, and in total
+
+        self.d_num_bins = {}
+
+        bin_parameter: BinParameters
+        for bin_parameter in s_bin_parameters:
+            self.d_num_bins[bin_parameter] = len(d_bin_limits[bin_parameter]) - 1
+
+        self.num_test_cases = len(self.l_test_case_info)
+        self.num_test_case_bins = 0
+
+        test_case_info: TestCaseInfo
+        for test_case_info in self.l_test_case_info:
+            bin_parameter: BinParameters = test_case_info.bins
+            self.num_test_case_bins += self.d_num_bins[bin_parameter]
+
+    @property
+    def d_scaled_global_sigma(self) -> Dict[TestCaseInfo, float]:
+        if self._d_scaled_global_sigma is None:
+            self._d_scaled_global_sigma = self._calc_d_scaled_sigma(self.global_fail_sigma)
+        return self._d_scaled_global_sigma
+
+    @property
+    def d_scaled_local_sigma(self) -> Dict[TestCaseInfo, float]:
+        if self._d_scaled_local_sigma is None:
+            self._d_scaled_local_sigma = self._calc_d_scaled_sigma(self.local_fail_sigma)
+        return self._d_scaled_local_sigma
+
+    @property
+    def d_scaled_sigma(self) -> Dict[TestCaseInfo, float]:
+        if self.mode == ExecutionMode.LOCAL:
+            return self.d_scaled_local_sigma
+        else:
+            return self.d_scaled_global_sigma
+
+    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[TestCaseInfo, float]:
+
+        d_scaled_sigma: Dict[TestCaseInfo, float] = {}
+
+        test_case_info: TestCaseInfo
+        for test_case_info in self.l_test_case_info:
+
+            # Get the number of tries depending on scaling type
+            num_tries: int
+            if self.fail_sigma_scaling == FailSigmaScaling.NONE:
+                num_tries = 1
+            elif self.fail_sigma_scaling == FailSigmaScaling.BINS:
+                num_tries = self.d_num_bins[test_case_info.bins]
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASES:
+                num_tries = self.num_test_cases
+            elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS:
+                num_tries = self.num_test_case_bins
+            else:
+                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
+
+            d_scaled_sigma[test_case_info.name] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
+                                                                                     num_tries=num_tries)
+
+        return d_scaled_sigma
+
+    @classmethod
+    def _calc_scaled_sigma_from_tries(cls,
+                                      base_sigma: float,
+                                      num_tries: int) -> float:
+        # To avoid numeric error, don't calculate if num_tries==1
+        if num_tries == 1:
+            return base_sigma
+
+        p_good: float = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
+        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
 
 
 class SupplementaryInfo():
@@ -78,9 +207,9 @@ class SupplementaryInfo():
     """
 
     # Attrs set at init
-    _key = None
-    _description = None
-    _message = None
+    _key: str = KEY_INFO
+    _description: str = DESC_INFO
+    _message: str = MSG_NO_INFO
 
     def __init__(self,
                  key: str = KEY_INFO,
@@ -92,15 +221,15 @@ class SupplementaryInfo():
 
     # Getters/setters for attrs set at init
     @property
-    def key(self):
+    def key(self) -> str:
         return self._key
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self._description
 
     @property
-    def message(self):
+    def message(self) -> str:
         return self._message
 
 
@@ -109,12 +238,12 @@ class RequirementWriter():
     """
 
     # Attrs set at init
-    _parent_test_case_writer = None
-    _requirement_object = None
-    _requirement_info = None
+    _parent_test_case_writer: Optional["TestCaseWriter"] = None
+    _requirement_object: Optional[Any] = None
+    _requirement_info: Optional[RequirementInfo] = None
 
     def __init__(self,
-                 parent_test_case_writer: "TestCaseWriter" = None,
+                 parent_test_case_writer: Optional["TestCaseWriter"] = None,
                  requirement_object=None,
                  requirement_info: RequirementInfo = None):
 
@@ -124,32 +253,36 @@ class RequirementWriter():
 
     # Getters/setters for attrs set at init
     @property
-    def requirement_object(self):
+    def requirement_object(self) -> Optional[Any]:
         return self._requirement_object
 
     @property
-    def requirement_info(self):
+    def requirement_info(self) -> Optional[RequirementInfo]:
         return self._requirement_info
 
     # Public methods
     def add_supplementary_info(self,
-                               l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                               l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                               ) -> None:
         """ Fills out supplementary information in the data model object for one or more items,
             modifying self._requirement_object.
         """
 
         # Silently coerce single item into list
-        if isinstance(l_supplementary_info, SupplementaryInfo):
-            l_supplementary_info = [l_supplementary_info]
+        l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none=True)
+
         # Use defaults if None provided
-        elif l_supplementary_info is None:
+        if l_supplementary_info is None:
             l_supplementary_info = [SupplementaryInfo()]
 
-        base_supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        base_supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
 
-        l_supplementary_info_parameter = [None] * len(l_supplementary_info)
+        l_supplementary_info_parameter: List[str] = [None] * len(l_supplementary_info)
+
+        i: int
+        supplementary_info: SupplementaryInfo
         for i, supplementary_info in enumerate(l_supplementary_info):
-            supplementary_info_parameter = deepcopy(base_supplementary_info_parameter)
+            supplementary_info_parameter: Any = deepcopy(base_supplementary_info_parameter)
 
             supplementary_info_parameter.Key = supplementary_info.key
             supplementary_info_parameter.Description = supplementary_info.description
@@ -160,7 +293,8 @@ class RequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = l_supplementary_info_parameter
 
     def report_bad_data(self,
-                        l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                        l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                        ) -> None:
         """ Reports bad data in the data model object for one or more items, modifying self._requirement_object.
         """
 
@@ -175,7 +309,8 @@ class RequirementWriter():
     def report_good_data(self,
                          measured_value: float = -99.,
                          warning: bool = False,
-                         l_supplementary_info: Union[SupplementaryInfo, List[SupplementaryInfo]] = None):
+                         l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                         ) -> None:
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
 
@@ -194,7 +329,8 @@ class RequirementWriter():
         self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
 
     def report_test_not_run(self,
-                            reason: str = "Unspecified reason."):
+                            reason: str = "Unspecified reason."
+                            ) -> None:
         """ Fills in the data model with the fact that a test was not run and the reason.
         """
 
@@ -202,7 +338,7 @@ class RequirementWriter():
         self.requirement_object.ValidationResult = RESULT_PASS
         self.requirement_object.Comment = WARNING_TEST_NOT_RUN
 
-        supplementary_info_parameter = self.requirement_object.SupplementaryInformation.Parameter[0]
+        supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
         supplementary_info_parameter.Key = KEY_REASON
         supplementary_info_parameter.Description = DESC_NOT_RUN_REASON
         supplementary_info_parameter.StringValue = reason
@@ -238,39 +374,41 @@ class AnalysisWriter():
     """
 
     # Attributes set at init
-    _parent_test_case_writer = None
-    _analysis_object = None
-    _product_type = None
-    _workdir = None
-    _textfiles = None
-    _figures = None
+    _parent_test_case_writer: Optional["TestCaseWriter"] = None
+    _product_type: str = "UNKNOWN-TYPE"
+    _dl_l_textfiles: Optional[DictOrList[str, str]] = None
+    _dl_l_figures: Optional[DictOrList[str, str]] = None
+
+    # Attributes determined at init
+    _workdir: str
+    _analysis_object: Any
 
     # Attributes set when requested
-    _textfiles_filename = None
-    _qualified_textfiles_filename = None
-    _figures_filename = None
-    _qualified_figures_filename = None
+    _textfiles_filename: Optional[str] = None
+    _qualified_textfiles_filename: Optional[str] = None
+    _figures_filename: Optional[str] = None
+    _qualified_figures_filename: Optional[str] = None
 
     # Attributes set when write is called
-    _directory_filename = None
-    _qualified__directory_filename = None
+    _directory_filename: Optional[str] = None
+    _qualified__directory_filename: Optional[str] = None
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
-                 product_type="UNKNOWN-TYPE",
-                 textfiles: Union[Dict[str, str], List[str]] = None,
-                 figures: Union[Dict[str, str], List[str]] = None):
+                 product_type: str = "UNKNOWN-TYPE",
+                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
+                 dl_l_figures: Optional[DictOrList[str, str]] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
-        if textfiles is not None:
-            self._textfiles = textfiles
+        if dl_l_textfiles is not None:
+            self._dl_l_textfiles = dl_l_textfiles
         else:
-            self._textfiles = []
-        if figures is not None:
-            self._figures = figures
+            self._dl_l_textfiles = []
+        if dl_l_figures is not None:
+            self._dl_l_figures = dl_l_figures
         else:
-            self._figures = []
+            self._dl_l_figures = []
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -307,18 +445,19 @@ class AnalysisWriter():
         self._workdir = a
 
     @property
-    def textfiles(self):
-        return self._textfiles
+    def dl_l_textfiles(self):
+        return self._dl_l_textfiles
 
     @property
-    def figures(self):
-        return self._figures
+    def dl_l_figures(self):
+        return self._dl_l_figures
 
     # Getters/setters for attributes set when requested
     @property
-    def textfiles_filename(self):
+    def textfiles_filename(self) -> str:
         if self._textfiles_filename is None:
-            filename_tag = self._get_filename_tag()
+            filename_tag: str = self._get_filename_tag()
+            instance_id_tail: str
             if filename_tag is None:
                 instance_id_tail = ""
             else:
@@ -331,7 +470,7 @@ class AnalysisWriter():
         return self._textfiles_filename
 
     @property
-    def qualified_textfiles_filename(self):
+    def qualified_textfiles_filename(self) -> str:
         if self._qualified_textfiles_filename is None:
             if self.workdir is not None:
                 self._qualified_textfiles_filename = os.path.join(self.workdir, self.textfiles_filename)
@@ -340,7 +479,7 @@ class AnalysisWriter():
         return self._qualified_textfiles_filename
 
     @property
-    def figures_filename(self):
+    def figures_filename(self) -> str:
         if self._figures_filename is None:
             filename_tag = self._get_filename_tag()
             if filename_tag is None:
@@ -355,7 +494,7 @@ class AnalysisWriter():
         return self._figures_filename
 
     @property
-    def qualified_figures_filename(self):
+    def qualified_figures_filename(self) -> str:
         if self._qualified_figures_filename is None:
             if self.workdir is not None:
                 self._qualified_figures_filename = os.path.join(self.workdir, self.figures_filename)
@@ -364,11 +503,11 @@ class AnalysisWriter():
         return self._qualified_figures_filename
 
     @property
-    def directory_filename(self):
+    def directory_filename(self) -> Optional[str]:
         return self._directory_filename
 
     @directory_filename.setter
-    def directory_filename(self, directory_filename):
+    def directory_filename(self, directory_filename: Optional[str]):
 
         # Unset _qualified_directory_filename
         self._qualified_directory_filename = None
@@ -376,7 +515,7 @@ class AnalysisWriter():
         self._directory_filename = directory_filename
 
     @property
-    def qualified_directory_filename(self):
+    def qualified_directory_filename(self) -> Optional[str]:
         if self.directory_filename is None:
             return None
         if self._qualified_directory_filename is None:
@@ -388,22 +527,24 @@ class AnalysisWriter():
 
     # Private and protected methods
 
-    def _get_filename_tag(self):
+    def _get_filename_tag(self) -> Optional[str]:
         """ Overridable method to get a tag to add to figure/textfile filenames.
         """
         return None
 
-    def _generate_directory_filename(self):
+    def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.
         """
         self.directory_filename = DEFAULT_DIRECTORY_FILENAME
 
-    def _get_directory_header(self):
+    def _get_directory_header(self) -> str:
         """ Overridable method to get the desired header for a directory file.
         """
         return DEFAULT_DIRECTORY_HEADER
 
-    def _write_filenames_to_directory(self, fo, filenames):
+    def _write_filenames_to_directory(self,
+                                      fo: IOBase,
+                                      filenames: Optional[DictOrList[str, str]]) -> None:
         """ Write a dict or list of filenames to an open, writable directory file,
             with different functionality depending on if a list or dict is passed.
         """
@@ -417,7 +558,9 @@ class AnalysisWriter():
             for filename in filenames:
                 fo.write(f"{filename}\n")
 
-    def _write_directory(self, textfiles, figures):
+    def _write_directory(self,
+                         dl_l_textfiles: Optional[DictOrList[str, str]],
+                         dl_l_figures: Optional[DictOrList[str, str]]) -> None:
 
         # Generate a filename for the directory if needed
         if self._directory_filename is None:
@@ -431,30 +574,32 @@ class AnalysisWriter():
 
             # Write a comment for the start of the textfiles section, then write out the textfile filenames
             fo.write(f"{TEXTFILES_SECTION_HEADER}\n")
-            self._write_filenames_to_directory(fo, textfiles)
+            self._write_filenames_to_directory(fo, dl_l_textfiles)
 
             # Write a comment for the start of the figures section, then write out the figure filenames
             fo.write(f"{FIGURES_SECTION_HEADER}\n")
-            self._write_filenames_to_directory(fo, figures)
+            self._write_filenames_to_directory(fo, dl_l_figures)
 
-    def _add_directory_to_textfiles(self, textfiles):
+    def _add_directory_to_textfiles(self, dl_l_textfiles: Optional[DictOrList[str, str]]) -> None:
         """ Adds the directory filename to a dict or list of textfiles.
         """
 
-        if isinstance(textfiles, dict):
-            textfiles[DIRECTORY_KEY] = self.directory_filename
+        if isinstance(dl_l_textfiles, dict):
+            dl_l_textfiles[DIRECTORY_KEY] = self.directory_filename
         else:
-            textfiles.append(self.directory_filename)
+            dl_l_textfiles.append(self.directory_filename)
 
     @staticmethod
-    def _write_dummy_data(qualified_filename):
+    def _write_dummy_data(qualified_filename: str) -> None:
         """ Write dummy data to a file.
         """
         with open(qualified_filename, "w") as fo:
             fo.write("Dummy data")
-        return fo
 
-    def _tar_files(self, tarball_filename, filenames, delete_files):
+    def _tar_files(self,
+                   tarball_filename: str,
+                   filenames: Optional[DictOrList[str, str]],
+                   delete_files: bool = False) -> None:
         """ Tar the set of files in {files} into the tarball {qualified_filename}. Optionally delete these files
             afterwards.
         """
@@ -478,11 +623,11 @@ class AnalysisWriter():
                           delete_files=delete_files)
 
     def _write_files(self,
-                     files,
-                     tarball_filename,
-                     data_container_attr,
-                     write_dummy_files,
-                     delete_files):
+                     files: Optional[DictOrList[str, str]],
+                     tarball_filename: str,
+                     data_container_attr: str,
+                     write_dummy_files: bool = False,
+                     delete_files: bool = False) -> None:
         """ Tar a set of files and update the data product with the filename of the tarball. Optionally delete
             files now included in the tarball.
         """
@@ -503,29 +648,26 @@ class AnalysisWriter():
     # Public methods
 
     def write(self,
-              write_directory=True,
-              write_dummy_files=False,
-              delete_files=True) -> str:
+              write_directory: bool = True,
+              write_dummy_files: bool = False,
+              delete_files: bool = True) -> None:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
-
-            'textfiles' and 'figures' should either be None (for no files), lists of filenames, or dicts. A directory
-            is written if desired; if dicts are passed, the keys will be written in the directory along with filenames.
         """
 
         # Create a directory if desired
-        if write_directory and len(self.textfiles) + len(self.figures) > 0:
-            self._write_directory(self.textfiles, self.figures)
-            self._add_directory_to_textfiles(self.textfiles)
+        if write_directory and len(self.dl_l_textfiles) + len(self.dl_l_figures) > 0:
+            self._write_directory(self.dl_l_textfiles, self.dl_l_figures)
+            self._add_directory_to_textfiles(self.dl_l_textfiles)
 
         # Write out textfiles and figures
-        self._write_files(files=self.textfiles,
+        self._write_files(files=self.dl_l_textfiles,
                           tarball_filename=self.textfiles_filename,
                           data_container_attr="TextFiles",
                           write_dummy_files=write_dummy_files,
                           delete_files=delete_files)
 
-        self._write_files(files=self.figures,
+        self._write_files(files=self.dl_l_figures,
                           tarball_filename=self.figures_filename,
                           data_container_attr="Figures",
                           write_dummy_files=write_dummy_files,
@@ -536,35 +678,56 @@ class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
-    # Attributes set at init
-    _parent_validation_writer = None
-    _test_case_object = None
-    _test_case_info = None
-    _l_requirement_writers = None
-    _l_requirement_objects = None
-    _analysis_writer = None
-    _analysis_object = None
-    _workdir = None
+    # Types of child objects, which can be overriden by derived classes
+    requirement_writer_type = RequirementWriter
+    analysis_writer_type = AnalysisWriter
+
+    # Attributes set from kwargs at init
+    _parent_val_results_writer: Optional["ValidationResultsWriter"] = None
+    _test_case_object: Optional[Any] = None
+    _test_case_info: Optional[TestCaseInfo] = None
+    _l_requirement_writers: Optional[List[RequirementWriter]] = None
+    _l_requirement_objects: Optional[List[Any]] = None
+
+    # Attributes determined at init
+    _analysis_writer: Optional[AnalysisWriter] = None
+    _analysis_object: Optional[Any] = None
+    _workdir: Optional[str] = None
+
+    def _init_analysis_object(self,
+                              analysis_object: Any,
+                              dl_l_textfiles,
+                              dl_l_figures):
+
+        analysis_textfiles_object: Any = dataContainer(filestatus="PROPOSED")
+        analysis_object.TextFiles = analysis_textfiles_object
+
+        analysis_figures_object: Any = dataContainer(filestatus="PROPOSED")
+        analysis_object.Figures = analysis_figures_object
+
+        self._analysis_object = analysis_object
+        self._analysis_writer = self._make_analysis_writer(dl_l_textfiles=dl_l_textfiles,
+                                                           dl_l_figures=dl_l_figures)
 
     def __init__(self,
-                 parent_validation_writer: "ValidationWriter" = None,
-                 test_case_object=None,
+                 parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
+                 test_case_object: Optional[Any] = None,
                  test_case_info: TestCaseInfo = None,
                  num_requirements: int = None,
-                 l_requirement_info: Union[RequirementInfo, List[RequirementInfo]] = None,
-                 textfiles: Union[Dict[str, str], List[str]] = None,
-                 figures: Union[Dict[str, str], List[str]] = None):
+                 l_requirement_info: Union[None, RequirementInfo, List[RequirementInfo]] = None,
+                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
+                 dl_l_figures: Optional[DictOrList[str, str]] = None):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
                              "to TestCaseWriter().")
 
         # Get attributes from parent
-        self._parent_validation_writer = parent_validation_writer
-        if self.parent_validation_writer is not None:
-            self._workdir = self.parent_validation_writer.workdir
+        self._parent_val_results_writer = parent_val_results_writer
+        if self.parent_val_results_writer is not None:
+            self._workdir = self.parent_val_results_writer.workdir
         else:
-            logger.debug("TestCaseWriter.parent_validation_writer not set at init - attrs will need to be set " +
+            logger.debug("TestCaseWriter.parent_val_results_writer not set at init - attrs will need to be set " +
                          "manually.")
 
         # Get attributes from arguments
@@ -572,13 +735,13 @@ class TestCaseWriter():
         self._test_case_info = test_case_info
 
         # Init l_requirement_writers etc. always as lists
-        base_requirement_object = test_case_object.ValidatedRequirements.Requirement[0]
-        analysis_object = test_case_object.AnalysisResult.AnalysisFiles
+        base_requirement_object: Any = test_case_object.ValidatedRequirements.Requirement[0]
+        analysis_object: Any = test_case_object.AnalysisResult.AnalysisFiles
 
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
-            requirement_object = base_requirement_object
-            self._l_requirement_writers = [self._init_requirement_writer(requirement_object=requirement_object,
+            requirement_object: Any = base_requirement_object
+            self._l_requirement_writers = [self._make_requirement_writer(requirement_object=requirement_object,
                                                                          requirement_info=l_requirement_info)]
             self._l_requirement_objects = [requirement_object]
 
@@ -590,84 +753,86 @@ class TestCaseWriter():
             self._l_requirement_writers = [None] * num_requirements
             self._l_requirement_objects = [None] * num_requirements
 
-            for i, requirement_info in enumerate(l_requirement_info):
+            for i in range(num_requirements):
+
+                requirement_info: Optional[RequirementInfo] = None
+                if l_requirement_info:
+                    requirement_info: RequirementInfo = l_requirement_info[i]
 
                 requirement_object = deepcopy(base_requirement_object)
                 self.l_requirement_objects[i] = requirement_object
-                self.l_requirement_writers[i] = self._init_requirement_writer(requirement_object=requirement_object,
+                self.l_requirement_writers[i] = self._make_requirement_writer(requirement_object=requirement_object,
                                                                               requirement_info=requirement_info)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
-        analysis_textfiles_object = dataContainer(filestatus="PROPOSED")
-        analysis_object.TextFiles = analysis_textfiles_object
-
-        analysis_figures_object = dataContainer(filestatus="PROPOSED")
-        analysis_object.Figures = analysis_figures_object
-
-        self._analysis_object = analysis_object
-        self._analysis_writer = self._init_analysis_writer(textfiles=textfiles,
-                                                           figures=figures)
+        # Set up the Analysis Writer
+        self._init_analysis_object(analysis_object,
+                                   dl_l_textfiles,
+                                   dl_l_figures)
 
     # Getters/setters for attributes set at init
     @property
-    def parent_validation_writer(self):
-        return self._parent_validation_writer
+    def parent_val_results_writer(self) -> Optional["ValidationResultsWriter"]:
+        return self._parent_val_results_writer
 
     @property
-    def test_case_object(self):
+    def test_case_object(self) -> Any:
         return self._test_case_object
 
     @property
-    def test_case_info(self):
+    def test_case_info(self) -> Optional[TestCaseInfo]:
         return self._test_case_info
 
     @property
-    def workdir(self):
+    def workdir(self) -> Optional[str]:
         return self._workdir
 
     @workdir.setter
-    def workdir(self, a):
-        self._workdir = a
+    def workdir(self, workdir: Optional[str]):
+        self._workdir = workdir
 
     @property
-    def l_requirement_writers(self):
+    def l_requirement_writers(self) -> List[RequirementWriter]:
         return self._l_requirement_writers
 
     @property
-    def l_requirement_objects(self):
+    def l_requirement_objects(self) -> List[Any]:
         return self._l_requirement_objects
 
     @property
-    def analysis_writer(self):
+    def analysis_writer(self) -> List[AnalysisWriter]:
         return self._analysis_writer
 
     @property
-    def analysis_object(self):
+    def analysis_object(self) -> Any:
         return self._analysis_object
 
     # Private and protected methods
-    def _init_requirement_writer(self, **kwargs):
-        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this.
+    def _make_requirement_writer(self, **kwargs) -> RequirementWriter:
+        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this
+            in case they need to alter the kwargs in any way..
         """
-        return RequirementWriter(self, **kwargs)
+        return self.requirement_writer_type(self, **kwargs)
 
-    def _init_analysis_writer(self, **kwargs):
-        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this.
+    def _make_analysis_writer(self, **kwargs) -> AnalysisWriter:
+        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
+            in case they need to alter the kwargs in any way..
         """
-        return AnalysisWriter(self, **kwargs)
+        return self.analysis_writer_type(self, **kwargs)
 
     # Public methods
-    def write_meta(self):
+    def write_meta(self) -> None:
         """ Fill in metadata about the test case, modifying self._test_case_object.
         """
         self.test_case_object.TestId = self.test_case_info.id
         self.test_case_object.TestDescription = self.test_case_info.description
 
-    def write_requirement_objects(self, **kwargs):
+    def write_requirement_objects(self, **kwargs) -> None:
         """ Writes all data for each requirement subobject, modifying self._test_case_object.
         """
         all_requirements_pass = True
+        requirement_writer: RequirementWriter
         for requirement_writer in self.l_requirement_writers:
             requirement_result = requirement_writer.write(**kwargs)
             all_requirements_pass = all_requirements_pass and (requirement_result == RESULT_PASS)
@@ -679,7 +844,7 @@ class TestCaseWriter():
 
         self.global_result = self.test_case_object.GlobalResult
 
-    def write_analysis_files(self, **kwargs):
+    def write_analysis_files(self, **kwargs) -> None:
         """ Method to write any desired analysis files. Subclasses may override this with a method
             which writes out desired files, or leave this empty if no files need to be written.
         """
@@ -691,7 +856,7 @@ class TestCaseWriter():
 
         self.analysis_writer.write(**kwargs)
 
-    def write(self, requirements_kwargs=None, analysis_kwargs=None):
+    def write(self, requirements_kwargs=None, analysis_kwargs=None) -> None:
         """ Fills in metadata of the test case object and writes all data for each requirement subobject, modifying
             self._test_case_object.
         """
@@ -713,124 +878,229 @@ class ValidationResultsWriter():
     """ Base class to handle the writing out of validation test results.
     """
 
-    # Attrs set at init
-    _test_object = None
-    _l_test_case_writers = None
-    _l_test_case_objects = None
-    _workdir = None
-    _textfiles = None
-    _figures = None
+    # Types of child classes, which can be overriden by derived classes
+    test_case_writer_type = TestCaseWriter
+
+    # Attributes set at init from arguments
+    _test_object: dpdSheValidationTestResults
+    _workdir: str
+    dl_l_textfiles: Optional[DictOrList[str, str]] = None
+    dl_l_figures: Optional[DictOrList[str, str]] = None
+    num_test_cases: Optional[int] = None
+    l_test_case_info: Optional[List[TestCaseInfo]] = None
+    dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
+    dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
+    _dl_l_textfiles: Optional[DictOrList[str, str]] = None
+    _dl_l_figures: Optional[DictOrList[str, str]] = None
+
+    # Attributes determined at init
+    _l_test_case_writers: List[TestCaseWriter]
+    _l_test_case_objects: List[Any]
+    test_case_keys: List[str]
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
-                 textfiles: Union[Dict[str, str], List[str]] = None,
-                 figures: Union[Dict[str, str], List[str]] = None,
-                 num_test_cases: int = 1,
-                 l_test_case_info: Union[TestCaseInfo, List[TestCaseInfo]] = None):
+                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
+                 dl_l_figures: Optional[DictOrList[str, str]] = None,
+                 num_test_cases: Optional[int] = None,
+                 l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
+                 dl_num_requirements: Union[None, Dict[str, int], List[int]] = None,
+                 dl_l_requirement_info: Union[None, Dict[str, List[RequirementInfo]],
+                                              List[List[RequirementInfo]]] = None) -> None:
 
-        if (num_test_cases is None) == (l_test_case_info is None):
-            raise ValueError("Exactly one of num_test_cases or l_test_case_info must be provided " +
-                             "to ValidationResultsWriter().")
-
+        # Init attributes directly from arguments
+        self.dl_l_textfiles = dl_l_textfiles
+        self.dl_l_figures = dl_l_figures
+        self.num_test_cases = num_test_cases
+        self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none=True)
+        self.dl_num_requirements = dl_num_requirements
+        self.dl_l_requirement_info = dl_l_requirement_info
         self._test_object = test_object
         self._workdir = workdir
 
-        base_test_case_object = self.test_object.Data.ValidationTestList[0]
+        # Check validity of input args and process them to calculate derivative values
 
-        # Init l_test_case_writers always as a list
+        self._check_test_case_input()
+        self._check_requirements_input()
 
-        if isinstance(l_test_case_info, TestCaseInfo):
-            l_test_case_info = [l_test_case_info]
-
-        elif l_test_case_info is not None:
-            num_test_cases = len(l_test_case_info)
-
-        else:
-            l_test_case_info = [None] * num_test_cases
+        self._process_test_case_input()
+        self._process_requirements_input()
 
         # Initialise test case objects and writers
-        self._l_test_case_objects = [None] * num_test_cases
-        self._l_test_case_writers = [None] * num_test_cases
+        self._l_test_case_objects = [None] * self.num_test_cases
+        self._l_test_case_writers = [None] * self.num_test_cases
 
-        for i, test_case_info in enumerate(l_test_case_info):
+        base_test_case_object = self.test_object.Data.ValidationTestList[0]
 
-            # Get the proper textfiles and figures for this test case
-            test_case_textfiles = None
-            if isinstance(textfiles, dict):
-                if test_case_info.name in textfiles:
-                    test_case_textfiles = textfiles[test_case_info.name]
-            elif textfiles is not None:
-                try:
-                    test_case_textfiles = textfiles[i]
-                except IndexError:
-                    pass
-            test_case_figures = None
-            if isinstance(figures, dict):
-                if test_case_info.name in figures:
-                    test_case_figures = figures[test_case_info.name]
-            elif figures is not None:
-                try:
-                    test_case_figures = figures[i]
-                except IndexError:
-                    pass
-
-            # Create a test case writer and keep it in the list of writers
-            test_case_object = deepcopy(base_test_case_object)
-            self.l_test_case_writers[i] = self._init_test_case_writer(test_case_object=test_case_object,
-                                                                      test_case_info=test_case_info,
-                                                                      textfiles=test_case_textfiles,
-                                                                      figures=test_case_figures)
-
-            self.l_test_case_objects[i] = test_case_object
+        for i, test_case_info in enumerate(self.l_test_case_info):
+            self._init_test_case_writer(test_case_info=test_case_info,
+                                        i=i,
+                                        base_test_case_object=base_test_case_object,)
 
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
     # Getters/setters for attrs set at init
     @property
-    def test_object(self):
+    def test_object(self) -> Any:
         return self._test_object
 
     @property
-    def workdir(self):
+    def workdir(self) -> str:
         return self._workdir
 
     @workdir.setter
-    def workdir(self, a):
-        self._workdir = a
+    def workdir(self, workdir: str):
+        self._workdir = workdir
 
     @property
-    def l_test_case_writers(self):
+    def l_test_case_writers(self) -> List[TestCaseWriter]:
         return self._l_test_case_writers
 
     @property
-    def l_test_case_objects(self):
+    def l_test_case_objects(self) -> List[Any]:
         return self._l_test_case_objects
 
-    # Private methods
-    def _init_test_case_writer(self, **kwargs) -> TestCaseWriter:
-        """ Method to initialize a test case writer, which we use to allow inherited classes to override this.
+    # Private methods - used when initialized
+
+    def _check_test_case_input(self) -> None:
+        """ Checks that input related to test cases is valid.
         """
-        return TestCaseWriter(self, **kwargs)
+
+        if (self.num_test_cases is None) == (self.l_test_case_info is None):
+            raise ValueError("Exactly one of num_test_cases or l_test_case_info must be provided "
+                             "to ValidationResultsWriter().")
+
+    def _check_requirements_input(self) -> None:
+        """ Checks that input related to requirements is valid.
+        """
+
+        if self.dl_num_requirements and self.dl_l_requirement_info:
+            raise ValueError("Only one of dl_num_requirements and dl_l_requirement_info may be "
+                             "provided to ValidationResultsWriter.")
+
+        # If we're using default values for requirements, we can return here
+        if not self.dl_num_requirements or not self.dl_l_requirement_info:
+            return
+
+        # Check that the format is consistent with test case input
+        if self.num_test_cases and not (isinstance(self.dl_num_requirements, list) and
+                                        isinstance(self.dl_l_requirement_info, list)):
+            raise ValueError("If num_test_cases is provided, dl_num_requirements and dl_l_requirement_info must be "
+                             "provided as lists.")
+        if self.l_test_case_info and not (isinstance(self.dl_num_requirements, list) and
+                                          isinstance(self.dl_l_requirement_info, list)):
+            raise ValueError("If l_test_case_info is provided, dl_num_requirements and dl_l_requirement_info must be "
+                             "provided as dicts.")
+
+    def _process_test_case_input(self) -> None:
+        """ Determines all necessary data related to test cases.
+        """
+
+        # Align l_test_case_info and num_test_cases based on which was supplied
+        if self.l_test_case_info:
+            self.num_test_cases = len(self.l_test_case_info)
+            self.test_case_keys = [test_case_info.name for test_case_info in self.l_test_case_info]
+        else:
+            self.l_test_case_info = [None] * self.num_test_cases
+            self.test_case_keys = list(range(self.num_test_cases))
+
+    def _init_like(self, a: DictOrList[Any, Any]) -> DictOrList[Any, Any]:
+        """ Creates a dict or list like the passed dict or list, ready to assign elements by key/index.
+        """
+
+        b: DictOrList[Any, Any]
+        if isinstance(a, list):
+            b = [None] * self.num_test_cases
+        else:
+            b = {}
+        return b
+
+    def _process_requirements_input(self) -> None:
+        """ Determines all necessary data related to requirements.
+        """
+
+        if (self.dl_num_requirements is None) and (self.dl_l_requirement_info is None):
+            # Assume one requirement if no info provided
+            if self.l_test_case_info:
+                self.dl_num_requirements = {}
+                for test_case in self.test_case_keys:
+                    self.dl_num_requirements[test_case] = 1
+            else:
+                self.dl_num_requirements = [1] * self.num_test_cases
+
+        # Align dl_l_requirement_info and dl_num_requirements based on which was provided
+        if self.dl_l_requirement_info:
+            self.dl_num_requirements = self._init_like(self.dl_l_requirement_info)
+        else:
+            self.dl_l_requirement_info = self._init_like(self.dl_num_requirements)
+
+    @staticmethod
+    def _get_item_from_dl(dl: Optional[DictOrList[Any, Any]],
+                          key: Union[Any, int]) -> Any:
+        """ Get an item out of a list or dictionary depending on the type. If not found, returns None instead of
+            raising an exception
+        """
+
+        if not dl:
+            return None
+
+        item = None
+        try:
+            item = dl[key]
+        except (IndexError, KeyError):
+            pass
+        return item
+
+    def _init_test_case_writer(self,
+                               test_case_info: TestCaseInfo,
+                               i: int,
+                               base_test_case_object: Any,
+                               ) -> None:
+        """ Initilizes a single test case object and writer.
+        """
+
+        # Get the proper textfiles and figures for this test case
+        key = self.test_case_keys[i]
+        test_case_textfiles = self._get_item_from_dl(self.dl_l_textfiles, key)
+        test_case_figures = self._get_item_from_dl(self.dl_l_figures, key)
+        num_requirements = self._get_item_from_dl(self.dl_num_requirements, key)
+        l_requirement_info = self._get_item_from_dl(self.dl_l_requirement_info, key)
+
+        # Create a test case writer and keep it in the list of writers
+        test_case_object = deepcopy(base_test_case_object)
+        self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object=test_case_object,
+                                                                  test_case_info=test_case_info,
+                                                                  dl_l_textfiles=test_case_textfiles,
+                                                                  dl_l_figures=test_case_figures,
+                                                                  num_requirements=num_requirements,
+                                                                  l_requirement_info=l_requirement_info)
+        self.l_test_case_objects[i] = test_case_object
+
+    def _make_test_case_writer(self, **kwargs) -> TestCaseWriter:
+        """ Method to initialize a test case writer, which we use to allow inherited classes to override this,
+            in case they need to change the kwargs in any way.
+        """
+        return self.test_case_writer_type(self, **kwargs)
 
     # Public methods
     def add_test_case_writer(self,
-                             test_case_writer: TestCaseWriter):
+                             test_case_writer: TestCaseWriter) -> None:
         self._l_test_case_writers.append(test_case_writer)
         self.l_test_case_objects.append(test_case_writer.test_case_object)
 
-    def write_meta(self):
+    def write_meta(self) -> None:
         """ Fill in metadata about the test, modifying self._test_object.
         """
         pass
 
-    def write_test_case_objects(self):
+    def write_test_case_objects(self) -> None:
         """ Writes all data for each requirement subobject, modifying self._test_object.
         """
         for test_case_writer in self.l_test_case_writers:
             test_case_writer.write()
 
-    def write(self):
+    def write(self) -> None:
         """ Fills in metadata of the validaiton test results object and writes all data for each test case to the
             validation test results object, self._test_object.
         """

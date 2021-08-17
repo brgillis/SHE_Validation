@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-07-15"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,14 +20,8 @@ __updated__ = "2021-07-15"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from enum import Enum
-
-from SHE_PPT.constants.shear_estimation_methods import NUM_METHODS as NUM_SHEAR_ESTIMATION_METHODS
-from SHE_PPT.pipeline_utility import AnalysisValidationConfigKeys
-
-from SHE_Validation.test_info import RequirementInfo, TestInfo, TestCaseInfo
-from SHE_Validation_CTI.constants.cti_gal_default_config import (BACKGROUND_LEVEL_UNITS,
-                                                                 COLOUR_DEFINITION, SIZE_DEFINITION)
+from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 
 # Metadata about the requirement
@@ -43,76 +37,17 @@ CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
                                           "(slope)."))
 
 
-class CtiGalTestCases(Enum):
-    """ Enum of test cases for this test.
-    """
-    GLOBAL = "global"
-    SNR = "snr"
-    BG = "bg"
-    COLOUR = "colour"
-    SIZE = "size"
-    EPOCH = "epoch"
-
-
-CTI_GAL_TEST_CASE_GLOBAL_INFO = TestCaseInfo(test_case_id="T-SHE-000010-CTI-gal",
-                                             description=("Linear dependence of " +
-                                                          "residual galaxy ellipticity with read-out " +
-                                                          "register distance (slope) unbinned."),
-                                             bins_cline_arg=None,
-                                             bins_config_key=None,
-                                             name=CtiGalTestCases.GLOBAL.value,
-                                             comment=None,)
-CTI_GAL_TEST_CASE_SNR_INFO = TestCaseInfo(test_case_id="TC-SHE-100028-CTI-gal-SNR",
-                                          description=("Linear dependence of " +
-                                                       "residual galaxy ellipticity with read-out register " +
-                                                       "distance (slope) in bins of SNR of galaxies."),
-                                          bins_cline_arg="snr_bin_limits",
-                                          bins_config_key=AnalysisValidationConfigKeys.CGV_SNR_BIN_LIMITS.value,
-                                          name=CtiGalTestCases.SNR.value,
-                                          comment=None,)
-CTI_GAL_TEST_CASE_BG_INFO = TestCaseInfo(test_case_id="TC-SHE-100029-CTI-gal-bg",
-                                         description=("Linear dependence of residual galaxy ellipticity " +
-                                                      "with read-out register distance (slope) in bins of " +
-                                                      "sky background levels."),
-                                         bins_cline_arg="bg_bin_limits",
-                                         bins_config_key=AnalysisValidationConfigKeys.CGV_BG_BIN_LIMITS.value,
-                                         name=CtiGalTestCases.BG.value,
-                                         comment=BACKGROUND_LEVEL_UNITS)
-CTI_GAL_TEST_CASE_COLOUR_INFO = TestCaseInfo(test_case_id="TC-SHE-100030-CTI-gal-col",
-                                             description=("Linear dependence of residual galaxy " +
-                                                          "ellipticity with read-out register distance " +
-                                                          "(slope) in bins of colour of galaxies."),
-                                             bins_cline_arg="colour_bin_limits",
-                                             bins_config_key=AnalysisValidationConfigKeys.CGV_COLOUR_BIN_LIMITS.value,
-                                             name=CtiGalTestCases.COLOUR.value,
-                                             comment=COLOUR_DEFINITION)
-CTI_GAL_TEST_CASE_SIZE_INFO = TestCaseInfo(test_case_id="TC-SHE-100031-CTI-gal-size",
-                                           description=("Linear dependence of residual galaxy ellipticity " +
-                                                        "with read-out register distance (slope) in bins " +
-                                                        "of size of galaxies."),
-                                           bins_cline_arg="size_bin_limits",
-                                           bins_config_key=AnalysisValidationConfigKeys.CGV_SIZE_BIN_LIMITS.value,
-                                           name=CtiGalTestCases.SIZE.value,
-                                           comment=SIZE_DEFINITION)
-CTI_GAL_TEST_CASE_EPOCH_INFO = TestCaseInfo(test_case_id="TC-SHE-100032-CTI-gal-epoch",
-                                            description=("Linear dependence of residual galaxy " +
-                                                         "ellipticity with read-out register distance " +
-                                                         "(slope) in bins of observation epoch"),
-                                            bins_cline_arg=None,
-                                            bins_config_key=None,
-                                            name=CtiGalTestCases.EPOCH.value,
-                                            comment=None)
+BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="T-SHE-000010-CTI-gal",
+                                           base_description=("Linear dependence of " +
+                                                             "residual galaxy ellipticity with read-out " +
+                                                             "register distance (slope)."),)
 
 # Create a dict of the test case info
-D_CTI_GAL_TEST_CASE_INFO = {CtiGalTestCases.GLOBAL: CTI_GAL_TEST_CASE_GLOBAL_INFO,
-                            CtiGalTestCases.SNR: CTI_GAL_TEST_CASE_SNR_INFO,
-                            CtiGalTestCases.BG: CTI_GAL_TEST_CASE_BG_INFO,
-                            CtiGalTestCases.COLOUR: CTI_GAL_TEST_CASE_COLOUR_INFO,
-                            CtiGalTestCases.SIZE: CTI_GAL_TEST_CASE_SIZE_INFO,
-                            CtiGalTestCases.EPOCH: CTI_GAL_TEST_CASE_EPOCH_INFO, }
+L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(BASE_CTI_GAL_TEST_CASE_INFO)
 
-CTI_GAL_TEST_CASES = D_CTI_GAL_TEST_CASE_INFO.keys()
+NUM_CTI_GAL_TEST_CASES = len(L_CTI_GAL_TEST_CASE_INFO)
 
-NUM_CTI_GAL_TEST_CASES = len(CtiGalTestCases)
-
-NUM_METHOD_CTI_GAL_TEST_CASES = NUM_SHEAR_ESTIMATION_METHODS * NUM_CTI_GAL_TEST_CASES
+# Create a dict of the requirement info
+D_L_CTI_GAL_REQUIREMENT_INFO = {}
+for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+    D_L_CTI_GAL_REQUIREMENT_INFO[test_case_info.name] = CTI_GAL_REQUIREMENT_INFO

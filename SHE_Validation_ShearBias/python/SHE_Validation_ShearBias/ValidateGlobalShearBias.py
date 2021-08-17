@@ -5,7 +5,7 @@
     Executable for performing shear bias validation on data from one observation.
 """
 
-__updated__ = "2021-07-22"
+__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,12 +25,16 @@ import os
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import read_config, AnalysisValidationConfigKeys
+from SHE_PPT.pipeline_utility import read_config, GlobalConfigKeys, ValidationConfigKeys
+
+from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.test_info_utility import add_bin_limits_cline_args
 
 from . import __version__
-from .constants.shear_bias_default_config import (SHEAR_BIAS_DEFAULT_CONFIG, PROFILING_FILENAME,
-                                                  GLOBAL_MODE)
+from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS, D_SHEAR_BIAS_CONFIG_TYPES,
+                                                  D_SHEAR_BIAS_CONFIG_CLINE_ARGS, GLOBAL_PROFILING_FILENAME)
 from .validate_shear_bias import validate_shear_bias_from_args
+
 
 logger = log.getLogger(__name__)
 
@@ -71,6 +75,8 @@ def defineSpecificProgramOptions():
     parser.add_argument('--dry_run', action='store_true',
                         help='Skip processing and just output dummy data.')
 
+    add_bin_limits_cline_args(parser)
+
     logger.debug('Exiting SHE_Validation_ValidateGlobalShearBias defineSpecificProgramOptions()')
 
     return parser
@@ -98,31 +104,34 @@ def mainMethod(args):
     # load the pipeline config in
     pipeline_config = read_config(args.pipeline_config,
                                   workdir=args.workdir,
-                                  defaults=SHEAR_BIAS_DEFAULT_CONFIG,
-                                  config_keys=AnalysisValidationConfigKeys)
+                                  defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                  d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                  parsed_args=args,
+                                  config_keys=ValidationConfigKeys,
+                                  d_types=D_SHEAR_BIAS_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[AnalysisValidationConfigKeys.PIP_PROFILE.value].lower() in ['true', 't']
+    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile
 
         logger.info("Profiling enabled")
-        filename = os.path.join(args.workdir, args.logdir, PROFILING_FILENAME)
+        filename = os.path.join(args.workdir, args.logdir, GLOBAL_PROFILING_FILENAME)
         logger.info("Writing profiling data to %s", filename)
 
         cProfile.runctx("validate_shear_bias_from_args(args, mode=GLOBAL_MODE)", {},
                         {"validate_shear_bias_from_args": validate_shear_bias_from_args,
                          "args": args,
-                         "GLOBAL_MODE": GLOBAL_MODE},
+                         "GLOBAL_MODE": ExecutionMode.GLOBAL},
                         filename="validate_shear_bias_from_args.prof")
     else:
         logger.info("Profiling disabled")
         validate_shear_bias_from_args(args,
-                                      mode=GLOBAL_MODE)
+                                      mode=ExecutionMode.GLOBAL)
 
     logger.info('#')
     logger.debug('Exiting SHE_Validation_ValidateGlobalShearBias mainMethod()')
