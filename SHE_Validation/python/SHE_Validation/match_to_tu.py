@@ -5,7 +5,7 @@
     Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
 """
 
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -505,7 +505,7 @@ def match_to_tu_from_args(args):
         unmatched_table = shear_tables[method]
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
-                                                       instance_id=method.value.upper() + "-" + str(os.getpid()),
+                                                       instance_id=method.name + "-" + str(os.getpid()),
                                                        extension=".fits", version=SHE_Validation.__version__, subdir="data",)
         matched_catalog_product.set_method_filename(method, method_filename)
 

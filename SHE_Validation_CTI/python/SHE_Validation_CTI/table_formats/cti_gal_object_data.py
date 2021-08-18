@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -93,7 +93,7 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
         for method in ShearEstimationMethods:
 
             method_name = method.value
-            upper_method = method.value.upper()
+            upper_method = method_name.upper()
 
             setattr(self, f"g1_world_{method_name}", self.set_column_properties(
                 f"G1_WORLD_{upper_method}", is_optional=True))
