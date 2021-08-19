@@ -5,7 +5,7 @@
     SHE_Validation package, for general-purpose code within the SHE_Validation project.
 """
 
-__updated__ = "2021-07-14"
+__updated__ = "2021-08-19"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -27,7 +27,7 @@ __authors__ = ["Rob Blake", "Bryan Gillis"]
 __copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
 __credits__ = ["Rob Blake", "Bryan Gillis"]
 __license__ = "GNU LGPL 3.0"
-__version__ = "8.1"
+__version__ = "8.2"
 __maintainer__ = "Bryan Gillis"
 __email__ = "b.gillis@roe.ac.uk"
 __status__ = 'Development'
