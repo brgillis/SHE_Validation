@@ -5,7 +5,7 @@
     Entry-point file for CTI-Gal validation executable.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-20"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -30,7 +30,7 @@ import os
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import read_config, ValidationConfigKeys, GlobalConfigKeys
+from SHE_PPT.pipeline_utility import read_config, AnalysisConfigKeys, ValidationConfigKeys, GlobalConfigKeys
 
 from SHE_Validation.test_info_utility import add_bin_limits_cline_args
 
@@ -126,7 +126,7 @@ def mainMethod(args):
                                   defaults=D_CTI_GAL_CONFIG_DEFAULTS,
                                   d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
                                   parsed_args=args,
-                                  config_keys=ValidationConfigKeys,
+                                  config_keys=(ValidationConfigKeys, AnalysisConfigKeys),
                                   d_types=D_CTI_GAL_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
