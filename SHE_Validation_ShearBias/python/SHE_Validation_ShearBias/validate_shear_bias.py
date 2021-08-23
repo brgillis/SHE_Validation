@@ -34,7 +34,7 @@ from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIA
                                                                      L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      NUM_SHEAR_BIAS_TEST_CASES)
 
-from .plot_shear_bias import ShearBiasPlotter
+from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_validation_results
 
 logger = getLogger(__name__)
@@ -122,7 +122,7 @@ def validate_shear_bias_from_args(args, mode):
             shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames,
                                                   method=method,
                                                   workdir=args.workdir)
-            shear_bias_plotter.plot_shear_bias(pipeline_config=pipeline_config)
+            shear_bias_plotter.plotting(pipeline_config=pipeline_config)
 
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
 
