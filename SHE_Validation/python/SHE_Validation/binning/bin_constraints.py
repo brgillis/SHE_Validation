@@ -58,7 +58,8 @@ class BinConstraint(abc.ABC):
     # Protected methods
 
     @abc.abstractmethod
-    def _is_in_bin(self, data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
+    def _is_in_bin(self, data: Union[Row, Table],
+                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Method to return whether or not a row is in a bin. Should ideally be able to take either a row or table
             as input, but must at least be able to take a row as input.
 
@@ -153,7 +154,8 @@ class RangeBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
+    def _is_in_bin(self, data: Union[Row, Table],
+                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data is within the bin limits.
         """
         return np.logical_and(self.bin_limits[0] <= data[self.colname],
@@ -197,7 +199,8 @@ class ValueBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
+    def _is_in_bin(self, data: Union[Row, Table],
+                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data (does not) matches the desired value.
         """
         matches_value: bool = data[self.colname] == self.value
@@ -245,7 +248,8 @@ class BitFlagsBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
+    def _is_in_bin(self, data: Union[Row, Table],
+                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data (does not) match the flags.
         """
         # Perform a bitwise and to check against the flags
@@ -280,11 +284,13 @@ class MultiBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
+    def _is_in_bin(self, data: Union[Row, Table],
+                   *args, **kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data is in all bin constraints.
         """
 
-        l_is_in_bin: List[bool] = [bin_constraint._is_in_bin(data) for bin_constraint in self.l_bin_constraints]
+        l_is_in_bin: List[bool] = [bin_constraint._is_in_bin(data, *args, **kwargs)
+                                   for bin_constraint in self.l_bin_constraints]
         return np.all(l_is_in_bin)
 
 # Bin constraints for specific use cases
@@ -391,7 +397,8 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
     def _is_in_bin(self,
                    data: Union[Row, Table],
-                   data_stack: Optional[SHEFrameStack] = None) -> Union[bool, Sequence[bool]]:
+                   data_stack: Optional[SHEFrameStack] = None,
+                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Need to check what implementation we need based on the bin parameter.
         """
 
@@ -435,4 +442,38 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        self.bin_colname = tf.fit_class
+        self.bin_colname = tf.fit_flags
+
+
+class GoodBinParameterBinConstraint(MultiBinConstraint):
+    """ Bin constraint that combines FitflagsBinConstraint and BinParameterBinConstraint.
+    """
+
+    def __init__(self,
+                 test_case_info: TestCaseInfo,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
+
+        fit_flags_bin_constraint = FitflagsBinConstraint(method=test_case_info.method)
+        bin_parameter_bin_constraint = BinParameterBinConstraint(test_case_info=test_case_info,
+                                                                 bin_limits=bin_limits)
+
+        self.l_bin_constraints = [fit_flags_bin_constraint,
+                                  bin_parameter_bin_constraint]
+
+
+class GoodGalaxyBinParameterBinConstraint(MultiBinConstraint):
+    """ Bin constraint that combines FitflagsBinConstraint, FitclassZeroBinConstraint and BinParameterBinConstraint.
+    """
+
+    def __init__(self,
+                 test_case_info: TestCaseInfo,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
+
+        fit_flags_bin_constraint = FitflagsBinConstraint(method=test_case_info.method)
+        fitclass_zero_bin_constraint = FitclassZeroBinConstraint(method=test_case_info.method)
+        bin_parameter_bin_constraint = BinParameterBinConstraint(test_case_info=test_case_info,
+                                                                 bin_limits=bin_limits)
+
+        self.l_bin_constraints = [fit_flags_bin_constraint,
+                                  fitclass_zero_bin_constraint,
+                                  bin_parameter_bin_constraint]
