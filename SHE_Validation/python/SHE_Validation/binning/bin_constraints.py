@@ -21,11 +21,11 @@ __updated__ = "2021-08-24"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-
 import abc
 from typing import Optional,  Sequence, Union, Any, List
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_utility import SheTableFormat
@@ -406,3 +406,33 @@ class BinParameterBinConstraint(RangeBinConstraint):
             return self._is_in_colour_bin(data)
         elif self.bin_parameter == BinParameters.EPOCH:
             return self._is_in_epoch_bin(data, data_stack)
+
+
+class FitclassZeroBinConstraint(ValueBinConstraint):
+    """ Bin constraints to make sure the fit class is 0 (galaxy).
+    """
+
+    bin_colname: str
+    value: Any = 0
+    invert: bool = False
+
+    def __init__(self, method: ShearEstimationMethods):
+        """ Get the bin colname from the shear estimation method.
+        """
+        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        self.bin_colname = tf.fit_class
+
+
+class FitflagsBinConstraint(BitFlagsBinConstraint):
+    """ Bin constraints to make sure the fit didn't fail.
+    """
+
+    bin_colname: str
+    bit_flags: Any = failure_flags
+    invert: bool = True
+
+    def __init__(self, method: ShearEstimationMethods):
+        """ Get the bin colname from the shear estimation method.
+        """
+        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        self.bin_colname = tf.fit_class
