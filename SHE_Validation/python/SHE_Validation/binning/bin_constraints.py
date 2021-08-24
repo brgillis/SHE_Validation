@@ -35,7 +35,7 @@ import numpy as np
 
 from ..constants.default_config import DEFAULT_BIN_LIMITS
 from ..constants.test_info import BinParameters, TestCaseInfo, D_BIN_PARAMETER_META
-from .bin_data import TF as BIN_TF
+from .bin_data import TF as BIN_TF, D_COLUMN_ADDING_METHODS
 
 
 class BinConstraint(abc.ABC):
@@ -337,64 +337,6 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
     # Protected methods
 
-    def _is_in_global_bin(self,
-                          data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
-        """ Always return true for global binning.
-        """
-        if isinstance(data, Row):
-            return True
-        else:
-            return True * np.ones(shape=len(data), dtype=bool)
-
-    def _is_in_bg_bin(self,
-                      data: Union[Row, Table],
-                      data_stack: SHEFrameStack) -> Union[bool, Sequence[bool]]:
-        """ Always return true for global binning.
-        """
-
-        # Add a background level column to the table if necessary
-        new_bin_column = D_BIN_PARAMETER_META[BinParameters.BG].value
-        new_bin_colname = getattr(BIN_TF, new_bin_column)
-        if not new_bin_colname in data.colnames:
-            add_bg_column(mer_final_catalog=data,
-                          data_stack=data_stack)
-
-        self.bin_colname = new_bin_colname
-
-        return super()._is_in_bin(data)
-
-    def _is_in_colour_bin(self,
-                          data: Union[Row, Table]) -> Union[bool, Sequence[bool]]:
-        """ Always return true for global binning.
-        """
-
-        # Add a background level column to the table if necessary
-        new_bin_column = D_BIN_PARAMETER_META[BinParameters.COLOUR].value
-        new_bin_colname = getattr(BIN_TF, new_bin_column)
-        if not new_bin_colname in data.colnames:
-            add_colour_column(mer_final_catalog=data)
-
-        self.bin_colname = new_bin_colname
-
-        return super()._is_in_bin(data)
-
-    def _is_in_epoch_bin(self,
-                         data: Union[Row, Table],
-                         data_stack: SHEFrameStack) -> Union[bool, Sequence[bool]]:
-        """ Always return true for global binning.
-        """
-
-        # Add a background level column to the table if necessary
-        new_bin_column = D_BIN_PARAMETER_META[BinParameters.EPOCH].value
-        new_bin_colname = getattr(BIN_TF, new_bin_column)
-        if not new_bin_colname in data.colnames:
-            add_epoch_column(mer_final_catalog=data,
-                             data_stack=data_stack)
-
-        self.bin_colname = new_bin_colname
-
-        return super()._is_in_bin(data)
-
     def _is_in_bin(self,
                    data: Union[Row, Table],
                    data_stack: Optional[SHEFrameStack] = None,
@@ -402,17 +344,17 @@ class BinParameterBinConstraint(RangeBinConstraint):
         """ Need to check what implementation we need based on the bin parameter.
         """
 
-        # If self.bin_colname is set, we can use the default implementation
-        if self.bin_parameter == BinParameters.SNR or self.bin_parameter == BinParameters.SIZE:
-            return super()._is_in_bin(data)
-        elif self.bin_parameter == BinParameters.GLOBAL:
-            return self._is_in_global_bin(data)
-        elif self.bin_parameter == BinParameters.BG:
-            return self._is_in_bg_bin(data, data_stack)
-        elif self.bin_parameter == BinParameters.COLOUR:
-            return self._is_in_colour_bin(data)
-        elif self.bin_parameter == BinParameters.EPOCH:
-            return self._is_in_epoch_bin(data, data_stack)
+        column_adding_method = D_COLUMN_ADDING_METHODS[self.bin_parameter]
+
+        # Add a column to the table if necessary
+        new_bin_column = D_BIN_PARAMETER_META[self.bin_parameter].value
+        new_bin_colname = getattr(BIN_TF, new_bin_column)
+        if not new_bin_colname in data.colnames:
+            column_adding_method(data, data_stack)
+
+        self.bin_colname = new_bin_colname
+
+        return super()._is_in_bin(data)
 
 
 class FitclassZeroBinConstraint(ValueBinConstraint):
