@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-24"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -60,6 +60,7 @@ class BinParameterMeta():
     _definition: Optional[str] = None
     _extra_help_text: Optional[str] = None
     _config_key: Optional[ConfigKeys] = None
+    _column: Optional[str] = None
 
     # Values derived from init
     _name: str
@@ -77,7 +78,8 @@ class BinParameterMeta():
                  units: str = None,
                  definition: str = None,
                  extra_help_text: str = None,
-                 config_key: ConfigKeys = None):
+                 config_key: ConfigKeys = None,
+                 column: str = None):
 
         # Set values directly from init
         self._enum = bin_parameter_enum
@@ -85,6 +87,7 @@ class BinParameterMeta():
         self._definition = definition
         self._extra_help_text = extra_help_text
         self._config_key = config_key
+        self._column = column
 
         # Set values derived from init
         self._name = bin_parameter_enum.name
@@ -127,6 +130,11 @@ class BinParameterMeta():
     @property
     def config_key(self) -> Optional[str]:
         return self._config_key
+
+    @property
+    def column(self) -> Optional[str]:
+        """ Name of the column attribute, NOT the column name."""
+        return self._column
 
     @property
     def name(self) -> str:
@@ -198,7 +206,8 @@ D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
                                                            long_name="SNR",
                                                            id_tail="SNR",
-                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS)
+                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                                                           column="snr")
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
                                                           long_name="background level",
@@ -207,12 +216,13 @@ D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=Bin
 
 D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum=BinParameters.COLOUR,
                                                               definition=COLOUR_DEFINITION,
-                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS)
+                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,)
 
 D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=BinParameters.SIZE,
                                                             units=SIZE_UNITS,
                                                             definition=SIZE_DEFINITION,
-                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS)
+                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
+                                                            column="re")
 
 D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
 
