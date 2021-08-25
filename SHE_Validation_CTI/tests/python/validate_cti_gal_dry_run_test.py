@@ -32,12 +32,12 @@ from SHE_PPT.pipeline_utility import read_config, write_config, ValidationConfig
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
                                                                  D_CTI_GAL_CONFIG_CLINE_ARGS)
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
-
 
 # Pipeline config filename
 PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
@@ -62,7 +62,7 @@ class Args(object):
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             bin_limits_cline_arg = test_case_info.bins_cline_arg
             if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg, None)
+                setattr(self, bin_limits_cline_arg, DEFAULT_BIN_LIMITS_STR)
 
         self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
         self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
