@@ -20,7 +20,7 @@ __updated__ = "2021-08-25"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
@@ -46,6 +46,8 @@ class BinParameters(AllowedEnum):
 
 
 NUM_BIN_PARAMETERS: int = len(BinParameters)
+NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
+                                                  if bin_parameter != BinParameters.GLOBAL]
 
 
 class BinParameterMeta():

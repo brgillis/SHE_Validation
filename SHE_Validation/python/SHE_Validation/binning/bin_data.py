@@ -29,7 +29,7 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
 from astropy.table import Table, Column
 
-from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
 import numpy as np
 
 logger = getLogger(__name__)
@@ -66,9 +66,7 @@ class SheBinDataFormat(SheTableFormat):
         super().__init__(SheBinDataMeta())
 
         # Set a column for each bin parameter
-        for bin_parameter in BinParameters:
-            if bin_parameter == BinParameters.GLOBAL:
-                continue
+        for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             setattr(self, bin_parameter.value, self.set_column_properties(name=bin_parameter.name, is_optional=True,
                                                                           dtype=">f4", fits_dtype="E"))
 

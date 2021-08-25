@@ -4,15 +4,6 @@
 
     Unit tests of the bin_constraints.py module
 """
-from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from astropy.table import Table, Column
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint
-from SHE_Validation.binning.bin_data import TF as BIN_TF
-from SHE_Validation.constants.test_info import BinParameters
-import numpy as np
-
 
 __updated__ = "2021-08-25"
 
@@ -28,6 +19,15 @@ __updated__ = "2021-08-25"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from astropy.table import Table, Column
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint
+from SHE_Validation.binning.bin_data import TF as BIN_TF
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
+import numpy as np
 
 
 class TestCase:
@@ -56,10 +56,7 @@ class TestCase:
         cls.t[MFC_TF.ID] = np.arange(cls.TABLE_SIZE) + cls.ID_OFFSET
 
         # Set up columns for each bin parameter except GLOBAL
-        for bin_parameter in BinParameters:
-
-            if bin_parameter == BinParameters.GLOBAL:
-                continue
+        for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
 
             bin_colnmae = getattr(BIN_TF, bin_parameter.value)
 
@@ -78,11 +75,7 @@ class TestCase:
         """
 
         # Test each bin parameter other than GLOBAL
-        for bin_parameter in BinParameters:
-
-            # GLOBAL will have to be tested separately
-            if bin_parameter == BinParameters.GLOBAL:
-                continue
+        for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
 
             bin_limits = self.BASE_BIN_LIMITS + self.D_PAR_OFFSETS[bin_parameter]
             bin_constraint = BinParameterBinConstraint(bin_parameter=bin_parameter,
