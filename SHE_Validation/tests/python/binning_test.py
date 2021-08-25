@@ -4,20 +4,6 @@
 
     Unit tests of the bin_constraints.py module
 """
-from math import ceil
-
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-from astropy.table import Table, Column
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint,\
-    FitclassZeroBinConstraint
-from SHE_Validation.binning.bin_data import TF as BIN_TF
-from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
-import numpy as np
-
 
 __updated__ = "2021-08-25"
 
@@ -33,6 +19,19 @@ __updated__ = "2021-08-25"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from math import ceil
+
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
+from astropy.table import Column
+
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint,\
+    FitclassZeroBinConstraint, FitflagsBinConstraint
+from SHE_Validation.binning.bin_data import TF as BIN_TF
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
+import numpy as np
 
 
 ID_COLNAME = LMC_TF.ID
@@ -154,3 +153,24 @@ class TestCase:
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 3))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 3))
         assert (ids_in_bin % 3 == self.ID_OFFSET % 3).all()
+
+    def test_bit_flags_bins(self):
+        """ Test applying a bin constraint on fit_flags
+        """
+
+        # Set up the bin constraint
+        bin_constraint = FitflagsBinConstraint(method=ShearEstimationMethods.LENSMC)
+
+        # Apply the constraint
+        l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_lmc)
+        rows_in_bin = bin_constraint.get_rows_in_bin(self.t_lmc)
+        ids_in_bin = bin_constraint.get_ids_in_bin(self.t_lmc)
+
+        # Check the outputs are consistent
+        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
+        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+
+        # Check the outputs are as expected - only the first of every four should be in the bin
+        assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 4))
+        assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 4))
+        assert (ids_in_bin % 4 == self.ID_OFFSET % 4).all()
