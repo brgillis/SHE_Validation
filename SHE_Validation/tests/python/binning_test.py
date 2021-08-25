@@ -27,8 +27,8 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from astropy.table import Column
 
-from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint,\
-    FitclassZeroBinConstraint, FitflagsBinConstraint
+from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitclassZeroBinConstraint,
+                                                    FitflagsBinConstraint, MultiBinConstraint, HeteroBinConstraint)
 from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
 import numpy as np
@@ -174,3 +174,40 @@ class TestCase:
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 4))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 4))
         assert (ids_in_bin % 4 == self.ID_OFFSET % 4).all()
+
+    def test_combine_flags(self):
+
+        # Set up multiple bin constraints
+        bin_limits = self.BASE_BIN_LIMITS + self.D_PAR_OFFSETS[BinParameters.SNR]
+        bin_parameter_constraint = BinParameterBinConstraint(bin_parameter=BinParameters.SNR,
+                                                             bin_limits=bin_limits)
+        fitclass_zero_bin_constraint = FitclassZeroBinConstraint(method=ShearEstimationMethods.LENSMC)
+        fitflags_bin_constraint = FitflagsBinConstraint(method=ShearEstimationMethods.LENSMC)
+
+        # Set up multi and hetero bin constraints
+        fit_multi_bin_constraint = MultiBinConstraint(l_bin_constraints=[fitclass_zero_bin_constraint,
+                                                                         fitflags_bin_constraint])
+        full_bin_constraint = HeteroBinConstraint(l_bin_constraints=[bin_parameter_constraint,
+                                                                     fitclass_zero_bin_constraint,
+                                                                     fitflags_bin_constraint])
+
+        # Apply the multi constraint
+        l_is_row_in_bin = fit_multi_bin_constraint.get_l_is_row_in_bin(self.t_lmc)
+        rows_in_bin = fit_multi_bin_constraint.get_rows_in_bin(self.t_lmc)
+        ids_in_bin = fit_multi_bin_constraint.get_ids_in_bin(self.t_lmc)
+
+        # Check the outputs are consistent
+        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
+        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+
+        # Check the outputs are as expected - only the first of every four should be in the bin
+        assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 12))
+        assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 12))
+        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+
+        # Apply the full constraint
+        ids_in_bin = full_bin_constraint.get_ids_in_bin([self.t_mfc, self.t_lmc, self.t_lmc])
+
+        # Check the outputs are as expected - only the first of every four should be in the bin
+        assert len(ids_in_bin) == int(ceil(self.NUM_ROWS_IN_BIN / 12))
+        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()

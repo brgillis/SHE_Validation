@@ -315,9 +315,9 @@ class MultiBinConstraint(BinConstraint):
         """ Checks if the data is in all bin constraints.
         """
 
-        l_is_in_bin: List[bool] = [bin_constraint._is_in_bin(data, *args, **kwargs)
-                                   for bin_constraint in self.l_bin_constraints]
-        return np.all(l_is_in_bin)
+        l_l_is_in_bin: List[List[bool]] = [bin_constraint._is_in_bin(data, *args, **kwargs)
+                                           for bin_constraint in self.l_bin_constraints]
+        return np.logical_and.reduce(l_l_is_in_bin)
 
 
 class HeteroBinConstraint():
@@ -335,14 +335,14 @@ class HeteroBinConstraint():
 
     # Protected methods
 
-    def get_ids_in_bin(self, l_tables: Sequence[Table]) -> List[int]:
+    def get_ids_in_bin(self, l_tables: Sequence[Table]) -> Sequence[int]:
         """ Checks if the data is in all bin constraints, where the list of tables
             is aligned with the list of bin constraints
         """
 
         l_s_ids_in_bin: List[Set[int]] = [set(bin_constraint.get_ids_in_bin(table))
                                           for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
-        return list(set.intersection(*l_s_ids_in_bin))
+        return np.array(list(set.intersection(*l_s_ids_in_bin)))
 
 # Bin constraints for specific use cases
 
