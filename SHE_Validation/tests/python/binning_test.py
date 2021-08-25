@@ -20,24 +20,32 @@ __updated__ = "2021-08-25"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 from math import ceil
+import os
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_TABLE_FILENAME)
+from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-from astropy.table import Column
+from SHE_PPT.table_utility import is_in_format
+from astropy.table import Column, Table
 
+from ElementsServices.DataSync import DataSync
 from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitclassZeroBinConstraint,
                                                     FitflagsBinConstraint, MultiBinConstraint, HeteroBinConstraint)
-from SHE_Validation.binning.bin_data import TF as BIN_TF
+from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_snr_column, add_colour_column,
+                                             add_size_column, add_bg_column, add_epoch_column)
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
 import numpy as np
-
 
 ID_COLNAME = LMC_TF.ID
 
 
-class TestCase:
+class TestBinConstraints:
     """ Test case for applying bin constraints to a table
     """
 
@@ -211,3 +219,62 @@ class TestCase:
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert len(ids_in_bin) == int(ceil(self.NUM_ROWS_IN_BIN / 12))
         assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+
+
+class TestBinData():
+    """ Class to perform tests on bin data tables and adding columns.
+    """
+
+    @classmethod
+    def setup_class(cls):
+
+        # Download the data stack files from WebDAV
+        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
+        sync_datastack.download()
+        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
+            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
+        assert os.path.isfile(
+            qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
+
+        # Get the workdir based on where the data images listfile is
+        cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
+        cls.logdir = os.path.join(cls.workdir, "logs")
+
+        # Read in the test data
+        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                            detections_listfile_filename=MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                            workdir=cls.workdir,
+                                            clean_detections=False,
+                                            memmap=True,
+                                            mode='denywrite')
+        cls.mfc_t = Table.read(os.path.join(cls.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
+        cls.lmc_t = Table.read(os.path.join(cls.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
+
+        # Set up some expected values
+        cls.ex_bg_level = 45.71
+
+    @classmethod
+    def teardown_class(cls):
+
+        return
+
+    def test_table_format(self):
+        """ Runs tests of the bin data table format.
+        """
+
+        bin_table = BIN_TF.init_table()
+
+        assert is_in_format(bin_table, BIN_TF)
+
+    def test_add_columns(self):
+        """ Runs tests of the functions to add columns of bin data to tables.
+        """
+
+        mfc_t_copy = deepcopy(self.mfc_t)
+
+        # Try adding columns for each bin parameter
+        add_snr_column(mfc_t_copy, self.data_stack)
+        add_colour_column(mfc_t_copy, self.data_stack)
+        add_size_column(mfc_t_copy, self.data_stack)
+        add_bg_column(mfc_t_copy, self.data_stack)
+        add_epoch_column(mfc_t_copy, self.data_stack)
