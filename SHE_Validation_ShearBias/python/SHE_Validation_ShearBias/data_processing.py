@@ -281,15 +281,16 @@ class ShearBiasTestCaseDataProcessor():
         self._d_linregress_results[i] = linregress_results
 
         bias = BiasMeasurements(linregress_results)
-        self.d_bias_measurements[i] = bias
+        self._d_bias_measurements[i] = bias
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Bias measurements for method {self.method.value}:")
-        self.d_bias_strings = {}
+        if self._d_bias_strings is None:
+            self._d_bias_strings = {}
         for a, d in ("c", C_DIGITS), ("m", M_DIGITS):
-            self.d_bias_strings[f"{a}{i}"] = f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "\
-                f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)"
-            logger.info(self.d_bias_strings[f"{a}{i}"])
+            self._d_bias_strings[f"{a}{i}"] = (f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "
+                                               f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
+            logger.info(self._d_bias_strings[f"{a}{i}"])
 
     def _calc_shear_bias(self):
         """ Plot shear bias for both components.

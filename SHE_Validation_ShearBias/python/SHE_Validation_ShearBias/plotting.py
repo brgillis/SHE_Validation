@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-23"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -102,7 +102,7 @@ class ShearBiasPlotter(ValidationPlotter):
                                                           instance_id=f"{self.method.value}-g{i}-{os.getpid()}".upper(),
                                                           extension=PLOT_FORMAT,
                                                           version=SHE_Validation.__version__)
-        qualified_bias_plot_filename = os.path.join(self.workdir, bias_plot_filename)
+        qualified_bias_plot_filename = os.path.join(self.data_processor.workdir, bias_plot_filename)
 
         # Save the figure and close it
         plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
@@ -165,4 +165,4 @@ class ShearBiasPlotter(ValidationPlotter):
         self.data_processor.calc()
 
         for i in (1, 2):
-            self.plot_component_shear_bias(i)
+            self._plot_component_shear_bias(i)
