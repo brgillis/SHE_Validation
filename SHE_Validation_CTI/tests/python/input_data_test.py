@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -69,7 +69,7 @@ class TestCase:
                                             mode='denywrite')
 
         # Set up some expected values
-        cls.ex_bg_level = 45.71
+        cls.EX_BG_LEVEL = 45.71
 
     @classmethod
     def teardown_class(cls):
@@ -192,8 +192,8 @@ class TestCase:
             assert np.isclose(object_data.size, area)
 
             for bg_level in object_data.background_level:
-                assert np.isclose(bg_level, self.ex_bg_level)
-            assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
+                assert np.isclose(bg_level, self.EX_BG_LEVEL)
+            assert np.isclose(object_data.mean_background_level, self.EX_BG_LEVEL)
 
             object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
                                                                                         g2=g2,

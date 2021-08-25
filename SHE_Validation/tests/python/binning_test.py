@@ -225,6 +225,9 @@ class TestBinData():
     """ Class to perform tests on bin data tables and adding columns.
     """
 
+    # Set up some expected values
+    EX_BG_LEVEL = 45.71
+
     @classmethod
     def setup_class(cls):
 
@@ -250,9 +253,6 @@ class TestBinData():
         cls.mfc_t = Table.read(os.path.join(cls.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
         cls.lmc_t = Table.read(os.path.join(cls.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
-        # Set up some expected values
-        cls.ex_bg_level = 45.71
-
     @classmethod
     def teardown_class(cls):
 
@@ -274,7 +274,16 @@ class TestBinData():
 
         # Try adding columns for each bin parameter
         add_snr_column(mfc_t_copy, self.data_stack)
+        np.isnan(mfc_t_copy[BIN_TF.snr]).all()
+
         add_colour_column(mfc_t_copy, self.data_stack)
+        np.isnan(mfc_t_copy[BIN_TF.colour]).all()
+
         add_size_column(mfc_t_copy, self.data_stack)
+        assert np.allclose(mfc_t_copy[BIN_TF.size], mfc_t_copy[MFC_TF.SEGMENTATION_AREA].data)
+
         add_bg_column(mfc_t_copy, self.data_stack)
+        assert np.allclose(mfc_t_copy[BIN_TF.bg], self.EX_BG_LEVEL)
+
         add_epoch_column(mfc_t_copy, self.data_stack)
+        assert np.allclose(mfc_t_copy[BIN_TF.epoch], 0.)
