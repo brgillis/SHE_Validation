@@ -104,7 +104,7 @@ class ShearBiasTestCaseDataProcessor():
             self.calc()
         return self._d_g_in
 
-    @d_g_in.setter()
+    @d_g_in.setter
     def d_g_in(self, d_g_in) -> None:
         self._d_g_in = d_g_in
 
@@ -114,7 +114,7 @@ class ShearBiasTestCaseDataProcessor():
             self.calc()
         return self._d_g_out
 
-    @d_g_out.setter()
+    @d_g_out.setter
     def d_g_out(self, d_g_out) -> None:
         self._d_g_out = d_g_out
 
@@ -124,7 +124,7 @@ class ShearBiasTestCaseDataProcessor():
             self.calc()
         return self._d_g_out_err
 
-    @d_g_out_err.setter()
+    @d_g_out_err.setter
     def d_g_out_err(self, d_g_out_err) -> None:
         self._d_g_out_err = d_g_out_err
 
@@ -134,7 +134,7 @@ class ShearBiasTestCaseDataProcessor():
             self.calc()
         return self._d_bias_measurements
 
-    @d_bias_measurements.setter()
+    @d_bias_measurements.setter
     def d_bias_measurements(self, d_bias_measurements) -> None:
         self._d_bias_measurements = d_bias_measurements
 
@@ -150,7 +150,7 @@ class ShearBiasTestCaseDataProcessor():
             self.calc()
         return self._d_bias_strings
 
-    @d_bias_strings.setter()
+    @d_bias_strings.setter
     def d_bias_strings(self, d_bias_strings) -> None:
         self._d_bias_strings = d_bias_strings
 
