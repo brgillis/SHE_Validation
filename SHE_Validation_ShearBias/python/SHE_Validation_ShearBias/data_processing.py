@@ -314,4 +314,4 @@ class ShearBiasTestCaseDataProcessor():
 
         self._load_data()
 
-        self.calc_shear_bias()
+        self._calc_shear_bias()

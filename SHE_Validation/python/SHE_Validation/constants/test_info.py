@@ -380,6 +380,10 @@ class TestCaseInfo():
         self._description = None
 
     @property
+    def bin_parameter(self) -> Optional[BinParameters]:
+        return self._bins
+
+    @property
     def method(self) -> Optional[ShearEstimationMethods]:
         return self._method
 
