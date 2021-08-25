@@ -229,7 +229,7 @@ class ValueBinConstraint(BinConstraint):
                    *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data (does not) matches the desired value.
         """
-        matches_value: bool = data[self.colname] == self.value
+        matches_value: bool = data[self.bin_colname] == self.value
 
         if not self.invert:
             return matches_value
@@ -279,7 +279,7 @@ class BitFlagsBinConstraint(BinConstraint):
         """ Checks if the data (does not) match the flags.
         """
         # Perform a bitwise and to check against the flags
-        flag_match: int = np.bitwise_and(data[self.colname], self.bit_flags)
+        flag_match: int = np.bitwise_and(data[self.bin_colname], self.bit_flags)
 
         # Convert to bool or array of bools
         if isinstance(flag_match, np.ndarray):
