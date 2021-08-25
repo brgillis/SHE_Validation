@@ -21,6 +21,7 @@ __updated__ = "2021-08-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import 
 from astropy.table import Table, Column
 
 from ElementsServices.DataSync import DataSync

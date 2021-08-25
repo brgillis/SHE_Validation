@@ -22,7 +22,7 @@ __updated__ = "2021-08-25"
 # Boston, MA 02110-1301 USA
 
 import abc
-from typing import Optional,  Sequence, Union, Any, List
+from typing import Optional,  Sequence, Union, Any, List, Set
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.flags import failure_flags
@@ -34,7 +34,7 @@ from astropy.table import Table, Row, Column
 import numpy as np
 
 from ..constants.default_config import DEFAULT_BIN_LIMITS
-from ..constants.test_info import BinParameters, TestCaseInfo, D_BIN_PARAMETER_META
+from ..constants.test_info import BinParameters, TestCaseInfo
 from .bin_data import TF as BIN_TF, D_COLUMN_ADDING_METHODS
 
 
@@ -295,7 +295,7 @@ class BitFlagsBinConstraint(BinConstraint):
 
 
 class MultiBinConstraint(BinConstraint):
-    """ Class for constraining on the intersection of multiple bins.
+    """ Class for constraining on the intersection of multiple bins on a single table.
     """
 
     l_bin_constraints: Sequence[BinConstraint]
@@ -318,6 +318,31 @@ class MultiBinConstraint(BinConstraint):
         l_is_in_bin: List[bool] = [bin_constraint._is_in_bin(data, *args, **kwargs)
                                    for bin_constraint in self.l_bin_constraints]
         return np.all(l_is_in_bin)
+
+
+class HeteroBinConstraint():
+    """ Class for constraining on the intersection of multiple bins on multiple tables.
+    """
+
+    l_bin_constraints: Sequence[BinConstraint]
+
+    def __init__(self, l_bin_constraints: Sequence[BinConstraint]) -> None:
+
+        if l_bin_constraints:
+            self.l_bin_constraints = l_bin_constraints
+        else:
+            self.l_bin_constraints = []
+
+    # Protected methods
+
+    def get_ids_in_bin(self, l_tables: Sequence[Table]) -> List[int]:
+        """ Checks if the data is in all bin constraints, where the list of tables
+            is aligned with the list of bin constraints
+        """
+
+        l_s_ids_in_bin: List[Set[int]] = [set(bin_constraint.get_ids_in_bin(table))
+                                          for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
+        return list(set.intersection(*l_s_ids_in_bin))
 
 # Bin constraints for specific use cases
 
@@ -419,37 +444,3 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
         """
         tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         self.bin_colname = tf.fit_flags
-
-
-class GoodBinParameterBinConstraint(MultiBinConstraint):
-    """ Bin constraint that combines FitflagsBinConstraint and BinParameterBinConstraint.
-    """
-
-    def __init__(self,
-                 test_case_info: TestCaseInfo,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
-
-        fit_flags_bin_constraint = FitflagsBinConstraint(method=test_case_info.method)
-        bin_parameter_bin_constraint = BinParameterBinConstraint(test_case_info=test_case_info,
-                                                                 bin_limits=bin_limits)
-
-        self.l_bin_constraints = [fit_flags_bin_constraint,
-                                  bin_parameter_bin_constraint]
-
-
-class GoodGalaxyBinParameterBinConstraint(MultiBinConstraint):
-    """ Bin constraint that combines FitflagsBinConstraint, FitclassZeroBinConstraint and BinParameterBinConstraint.
-    """
-
-    def __init__(self,
-                 test_case_info: TestCaseInfo,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
-
-        fit_flags_bin_constraint = FitflagsBinConstraint(method=test_case_info.method)
-        fitclass_zero_bin_constraint = FitclassZeroBinConstraint(method=test_case_info.method)
-        bin_parameter_bin_constraint = BinParameterBinConstraint(test_case_info=test_case_info,
-                                                                 bin_limits=bin_limits)
-
-        self.l_bin_constraints = [fit_flags_bin_constraint,
-                                  fitclass_zero_bin_constraint,
-                                  bin_parameter_bin_constraint]
