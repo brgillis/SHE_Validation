@@ -4,6 +4,33 @@
 
     Primary function code for performing CTI-Gal validation
 """
+from os.path import join
+from typing import Dict
+
+from EL_CoordsUtils import telescope_coords
+from SHE_PPT import mdb
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
+                             get_allowed_filename, filename_exists)
+from SHE_PPT.logging import getLogger
+from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from astropy import table
+
+from SHE_Validation.binning.bin_data import add_bg_column
+from SHE_Validation.config_utility import get_d_bin_limits
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO,\
+    NUM_CTI_GAL_TEST_CASES
+from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
+import numpy as np
+
+from . import __version__
+from .data_processing import add_readout_register_distance, calculate_regression_results
+from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
+from .results_reporting import fill_cti_gal_validation_results
+from .table_formats.regression_results import TF as RR_TF
+
 
 __updated__ = "2021-08-25"
 
@@ -19,34 +46,6 @@ __updated__ = "2021-08-25"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-
-from os.path import join
-from typing import Dict
-
-from EL_CoordsUtils import telescope_coords
-from SHE_PPT import mdb
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.file_io import (read_xml_product, write_xml_product, read_listfile, write_listfile,
-                             get_allowed_filename, filename_exists)
-from SHE_PPT.logging import getLogger
-from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_utility import is_in_format
-from astropy import table
-
-from SHE_Validation.config_utility import get_d_bin_limits
-from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO,\
-    NUM_CTI_GAL_TEST_CASES
-from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
-import numpy as np
-
-from . import __version__
-from .data_processing import add_readout_register_distance, calculate_regression_results
-from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
-from .results_reporting import fill_cti_gal_validation_results
-from .table_formats.regression_results import TF as RR_TF
 
 
 logger = getLogger(__name__)
@@ -111,12 +110,6 @@ def run_validate_cti_gal_from_args(args):
         if filename_exists(filename):
             shear_measurements_table = table.Table.read(join(args.workdir, filename), format='fits')
             d_shear_estimate_tables[method] = shear_measurements_table
-            if not is_in_format(shear_measurements_table,
-                                D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method],
-                                strict=False):
-                logger.warning("Shear estimates table from " +
-                               join(args.workdir, filename) + " is in invalid format.")
-                d_shear_estimate_tables[method] = None
         else:
             d_shear_estimate_tables[method] = None
 
@@ -250,6 +243,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     d_observation_regression_results_tables = {}
     plot_filenames = {}
 
+    # Make sure the detections catalogue has background information
+    add_bg_column(data_stack.detections_catalogue, data_stack)
+
     for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
         # Initialise for this test case
@@ -290,6 +286,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                             method=method,
                                             bin_parameter=test_case_info.bins,
                                             d_bin_limits=d_bin_limits,
+                                            detections_table=data_stack.detections_catalogue,
+                                            measurements_table=shear_estimate_tables[method],
                                             bin_index=bin_index,
                                             workdir=workdir,)
                     plotter.plot_cti_gal()
@@ -300,6 +298,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             merged_object_table = table.vstack(tables=l_object_data_table)
 
             observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                                detections_table=data_stack.detections_catalogue,
+                                                                                d_measurements_tables=shear_estimate_tables,
                                                                                 product_type="OBS",
                                                                                 bin_parameter=test_case_info.bins,
                                                                                 bin_limits=test_case_bin_limits[

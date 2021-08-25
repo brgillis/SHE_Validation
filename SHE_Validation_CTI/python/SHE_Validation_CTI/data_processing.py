@@ -138,7 +138,16 @@ def calculate_regression_results(object_data_table: table.Table,
         method_name = method.value
 
         # Get required data
-        object_data_table_in_bin = object_data_table.loc[d_ids_in_bin[method]]
+        try:
+            object_data_table_in_bin = object_data_table.loc[d_ids_in_bin[method]]
+        except KeyError:
+            rr_row[getattr(RR_TF, f"weight_{method_name}")] = 0.
+            rr_row[getattr(RR_TF, f"slope_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = np.NaN
+            rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = np.NaN
+            continue
 
         readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
 

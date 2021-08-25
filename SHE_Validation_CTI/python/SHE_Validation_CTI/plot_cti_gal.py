@@ -102,7 +102,12 @@ class CtiGalPlotter(ValidationPlotter):
         if not CGOD_TF.ID in self.object_table.indices:
             self.object_table.add_index(CGOD_TF.ID)
 
-        self._t_good = self.object_table.loc[self.l_ids_in_bin]
+        good_weight_rows = self.object_table[self._weight_colname] > 0
+
+        try:
+            self._t_good = self.object_table[good_weight_rows].loc[self.l_ids_in_bin]
+        except KeyError:
+            self._t_good = self.object_table[np.zeros_like(self.object_table[self._weight_colname], dtype=bool)]
 
         # Set as None attributes to be set when plotting methods are called
         self._cti_gal_plot_filename = None

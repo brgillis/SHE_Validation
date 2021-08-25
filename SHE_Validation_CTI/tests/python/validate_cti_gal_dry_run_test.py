@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,6 +29,7 @@ from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import read_config, write_config, ValidationConfigKeys
+import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
@@ -116,6 +117,7 @@ class TestCase:
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
 
+    @pytest.mark.skip()
     def test_cti_gal_dry_run(self):
 
         # Ensure this is a dry run and set up the pipeline config with defaults

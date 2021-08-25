@@ -64,7 +64,7 @@ class PositionInfo():
     def _init_default_exp_shear_info(self):
         self.exposure_shear_info = {}
         for method in ShearEstimationMethods:
-            self.exposure_shear_info[method] = ShearEstimate()
+            self.exposure_shear_info[method] = ShearEstimate(weight=0)
 
     def __init__(self,
                  stamp: Optional[SHEImage] = None,
@@ -160,7 +160,7 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
 
         shear_estimate_table: Table = d_shear_estimate_tables[method]
         if shear_estimate_table is None:
-            object_data.world_shear_info[method] = ShearEstimate()
+            object_data.world_shear_info[method] = ShearEstimate(weight=0)
             continue
 
         sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
@@ -168,7 +168,10 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
 
         # Check the object isn't flagged as a failure
         object_weight: float
-        if not is_flagged_failure(object_row[sem_tf.fit_flags]):
+        if ((not is_flagged_failure(object_row[sem_tf.fit_flags])) and not (np.isinf(object_row[sem_tf.g1_err]) or
+                                                                            np.isinf(object_row[sem_tf.g2_err]) or
+                                                                            np.isnan(object_row[sem_tf.g1_err]) or
+                                                                            np.isnan(object_row[sem_tf.g2_err]))):
             object_weight = object_row[sem_tf.weight]
         else:
             object_weight = 0
