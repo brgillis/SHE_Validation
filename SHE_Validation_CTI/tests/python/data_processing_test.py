@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,12 +20,17 @@ __updated__ = "2021-08-17"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 import os
 
 from SHE_PPT import mdb
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 
 from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
@@ -118,16 +123,25 @@ class TestCase:
         g1_data[-lnan - lzero:-lzero] = np.NaN
         weight_data[-lzero:] = 0
 
-        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.ID: indices,
+                                                          CGOD_TF.weight_LensMC: weight_data,
                                                           CGOD_TF.readout_dist: readout_dist_data,
-                                                          CGOD_TF.snr: snr_data,
-                                                          CGOD_TF.bg: bg_data,
-                                                          CGOD_TF.colour: colour_data,
-                                                          CGOD_TF.size: size_data,
                                                           CGOD_TF.g1_image_LensMC: g1_data})
+
+        detections_table = MFC_TF.init_table(init_cols={MFC_TF.ID: indices})
+        detections_table[BIN_TF.snr] = snr_data
+        detections_table[BIN_TF.bg] = bg_data
+        detections_table[BIN_TF.colour] = colour_data
+        detections_table[BIN_TF.size] = size_data
+
+        measurements_table = LMC_TF.init_table(init_cols={LMC_TF.ID: indices})
+
+        d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
 
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
+                                                                detections_table=detections_table,
+                                                                d_measurements_tables=d_measurements_tables,
                                                                 product_type="EXP",
                                                                 bin_parameter=BinParameters.GLOBAL)
 
@@ -158,6 +172,8 @@ class TestCase:
                 continue
             for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
+                                                                            detections_table=detections_table,
+                                                                            d_measurements_tables=d_measurements_tables,
                                                                             product_type="OBS",
                                                                             bin_parameter=test_case_info.bins,
                                                                             bin_limits=bin_limits)

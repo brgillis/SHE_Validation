@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -229,7 +229,7 @@ def run_validate_cti_gal_from_args(args):
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,
-                     shear_estimate_tables: Dict[str, table.Table],
+                     shear_estimate_tables: Dict[ShearEstimationMethods, table.Table],
                      d_bin_limits: Dict[str, np.ndarray],
                      workdir: str):
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
@@ -277,6 +277,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
                 # Calculate the results of the regression and add it to the results table
                 exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
+                                                                               detections_table=data_stack.detections_catalogue,
+                                                                               d_measurements_tables=shear_estimate_tables,
                                                                                bin_parameter=test_case_info.bins,
                                                                                bin_limits=test_case_bin_limits[
                                                                                    bin_index:bin_index + 2])[0]
@@ -285,7 +287,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                 # Make a plot for each method
                 for method in ShearEstimationMethods:
                     plotter = CtiGalPlotter(object_table=object_data_table,
-                                            method_name=method.value,
+                                            method=method,
                                             bin_parameter=test_case_info.bins,
                                             d_bin_limits=d_bin_limits,
                                             bin_index=bin_index,

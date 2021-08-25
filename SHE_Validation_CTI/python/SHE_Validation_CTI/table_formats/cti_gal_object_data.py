@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-08-24"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -63,12 +63,6 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
 
         self.quadrant = self.set_column_properties("QUAD", dtype="str", fits_dtype="A", length=1, is_optional=True)
         self.readout_dist = self.set_column_properties("READOUT_DIST", comment="pixels", is_optional=True)
-
-        # Data we might bin by
-        for bin_parameter in BinParameters:
-            name = D_BIN_PARAMETER_META[bin_parameter].value
-            comment = D_BIN_PARAMETER_META[bin_parameter].comment
-            setattr(self, name, self.set_column_properties(name.upper(), comment=comment, is_optional=True))
 
         # Set up separate shear columns for each shear estimation method
 

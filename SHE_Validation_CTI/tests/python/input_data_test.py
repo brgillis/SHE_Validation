@@ -183,17 +183,7 @@ class TestCase:
             detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
             object_data = SingleObjectData(object_id=object_id,
-                                           num_exposures=num_exposures,
-                                           data_stack=data_stack_copy)
-
-            # Check that SNR, Colour, and Size are as expected
-            assert np.isclose(object_data.snr, fvis / fvis_err)
-            assert np.isclose(object_data.colour, 2.5 * np.log10(fvis / fnir))
-            assert np.isclose(object_data.size, area)
-
-            for bg_level in object_data.background_level:
-                assert np.isclose(bg_level, self.EX_BG_LEVEL)
-            assert np.isclose(object_data.mean_background_level, self.EX_BG_LEVEL)
+                                           num_exposures=num_exposures,)
 
             object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
                                                                                         g2=g2,
@@ -221,10 +211,6 @@ class TestCase:
             for object_data, row in zip(l_raw_object_data, object_data_table):
 
                 assert object_data.id == row[CGOD_TF.ID]
-
-                assert np.isclose(object_data.snr, row[CGOD_TF.snr])
-                assert np.isclose(object_data.colour, row[CGOD_TF.colour])
-                assert np.isclose(object_data.size, row[CGOD_TF.size])
 
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])

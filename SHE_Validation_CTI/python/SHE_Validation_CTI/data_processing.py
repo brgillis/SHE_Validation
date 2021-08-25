@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-17"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Tuple
+from typing import Dict, Sequence, Tuple
 
 from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -28,13 +28,14 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 from astropy import table
 
+from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitflagsBinConstraint,
+                                                    HeteroBinConstraint)
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from SHE_Validation.constants.test_info import BinParameters
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
-
 
 logger = getLogger(__name__)
 
@@ -60,36 +61,57 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
 
-def get_rows_in_bin(object_data_table, bin_parameter, bin_limits):
+def get_ids_in_bin(bin_parameter: BinParameters,
+                   bin_limits: Sequence[float],
+                   method: ShearEstimationMethods,
+                   detections_table: table.Table,
+                   measurements_table: table.Table) -> Sequence[int]:
     """ Get an array of good indices based on the bin_parameter and bin_limits
     """
 
-    if bin_parameter == BinParameters.GLOBAL:
+    # Set up a bin constraint, and get the IDs in the bin with it
+    bin_parameter_bin_constraint = BinParameterBinConstraint(bin_parameter=bin_parameter,
+                                                             bin_limits=bin_limits)
+    fitflags_bin_constraint = FitflagsBinConstraint(method=method)
 
-        # Set all to True
-        rows_in_bin = np.ones(len(object_data_table), dtype=bool)
-
-    elif bin_parameter == BinParameters.EPOCH:
-
-        # Not yet implemented, so set all to False
-        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
-
+    # If we don't have a measurements table, do what we can with just the detections table
+    if measurements_table is None:
+        ids_in_bin = bin_parameter_bin_constraint.get_ids_in_bin(detections_table)
     else:
+        full_bin_constraint = HeteroBinConstraint(l_bin_constraints=[bin_parameter_bin_constraint,
+                                                                     fitflags_bin_constraint])
 
-        # Get the column name
-        colname = getattr(CGOD_TF, D_BIN_PARAMETER_META[bin_parameter].value)
-        if not colname in object_data_table.colnames:
-            raise ValueError(
-                f"Column {colname} is not preset in object_data_table - make sure it's added earlier " + "in the code.")
-        column = object_data_table[colname]
+        ids_in_bin = full_bin_constraint.get_ids_in_bin(l_tables=[detections_table, measurements_table])
 
-        # Get the column name of this property from the table format and check it exists
-        rows_in_bin = np.logical_and(column >= bin_limits[0], column < bin_limits[1])
+    return ids_in_bin
 
-    return rows_in_bin
+
+def get_d_ids_in_bin(bin_parameter: BinParameters,
+                     bin_limits: Sequence[float],
+                     detections_table: table.Table,
+                     d_measurements_tables: table.Table) -> Dict[ShearEstimationMethods, Sequence[int]]:
+    """ Get arrays of good indices for each shear estimation method.
+    """
+
+    d_ids_in_bin = {}
+
+    for method in ShearEstimationMethods:
+        if not method in d_measurements_tables or d_measurements_tables[method] is None:
+            measurements_table = None
+        else:
+            measurements_table = d_measurements_tables[method]
+        d_ids_in_bin[method] = get_ids_in_bin(bin_parameter=bin_parameter,
+                                              bin_limits=bin_limits,
+                                              method=method,
+                                              detections_table=detections_table,
+                                              measurements_table=measurements_table)
+
+    return d_ids_in_bin
 
 
 def calculate_regression_results(object_data_table: table.Table,
+                                 detections_table: table.Table,
+                                 d_measurements_tables: Dict[ShearEstimationMethods, table.Table],
                                  product_type: str = "UNKNOWN",
                                  bin_parameter: BinParameters = BinParameters.GLOBAL,
                                  bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
@@ -102,11 +124,13 @@ def calculate_regression_results(object_data_table: table.Table,
 
     rr_row = regression_results_table[0]
 
-    rows_in_bin = get_rows_in_bin(object_data_table, bin_parameter, bin_limits)
+    d_ids_in_bin = get_d_ids_in_bin(bin_parameter=bin_parameter,
+                                    bin_limits=bin_limits,
+                                    detections_table=detections_table,
+                                    d_measurements_tables=d_measurements_tables)
 
-    object_data_table_in_bin = object_data_table[rows_in_bin]
-
-    readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
+    if not CGOD_TF.ID in object_data_table.indices:
+        object_data_table.add_index(CGOD_TF.ID)
 
     # Perform a regression for each method
     for method in ShearEstimationMethods:
@@ -114,6 +138,10 @@ def calculate_regression_results(object_data_table: table.Table,
         method_name = method.value
 
         # Get required data
+        object_data_table_in_bin = object_data_table.loc[d_ids_in_bin[method]]
+
+        readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
+
         g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
         weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method_name}")]
 

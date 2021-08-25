@@ -5,7 +5,7 @@
     Code to process data for shear bias validation tests
 """
 
-__updated__ = "2021-08-23"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -70,9 +70,9 @@ class ShearBiasTestCaseDataProcessor():
     _fitclass_zero_rows: Sequence[bool]
 
     # Output attributes
-    _d_g_in = Optional[Dict[int, Sequence[float]]] = None
-    _d_g_out = Optional[Dict[int, Sequence[float]]] = None
-    _d_g_out_err = Optional[Dict[int, Sequence[float]]] = None
+    _d_g_in: Optional[Dict[int, Sequence[float]]] = None
+    _d_g_out: Optional[Dict[int, Sequence[float]]] = None
+    _d_g_out_err: Optional[Dict[int, Sequence[float]]] = None
     _d_bias_measurements: Optional[Dict[int, BiasMeasurements]] = None
     _d_linregress_results: Optional[Dict[int, LinregressResults]] = None
     _d_bias_strings: Optional[Dict[str, str]] = None

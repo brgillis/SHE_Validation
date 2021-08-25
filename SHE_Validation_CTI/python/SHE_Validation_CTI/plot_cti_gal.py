@@ -5,7 +5,7 @@
     Code to make plots for CTI-Gal Validation test.
 """
 
-__updated__ = "2021-08-06"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,9 +21,10 @@ __updated__ = "2021-08-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable, Optional, Sequence
 
 from SHE_PPT import file_io
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors, LinregressResults
 from astropy.table import Table, Row
@@ -34,9 +35,8 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 import numpy as np
 
-from .data_processing import get_rows_in_bin
+from .data_processing import get_ids_in_bin
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
-
 
 logger = getLogger(__name__)
 
@@ -61,8 +61,8 @@ class CtiGalPlotter(ValidationPlotter):
 
     # Attributes calculated at init
     bin_limits: np.ndarray
-    l_rows_in_bin: Iterable[Row]
-    _l_good_rows: Iterable[Row]
+    l_ids_in_bin: Sequence[int]
+    _t_good: Sequence[Row]
     _g1_colname: str
     _weight_colname: str
 
@@ -71,9 +71,11 @@ class CtiGalPlotter(ValidationPlotter):
 
     def __init__(self,
                  object_table: Table,
-                 method_name: str,
+                 method: ShearEstimationMethods,
                  bin_parameter: BinParameters,
                  d_bin_limits: Dict[str, float],
+                 detections_table: Table,
+                 measurements_table: Table,
                  bin_index: int,
                  workdir: str,):
 
@@ -81,20 +83,26 @@ class CtiGalPlotter(ValidationPlotter):
 
         # Set attrs directly
         self.object_table = object_table
-        self.method_name = method_name
+        self.method_name = method.value
         self.bin_parameter = bin_parameter
         self.bin_index = bin_index
         self.workdir = workdir
 
         # Determine attrs from kwargs
-        self._g1_colname = getattr(CGOD_TF, f"g1_image_{method_name}")
-        self._weight_colname = getattr(CGOD_TF, f"weight_{method_name}")
+        self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
+        self._weight_colname = getattr(CGOD_TF, f"weight_{self.method_name}")
 
         self.bin_limits = d_bin_limits[bin_parameter][bin_index:bin_index + 2]
-        self.l_rows_in_bin = get_rows_in_bin(self.object_table, self.bin_parameter, self.bin_limits)
+        self.l_ids_in_bin = get_ids_in_bin(bin_parameter=self.bin_parameter,
+                                           bin_limits=self.bin_limits,
+                                           method=method,
+                                           detections_table=detections_table,
+                                           measurements_table=measurements_table)
 
-        weight = self.object_table[self.weight_colname][self.l_rows_in_bin]
-        self._l_good_rows = weight > 0
+        if not CGOD_TF.ID in self.object_table.indices:
+            self.object_table.add_index(CGOD_TF.ID)
+
+        self._t_good = self.object_table.loc[self.l_ids_in_bin]
 
         # Set as None attributes to be set when plotting methods are called
         self._cti_gal_plot_filename = None
@@ -110,8 +118,8 @@ class CtiGalPlotter(ValidationPlotter):
         self._object_table = object_table
 
     @property
-    def l_good_rows(self) -> Iterable[Row]:
-        return self._l_good_rows
+    def t_good(self) -> Iterable[Row]:
+        return self._t_good
 
     @property
     def g1_colname(self) -> str:
@@ -135,10 +143,9 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        l_rr_dist: Iterable[float] = self.object_table[CGOD_TF.readout_dist][self.l_rows_in_bin][self.l_good_rows]
-        l_g1: Iterable[float] = self.object_table[self.g1_colname][self.l_rows_in_bin][self.l_good_rows]
-        l_g1_err: Iterable[float] = 1 / np.sqrt(self.object_table[self.weight_colname]
-                                                [self.l_rows_in_bin][self.l_good_rows])
+        l_rr_dist: Iterable[float] = self.t_good[CGOD_TF.readout_dist]
+        l_g1: Iterable[float] = self.t_good[self.g1_colname]
+        l_g1_err: Iterable[float] = 1 / np.sqrt(self.t_good[self.weight_colname])
 
         # Check if there's any valid data for this bin
         if len(l_rr_dist) <= 1:
@@ -174,7 +181,9 @@ class CtiGalPlotter(ValidationPlotter):
 
         self.density_scatter(l_rr_dist, l_g1, sort=True, bins=200, colorbar=False, s=4)
 
-        plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value} {self.bin_limits}"
+        plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
+        if self.bin_parameter != BinParameters.GLOBAL:
+            plot_title += f" {self.bin_limits}"
         plt.title(plot_title, fontsize=TITLE_FONTSIZE)
 
         self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize=AXISLABEL_FONTSIZE)
