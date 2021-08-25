@@ -5,7 +5,7 @@
     Common functions and classes to aid with binning data.
 """
 
-__updated__ = "2021-08-24"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,7 @@ from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_utility import SheTableFormat
-from astropy.table import Table, Row
+from astropy.table import Table, Row, Column
 
 import numpy as np
 
@@ -117,6 +117,25 @@ class BinConstraint(abc.ABC):
         binned_table: Table = table[l_is_row_in_bin]
 
         return binned_table
+
+    def get_ids_in_bin(self, table: Table) -> Column:
+        """ Method to return a table with only rows satisfying a bin constraint.
+
+            Parameters
+            ----------
+            table : astropy.table.Table
+                The table to assess the data of
+
+            Return
+            ------
+            binned_ids : astropy.table.Column
+                Column of the object IDs which are in this bin
+        """
+
+        binned_table: Table = self.get_rows_in_bin(table)
+        binned_ids: Column = binned_table[MFC_TF.ID]
+
+        return binned_ids
 
 # General types of bin constraints
 
@@ -309,20 +328,33 @@ class BinParameterBinConstraint(RangeBinConstraint):
     """ Range bin constraint generated based on a TestCaseInfo.
     """
 
-    test_case_info: TestCaseInfo
-    method: ShearEstimationMethods
+    test_case_info: Optional[TestCaseInfo] = None
+    method: Optional[ShearEstimationMethods] = None
     tf: SheTableFormat
 
     def __init__(self,
-                 test_case_info: TestCaseInfo,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 method: Optional[ShearEstimationMethods] = None,
+                 bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
 
         super().__init__(bin_limits=bin_limits)
 
         # Set parameters from the test_case_info object
-        self.test_case_info = test_case_info
-        self.method = test_case_info.method
-        self.bin_parameter = test_case_info.bins
+        if test_case_info:
+            self.test_case_info = test_case_info
+            self.method = test_case_info.method
+            self.bin_parameter = test_case_info.bins
+        else:
+            self.method = method
+            self.bin_parameter = bin_parameter
+
+        # Check that the bin_parameter was somehow specified
+        if not self.bin_parameter:
+            raise ValueError("bin_parameter must be specified in init for BinParameterBinConstraint, either via "
+                             "test_case_info or bin_parameter input. Supplied was: "
+                             f"test_case_info = {test_case_info}, "
+                             f"bin_parameter = {bin_parameter}.")
 
         # Get the table format that will be used based on the bin parameter and method
         if self.bin_parameter == BinParameters.SNR:

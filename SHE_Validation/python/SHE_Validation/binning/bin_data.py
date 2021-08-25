@@ -5,7 +5,7 @@
     Table format and useful functions for determining bin data
 """
 
-__updated__ = "2021-08-24"
+__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -56,7 +56,6 @@ class SheBinDataFormat(SheTableFormat):
         @brief A class defining the format for bin Data tables.
     """
 
-    # global: str - have to specify with setattr due to "global" keyword
     snr: str
     bg: str
     colour: str
@@ -68,6 +67,8 @@ class SheBinDataFormat(SheTableFormat):
 
         # Set a column for each bin parameter
         for bin_parameter in BinParameters:
+            if bin_parameter == BinParameters.GLOBAL:
+                continue
             setattr(self, bin_parameter.value, self.set_column_properties(name=bin_parameter.name, is_optional=True,
                                                                           dtype=">f4", fits_dtype="E"))
 
@@ -87,7 +88,7 @@ def add_global_column(_t: Table,
                       _data_stack: SHEFrameStack) -> None:
     """ Dummy method to add a global column, for a consistent interface.
     """
-    return
+    pass
 
 
 def add_snr_column(t: Table,
