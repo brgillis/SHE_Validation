@@ -165,7 +165,7 @@ class RangeBinConstraint(BinConstraint):
 
         if bin_colname:
             self.bin_colname = bin_colname
-        if bin_limits:
+        if bin_limits is not None:
             if not len(bin_limits) == 2:
                 raise ValueError(
                     f"bin_limits must be a length-2 sequence. Got: {bin_limits}, of length {len(bin_limits)}.")
@@ -177,8 +177,15 @@ class RangeBinConstraint(BinConstraint):
                    *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
         """ Checks if the data is within the bin limits.
         """
-        return np.logical_and(self.bin_limits[0] <= data[self.colname],
-                              data[self.colname] < self.bin_limits[1])
+        # If the column is None, everything passes as no constraint is applied
+        if self.bin_colname is None:
+            if isinstance(data, Row):
+                return True
+            else:
+                return True * np.ones(len(data), dtype=bool)
+
+        return np.logical_and(self.bin_limits[0] <= data[self.bin_colname],
+                              data[self.bin_colname] < self.bin_limits[1])
 
 
 class ValueBinConstraint(BinConstraint):
@@ -330,7 +337,6 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
     test_case_info: Optional[TestCaseInfo] = None
     method: Optional[ShearEstimationMethods] = None
-    tf: SheTableFormat
 
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
@@ -356,16 +362,11 @@ class BinParameterBinConstraint(RangeBinConstraint):
                              f"test_case_info = {test_case_info}, "
                              f"bin_parameter = {bin_parameter}.")
 
-        # Get the table format that will be used based on the bin parameter and method
-        if self.bin_parameter == BinParameters.SNR:
-            self.tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[self.method]
+        # Set column name for this bin parameter if applicable, or else set to None
+        if self.bin_parameter != BinParameters.GLOBAL:
+            self.bin_colname = getattr(BIN_TF, self.bin_parameter.value)
         else:
-            self.tf = MFC_TF
-
-        # Set column name for this bin parameter if applicable
-        bin_column = D_BIN_PARAMETER_META[self.bin_parameter].column
-        if bin_column:
-            self.bin_colname = getattr(self.tf, bin_column)
+            self.bin_colname = None
 
     # Protected methods
 
@@ -376,13 +377,14 @@ class BinParameterBinConstraint(RangeBinConstraint):
         """ Need to check what implementation we need based on the bin parameter.
         """
 
-        column_adding_method = D_COLUMN_ADDING_METHODS[self.bin_parameter]
+        # For GLOBAL case, we don't need any special setup
+        if self.bin_parameter == BinParameters.GLOBAL:
+            return super()._is_in_bin(data)
 
-        # Add a column to the table if necessary
-        new_bin_column = D_BIN_PARAMETER_META[self.bin_parameter].value
-        new_bin_colname = getattr(BIN_TF, new_bin_column)
+        # For other cases, we need to make sure we have the needed data and add it if not
+        new_bin_colname = getattr(BIN_TF, self.bin_parameter.value)
         if not new_bin_colname in data.colnames:
-            column_adding_method(data, data_stack)
+            D_COLUMN_ADDING_METHODS[self.bin_parameter](data, data_stack)
 
         self.bin_colname = new_bin_colname
 

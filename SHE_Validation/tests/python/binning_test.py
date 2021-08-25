@@ -55,10 +55,13 @@ class TestCase:
         # Set IDs sequentially, but with an offset
         cls.t[MFC_TF.ID] = np.arange(cls.TABLE_SIZE) + cls.ID_OFFSET
 
-        # Set up columns for each bin parameter
+        # Set up columns for each bin parameter except GLOBAL
         for bin_parameter in BinParameters:
 
-            bin_colnmae = getattr(BIN_TF, BinParameters.value)
+            if bin_parameter == BinParameters.GLOBAL:
+                continue
+
+            bin_colnmae = getattr(BIN_TF, bin_parameter.value)
 
             parameter_data = np.arange(cls.TABLE_SIZE) + cls.D_PAR_OFFSETS[bin_parameter]
             parameter_col = Column(data=parameter_data, name=bin_colnmae, dtype=BIN_TF.dtypes[bin_colnmae])
@@ -91,13 +94,13 @@ class TestCase:
             ids_in_bin = bin_constraint.get_ids_in_bin(self.t)
 
             # Check the outputs are consistent
-            assert self.t[l_is_row_in_bin] == rows_in_bin
-            assert rows_in_bin[MFC_TF.ID] == ids_in_bin
+            assert (self.t[l_is_row_in_bin] == rows_in_bin).all()
+            assert (rows_in_bin[MFC_TF.ID] == ids_in_bin).all()
 
             # Check the outputs are as expected
             assert l_is_row_in_bin.sum() == self.NUM_ROWS_IN_BIN
             assert len(rows_in_bin) == self.NUM_ROWS_IN_BIN
-            assert (ids_in_bin < self.NUM_ROWS_IN_BIN).all()
+            assert (ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET).all()
             assert (self.t[~l_is_row_in_bin][MFC_TF.ID] >= self.NUM_ROWS_IN_BIN).all()
 
         # Special check for GLOBAL test case
@@ -109,10 +112,10 @@ class TestCase:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t)
 
         # Check the outputs are consistent
-        assert self.t[l_is_row_in_bin] == rows_in_bin
-        assert rows_in_bin[MFC_TF.ID] == ids_in_bin
+        assert (self.t[l_is_row_in_bin] == rows_in_bin).all()
+        assert (rows_in_bin[MFC_TF.ID] == ids_in_bin).all()
 
         # Check the outputs are as expected
         assert l_is_row_in_bin.sum() == self.TABLE_SIZE
         assert len(rows_in_bin) == self.TABLE_SIZE
-        assert ids_in_bin == self.t[MFC_TF.ID]
+        assert (ids_in_bin == self.t[MFC_TF.ID]).all()
