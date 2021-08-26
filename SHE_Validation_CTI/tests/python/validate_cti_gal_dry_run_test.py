@@ -160,8 +160,13 @@ class TestCase:
 
         p = read_xml_product(xml_filename=output_filename)
 
-        textfiles_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.TextFiles.FileName
-        figures_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.Figures.FileName
+        # Find the index for the LensMC Global test case
+
+        for val_test in p.Data.ValidationTestList:
+            if not "global-lensmc" in val_test.TestId.lower():
+                continue
+            textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
+            figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
 
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
             subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
