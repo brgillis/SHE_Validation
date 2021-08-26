@@ -4,22 +4,6 @@
 
     Unit tests of the bin_constraints.py module
 """
-
-__updated__ = "2021-08-26"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 from copy import deepcopy
 from math import ceil
 import os
@@ -41,8 +25,28 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_snr_column, add_colour_column,
                                              add_size_column, add_bg_column, add_epoch_column)
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS,\
+    TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods,\
+    make_test_case_info_for_bins
 import numpy as np
+
+
+__updated__ = "2021-08-26"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 
 ID_COLNAME = LMC_TF.ID
 
@@ -248,6 +252,47 @@ class TestBinConstraints:
         for bin_parameter in BinParameters:
 
             l_l_ids = d_l_l_ids[bin_parameter]
+
+            # Special check for global case
+            if bin_parameter == BinParameters.GLOBAL:
+                assert len(l_l_ids) == 1
+                assert len(l_l_ids[0] == self.TABLE_SIZE)
+                continue
+
+            # Check the number of bins is right
+            ex_num_bins = self.D_PAR_NUM_BINS[bin_parameter]
+            assert len(l_l_ids) == ex_num_bins
+
+            # Check the number of IDs per bin is right
+            min_num_per_bin = self.TABLE_SIZE // ex_num_bins
+            max_num_per_bin = min_num_per_bin + 1
+            for i in range(ex_num_bins):
+                l_ids = l_l_ids[i]
+                assert len(l_ids) >= min_num_per_bin
+                assert len(l_ids) <= max_num_per_bin
+
+    def test_get_ids_for_test_cases(self):
+        """ Tests the get_ids_for_test_cases function.
+        """
+
+        base_test_case_info = TestCaseInfo(base_test_case_id="MOCK-ID",
+                                           base_description=("mock description"),
+                                           method=ShearEstimationMethods.LENSMC)
+
+        l_test_case_info = make_test_case_info_for_bins(base_test_case_info)
+
+        d_l_l_ids = get_ids_for_test_cases(l_test_case_info=l_test_case_info,
+                                           d_bin_limits=self.d_bin_limits,
+                                           detections_table=self.t_mfc,
+                                           d_measurements_tables={ShearEstimationMethods.LENSMC: self.t_lmc},
+                                           bin_constraint_type=BinParameterBinConstraint)
+
+        # Check that everything is as expected
+        for test_case_info in l_test_case_info:
+
+            bin_parameter = test_case_info.bin_parameter
+
+            l_l_ids = d_l_l_ids[test_case_info.name]
 
             # Special check for global case
             if bin_parameter == BinParameters.GLOBAL:

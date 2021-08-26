@@ -640,7 +640,7 @@ def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
 def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
                            d_bin_limits: Dict[BinParameters, Sequence[float]],
                            detections_table: Table,
-                           measurements_table: Optional[Table] = None,
+                           d_measurements_tables: Optional[Dict[ShearEstimationMethods, Table]] = None,
                            data_stack: Optional[SHEFrameStack] = None,
                            bin_constraint_type: Type = GoodBinnedMeasurementHBC,
                            ) -> Dict[str, List[Sequence[int]]]:
@@ -674,6 +674,8 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
 
             # Special processing if we have a HeteroBinConstraint
             if issubclass(bin_constraint_type, HeteroBinConstraint):
+                if d_measurements_tables:
+                    measurements_table = d_measurements_tables[test_case_info.method]
                 l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter=bin_parameter,
                                                                      method=test_case_info.method,
                                                                      bin_constraint_type=bin_constraint_type,
