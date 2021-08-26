@@ -275,12 +275,13 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
             exposure_regression_results_table = RR_TF.init_table(product_type="EXP")
 
-            for object_data_table in l_object_data_table:
+            for exp_index, object_data_table in enumerate(l_object_data_table):
 
                 # Calculate the results of the regression and add it to the results table
                 exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
                                                                                l_ids_in_bin=l_test_case_object_ids,
                                                                                method=method,
+                                                                               index=exp_index,
                                                                                product_type="EXP")[0]
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 

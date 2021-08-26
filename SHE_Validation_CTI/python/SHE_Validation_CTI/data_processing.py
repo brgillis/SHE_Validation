@@ -58,20 +58,20 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
 
-def _set_row_empty(rr_row: table.Row,
-                   method_name: str):
-    rr_row[getattr(RR_TF, f"weight_{method_name}")] = 0.
-    rr_row[getattr(RR_TF, f"slope_{method_name}")] = np.NaN
-    rr_row[getattr(RR_TF, f"intercept_{method_name}")] = np.NaN
-    rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = np.NaN
-    rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = np.NaN
-    rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = np.NaN
+def _set_row_empty(rr_row: table.Row,):
+    rr_row[RR_TF.weight] = 0.
+    rr_row[RR_TF.slope] = np.NaN
+    rr_row[RR_TF.intercept] = np.NaN
+    rr_row[RR_TF.slope_err] = np.NaN
+    rr_row[RR_TF.intercept_err] = np.NaN
+    rr_row[RR_TF.slope_intercept_covar] = np.NaN
 
 
 def calculate_regression_results(object_data_table: table.Table,
                                  l_ids_in_bin: Sequence[int],
                                  method: ShearEstimationMethods,
-                                 product_type: str = "UNKNOWN",) -> table.Table:
+                                 index: int = 0,
+                                 product_type: str = "UNKNOWN",) -> table.Row:
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
@@ -83,6 +83,9 @@ def calculate_regression_results(object_data_table: table.Table,
     regression_results_table = RR_TF.init_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
+
+    rr_row[RR_TF.method] = method_name
+    rr_row[RR_TF.index] = index
 
     # Add index to the table if needed
     if not CGOD_TF.ID in object_data_table.indices:
@@ -99,8 +102,8 @@ def calculate_regression_results(object_data_table: table.Table,
 
     # If there's no weight, skip the regression and output NaN for all values
     if tot_weight <= 0.:
-        _set_row_empty(rr_row, method_name)
-        return regression_results_table
+        _set_row_empty(rr_row)
+        return rr_row
 
     # Get a mask for the data where the weight is > 0 and not NaN
     bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
@@ -116,11 +119,11 @@ def calculate_regression_results(object_data_table: table.Table,
                                                 masked_g1_err_data[~bad_data_mask])
 
     # Save the results in the output table
-    rr_row[getattr(RR_TF, f"weight_{method_name}")] = tot_weight
-    rr_row[getattr(RR_TF, f"slope_{method_name}")] = linregress_results.slope
-    rr_row[getattr(RR_TF, f"intercept_{method_name}")] = linregress_results.intercept
-    rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = linregress_results.slope_err
-    rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = linregress_results.intercept_err
-    rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = linregress_results.slope_intercept_covar
+    rr_row[RR_TF.weight] = tot_weight
+    rr_row[RR_TF.slope] = linregress_results.slope
+    rr_row[RR_TF.intercept] = linregress_results.intercept
+    rr_row[RR_TF.slope_err] = linregress_results.slope_err
+    rr_row[RR_TF.intercept_err] = linregress_results.intercept_err
+    rr_row[RR_TF.slope_intercept_covar] = linregress_results.slope_intercept_covar
 
-    return regression_results_table
+    return rr_row

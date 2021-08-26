@@ -4,6 +4,26 @@
 
     Unit tests of the data_processing.py module
 """
+import os
+
+from SHE_PPT import mdb
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases,\
+    BinParameterBinConstraint
+from SHE_Validation.binning.bin_data import TF as BIN_TF
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
+from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
+from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
+import numpy as np
+
 
 __updated__ = "2021-08-26"
 
@@ -19,25 +39,6 @@ __updated__ = "2021-08-26"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-
-import os
-
-from SHE_PPT import mdb
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
-from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
-from SHE_Validation.binning.bin_data import TF as BIN_TF
-from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
-from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
-from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
-from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
-import numpy as np
 
 
 class TestCase:
@@ -140,58 +141,51 @@ class TestCase:
         d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
 
         # Run the function
-        regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                l_ids_in_bin=detections_table[MFC_TF.ID],
-                                                                method=ShearEstimationMethods.LENSMC,
-                                                                product_type="EXP",)
+        rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                              l_ids_in_bin=detections_table[MFC_TF.ID],
+                                              method=ShearEstimationMethods.LENSMC,
+                                              product_type="EXP",)
 
         # Check the results
 
-        assert regression_results_table.meta[RR_TF.m.product_type] == "EXP"
-        assert len(regression_results_table) == 1
-
-        rr_row = regression_results_table[0]
-
-        assert rr_row[RR_TF.weight_KSB] == 0
-        assert np.isnan(rr_row[RR_TF.slope_KSB])
+        assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
         readout_dist_mean = np.mean(readout_dist_data[:l])
         ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean)**2))
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data[:l]**2) / l)
 
-        assert rr_row[RR_TF.weight_LensMC] == l / g1_err**2
-        assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
-        assert np.isclose(rr_row[RR_TF.slope_err_LensMC], ex_slope_err, rtol=0.1)
-        assert np.isclose(rr_row[RR_TF.intercept_LensMC], b, atol=sigmal_tol * ex_intercept_err)
-        assert np.isclose(rr_row[RR_TF.intercept_err_LensMC], ex_intercept_err, rtol=0.1)
-        assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
+        assert rr_row[RR_TF.weight] == l / g1_err**2
+        assert np.isclose(rr_row[RR_TF.slope], m, atol=sigmal_tol * ex_slope_err)
+        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.intercept], b, atol=sigmal_tol * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
 
         d_bin_limits = {}
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
-                continue
-            d_bin_limits[test_case_info.name] = (-0.5, 0.5, 1.5)
+        l_test_case_info = make_test_case_info_for_bins(TestCaseInfo(method=ShearEstimationMethods.LENSMC))
+        for test_case_info in l_test_case_info:
+            d_bin_limits[test_case_info.bin_parameter] = (-0.5, 0.5, 1.5)
 
         # Get IDs for all bins
-        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=l_test_case_info,
                                                             d_bin_limits=d_bin_limits,
                                                             detections_table=detections_table,
                                                             d_measurements_tables=d_measurements_tables,
+                                                            bin_constraint_type=BinParameterBinConstraint,
                                                             data_stack=None)
 
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+        for test_case_info in l_test_case_info:
             if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
                 continue
             l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
             for bin_index in range(2):
                 l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
-                bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                            l_ids_in_bin=l_test_case_object_ids,
-                                                                            method=ShearEstimationMethods.LENSMC,
-                                                                            product_type="OBS",)
-                rr_row = bin_regression_results_table[0]
+                rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                                      l_ids_in_bin=l_test_case_object_ids,
+                                                      method=ShearEstimationMethods.LENSMC,
+                                                      product_type="OBS",)
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
-                assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=np.sqrt(2.) * sigmal_tol * ex_slope_err)
+                assert np.isclose(rr_row[RR_TF.slope], m, atol=np.sqrt(2.) * sigmal_tol * ex_slope_err)

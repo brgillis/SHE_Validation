@@ -5,7 +5,7 @@
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
-__updated__ = "2021-08-24"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -74,19 +74,15 @@ class SheRegressionResultsFormat(SheTableFormat):
 
         # Table column labels
 
-        # Set up separate result columns for each shear estimation method
+        self.index = self.set_column_properties(f"INDEX", dtype=int, fits_dtype=">i2")
+        self.method = self.set_column_properties(f"METHOD", dtype=str, fits_dtype="A", length=9)
 
-        for method in ShearEstimationMethods:
-
-            method_name = method.value
-            upper_method = method_name.upper()
-
-            setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
-            setattr(self, f"slope_{method_name}", self.set_column_properties(f"M_{upper_method}"))
-            setattr(self, f"intercept_{method_name}", self.set_column_properties(f"B_{upper_method}"))
-            setattr(self, f"slope_err_{method_name}", self.set_column_properties(f"M_ERR_{upper_method}"))
-            setattr(self, f"intercept_err_{method_name}", self.set_column_properties(f"B_ERR_{upper_method}"))
-            setattr(self, f"slope_intercept_covar_{method_name}", self.set_column_properties(f"MB_COV_{upper_method}"))
+        self.weight = self.set_column_properties(f"WEIGHT")
+        self.slope = self.set_column_properties(f"M")
+        self.intercept = self.set_column_properties(f"B")
+        self.slope_err = self.set_column_properties(f"M_ERR")
+        self.intercept_err = self.set_column_properties(f"B_ERR")
+        self.slope_intercept_covar = self.set_column_properties(f"MB_COV")
 
         self._finalize_init()
 
