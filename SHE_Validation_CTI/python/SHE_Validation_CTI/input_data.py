@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -42,6 +42,7 @@ from astropy.table import Row, Table
 
 import numpy as np
 
+from .data_processing import add_readout_register_distance
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
@@ -300,6 +301,9 @@ def sort_raw_object_data_into_table(l_raw_object_data: List[SingleObjectData]) -
                 row[getattr(CGOD_TF, f"g1_image_{method_name}")] = exposure_shear_info.g1
                 row[getattr(CGOD_TF, f"g2_image_{method_name}")] = exposure_shear_info.g2
                 row[getattr(CGOD_TF, f"weight_{method_name}")] = exposure_shear_info.weight
+
+        # We'll need to calculate the distance from the readout register, so add columns for that as well
+        add_readout_register_distance(object_data_table=object_data_table)
 
         l_object_data_tables[exp_index] = object_data_table
 

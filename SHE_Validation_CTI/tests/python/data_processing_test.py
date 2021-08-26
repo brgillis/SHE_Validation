@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,6 +30,7 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 
 from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
@@ -140,10 +141,9 @@ class TestCase:
 
         # Run the function
         regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                detections_table=detections_table,
-                                                                d_measurements_tables=d_measurements_tables,
-                                                                product_type="EXP",
-                                                                bin_parameter=BinParameters.GLOBAL)
+                                                                l_ids_in_bin=detections_table[MFC_TF.ID],
+                                                                method=ShearEstimationMethods.LENSMC,
+                                                                product_type="EXP",)
 
         # Check the results
 
@@ -167,16 +167,30 @@ class TestCase:
         assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
+
+        d_bin_limits = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
                 continue
-            for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
+            d_bin_limits[test_case_info.name] = (-0.5, 0.5, 1.5)
+
+        # Get IDs for all bins
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                            d_bin_limits=d_bin_limits,
+                                                            detections_table=detections_table,
+                                                            d_measurements_tables=d_measurements_tables,
+                                                            data_stack=None)
+
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
+                continue
+            l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
+            for bin_index in range(2):
+                l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
                 bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                            detections_table=detections_table,
-                                                                            d_measurements_tables=d_measurements_tables,
-                                                                            product_type="OBS",
-                                                                            bin_parameter=test_case_info.bins,
-                                                                            bin_limits=bin_limits)
+                                                                            l_ids_in_bin=l_test_case_object_ids,
+                                                                            method=ShearEstimationMethods.LENSMC,
+                                                                            product_type="OBS",)
                 rr_row = bin_regression_results_table[0]
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data

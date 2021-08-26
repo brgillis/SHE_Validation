@@ -34,7 +34,7 @@ from SHE_PPT.products.she_validation_test_results import create_validation_test_
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from astropy import table
 
-from SHE_Validation.binning.bin_data import add_bg_column
+from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO,\
     NUM_CTI_GAL_TEST_CASES
@@ -42,7 +42,7 @@ from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 import numpy as np
 
 from . import __version__
-from .data_processing import add_readout_register_distance, calculate_regression_results
+from .data_processing import calculate_regression_results
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
@@ -242,15 +242,21 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     d_observation_regression_results_tables = {}
     plot_filenames = {}
 
-    # Make sure the detections catalogue has background information
-    add_bg_column(data_stack.detections_catalogue, data_stack)
+    # Get IDs for all bins
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_bin_limits=d_bin_limits,
+                                                        detections_table=data_stack.detections_catalogue,
+                                                        d_measurements_tables=shear_estimate_tables,
+                                                        data_stack=data_stack)
 
     for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
         # Initialise for this test case
+        method = test_case_info.method
         plot_filenames[test_case_info.name] = {}
         test_case_bin_limits = d_bin_limits[test_case_info.bins]
         num_bins = len(test_case_bin_limits) - 1
+        l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
 
         # Double check we have at least one bin
         assert num_bins >= 1
@@ -260,6 +266,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
         for bin_index in range(num_bins):
 
+            l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
 
@@ -267,42 +275,33 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
             for object_data_table in l_object_data_table:
 
-                # We'll need to calculate the distance from the readout register, so add columns for that as well
-                add_readout_register_distance(object_data_table=object_data_table)
-
                 # Calculate the results of the regression and add it to the results table
                 exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
-                                                                               detections_table=data_stack.detections_catalogue,
-                                                                               d_measurements_tables=shear_estimate_tables,
-                                                                               bin_parameter=test_case_info.bins,
-                                                                               bin_limits=test_case_bin_limits[
-                                                                                   bin_index:bin_index + 2])[0]
+                                                                               l_ids_in_bin=l_test_case_object_ids,
+                                                                               method=method,
+                                                                               product_type="EXP")[0]
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
-                # Make a plot for each method
-                for method in ShearEstimationMethods:
-                    plotter = CtiGalPlotter(object_table=object_data_table,
-                                            method=method,
-                                            bin_parameter=test_case_info.bins,
-                                            d_bin_limits=d_bin_limits,
-                                            detections_table=data_stack.detections_catalogue,
-                                            measurements_table=shear_estimate_tables[method],
-                                            bin_index=bin_index,
-                                            workdir=workdir,)
-                    plotter.plot_cti_gal()
-                    plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
-                    plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
+                # Make a plot
+                plotter = CtiGalPlotter(object_table=object_data_table,
+                                        method=method,
+                                        bin_parameter=test_case_info.bins,
+                                        d_bin_limits=d_bin_limits,
+                                        detections_table=data_stack.detections_catalogue,
+                                        measurements_table=shear_estimate_tables[method],
+                                        bin_index=bin_index,
+                                        workdir=workdir,)
+                plotter.plot_cti_gal()
+                plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
+                plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table.vstack(tables=l_object_data_table)
 
             observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
-                                                                                detections_table=data_stack.detections_catalogue,
-                                                                                d_measurements_tables=shear_estimate_tables,
-                                                                                product_type="OBS",
-                                                                                bin_parameter=test_case_info.bins,
-                                                                                bin_limits=test_case_bin_limits[
-                                                                                    bin_index:bin_index + 2])
+                                                                                l_ids_in_bin=l_test_case_object_ids,
+                                                                                method=method,
+                                                                                product_type="OBS",)
 
             l_test_case_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
             l_test_case_observation_regression_results_tables[bin_index] = observation_regression_results_table
