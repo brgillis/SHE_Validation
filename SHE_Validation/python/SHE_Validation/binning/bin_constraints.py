@@ -22,7 +22,7 @@ __updated__ = "2021-08-26"
 # Boston, MA 02110-1301 USA
 
 import abc
-from typing import Optional,  Sequence, Union, Any, List, Set
+from typing import Optional,  Sequence, Union, Any, List, Set, Dict, Type
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.flags import failure_flags
@@ -77,7 +77,8 @@ class BinConstraint(abc.ABC):
 
     # Public methods
 
-    def get_l_is_row_in_bin(self, table: Table) -> Sequence[bool]:
+    def get_l_is_row_in_bin(self, table: Table,
+                            *args, **kwargs) -> Sequence[bool]:
         """ Method to return a sequence of bools for whether or not a row satisfies a bin constraint.
 
             Parameters
@@ -93,13 +94,14 @@ class BinConstraint(abc.ABC):
 
         # Try to apply self._is_in_bin directly to the table. If that fails, vectorize and apply it
         try:
-            l_is_row_in_bin: Sequence[bool] = self._is_in_bin(table)
+            l_is_row_in_bin: Sequence[bool] = self._is_in_bin(table, *args, **kwargs)
         except TypeError:
-            l_is_row_in_bin: Sequence[bool] = np.vectorize(self._is_in_bin)(table)
+            l_is_row_in_bin: Sequence[bool] = np.vectorize(self._is_in_bin)(table, *args, **kwargs)
 
         return l_is_row_in_bin
 
-    def get_rows_in_bin(self, table: Table) -> Table:
+    def get_rows_in_bin(self, table: Table,
+                        *args, **kwargs) -> Table:
         """ Method to return a table with only rows satisfying a bin constraint.
 
             Parameters
@@ -113,12 +115,13 @@ class BinConstraint(abc.ABC):
                 Table of only the rows in the bin.
         """
 
-        l_is_row_in_bin: Sequence[bool] = self.get_l_is_row_in_bin(table)
+        l_is_row_in_bin: Sequence[bool] = self.get_l_is_row_in_bin(table, *args, **kwargs)
         binned_table: Table = table[l_is_row_in_bin]
 
         return binned_table
 
-    def get_ids_in_bin(self, table: Table) -> Column:
+    def get_ids_in_bin(self, table: Table,
+                       *args, **kwargs) -> Column:
         """ Method to return a table with only rows satisfying a bin constraint.
 
             Parameters
@@ -132,7 +135,7 @@ class BinConstraint(abc.ABC):
                 Column of the object IDs which are in this bin
         """
 
-        binned_table: Table = self.get_rows_in_bin(table)
+        binned_table: Table = self.get_rows_in_bin(table, *args, **kwargs)
         binned_ids: Column = binned_table[MFC_TF.ID]
 
         return binned_ids
@@ -451,6 +454,20 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
         tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         self.bin_colname = tf.fit_flags
 
+
+class WeightBinConstraint(RangeBinConstraint):
+    """ Bin constraints to make sure the fit didn't fail.
+    """
+
+    bin_colname: str
+    bin_limits: Sequence[float] = (0, 1e99)
+
+    def __init__(self, method: ShearEstimationMethods) -> None:
+        """ Get the bin colname from the shear estimation method.
+        """
+        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        self.bin_colname = tf.weight
+
 # Convenience multi bin constraints
 
 
@@ -471,7 +488,19 @@ class VisDetBinParameterBinConstraint(MultiBinConstraint):
         self.l_bin_constraints = [vis_det_bc, bin_parameter_bc]
 
 
-class FitclassZeroFitflagsBinConstraint(MultiBinConstraint):
+class GoodMeasurementBinConstraint(MultiBinConstraint):
+    """ Bin constraint which combines Fitclass zero and fit flags bin constraints
+    """
+
+    def __init__(self, method: ShearEstimationMethods) -> None:
+
+        fitflags_bc = FitflagsBinConstraint(method=method)
+        weight_bc = WeightBinConstraint(method=method)
+
+        self.l_bin_constraints = [fitflags_bc, weight_bc]
+
+
+class GoodGalaxyMeasurementBinConstraint(MultiBinConstraint):
     """ Bin constraint which combines Fitclass zero and fit flags bin constraints
     """
 
@@ -479,5 +508,218 @@ class FitclassZeroFitflagsBinConstraint(MultiBinConstraint):
 
         fitclass_zero_bc = FitclassZeroBinConstraint(method=method)
         fitflags_bc = FitflagsBinConstraint(method=method)
+        weight_bc = WeightBinConstraint(method=method)
 
-        self.l_bin_constraints = [fitclass_zero_bc, fitflags_bc]
+        self.l_bin_constraints = [fitclass_zero_bc, fitflags_bc, weight_bc]
+
+# Convenience hetero bin constraints
+
+
+class GoodBinnedMeasurementHBC(HeteroBinConstraint):
+    """ Bin constrained which combines VisDetBinParameterBinConstraint and GoodMeasurementBinConstraint.
+    """
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS,) -> None:
+
+        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
+        good_meas_bc = GoodMeasurementBinConstraint(method=method)
+
+        self.l_bin_constraints = [det_bin_bc, good_meas_bc]
+
+
+class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
+    """ Bin constrained which combines VisDetBinParameterBinConstraint and GoodGalaxyMeasurementBinConstraint.
+    """
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS,) -> None:
+
+        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
+        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method=method)
+
+        self.l_bin_constraints = [det_bin_bc, good_meas_bc]
+
+# Functions to apply bin constraints
+
+
+def _get_ids_in_bin(bin_parameter: BinParameters,
+                    bin_constraint_type: Type,
+                    full_bin_limits: Sequence[float],
+                    bin_index: int,
+                    detections_table: Table,
+                    data_stack: Optional[SHEFrameStack] = None,
+                    ) -> Sequence[int]:
+
+    # Get the bin limits, and make a bin constraint
+    bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
+    bin_constraint: BinConstraint = bin_constraint_type(bin_parameter=bin_parameter, bin_limits=bin_limits)
+
+    # Get IDs for this bin, and add it to the list
+    l_binned_ids = bin_constraint.get_ids_in_bin(table=detections_table, data_stack=data_stack)
+
+    return l_binned_ids
+
+
+def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
+                           method: ShearEstimationMethods,
+                           bin_constraint_type: Type,
+                           full_bin_limits: Sequence[float],
+                           bin_index: int,
+                           detections_table: Table,
+                           measurements_table: Table,
+                           data_stack: Optional[SHEFrameStack] = None,
+                           ) -> Sequence[int]:
+
+    # Get the bin limits, and make a bin constraint
+    bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
+    bin_constraint: HeteroBinConstraint = bin_constraint_type(method=method,
+                                                              bin_parameter=bin_parameter,
+                                                              bin_limits=bin_limits,)
+
+    # Get IDs for this bin, and add it to the list
+    l_binned_ids = bin_constraint.get_ids_in_bin(l_tables=[detections_table, measurements_table],
+                                                 data_stack=data_stack)
+
+    return l_binned_ids
+
+
+def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
+                     detections_table: Table,
+                     l_bin_parameters: Sequence[BinParameters] = BinParameters,
+                     data_stack: Optional[SHEFrameStack] = None,
+                     bin_constraint_type: Type = VisDetBinParameterBinConstraint,
+                     ) -> Dict[BinParameters, List[Sequence[int]]]:
+    """ Creates a bin constraint for each bin parameter in a list (default all), then applies it to the detections
+        table.
+
+        Returns a dict of bin_parameter: List[np.ndarray<int> of IDs in each bin].
+    """
+
+    # Init output dict
+    d_l_l_binned_ids: Dict[BinParameters, List[Sequence[int]]] = {}
+
+    # For each test case info, create a bin constraint and apply it
+    for bin_parameter in l_bin_parameters:
+
+        # Get data relevant for this bin parameter
+        full_bin_limits: Sequence[float] = d_bin_limits[bin_parameter]
+        num_bins: int = len(full_bin_limits) - 1
+        assert num_bins >= 1
+
+        # Start a list of the ID lists for this test case
+        l_l_binned_ids: List[Sequence[int]] = [None] * num_bins
+
+        # Loop over bins, getting IDs for each and adding them to the list
+        for bin_index in range(num_bins):
+
+            l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter=bin_parameter,
+                                                          bin_constraint_type=bin_constraint_type,
+                                                          full_bin_limits=full_bin_limits,
+                                                          bin_index=bin_index,
+                                                          detections_table=detections_table,
+                                                          data_stack=data_stack)
+            l_l_binned_ids[bin_index] = l_binned_ids
+
+        # Add the list to the output dictionary
+        d_l_l_binned_ids[bin_parameter] = l_l_binned_ids
+
+    return d_l_l_binned_ids
+
+
+def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
+                           d_bin_limits: Dict[BinParameters, Sequence[float]],
+                           detections_table: Table,
+                           measurements_table: Optional[Table] = None,
+                           data_stack: Optional[SHEFrameStack] = None,
+                           bin_constraint_type: Type = GoodBinnedMeasurementHBC,
+                           ) -> Dict[str, List[Sequence[int]]]:
+    """ Creates a bin constraint for each test case, then applies it to the detections table.
+
+        Returns a dict of test_case_info.name: List[np.ndarray<int> of IDs in each bin].
+    """
+
+    # Get a set of the bin parameters we want to use
+    s_bin_parameters: Set[BinParameters] = set()
+    for test_case_info in l_test_case_info:
+        s_bin_parameters.add(test_case_info.bin_parameter)
+
+    # Init output dict
+    d_l_l_binned_ids: Dict[str, List[Sequence[int]]] = {}
+
+    # For each test case info, create a bin constraint and apply it
+    for test_case_info in l_test_case_info:
+
+        # Get data relevant for this bin parameter
+        bin_parameter = test_case_info.bin_parameter
+        full_bin_limits: Sequence[float] = d_bin_limits[bin_parameter]
+        num_bins: int = len(full_bin_limits) - 1
+        assert num_bins >= 1
+
+        # Start a list of the ID lists for this test case
+        l_l_binned_ids: List[Sequence[int]] = [None] * num_bins
+
+        # Loop over bins, getting IDs for each and adding them to the list
+        for bin_index in range(num_bins):
+
+            # Special processing if we have a HeteroBinConstraint
+            if issubclass(bin_constraint_type, HeteroBinConstraint):
+                l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter=bin_parameter,
+                                                                     method=test_case_info.method,
+                                                                     bin_constraint_type=bin_constraint_type,
+                                                                     full_bin_limits=full_bin_limits,
+                                                                     bin_index=bin_index,
+                                                                     detections_table=detections_table,
+                                                                     measurements_table=measurements_table,
+                                                                     data_stack=data_stack)
+            else:
+                l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter=bin_parameter,
+                                                              bin_constraint_type=bin_constraint_type,
+                                                              full_bin_limits=full_bin_limits,
+                                                              bin_index=bin_index,
+                                                              detections_table=detections_table,
+                                                              data_stack=data_stack)
+            l_l_binned_ids[bin_index] = l_binned_ids
+
+        # Add the list to the output dictionary
+        d_l_l_binned_ids[test_case_info.name] = l_l_binned_ids
+
+    return d_l_l_binned_ids
+
+
+def get_table_of_ids(table: Table,
+                     l_ids: Sequence[int],
+                     id_colname: str = MFC_TF.ID) -> Table:
+    """ Gets a version of a table with just the objects with IDs in the provided list, with handling for empty lists.
+    """
+
+    # Make sure the ID column name is set as an index for the table
+    if not id_colname in table.indices:
+        table.add_index(id_colname)
+
+    # Make sure the IDs list is the proper type
+    if not isinstance(l_ids, np.ndarray):
+        l_ids = np.array(l_ids)
+
+    # Return an empty table if the ID list is empty
+    if len(l_ids) == 0:
+        return table[np.zeros_like(table[id_colname], dtype=bool)]
+
+    try:
+        table_in_bin: Table = table.loc[l_ids]
+    except KeyError:
+        # If we get here, at least one ID in the list isn't in the table, so we'll have to prune the list
+        l_ids_in_table = [object_id for object_id in l_ids if object_id in table[id_colname]]
+        table_in_bin: Table = table.loc[l_ids_in_table]
+
+    return table_in_bin
