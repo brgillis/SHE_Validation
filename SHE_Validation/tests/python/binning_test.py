@@ -4,30 +4,6 @@
 
     Unit tests of the bin_constraints.py module
 """
-from copy import deepcopy
-from math import ceil
-import os
-
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
-                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_TABLE_FILENAME)
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-from SHE_PPT.table_utility import is_in_format
-from astropy.table import Column, Table
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitclassZeroBinConstraint,
-                                                    FitflagsBinConstraint, MultiBinConstraint, HeteroBinConstraint,
-                                                    get_ids_for_bins, get_ids_for_test_cases)
-from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_snr_column, add_colour_column,
-                                             add_size_column, add_bg_column, add_epoch_column)
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
-import numpy as np
-
 
 __updated__ = "2021-08-26"
 
@@ -44,6 +20,29 @@ __updated__ = "2021-08-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
+from math import ceil
+import os
+
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_TABLE_FILENAME)
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
+from SHE_PPT.table_utility import is_in_format
+from astropy.table import Column, Table, Row
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitclassZeroBinConstraint,
+                                                    FitflagsBinConstraint, MultiBinConstraint, HeteroBinConstraint,
+                                                    get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids)
+from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_snr_column, add_colour_column,
+                                             add_size_column, add_bg_column, add_epoch_column)
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
+import numpy as np
 
 ID_COLNAME = LMC_TF.ID
 
@@ -267,6 +266,20 @@ class TestBinConstraints:
                 l_ids = l_l_ids[i]
                 assert len(l_ids) >= min_num_per_bin
                 assert len(l_ids) <= max_num_per_bin
+
+    def test_get_table_of_ids(self):
+        """ Unit test for the get_table_of_ids function.
+        """
+
+        empty_ids = []
+        one_id_in = [self.ID_OFFSET]
+        all_ids_in = [self.ID_OFFSET, self.ID_OFFSET + 1]
+        some_ids_in = [*all_ids_in, self.ID_OFFSET - 1]
+
+        assert len(get_table_of_ids(self.t_mfc, empty_ids)) == 0
+        assert isinstance(get_table_of_ids(self.t_mfc, one_id_in), Row)
+        assert len(get_table_of_ids(self.t_mfc, all_ids_in)) == 2
+        assert len(get_table_of_ids(self.t_mfc, some_ids_in)) == 2
 
 
 class TestBinData():
