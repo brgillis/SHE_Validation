@@ -5,7 +5,7 @@
     Common functions and classes to aid with binning data.
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -347,6 +347,15 @@ class HeteroBinConstraint():
 # Bin constraints for specific use cases
 
 
+class VisDetBinConstraint(ValueBinConstraint):
+    """ Bin constraints to make sure the fit class is 0 (galaxy).
+    """
+
+    bin_colname: str = MFC_TF.vis_det
+    value: Any = 1
+    invert: bool = False
+
+
 class GlobalBinConstraint(RangeBinConstraint):
     """ Global binning - everything is in the bin. Inherits from RangeBinConstraint for a consistent interface.
     """
@@ -361,23 +370,20 @@ class BinParameterBinConstraint(RangeBinConstraint):
     """
 
     test_case_info: Optional[TestCaseInfo] = None
-    method: Optional[ShearEstimationMethods] = None
+    bin_parameter: BinParameters
 
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
-                 method: Optional[ShearEstimationMethods] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS):
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
 
         super().__init__(bin_limits=bin_limits)
 
         # Set parameters from the test_case_info object
         if test_case_info:
             self.test_case_info = test_case_info
-            self.method = test_case_info.method
             self.bin_parameter = test_case_info.bins
         else:
-            self.method = method
             self.bin_parameter = bin_parameter
 
         # Check that the bin_parameter was somehow specified
@@ -424,7 +430,7 @@ class FitclassZeroBinConstraint(ValueBinConstraint):
     value: Any = 0
     invert: bool = False
 
-    def __init__(self, method: ShearEstimationMethods):
+    def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
@@ -439,8 +445,39 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
     bit_flags: Any = failure_flags
     invert: bool = True
 
-    def __init__(self, method: ShearEstimationMethods):
+    def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         self.bin_colname = tf.fit_flags
+
+# Convenience multi bin constraints
+
+
+class VisDetBinParameterBinConstraint(MultiBinConstraint):
+    """ Bin constraint that combines being detected in VIS and being in a bin.
+    """
+
+    def __init__(self,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
+
+        vis_det_bc = VisDetBinConstraint()
+        bin_parameter_bc = BinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
+
+        self.l_bin_constraints = [vis_det_bc, bin_parameter_bc]
+
+
+class FitclassZeroFitflagsBinConstraint(MultiBinConstraint):
+    """ Bin constraint which combines Fitclass zero and fit flags bin constraints
+    """
+
+    def __init__(self, method: ShearEstimationMethods) -> None:
+
+        fitclass_zero_bc = FitclassZeroBinConstraint(method=method)
+        fitflags_bc = FitflagsBinConstraint(method=method)
+
+        self.l_bin_constraints = [fitclass_zero_bc, fitflags_bc]
