@@ -94,7 +94,7 @@ class TestCase:
                                 bin_parameter=BinParameters.GLOBAL,
                                 bin_index=0,
                                 bin_limits=DEFAULT_BIN_LIMITS,
-                                l_ids_in_bin=indices,
+                                l_ids_in_bin=indices[:l],
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
 

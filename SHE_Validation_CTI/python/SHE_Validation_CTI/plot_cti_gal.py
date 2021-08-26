@@ -20,7 +20,6 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 import numpy as np
 
-from .data_processing import get_ids_in_bin
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 

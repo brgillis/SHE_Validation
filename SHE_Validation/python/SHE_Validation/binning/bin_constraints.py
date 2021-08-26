@@ -338,12 +338,13 @@ class HeteroBinConstraint():
 
     # Protected methods
 
-    def get_ids_in_bin(self, l_tables: Sequence[Table]) -> Sequence[int]:
+    def get_ids_in_bin(self, l_tables: Sequence[Table],
+                       *args, **kwargs) -> Sequence[int]:
         """ Checks if the data is in all bin constraints, where the list of tables
             is aligned with the list of bin constraints
         """
 
-        l_s_ids_in_bin: List[Set[int]] = [set(bin_constraint.get_ids_in_bin(table))
+        l_s_ids_in_bin: List[Set[int]] = [set(bin_constraint.get_ids_in_bin(table, *args, **kwargs))
                                           for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
         return np.array(list(set.intersection(*l_s_ids_in_bin)))
 

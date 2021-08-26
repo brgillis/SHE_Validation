@@ -89,7 +89,7 @@ def calculate_regression_results(object_data_table: table.Table,
         object_data_table.add_index(CGOD_TF.ID)
 
     # Get required data
-    object_data_table_in_bin = get_table_of_ids(l_ids_in_bin)
+    object_data_table_in_bin = get_table_of_ids(object_data_table, l_ids_in_bin)
 
     readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
     g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
