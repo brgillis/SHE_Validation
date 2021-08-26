@@ -4,6 +4,22 @@
 
     Unit tests of the bin_constraints.py module
 """
+
+__updated__ = "2021-08-26"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from copy import deepcopy
 from math import ceil
 import os
@@ -25,28 +41,11 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_snr_column, add_colour_column,
                                              add_size_column, add_bg_column, add_epoch_column)
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS,\
-    TestCaseInfo
-from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods,\
-    make_test_case_info_for_bins
+from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
+
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+
 import numpy as np
-
-
-__updated__ = "2021-08-26"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 
 ID_COLNAME = LMC_TF.ID
 
