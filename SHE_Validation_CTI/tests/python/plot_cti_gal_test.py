@@ -102,4 +102,5 @@ class TestCase:
 
         qualified_plot_filename = os.path.join(self.workdir, plotter.cti_gal_plot_filename)
 
+        assert "LENSMC" in qualified_plot_filename
         assert os.path.isfile(qualified_plot_filename)

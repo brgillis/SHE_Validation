@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

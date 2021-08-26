@@ -92,11 +92,7 @@ class BinConstraint(abc.ABC):
                 Sequence of bools for whether or not a row is in the bin or not.
         """
 
-        # Try to apply self._is_in_bin directly to the table. If that fails, vectorize and apply it
-        try:
-            l_is_row_in_bin: Sequence[bool] = self._is_in_bin(table, *args, **kwargs)
-        except TypeError:
-            l_is_row_in_bin: Sequence[bool] = np.vectorize(self._is_in_bin)(table, *args, **kwargs)
+        l_is_row_in_bin: Sequence[bool] = self._is_in_bin(table, *args, **kwargs)
 
         return l_is_row_in_bin
 
@@ -677,14 +673,18 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
             if issubclass(bin_constraint_type, HeteroBinConstraint):
                 if d_measurements_tables:
                     measurements_table = d_measurements_tables[test_case_info.method]
-                l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter=bin_parameter,
-                                                                     method=test_case_info.method,
-                                                                     bin_constraint_type=bin_constraint_type,
-                                                                     full_bin_limits=full_bin_limits,
-                                                                     bin_index=bin_index,
-                                                                     detections_table=detections_table,
-                                                                     measurements_table=measurements_table,
-                                                                     data_stack=data_stack)
+                if measurements_table is None:
+                    # If we don't have data for a given method, return no IDs for it
+                    l_binned_ids: Sequence[int] = []
+                else:
+                    l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter=bin_parameter,
+                                                                         method=test_case_info.method,
+                                                                         bin_constraint_type=bin_constraint_type,
+                                                                         full_bin_limits=full_bin_limits,
+                                                                         bin_index=bin_index,
+                                                                         detections_table=detections_table,
+                                                                         measurements_table=measurements_table,
+                                                                         data_stack=data_stack)
             else:
                 l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter=bin_parameter,
                                                               bin_constraint_type=bin_constraint_type,

@@ -5,7 +5,7 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -195,15 +195,15 @@ class TestCase:
                     exp_row = exp_results_table[exp_index]
                     # To test handling of empty bins, set bin_index 2 to NaN, otherwise normal data
                     if bin_index == 2:
-                        exp_row[RR_TF.slope_LensMC] = np.NaN
-                        exp_row[RR_TF.slope_err_LensMC] = np.NaN
-                        exp_row[RR_TF.intercept_LensMC] = np.NaN
-                        exp_row[RR_TF.intercept_err_LensMC] = np.NaN
+                        exp_row[RR_TF.slope] = np.NaN
+                        exp_row[RR_TF.slope_err] = np.NaN
+                        exp_row[RR_TF.intercept] = np.NaN
+                        exp_row[RR_TF.intercept_err] = np.NaN
                     else:
-                        exp_row[RR_TF.slope_LensMC] = exp_results.slope
-                        exp_row[RR_TF.slope_err_LensMC] = exp_results.slope_err
-                        exp_row[RR_TF.intercept_LensMC] = exp_results.intercept
-                        exp_row[RR_TF.intercept_err_LensMC] = exp_results.intercept_err
+                        exp_row[RR_TF.slope] = exp_results.slope
+                        exp_row[RR_TF.slope_err] = exp_results.slope_err
+                        exp_row[RR_TF.intercept] = exp_results.intercept
+                        exp_row[RR_TF.intercept_err] = exp_results.intercept_err
 
         # Set up the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):

@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -299,7 +299,6 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         l_test_case_bins = self.d_bin_limits[test_case_info.bins]
         l_test_case_regression_results_tables = self.d_regression_results_tables[test_case_info.name]
-        method_name = test_case_info.method.value
 
         num_bins = len(l_test_case_bins) - 1
 
@@ -310,11 +309,14 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
         l_bin_limits = [None] * num_bins
 
         for bin_index, bin_test_case_regression_results_table in enumerate(l_test_case_regression_results_tables):
-            regression_results_row = bin_test_case_regression_results_table[self.regression_results_row_index]
-            l_slope[bin_index] = regression_results_row[getattr(RR_TF, f"slope_{method_name}")]
-            l_slope_err[bin_index] = regression_results_row[getattr(RR_TF, f"slope_err_{method_name}")]
-            l_intercept[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_{method_name}")]
-            l_intercept_err[bin_index] = regression_results_row[getattr(RR_TF, f"intercept_err_{method_name}")]
+            if isinstance(bin_test_case_regression_results_table, table.Table):
+                regression_results_row = bin_test_case_regression_results_table[self.regression_results_row_index]
+            else:
+                regression_results_row = bin_test_case_regression_results_table
+            l_slope[bin_index] = regression_results_row[RR_TF.slope]
+            l_slope_err[bin_index] = regression_results_row[RR_TF.slope_err]
+            l_intercept[bin_index] = regression_results_row[RR_TF.intercept]
+            l_intercept_err[bin_index] = regression_results_row[RR_TF.intercept_err]
             l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
         # For the global case, override the bin limits with None

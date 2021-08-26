@@ -282,7 +282,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                l_ids_in_bin=l_test_case_object_ids,
                                                                                method=method,
                                                                                index=exp_index,
-                                                                               product_type="EXP")[0]
+                                                                               product_type="EXP")
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot

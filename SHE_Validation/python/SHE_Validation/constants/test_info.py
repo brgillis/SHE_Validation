@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -99,7 +99,7 @@ class BinParameterMeta():
         if id_tail is not None:
             self._id_tail = id_tail
         else:
-            self._long_name = self.name
+            self._id_tail = self.name
 
     # Accessors for attributes
     @property
@@ -199,7 +199,6 @@ D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
                                                            long_name="SNR",
-                                                           id_tail="SNR",
                                                            config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS,)
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
