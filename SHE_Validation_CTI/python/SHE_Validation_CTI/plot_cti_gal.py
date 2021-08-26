@@ -4,8 +4,27 @@
 
     Code to make plots for CTI-Gal Validation test.
 """
+import os
+from typing import Dict, Iterable, Optional, Sequence
 
-__updated__ = "2021-08-25"
+from SHE_PPT import file_io
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import linregress_with_errors, LinregressResults
+from astropy.table import Table, Row
+from matplotlib import pyplot as plt
+
+import SHE_Validation
+from SHE_Validation.binning.bin_constraints import get_table_of_ids
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.plotting import ValidationPlotter
+import numpy as np
+
+from .data_processing import get_ids_in_bin
+from .table_formats.cti_gal_object_data import TF as CGOD_TF
+
+
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,23 +39,6 @@ __updated__ = "2021-08-25"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from typing import Dict, Iterable, Optional, Sequence
-
-from SHE_PPT import file_io
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import linregress_with_errors, LinregressResults
-from astropy.table import Table, Row
-from matplotlib import pyplot as plt
-
-import SHE_Validation
-from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.plotting import ValidationPlotter
-import numpy as np
-
-from .data_processing import get_ids_in_bin
-from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 logger = getLogger(__name__)
 
@@ -73,10 +75,9 @@ class CtiGalPlotter(ValidationPlotter):
                  object_table: Table,
                  method: ShearEstimationMethods,
                  bin_parameter: BinParameters,
-                 d_bin_limits: Dict[str, float],
-                 detections_table: Table,
-                 measurements_table: Table,
                  bin_index: int,
+                 bin_limits: Sequence[float],
+                 l_ids_in_bin: Sequence[int],
                  workdir: str,):
 
         super().__init__()
@@ -86,28 +87,16 @@ class CtiGalPlotter(ValidationPlotter):
         self.method_name = method.value
         self.bin_parameter = bin_parameter
         self.bin_index = bin_index
+        self.bin_limits = bin_limits
+        self.l_ids_in_bin = l_ids_in_bin
         self.workdir = workdir
 
         # Determine attrs from kwargs
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{self.method_name}")
 
-        self.bin_limits = d_bin_limits[bin_parameter][bin_index:bin_index + 2]
-        self.l_ids_in_bin = get_ids_in_bin(bin_parameter=self.bin_parameter,
-                                           bin_limits=self.bin_limits,
-                                           method=method,
-                                           detections_table=detections_table,
-                                           measurements_table=measurements_table)
-
-        if not CGOD_TF.ID in self.object_table.indices:
-            self.object_table.add_index(CGOD_TF.ID)
-
-        try:
-            table_in_bin = self.object_table.loc[self.l_ids_in_bin]
-            good_weight_rows = table_in_bin[self._weight_colname] > 0
-            self._t_good = table_in_bin[good_weight_rows]
-        except KeyError:
-            self._t_good = self.object_table[np.zeros_like(self.object_table[self._weight_colname], dtype=bool)]
+        self._t_good = get_table_of_ids(table=self.object_table,
+                                        l_ids=self.l_ids_in_bin,)
 
         # Set as None attributes to be set when plotting methods are called
         self._cti_gal_plot_filename = None

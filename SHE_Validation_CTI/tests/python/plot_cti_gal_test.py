@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,8 +23,6 @@ __updated__ = "2021-08-25"
 import os
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 import pytest
 
 from ElementsServices.DataSync import DataSync
@@ -90,19 +88,13 @@ class TestCase:
                                                           CGOD_TF.readout_dist: readout_dist_data,
                                                           CGOD_TF.g1_image_LensMC: g1_data})
 
-        detections_table = MFC_TF.init_table(init_cols={MFC_TF.ID: indices})
-
-        measurements_table = LMC_TF.init_table(init_cols={LMC_TF.ID: indices,
-                                                          LMC_TF.fit_flags: np.where(weight_data > 0, 0, 1)})
-
         # Run the plotting
         plotter = CtiGalPlotter(object_table=object_data_table,
                                 method=method,
                                 bin_parameter=BinParameters.GLOBAL,
-                                d_bin_limits={BinParameters.GLOBAL: DEFAULT_BIN_LIMITS},
-                                detections_table=detections_table,
-                                measurements_table=measurements_table,
                                 bin_index=0,
+                                bin_limits=DEFAULT_BIN_LIMITS,
+                                l_ids_in_bin=indices,
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
 

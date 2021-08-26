@@ -266,7 +266,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
         for bin_index in range(num_bins):
 
+            # Get info for this bin
             l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+            bin_limits = test_case_bin_limits[bin_index:bin_index + 2]
 
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
@@ -286,10 +288,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                 plotter = CtiGalPlotter(object_table=object_data_table,
                                         method=method,
                                         bin_parameter=test_case_info.bins,
-                                        d_bin_limits=d_bin_limits,
-                                        detections_table=data_stack.detections_catalogue,
-                                        measurements_table=shear_estimate_tables[method],
                                         bin_index=bin_index,
+                                        bin_limits=bin_limits,
+                                        l_ids_in_bin=l_test_case_object_ids,
                                         workdir=workdir,)
                 plotter.plot_cti_gal()
                 plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
