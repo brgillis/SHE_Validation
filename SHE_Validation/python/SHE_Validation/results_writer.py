@@ -5,7 +5,7 @@
     (Base) classes for writing out results of validation tests
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,7 +29,6 @@ from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.utility import coerce_to_list
-from future.builtins.misc import isinstance
 import scipy.stats
 
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
@@ -527,10 +526,10 @@ class AnalysisWriter():
 
     # Private and protected methods
 
-    def _get_filename_tag(self) -> Optional[str]:
+    def _get_filename_tag(self) -> str:
         """ Overridable method to get a tag to add to figure/textfile filenames.
         """
-        return None
+        return ""
 
     def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.

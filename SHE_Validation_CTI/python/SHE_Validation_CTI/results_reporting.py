@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for reporting results.
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-09"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List,  Any, Callable, Tuple, Union
+from typing import Dict, List,  Any, Callable, Tuple, Union, Sequence
 
 from SHE_PPT.logging import getLogger
 from astropy import table
@@ -59,6 +59,26 @@ CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory #
 class CtiGalRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single CTI-Gal requirement
     """
+
+    # Intermediate data used while writing
+
+    l_slope: Sequence[float]
+    l_slope_err: Sequence[float]
+    l_slope_z: Sequence[float]
+    l_slope_result: Sequence[str]
+
+    l_intercept: Sequence[float]
+    l_intercept_err: Sequence[float]
+    l_intercept_z: Sequence[float]
+    l_intercept_result: Sequence[str]
+
+    l_bin_limits: Sequence[float]
+    num_bins: int
+
+    fail_sigma: float
+
+    slope_pass: bool
+    intercept_pass: bool
 
     def _get_slope_intercept_info(self,
                                   extra_slope_message: str = "",

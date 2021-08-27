@@ -5,7 +5,7 @@
     Utility functions for Shear Bias validation, for reporting results.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,6 +25,7 @@ from typing import Dict, List,  Any, Callable, Optional, Union
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
+from SHE_PPT.utility import any_is_inf_or_nan
 
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
@@ -38,6 +39,7 @@ import numpy as np
 from .constants.shear_bias_test_info import (ShearBiasTestCases,
                                              L_SHEAR_BIAS_TEST_CASE_INFO,
                                              D_L_SHEAR_BIAS_REQUIREMENT_INFO,)
+
 
 logger = getLogger(__name__)
 
@@ -222,10 +224,8 @@ class ShearBiasRequirementWriter(RequirementWriter):
         if self.val_err[1] == 0 or self.val_err[2] == 0:
             report_method = self.report_zero_err
             extra_report_kwargs = {}
-        elif ((np.isnan(self.val[1]) or np.isnan(self.val_err[1]) or
-               np.isinf(self.val[1]) or np.isinf(self.val_err[1])) and
-              (np.isnan(self.val[2]) or np.isnan(self.val_err[2]) or
-               np.isinf(self.val[1]) or np.isinf(self.val_err[1]))):
+        elif (any_is_inf_or_nan((self.val[1], self.val_err[1])) and
+              any_is_inf_or_nan((self.val[2], self.val_err[2]))):
             report_method = self.report_bad_data
             extra_report_kwargs = {}
         else:
