@@ -36,7 +36,7 @@ from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                              NUM_SHEAR_BIAS_TEST_CASES)
 from .data_processing import ShearBiasTestCaseDataProcessor
 from .plotting import ShearBiasPlotter
-from .results_reporting import fill_shear_bias_validation_results
+from .results_reporting import fill_shear_bias_test_results
 
 
 logger = getLogger(__name__)
@@ -165,7 +165,7 @@ def validate_shear_bias_from_args(args, mode):
         d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
         # And fill in the observation product
-        fill_shear_bias_validation_results(test_result_product=test_result_product,
+        fill_shear_bias_test_results(test_result_product=test_result_product,
                                            workdir=args.workdir,
                                            d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,

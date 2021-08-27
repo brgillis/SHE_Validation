@@ -353,7 +353,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             test_case_writer.write(requirements_kwargs=write_kwargs,)
 
 
-def fill_shear_bias_validation_results(test_result_product: dpdSheValidationTestResults,
+def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
                                        d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
                                        pipeline_config: Dict[str, Any],
                                        d_bin_limits: Dict[BinParameters, np.ndarray],

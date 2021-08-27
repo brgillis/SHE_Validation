@@ -68,7 +68,7 @@ class TestCase:
     def teardown_class(cls):
         return
 
-    def test_add_readout_register_distance(self):
+    def test_add_rr_distance(self):
 
         # Get the detector y-size from the MDB
         det_size_y: int = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
@@ -87,7 +87,7 @@ class TestCase:
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
-    def test_calculate_regression_results(self):
+    def test_calc_regression_results(self):
 
         # Make some mock data
         m = 1e-5

@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -76,7 +76,7 @@ class TestCase:
 
         return
 
-    def test_get_raw_cti_gal_object_data(self):
+    def test_get_raw_cgo_data(self):
 
         # Read in the mock shear estimates
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]
@@ -152,7 +152,7 @@ class TestCase:
                 assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.MOMENTSML].g1)
                 assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
-    def test_sort_raw_object_data_into_table(self):
+    def test_sort_raw_object_data(self):
 
         # Set up test data
         l_raw_object_data = []
