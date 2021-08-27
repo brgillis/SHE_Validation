@@ -4,26 +4,10 @@
 
     Unit tests of the results_reporting.py module
 """
-
-__updated__ = "2021-08-17"
-
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-
 from collections import namedtuple
 from copy import deepcopy
 import os
+from typing import NamedTuple
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -50,6 +34,23 @@ from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_result
                                                   FailSigmaCalculator)
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 import numpy as np
+
+
+__updated__ = "2021-08-27"
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 
 logger = getLogger(__name__)
 
@@ -162,12 +163,15 @@ class TestCase:
                 assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tcb_local_fail_sigma)
 
-    def test_fill_cti_gal_validation_results(self):
+    def test_fill_cg_val_results(self):
         """ Test of the fill_cti_gal_validation_results function.
         """
 
-        RegResults = namedtuple("RegResults", ["slope", "slope_err",
-                                               "intercept", "intercept_err", ])
+        class RegResults(NamedTuple):
+            slope: float
+            slope_err: float
+            intercept: float
+            intercept_err: float
 
         exp_results_list = [RegResults(3., 2., 0., 2.),
                             RegResults(-15, 2., 0., 2.),
@@ -195,15 +199,15 @@ class TestCase:
                     exp_row = exp_results_table[exp_index]
                     # To test handling of empty bins, set bin_index 2 to NaN, otherwise normal data
                     if bin_index == 2:
-                        exp_row[RR_TF.slope_LensMC] = np.NaN
-                        exp_row[RR_TF.slope_err_LensMC] = np.NaN
-                        exp_row[RR_TF.intercept_LensMC] = np.NaN
-                        exp_row[RR_TF.intercept_err_LensMC] = np.NaN
+                        exp_row[RR_TF.slope] = np.NaN
+                        exp_row[RR_TF.slope_err] = np.NaN
+                        exp_row[RR_TF.intercept] = np.NaN
+                        exp_row[RR_TF.intercept_err] = np.NaN
                     else:
-                        exp_row[RR_TF.slope_LensMC] = exp_results.slope
-                        exp_row[RR_TF.slope_err_LensMC] = exp_results.slope_err
-                        exp_row[RR_TF.intercept_LensMC] = exp_results.intercept
-                        exp_row[RR_TF.intercept_err_LensMC] = exp_results.intercept_err
+                        exp_row[RR_TF.slope] = exp_results.slope
+                        exp_row[RR_TF.slope_err] = exp_results.slope_err
+                        exp_row[RR_TF.intercept] = exp_results.intercept
+                        exp_row[RR_TF.intercept_err] = exp_results.intercept_err
 
         # Set up the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):

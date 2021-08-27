@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -82,16 +82,19 @@ class TestCase:
         g1_data[-lnan - lzero:-lzero] = np.NaN
         weight_data[-lzero:] = 0
 
-        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
+        indices = np.indices((ltot,), dtype=int,)[0]
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.ID: indices,
+                                                          CGOD_TF.weight_LensMC: weight_data,
                                                           CGOD_TF.readout_dist: readout_dist_data,
                                                           CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the plotting
         plotter = CtiGalPlotter(object_table=object_data_table,
-                                method_name=method.value,
+                                method=method,
                                 bin_parameter=BinParameters.GLOBAL,
-                                d_bin_limits={BinParameters.GLOBAL: DEFAULT_BIN_LIMITS},
                                 bin_index=0,
+                                bin_limits=DEFAULT_BIN_LIMITS,
+                                l_ids_in_bin=indices[:l],
                                 workdir=self.workdir)
         plotter.plot_cti_gal()
 
@@ -99,4 +102,5 @@ class TestCase:
 
         qualified_plot_filename = os.path.join(self.workdir, plotter.cti_gal_plot_filename)
 
+        assert "LENSMC" in qualified_plot_filename
         assert os.path.isfile(qualified_plot_filename)

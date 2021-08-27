@@ -5,7 +5,7 @@
     Default values for information about tests and test cases, generic across multiple tests.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-11"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
@@ -46,6 +46,8 @@ class BinParameters(AllowedEnum):
 
 
 NUM_BIN_PARAMETERS: int = len(BinParameters)
+NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
+                                                  if bin_parameter != BinParameters.GLOBAL]
 
 
 class BinParameterMeta():
@@ -77,7 +79,7 @@ class BinParameterMeta():
                  units: str = None,
                  definition: str = None,
                  extra_help_text: str = None,
-                 config_key: ConfigKeys = None):
+                 config_key: ConfigKeys = None,):
 
         # Set values directly from init
         self._enum = bin_parameter_enum
@@ -97,7 +99,7 @@ class BinParameterMeta():
         if id_tail is not None:
             self._id_tail = id_tail
         else:
-            self._long_name = self.name
+            self._id_tail = self.name
 
     # Accessors for attributes
     @property
@@ -197,8 +199,7 @@ D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
                                                            long_name="SNR",
-                                                           id_tail="SNR",
-                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS)
+                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS,)
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
                                                           long_name="background level",
@@ -207,12 +208,12 @@ D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=Bin
 
 D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum=BinParameters.COLOUR,
                                                               definition=COLOUR_DEFINITION,
-                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS)
+                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,)
 
 D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=BinParameters.SIZE,
                                                             units=SIZE_UNITS,
                                                             definition=SIZE_DEFINITION,
-                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS)
+                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,)
 
 D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
 
@@ -376,6 +377,10 @@ class TestCaseInfo():
         self._bins_config_key = None
         self._name = None
         self._description = None
+
+    @property
+    def bin_parameter(self) -> Optional[BinParameters]:
+        return self._bins
 
     @property
     def method(self) -> Optional[ShearEstimationMethods]:

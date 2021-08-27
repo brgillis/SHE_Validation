@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -29,14 +29,15 @@ from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.pipeline_utility import read_config, write_config, ValidationConfigKeys
+import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
                                                                  D_CTI_GAL_CONFIG_CLINE_ARGS)
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
-
 
 # Pipeline config filename
 PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
@@ -61,7 +62,7 @@ class Args(object):
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             bin_limits_cline_arg = test_case_info.bins_cline_arg
             if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg, None)
+                setattr(self, bin_limits_cline_arg, DEFAULT_BIN_LIMITS_STR)
 
         self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
         self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
@@ -116,6 +117,7 @@ class TestCase:
         # Delete the pipeline config file
         os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
 
+    @pytest.mark.skip()
     def test_cti_gal_dry_run(self):
 
         # Ensure this is a dry run and set up the pipeline config with defaults
@@ -158,8 +160,13 @@ class TestCase:
 
         p = read_xml_product(xml_filename=output_filename)
 
-        textfiles_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.TextFiles.FileName
-        figures_tarball_filename = p.Data.ValidationTestList[0].AnalysisResult.AnalysisFiles.Figures.FileName
+        # Find the index for the LensMC Global test case
+
+        for val_test in p.Data.ValidationTestList:
+            if not "global-lensmc" in val_test.TestId.lower():
+                continue
+            textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
+            figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
 
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
             subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)

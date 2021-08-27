@@ -5,7 +5,7 @@
     Unit tests of the input_data.py module
 """
 
-__updated__ = "2021-08-09"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -69,14 +69,14 @@ class TestCase:
                                             mode='denywrite')
 
         # Set up some expected values
-        cls.ex_bg_level = 45.71
+        cls.EX_BG_LEVEL = 45.71
 
     @classmethod
     def teardown_class(cls):
 
         return
 
-    def test_get_raw_cti_gal_object_data(self):
+    def test_get_raw_cgo_data(self):
 
         # Read in the mock shear estimates
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]
@@ -152,7 +152,7 @@ class TestCase:
                 assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.MOMENTSML].g1)
                 assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
-    def test_sort_raw_object_data_into_table(self):
+    def test_sort_raw_object_data(self):
 
         # Set up test data
         l_raw_object_data = []
@@ -183,17 +183,7 @@ class TestCase:
             detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
             object_data = SingleObjectData(object_id=object_id,
-                                           num_exposures=num_exposures,
-                                           data_stack=data_stack_copy)
-
-            # Check that SNR, Colour, and Size are as expected
-            assert np.isclose(object_data.snr, fvis / fvis_err)
-            assert np.isclose(object_data.colour, 2.5 * np.log10(fvis / fnir))
-            assert np.isclose(object_data.size, area)
-
-            for bg_level in object_data.background_level:
-                assert np.isclose(bg_level, self.ex_bg_level)
-            assert np.isclose(object_data.mean_background_level, self.ex_bg_level)
+                                           num_exposures=num_exposures,)
 
             object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
                                                                                         g2=g2,
@@ -221,10 +211,6 @@ class TestCase:
             for object_data, row in zip(l_raw_object_data, object_data_table):
 
                 assert object_data.id == row[CGOD_TF.ID]
-
-                assert np.isclose(object_data.snr, row[CGOD_TF.snr])
-                assert np.isclose(object_data.colour, row[CGOD_TF.colour])
-                assert np.isclose(object_data.size, row[CGOD_TF.size])
 
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])

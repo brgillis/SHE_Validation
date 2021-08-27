@@ -5,7 +5,7 @@
     Unit tests of the data_processing.py module
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,10 +23,17 @@ __updated__ = "2021-08-17"
 import os
 
 from SHE_PPT import mdb
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.test_data import SYNC_CONF, TEST_FILES_MDB, TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME
+from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
+from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases,\
+    BinParameterBinConstraint
+from SHE_Validation.binning.bin_data import TF as BIN_TF
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
@@ -61,7 +68,7 @@ class TestCase:
     def teardown_class(cls):
         return
 
-    def test_add_readout_register_distance(self):
+    def test_add_rr_distance(self):
 
         # Get the detector y-size from the MDB
         det_size_y: int = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
@@ -80,7 +87,7 @@ class TestCase:
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
-    def test_calculate_regression_results(self):
+    def test_calc_regression_results(self):
 
         # Make some mock data
         m = 1e-5
@@ -118,50 +125,67 @@ class TestCase:
         g1_data[-lnan - lzero:-lzero] = np.NaN
         weight_data[-lzero:] = 0
 
-        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.weight_LensMC: weight_data,
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.ID: indices,
+                                                          CGOD_TF.weight_LensMC: weight_data,
                                                           CGOD_TF.readout_dist: readout_dist_data,
-                                                          CGOD_TF.snr: snr_data,
-                                                          CGOD_TF.bg: bg_data,
-                                                          CGOD_TF.colour: colour_data,
-                                                          CGOD_TF.size: size_data,
                                                           CGOD_TF.g1_image_LensMC: g1_data})
 
+        detections_table = MFC_TF.init_table(init_cols={MFC_TF.ID: indices})
+        detections_table[BIN_TF.snr] = snr_data
+        detections_table[BIN_TF.bg] = bg_data
+        detections_table[BIN_TF.colour] = colour_data
+        detections_table[BIN_TF.size] = size_data
+
+        measurements_table = LMC_TF.init_table(init_cols={LMC_TF.ID: indices})
+
+        d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
+
         # Run the function
-        regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                product_type="EXP",
-                                                                bin_parameter=BinParameters.GLOBAL)
+        rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                              l_ids_in_bin=detections_table[MFC_TF.ID],
+                                              method=ShearEstimationMethods.LENSMC,
+                                              product_type="EXP",)
 
         # Check the results
 
-        assert regression_results_table.meta[RR_TF.m.product_type] == "EXP"
-        assert len(regression_results_table) == 1
-
-        rr_row = regression_results_table[0]
-
-        assert rr_row[RR_TF.weight_KSB] == 0
-        assert np.isnan(rr_row[RR_TF.slope_KSB])
+        assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
         readout_dist_mean = np.mean(readout_dist_data[:l])
         ex_slope_err = g1_err / np.sqrt(np.sum((readout_dist_data[:l] - readout_dist_mean)**2))
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(readout_dist_data[:l]**2) / l)
 
-        assert rr_row[RR_TF.weight_LensMC] == l / g1_err**2
-        assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=sigmal_tol * ex_slope_err)
-        assert np.isclose(rr_row[RR_TF.slope_err_LensMC], ex_slope_err, rtol=0.1)
-        assert np.isclose(rr_row[RR_TF.intercept_LensMC], b, atol=sigmal_tol * ex_intercept_err)
-        assert np.isclose(rr_row[RR_TF.intercept_err_LensMC], ex_intercept_err, rtol=0.1)
-        assert np.isclose(rr_row[RR_TF.slope_intercept_covar_LensMC], 0, atol=5 * ex_slope_err * ex_intercept_err)
+        assert rr_row[RR_TF.weight] == l / g1_err**2
+        assert np.isclose(rr_row[RR_TF.slope], m, atol=sigmal_tol * ex_slope_err)
+        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.intercept], b, atol=sigmal_tol * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol=0.1)
+        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         # Test the calculation is sensible for each binning
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+
+        d_bin_limits = {}
+        l_test_case_info = make_test_case_info_for_bins(TestCaseInfo(method=ShearEstimationMethods.LENSMC))
+        for test_case_info in l_test_case_info:
+            d_bin_limits[test_case_info.bin_parameter] = (-0.5, 0.5, 1.5)
+
+        # Get IDs for all bins
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=l_test_case_info,
+                                                            d_bin_limits=d_bin_limits,
+                                                            detections_table=detections_table,
+                                                            d_measurements_tables=d_measurements_tables,
+                                                            bin_constraint_type=BinParameterBinConstraint,
+                                                            data_stack=None)
+
+        for test_case_info in l_test_case_info:
             if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
                 continue
-            for bin_limits in ((-0.5, 0.5), (0.5, 1.5)):
-                bin_regression_results_table = calculate_regression_results(object_data_table=object_data_table,
-                                                                            product_type="OBS",
-                                                                            bin_parameter=test_case_info.bins,
-                                                                            bin_limits=bin_limits)
-                rr_row = bin_regression_results_table[0]
+            l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
+            for bin_index in range(2):
+                l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+                rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                                      l_ids_in_bin=l_test_case_object_ids,
+                                                      method=ShearEstimationMethods.LENSMC,
+                                                      product_type="OBS",)
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
-                assert np.isclose(rr_row[RR_TF.slope_LensMC], m, atol=np.sqrt(2.) * sigmal_tol * ex_slope_err)
+                assert np.isclose(rr_row[RR_TF.slope], m, atol=np.sqrt(2.) * sigmal_tol * ex_slope_err)

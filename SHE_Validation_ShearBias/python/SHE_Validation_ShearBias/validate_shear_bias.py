@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-23"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,12 +30,14 @@ from SHE_PPT.pipeline_utility import ValidationConfigKeys
 
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                                                     L_SHEAR_BIAS_TEST_CASE_C_INFO,
-                                                                     NUM_SHEAR_BIAS_TEST_CASES)
 
-from .plot_shear_bias import ShearBiasPlotter
-from .results_reporting import fill_shear_bias_validation_results
+from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                             L_SHEAR_BIAS_TEST_CASE_C_INFO,
+                                             NUM_SHEAR_BIAS_TEST_CASES)
+from .data_processing import ShearBiasTestCaseDataProcessor
+from .plotting import ShearBiasPlotter
+from .results_reporting import fill_shear_bias_test_results
+
 
 logger = getLogger(__name__)
 
@@ -119,18 +121,22 @@ def validate_shear_bias_from_args(args, mode):
         try:
             # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-            shear_bias_plotter = ShearBiasPlotter(l_method_matched_catalog_filenames,
-                                                  method=method,
-                                                  workdir=args.workdir)
-            shear_bias_plotter.plot_shear_bias(pipeline_config=pipeline_config)
+            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(l_method_matched_catalog_filenames,
+                                                                       test_case_info=test_case_info,
+                                                                       workdir=args.workdir,
+                                                                       pipeline_config=pipeline_config)
+            shear_bias_data_processor.calc()
+
+            shear_bias_plotter = ShearBiasPlotter(data_processor=shear_bias_data_processor)
+            shear_bias_plotter.plot_shear_bias()
 
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
 
-            d_bias_measurements[test_case_name] = shear_bias_plotter.d_bias_measurements
+            d_bias_measurements[test_case_name] = shear_bias_data_processor.d_bias_measurements
 
             # Get the name of the corresponding C test case, and store the info for that too
             c_test_case_name = L_SHEAR_BIAS_TEST_CASE_C_INFO[test_case_index].name
-            d_bias_measurements[c_test_case_name] = shear_bias_plotter.d_bias_measurements
+            d_bias_measurements[c_test_case_name] = shear_bias_data_processor.d_bias_measurements
 
             # Save the filename for each component plot
             for i in d_method_bias_plot_filename:
@@ -159,7 +165,7 @@ def validate_shear_bias_from_args(args, mode):
         d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
         # And fill in the observation product
-        fill_shear_bias_validation_results(test_result_product=test_result_product,
+        fill_shear_bias_test_results(test_result_product=test_result_product,
                                            workdir=args.workdir,
                                            d_bin_limits=d_bin_limits,
                                            d_bias_measurements=d_bias_measurements,

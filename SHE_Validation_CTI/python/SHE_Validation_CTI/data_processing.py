@@ -5,7 +5,7 @@
     Utility functions for CTI-Gal validation, for processing the data.
 """
 
-__updated__ = "2021-08-17"
+__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,7 @@ __updated__ = "2021-08-17"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Tuple
+from typing import Sequence
 
 from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -28,13 +28,11 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 from astropy import table
 
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from SHE_Validation.binning.bin_constraints import get_table_of_ids
 import numpy as np
 
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
-
 
 logger = getLogger(__name__)
 
@@ -60,94 +58,72 @@ def add_readout_register_distance(object_data_table: table.Table):
     object_data_table.add_column(readout_distance_column)
 
 
-def get_rows_in_bin(object_data_table, bin_parameter, bin_limits):
-    """ Get an array of good indices based on the bin_parameter and bin_limits
-    """
-
-    if bin_parameter == BinParameters.GLOBAL:
-
-        # Set all to True
-        rows_in_bin = np.ones(len(object_data_table), dtype=bool)
-
-    elif bin_parameter == BinParameters.EPOCH:
-
-        # Not yet implemented, so set all to False
-        rows_in_bin = np.zeros(len(object_data_table), dtype=bool)
-
-    else:
-
-        # Get the column name
-        colname = getattr(CGOD_TF, D_BIN_PARAMETER_META[bin_parameter].value)
-        if not colname in object_data_table.colnames:
-            raise ValueError(
-                f"Column {colname} is not preset in object_data_table - make sure it's added earlier " + "in the code.")
-        column = object_data_table[colname]
-
-        # Get the column name of this property from the table format and check it exists
-        rows_in_bin = np.logical_and(column >= bin_limits[0], column < bin_limits[1])
-
-    return rows_in_bin
+def _set_row_empty(rr_row: table.Row,):
+    rr_row[RR_TF.weight] = 0.
+    rr_row[RR_TF.slope] = np.NaN
+    rr_row[RR_TF.intercept] = np.NaN
+    rr_row[RR_TF.slope_err] = np.NaN
+    rr_row[RR_TF.intercept_err] = np.NaN
+    rr_row[RR_TF.slope_intercept_covar] = np.NaN
 
 
 def calculate_regression_results(object_data_table: table.Table,
-                                 product_type: str = "UNKNOWN",
-                                 bin_parameter: BinParameters = BinParameters.GLOBAL,
-                                 bin_limits: Tuple[float, float] = DEFAULT_BIN_LIMITS):
+                                 l_ids_in_bin: Sequence[int],
+                                 method: ShearEstimationMethods,
+                                 index: int = 0,
+                                 product_type: str = "UNKNOWN",) -> table.Row:
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
+
+    # Get the shear estimation method name
+    method_name = method.value
 
     # Initialize a table for the output data
     regression_results_table = RR_TF.init_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
 
-    rows_in_bin = get_rows_in_bin(object_data_table, bin_parameter, bin_limits)
+    rr_row[RR_TF.method] = method_name
+    rr_row[RR_TF.index] = index
 
-    object_data_table_in_bin = object_data_table[rows_in_bin]
+    # Add index to the table if needed
+    if not CGOD_TF.ID in object_data_table.indices:
+        object_data_table.add_index(CGOD_TF.ID)
+
+    # Get required data
+    object_data_table_in_bin = get_table_of_ids(object_data_table, l_ids_in_bin)
 
     readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
+    g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
+    weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method_name}")]
 
-    # Perform a regression for each method
-    for method in ShearEstimationMethods:
+    tot_weight = np.nansum(weight_data)
 
-        method_name = method.value
+    # If there's no weight, skip the regression and output NaN for all values
+    if tot_weight <= 0.:
+        _set_row_empty(rr_row)
+        return rr_row
 
-        # Get required data
-        g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
-        weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method_name}")]
+    # Get a mask for the data where the weight is > 0 and not NaN
+    bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
 
-        tot_weight = np.nansum(weight_data)
+    masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
+    masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
+    masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
 
-        # If there's no weight, skip the regression and output NaN for all values
-        if tot_weight <= 0.:
-            rr_row[getattr(RR_TF, f"weight_{method_name}")] = 0.
-            rr_row[getattr(RR_TF, f"slope_{method_name}")] = np.NaN
-            rr_row[getattr(RR_TF, f"intercept_{method_name}")] = np.NaN
-            rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = np.NaN
-            rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = np.NaN
-            rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = np.NaN
-            continue
+    # Perform the regression
 
-        # Get a mask for the data where the weight is > 0 and not NaN
-        bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
+    linregress_results = linregress_with_errors(masked_readout_dist_data[~bad_data_mask],
+                                                masked_g1_data[~bad_data_mask],
+                                                masked_g1_err_data[~bad_data_mask])
 
-        masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
-        masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
-        masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
+    # Save the results in the output table
+    rr_row[RR_TF.weight] = tot_weight
+    rr_row[RR_TF.slope] = linregress_results.slope
+    rr_row[RR_TF.intercept] = linregress_results.intercept
+    rr_row[RR_TF.slope_err] = linregress_results.slope_err
+    rr_row[RR_TF.intercept_err] = linregress_results.intercept_err
+    rr_row[RR_TF.slope_intercept_covar] = linregress_results.slope_intercept_covar
 
-        # Perform the regression
-
-        linregress_results = linregress_with_errors(masked_readout_dist_data[~bad_data_mask],
-                                                    masked_g1_data[~bad_data_mask],
-                                                    masked_g1_err_data[~bad_data_mask])
-
-        # Save the results in the output table
-        rr_row[getattr(RR_TF, f"weight_{method_name}")] = tot_weight
-        rr_row[getattr(RR_TF, f"slope_{method_name}")] = linregress_results.slope
-        rr_row[getattr(RR_TF, f"intercept_{method_name}")] = linregress_results.intercept
-        rr_row[getattr(RR_TF, f"slope_err_{method_name}")] = linregress_results.slope_err
-        rr_row[getattr(RR_TF, f"intercept_err_{method_name}")] = linregress_results.intercept_err
-        rr_row[getattr(RR_TF, f"slope_intercept_covar_{method_name}")] = linregress_results.slope_intercept_covar
-
-    return regression_results_table
+    return rr_row
