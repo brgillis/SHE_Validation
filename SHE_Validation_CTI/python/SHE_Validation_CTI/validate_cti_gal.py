@@ -5,7 +5,7 @@
     Primary function code for performing CTI-Gal validation
 """
 
-__updated__ = "2021-08-26"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -43,9 +43,11 @@ import numpy as np
 
 from . import __version__
 from .data_processing import calculate_regression_results
+from .file_io import CtiGalPlotFileNamer
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
+
 
 logger = getLogger(__name__)
 
@@ -286,16 +288,17 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot
-                plotter = CtiGalPlotter(object_table=object_data_table,
-                                        method=method,
-                                        bin_parameter=test_case_info.bins,
-                                        bin_index=bin_index,
+                file_namer = CtiGalPlotFileNamer(method=method,
+                                                 bin_parameter=test_case_info.bins,
+                                                 bin_index=bin_index,
+                                                 workdir=workdir)
+                plotter = CtiGalPlotter(file_namer=file_namer,
+                                        object_table=object_data_table,
                                         bin_limits=bin_limits,
-                                        l_ids_in_bin=l_test_case_object_ids,
-                                        workdir=workdir,)
+                                        l_ids_in_bin=l_test_case_object_ids,)
                 plotter.plot()
                 plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
-                plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
+                plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table.vstack(tables=l_object_data_table)

@@ -20,6 +20,7 @@ __updated__ = "2021-08-30"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 from typing import Optional
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -96,5 +97,6 @@ class SheValFileNamer(SheFileNamer):
         # Piece together the instance ID body from the components, leaving out Nones
         self._instance_id_body = join_without_none(l_s=[self.method.value,
                                                         self.bin_parameter.value,
-                                                        self.bin_index],
+                                                        self.bin_index,
+                                                        os.getpid()],
                                                    default=None)

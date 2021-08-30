@@ -5,7 +5,7 @@
     Unit tests of the plot_cti_gal.py module
 """
 
-__updated__ = "2021-08-26"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,6 +28,7 @@ import pytest
 from ElementsServices.DataSync import DataSync
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation_CTI.file_io import CtiGalPlotFileNamer
 from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 import numpy as np
@@ -89,18 +90,19 @@ class TestCase:
                                                           CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the plotting
-        plotter = CtiGalPlotter(object_table=object_data_table,
-                                method=method,
-                                bin_parameter=BinParameters.GLOBAL,
-                                bin_index=0,
+        file_namer = CtiGalPlotFileNamer(method=method,
+                                         bin_parameter=BinParameters.GLOBAL,
+                                         bin_index=0,
+                                         workdir=self.workdir)
+        plotter = CtiGalPlotter(file_namer=file_namer,
+                                object_table=object_data_table,
                                 bin_limits=DEFAULT_BIN_LIMITS,
-                                l_ids_in_bin=indices[:l],
-                                workdir=self.workdir)
+                                l_ids_in_bin=indices[:l],)
         plotter.plot()
 
         # Check the results
 
-        qualified_plot_filename = os.path.join(self.workdir, plotter.cti_gal_plot_filename)
+        qualified_plot_filename = os.path.join(self.workdir, plotter.plot_filename)
 
         assert "LENSMC" in qualified_plot_filename
         assert os.path.isfile(qualified_plot_filename)

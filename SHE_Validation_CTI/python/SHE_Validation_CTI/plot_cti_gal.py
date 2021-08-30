@@ -36,7 +36,9 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 import numpy as np
 
+from .file_io import CtiGalPlotFileNamer
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
+
 
 logger = getLogger(__name__)
 
@@ -54,12 +56,9 @@ class CtiGalPlotter(ValidationPlotter):
 
     # Attributes set directly at init
     _object_table: Table
-    method_name: str
-    bin_parameter: BinParameters
-    bin_index: int
-    workdir: str
 
     # Attributes calculated at init
+    method_name: str
     bin_limits: np.ndarray
     l_ids_in_bin: Sequence[int]
     _t_good: Sequence[Row]
@@ -71,17 +70,11 @@ class CtiGalPlotter(ValidationPlotter):
 
     def __init__(self,
                  object_table: Table,
-                 method: ShearEstimationMethods,
-                 bin_parameter: BinParameters,
-                 bin_index: int,
+                 file_namer: CtiGalPlotFileNamer,
                  bin_limits: Sequence[float],
-                 l_ids_in_bin: Sequence[int],
-                 workdir: str,):
+                 l_ids_in_bin: Sequence[int],):
 
-        super().__init__(workdir=workdir,
-                         method=method,
-                         bin_parameter=bin_parameter,
-                         bin_index=bin_index)
+        super().__init__(file_namer=file_namer)
 
         # Set attrs directly
         self.object_table = object_table
@@ -95,9 +88,6 @@ class CtiGalPlotter(ValidationPlotter):
 
         self._t_good = get_table_of_ids(table=self.object_table,
                                         l_ids=self.l_ids_in_bin,)
-
-        # Set as None attributes to be set when plotting methods are called
-        self._cti_gal_plot_filename = None
 
     # Property getters and setters
 
@@ -196,21 +186,8 @@ class CtiGalPlotter(ValidationPlotter):
         self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"], horizontalalignment='left', verticalalignment='top',
                      transform=self.ax.transAxes, fontsize=TEXT_SIZE)
 
-        # Save the plot
+        # Save the plot (which generates a filename) and log it
+        super()._save_plot()
+        logger.info(f"Saved {self.method_name} CTI-Gal plot to {self.qualified_plot_filename}")
 
-        # Get the filename to save to
-        instance_id: str = f"{self.method_name}-{self.bin_parameter.value}-{self.bin_index}-{os.getpid()}".upper()
-        plot_filename: str = file_io.get_allowed_filename(type_name="CTI-GAL-VAL",
-                                                          instance_id=instance_id,
-                                                          extension=PLOT_FORMAT,
-                                                          version=SHE_Validation.__version__)
-        qualified_plot_filename: str = os.path.join(self.workdir, plot_filename)
-
-        # Save the figure and close it
-        plt.savefig(qualified_plot_filename, format=PLOT_FORMAT,
-                    bbox_inches="tight", pad_inches=0.05)
-        logger.info(f"Saved {self.method_name} CTI-Gal plot to {qualified_plot_filename}")
         plt.close()
-
-        # Record the filename for this plot in the filenams dict
-        self.cti_gal_plot_filename = plot_filename
