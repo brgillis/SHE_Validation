@@ -5,7 +5,7 @@
     Unit tests of the Shear Bias data processing and plotting.
 """
 
-__updated__ = "2021-08-27"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,7 +20,9 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 import os
+from typing import NamedTuple, Dict, Sequence
 
 from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS)
 from SHE_PPT.table_formats.she_lensmc_tu_matched import tf as TF
@@ -29,10 +31,20 @@ import pytest
 
 from ElementsServices.DataSync import DataSync
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import BASE_SHEAR_BIAS_TEST_CASE_M_INFO,\
+    BASE_SHEAR_BIAS_TEST_CASE_C_INFO
 from SHE_Validation_ShearBias.data_processing import ShearBiasTestCaseDataProcessor
 from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
 import numpy as np
+
+
+class MockDataLoader(NamedTuple):
+    d_g_in: Dict[int, Sequence[float]]
+    d_g_out: Dict[int, Sequence[float]]
+    d_g_out_err: Dict[int, Sequence[float]]
+    method: ShearEstimationMethods
+    workdir: str
 
 
 class TestShearBias:
@@ -40,15 +52,19 @@ class TestShearBias:
     """
 
     METHOD: ShearEstimationMethods = ShearEstimationMethods.LENSMC
+    BINS: BinParameters = BinParameters.GLOBAL
 
     # Details of mock data
     M1 = 2e-4
     M2 = -1e-3
     C1 = -0.2
     C2 = 0.01
-    
-    G1_IN_ERR = 0.3
+
+    G1_IN_ERR = 0.02
     G1_OUT_ERR = 0.25
+
+    G2_IN_ERR = 0.03
+    G2_OUT_ERR = 0.35
 
     L = 100000  # Length of good data
     LNAN = 5  # Length of bad data
@@ -71,7 +87,7 @@ class TestShearBias:
     def setup(self, tmpdir):
         """ Sets up workdir and data for our use.
         """
-        
+
         # Set up workdir
         self.workdir = tmpdir.strpath
         self.logdir = os.path.join(tmpdir.strpath, "logs")
@@ -81,53 +97,98 @@ class TestShearBias:
         self.rng = np.random.default_rng(seed=54352)
 
         # Set up the data we'll be processing
-        
-        self.g1_in_data = self.G1_IN_ERR * self.rng.standard_normal(size=self.LTOT)
-        g1_out_err_data = self.G1_OUT_ERR * np.ones(self.LTOT, dtype='>f4')
-        self.g1_out_data = self.M1 * self.g1_in_data + self.C1 + g1_out_err_data * self.rng.standard_normal(size=self.LTOT)
-        
-        self.g2_in_data = self.G2_IN_ERR * self.rng.standard_normal(size=self.LTOT)
-        g2_out_err_data = self.G2_OUT_ERR * np.ones(self.LTOT, dtype='>f4')
-        self.g2_out_data = self.M2 * self.g2_in_data + self.C2 + g2_out_err_data * self.rng.standard_normal(size=self.LTOT)
 
-        # Make the last bit of data bad or zero weight
-        
-        self.g1_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
-        self.g1_out_err_data[-self.LNAN - self.LZERO:-self.LZERO] = np.inf
-        
-        self.g2_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
-        self.g2_out_err_data[-self.LNAN - self.LZERO:-self.LZERO] = np.inf
-        
+        full_g1_in_data = self.G1_IN_ERR * self.rng.standard_normal(size=self.LTOT)
+        full_g1_out_err_data = self.G1_OUT_ERR * np.ones(self.LTOT, dtype='>f4')
+        full_g1_out_data = (self.M1 * full_g1_in_data + self.C1 +
+                            full_g1_out_err_data * self.rng.standard_normal(size=self.LTOT))
+
+        full_g2_in_data = self.G2_IN_ERR * self.rng.standard_normal(size=self.LTOT)
+        full_g2_out_err_data = self.G2_OUT_ERR * np.ones(self.LTOT, dtype='>f4')
+        full_g2_out_data = (self.M2 * full_g2_in_data + self.C2 +
+                            full_g2_out_err_data * self.rng.standard_normal(size=self.LTOT))
+
+        # Get arrays of just the good data
+        g1_in_data = full_g1_in_data[:self.L]
+        g1_out_err_data = full_g1_out_err_data[:self.L]
+        g1_out_data = full_g1_out_data[:self.L]
+
+        g2_in_data = full_g2_in_data[:self.L]
+        g2_out_err_data = full_g2_out_err_data[:self.L]
+        g2_out_data = full_g2_out_data[:self.L]
+
         # Put the data into a table
-        
+
         self.matched_table = TF.init_table(size=self.LTOT)
-        
-        self.matched_table[TF.tu_gamma1] = self.g1_in_data
-        self.matched_table[TF.tu_gamma2] = self.g2_in_data
-        self.matched_table[TF.tu_kappa] = np.zeros_like(self.g1_in_data)
-        
-        self.matched_table[TF.g1] = self.g1_out_data
-        self.matched_table[TF.g1_err] = self.g1_out_err_data
-        self.matched_table[TF.g2] = self.g2_out_data
-        self.matched_table[TF.g2_err] = self.g2_out_err_data
-        self.matched_table[TF.weight] = 0.5*self.g1_out_err_data**-2
+
+        self.matched_table[TF.tu_gamma1] = full_g1_in_data
+        self.matched_table[TF.tu_gamma2] = full_g2_in_data
+        self.matched_table[TF.tu_kappa] = np.zeros_like(full_g1_in_data)
+
+        self.matched_table[TF.g1] = full_g1_out_data
+        self.matched_table[TF.g1_err] = full_g1_out_err_data
+        self.matched_table[TF.g2] = full_g2_out_data
+        self.matched_table[TF.g2_err] = full_g2_out_err_data
+        self.matched_table[TF.weight] = 0.5 * full_g1_out_err_data**-2
+
+        # Make a mock data loader we can use for tests which assume data has already been loaded in
+        self.data_loader = MockDataLoader(d_g_in={1: g1_in_data,
+                                                  2: g2_in_data},
+                                          d_g_out={1: g1_out_data,
+                                                   2: g2_out_data},
+                                          d_g_out_err={1: g1_out_err_data,
+                                                       2: g2_out_err_data},
+                                          method=self.METHOD,
+                                          workdir=self.workdir)
+
+        # Make mock test case info to use
+
+        self.m_test_case_info = deepcopy(BASE_SHEAR_BIAS_TEST_CASE_M_INFO)
+        self.m_test_case_info.method = self.METHOD
+        self.m_test_case_info.bins = self.BINS
+
+        self.c_test_case_info = deepcopy(BASE_SHEAR_BIAS_TEST_CASE_C_INFO)
+        self.c_test_case_info.method = self.METHOD
+        self.c_test_case_info.bins = self.BINS
 
     def test_plot_shear_bias(self):
-        
+
         # Process the data
-        data_processor = ShearBiasTestCaseDataProcessor(l_method_matched_catalog_filenames:List[str], 
-        test_case_info:TestCaseInfo, 
-        workdir:str, 
-        bin_limits:Optional[Sequence[float]]=None, 
-        pipeline_config)
+        m_data_processor = ShearBiasTestCaseDataProcessor(data_loader=self.data_loader,
+                                                          test_case_info=self.m_test_case_info,)
+        c_data_processor = ShearBiasTestCaseDataProcessor(data_loader=self.data_loader,
+                                                          test_case_info=self.c_test_case_info,)
 
         # Run the plotting
-        plotter = ShearBiasPlotter(data_processor=data_processor)
-        plotter.plot_shear_bias()
+
+        m_plotter = ShearBiasPlotter(data_processor=m_data_processor)
+        m_plotter.plot_shear_bias()
+
+        c_plotter = ShearBiasPlotter(data_processor=c_data_processor)
+        c_plotter.plot_shear_bias()
 
         # Check the results
 
-        qualified_plot_filename = os.path.join(self.workdir, plotter.cti_gal_plot_filename)
+        d_qualified_m_plot_filenames = {}
+        d_qualified_c_plot_filenames = {}
 
-        assert "LENSMC" in qualified_plot_filename
-        assert os.path.isfile(qualified_plot_filename)
+        for i in (1, 2):
+
+            qualified_m_plot_filename = os.path.join(self.workdir, m_plotter.d_bias_plot_filename[i])
+            d_qualified_m_plot_filenames[i] = qualified_m_plot_filename
+
+            assert self.METHOD.name in qualified_m_plot_filename
+            assert self.BINS.name in qualified_m_plot_filename
+            assert os.path.isfile(qualified_m_plot_filename)
+
+            qualified_c_plot_filename = os.path.join(self.workdir, c_plotter.d_bias_plot_filename[i])
+            d_qualified_c_plot_filenames[i] = qualified_c_plot_filename
+
+            assert self.METHOD.name in qualified_c_plot_filename
+            assert self.BINS.name in qualified_c_plot_filename
+            assert os.path.isfile(qualified_c_plot_filename)
+
+            assert qualified_m_plot_filename != qualified_c_plot_filename
+
+        assert d_qualified_m_plot_filenames[1] != d_qualified_m_plot_filenames[2]
+        assert d_qualified_c_plot_filenames[1] != d_qualified_c_plot_filenames[2]

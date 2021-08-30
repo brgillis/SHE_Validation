@@ -33,7 +33,6 @@ from astropy.table import Column, Table
 from SHE_Validation.binning.bin_constraints import BinnedMultiTableLoader
 
 from SHE_Validation.constants.test_info import TestCaseInfo, BinParameters
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_DEFAULTS
 import numpy as np
 
 
@@ -43,6 +42,9 @@ logger = getLogger(__name__)
 C_DIGITS: int = 5
 M_DIGITS: int = 3
 SIGMA_DIGITS: int = 1
+
+# Messages
+ERR_MUST_LOAD = "Most load data with load_ids or load_all before accessing this attribute."
 
 
 class ShearBiasDataLoader():
@@ -109,7 +111,7 @@ class ShearBiasDataLoader():
     @property
     def d_g_in(self) -> Dict[int, Sequence[float]]:
         if not self.table_loaded:
-            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+            raise ValueError(ERR_MUST_LOAD)
         if not self._d_g_in:
             self._calc()
         return self._d_g_in
@@ -121,7 +123,7 @@ class ShearBiasDataLoader():
     @property
     def d_g_out(self) -> Dict[int, Sequence[float]]:
         if not self.table_loaded:
-            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+            raise ValueError(ERR_MUST_LOAD)
         if not self._d_g_out:
             self._calc()
         return self._d_g_out
@@ -133,7 +135,7 @@ class ShearBiasDataLoader():
     @property
     def d_g_out_err(self) -> Dict[int, Sequence[float]]:
         if not self.table_loaded:
-            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+            raise ValueError(ERR_MUST_LOAD)
         if not self._d_g_out_err:
             self._calc()
         return self._d_g_out_err
@@ -191,7 +193,8 @@ class ShearBiasTestCaseDataProcessor():
     # Attributes set directly at init
     data_loader: ShearBiasDataLoader
     test_case_info: TestCaseInfo
-    pipeline_config: Optional[Dict[ConfigKeys, Any]] = D_SHEAR_BIAS_CONFIG_DEFAULTS
+    bootstrap_errors: bool = False
+    max_g_in: float = 1.0
 
     # Attributes calculated at init
     method: ShearEstimationMethods
@@ -221,7 +224,9 @@ class ShearBiasTestCaseDataProcessor():
         # Set attrs directly
         self.data_loader = data_loader
         self.test_case_info = test_case_info
-        self.pipeline_config = pipeline_config
+        if pipeline_config:
+            self.bootstrap_errors = self.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
+            self.max_g_in = self.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
 
         # Sanity check on method
         assert self.test_case_info.method == self.data_loader.method
@@ -280,22 +285,20 @@ class ShearBiasTestCaseDataProcessor():
     # Private methods
 
     def _calc_component_shear_bias(self,
-                                   i: int,
-                                   bootstrap_errors: bool,
-                                   max_g_in: float):
+                                   i: int):
         """ Calculate shear bias for an individual component.
         """
 
         # Get data limited to the rows where g_in is less than the allowed max
         g = np.sqrt(self.d_g_in[1]**2 + self.d_g_in[2]**2)
-        good_g_in_rows = g < max_g_in
+        good_g_in_rows = g < self.max_g_in
 
         g_in = self.d_g_in[i][good_g_in_rows]
         g_out = self.d_g_out[i][good_g_in_rows]
         g_out_err = self.d_g_out_err[i][good_g_in_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
-        if not bootstrap_errors:
+        if not self.bootstrap_errors:
 
             linregress_results = linregress_with_errors(x=g_in,
                                                         y=g_out,
@@ -365,11 +368,6 @@ class ShearBiasTestCaseDataProcessor():
         self._d_linregress_results = {}
         self._d_bias_measurements = {}
 
-        bootstrap_errors = self.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
-        max_g_in = self.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
-
         for i in (1, 2):
 
-            self._calc_component_shear_bias(i,
-                                            bootstrap_errors=bootstrap_errors,
-                                            max_g_in=max_g_in)
+            self._calc_component_shear_bias(i)
