@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-08-12"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -36,8 +36,10 @@ import pytest
 from SHE_Validation.constants.default_config import (ValidationConfigKeys,
                                                      ExecutionMode)
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                                                          D_SHEAR_BIAS_CONFIG_CLINE_ARGS, D_SHEAR_BIAS_CONFIG_TYPES)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import L_SHEAR_BIAS_TEST_CASE_INFO
+                                                                          D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                                          D_SHEAR_BIAS_CONFIG_TYPES)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_INFO,
+                                                                     FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO)
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 import numpy as np
@@ -117,7 +119,7 @@ class Args(object):
         self.profile = False
         self.dry_run = True
 
-        for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
+        for test_case_info in FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO:
             bin_limits_cline_arg = test_case_info.bins_cline_arg
             if bin_limits_cline_arg is not None:
                 setattr(self, bin_limits_cline_arg, None)

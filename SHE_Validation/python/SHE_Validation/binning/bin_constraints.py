@@ -5,7 +5,7 @@
     Common functions and classes to aid with binning data.
 """
 
-__updated__ = "2021-08-26"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -25,10 +25,12 @@ import abc
 from typing import Optional,  Sequence, Union, Any, List, Set, Dict, Type
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.file_io import TableLoader, MultiTableLoader
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_utility import SheTableFormat
+from astropy import table
 from astropy.table import Table, Row, Column
 
 import numpy as np
@@ -726,3 +728,110 @@ def get_table_of_ids(table: Table,
         table_in_bin: Table = table.loc[l_ids_in_table]
 
     return table_in_bin
+
+
+class BinnedTableLoader(TableLoader):
+    """ Class to handle loading in binned data from a single tables.
+    """
+
+    id_colname: str = MFC_TF.ID
+
+    def __init__(self,
+                 id_colname: Optional[str] = None,
+                 *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        if id_colname:
+            self.id_colname = id_colname
+
+    def get_table_for_ids(self,
+                          l_ids: Sequence[int],
+                          keep_open: bool = True) -> Table:
+        """ Get a table with only objects with IDs in the list.
+        """
+
+        # Load the table, keeping it open if desired
+        if keep_open:
+            self.load()
+            table = self.obj
+        else:
+            table = self.get()
+
+        return get_table_of_ids(table=table,
+                                l_ids=l_ids,
+                                id_colname=self.id_colname)
+
+    def get_table_for_all(self,
+                          keep_open: bool = True,
+                          *args, **kwargs) -> Table:
+        """ Get a combined table of all objects.
+        """
+
+        # Load the table, keeping it open if desired
+        if keep_open:
+            self.load(*args, **kwargs)
+            table = self.obj
+        else:
+            table = self.get(*args, **kwargs)
+
+        return table
+
+
+class BinnedMultiTableLoader(MultiTableLoader):
+    """ Class to handle loading in binned data from multiple tables.
+    """
+
+    id_colname: str = MFC_TF.ID
+
+    def __init__(self,
+                 id_colname: Optional[str] = None,
+                 *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+        if id_colname:
+            self.id_colname = id_colname
+
+    def get_table_for_ids(self,
+                          l_ids: Sequence[int],
+                          keep_open: bool = True) -> Table:
+        """ Get a table with only objects with IDs in the list.
+        """
+
+        l_binned_tables: List[Table] = [None] * len(self.l_file_loaders)
+
+        # Get a binned table from each file loader
+        for i, file_loader in enumerate(self.l_file_loaders):
+
+            # Load the table, keeping it open if desired
+            if keep_open:
+                file_loader.load()
+                t = file_loader.obj
+            else:
+                t = file_loader.get()
+
+            l_binned_tables[i] = get_table_of_ids(table=t,
+                                                  l_ids=l_ids,
+                                                  id_colname=self.id_colname)
+
+        # Check that we have at least one table
+        if len(l_binned_tables) == 0:
+            return None
+
+        return table.vstack(tables=l_binned_tables)
+
+    def get_table_for_all(self,
+                          keep_open: bool = True,
+                          *args, **kwargs) -> Table:
+        """ Get a combined table of all objects.
+        """
+
+        if keep_open:
+            self.load_all(*args, **kwargs)
+
+        l_binned_tables: List[Table] = self.get_all(*args, **kwargs)
+
+        # Check that we have at least one table
+        if len(l_binned_tables) == 0:
+            return None
+
+        return table.vstack(tables=l_binned_tables)

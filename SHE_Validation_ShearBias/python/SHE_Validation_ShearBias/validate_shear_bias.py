@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-23"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,12 +21,14 @@ __updated__ = "2021-08-23"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from typing import Dict
 
 from SHE_PPT import file_io
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.utility import is_any_type_of_none
 
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
@@ -34,7 +36,7 @@ from SHE_Validation.constants.default_config import ExecutionMode
 from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                              L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                              NUM_SHEAR_BIAS_TEST_CASES)
-from .data_processing import ShearBiasTestCaseDataProcessor
+from .data_processing import ShearBiasTestCaseDataProcessor, ShearBiasDataLoader
 from .plotting import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_test_results
 
@@ -84,18 +86,20 @@ def validate_shear_bias_from_args(args, mode):
     # Init lists of filenames for each method
     d_method_l_table_filenames = {}
     for method in ShearEstimationMethods:
-        d_method_l_table_filenames[method] = [None] * num_matched_catalogs
+        d_method_l_table_filenames[method] = []
 
     # Read in the table filenames from each product, for each method
-    for matched_cat_index, matched_catalog_product_filename in enumerate(l_matched_catalog_product_filenames):
+    for matched_catalog_product_filename in l_matched_catalog_product_filenames:
 
         qualified_matched_catalog_product_filename = os.path.join(args.workdir, matched_catalog_product_filename)
         logger.info("Reading in Matched Catalog product from " + qualified_matched_catalog_product_filename)
         matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename)
 
-        # Get the list of table filenames for each method and store it
-        method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
-        d_method_l_table_filenames[method][matched_cat_index] = method_matched_catalog_filename
+        # Get the list of table filenames for each method and store it if it exists
+        for method in ShearEstimationMethods:
+            method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
+            if not is_any_type_of_none(method_matched_catalog_filename):
+                d_method_l_table_filenames[method].append(method_matched_catalog_filename)
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -104,6 +108,13 @@ def validate_shear_bias_from_args(args, mode):
 
     # Keep track if we have valid data for any method
     data_exists = False
+
+    # Make a data loader for each shear estimation method
+    d_data_loaders: Dict[ShearEstimationMethods, ShearBiasDataLoader] = {}
+    for method in ShearEstimationMethods:
+        d_data_loaders[method] = ShearBiasDataLoader(l_filenames=d_method_l_table_filenames[method],
+                                                     workdir=args.workdir,
+                                                     method=method)
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
@@ -115,15 +126,16 @@ def validate_shear_bias_from_args(args, mode):
         test_case_plot_filenames = {}
         d_d_plot_filenames[test_case_name] = test_case_plot_filenames
 
-        l_method_matched_catalog_filenames = d_method_l_table_filenames[method]
-
         # Failsafe block for each method
         try:
             # Perform a linear regression for e1 and e2 to get bias measurements and make plots
 
-            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(l_method_matched_catalog_filenames,
+            # Load the data for these bins
+            data_loader: ShearBiasDataLoader = d_data_loaders[method]
+            data_loader.load_all()
+
+            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader=data_loader,
                                                                        test_case_info=test_case_info,
-                                                                       workdir=args.workdir,
                                                                        pipeline_config=pipeline_config)
             shear_bias_data_processor.calc()
 
@@ -166,13 +178,13 @@ def validate_shear_bias_from_args(args, mode):
 
         # And fill in the observation product
         fill_shear_bias_test_results(test_result_product=test_result_product,
-                                           workdir=args.workdir,
-                                           d_bin_limits=d_bin_limits,
-                                           d_bias_measurements=d_bias_measurements,
-                                           pipeline_config=pipeline_config,
-                                           dl_l_figures=d_d_plot_filenames,
-                                           method_data_exists=data_exists,
-                                           mode=mode)
+                                     workdir=args.workdir,
+                                     d_bin_limits=d_bin_limits,
+                                     d_bias_measurements=d_bias_measurements,
+                                     pipeline_config=pipeline_config,
+                                     dl_l_figures=d_d_plot_filenames,
+                                     method_data_exists=data_exists,
+                                     mode=mode)
 
     # Write out test results product
     file_io.write_xml_product(test_result_product,

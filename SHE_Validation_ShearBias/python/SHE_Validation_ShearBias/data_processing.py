@@ -5,7 +5,7 @@
     Code to process data for shear bias validation tests
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,22 +20,22 @@ __updated__ = "2021-08-25"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from typing import Dict, List, Sequence, Optional, Any
+from typing import Dict, Sequence, Optional, Any
 
 from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
 from SHE_PPT.logging import getLogger
-from SHE_PPT.math import BiasMeasurements, linregress_with_errors,\
-    LinregressResults
+from SHE_PPT.math import (BiasMeasurements, linregress_with_errors,
+                          LinregressResults)
 from SHE_PPT.pipeline_utility import ValidationConfigKeys, ConfigKeys
 from SHE_PPT.table_utility import SheTableFormat
 from astropy.table import Column, Table
+from SHE_Validation.binning.bin_constraints import BinnedMultiTableLoader
 
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import TestCaseInfo, BinParameters
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_DEFAULTS
 import numpy as np
+
 
 logger = getLogger(__name__)
 
@@ -43,6 +43,141 @@ logger = getLogger(__name__)
 C_DIGITS: int = 5
 M_DIGITS: int = 3
 SIGMA_DIGITS: int = 1
+
+
+class ShearBiasDataLoader():
+    """ Class to load in needed data for shear bias data processing.
+    """
+
+    # Attributes set directly at init
+    l_filenames: Sequence[str]
+    workdir: str
+    method: ShearEstimationMethods
+
+    # Attributes determined at init
+    _table_loader: BinnedMultiTableLoader
+    _sem_tf: SheTableFormat
+
+    # Attributes set when loaded
+    table: Optional[Table] = None
+    table_loaded: bool = False
+
+    # Output attributes
+    _d_g_in: Optional[Dict[int, Sequence[float]]] = None
+    _d_g_out: Optional[Dict[int, Sequence[float]]] = None
+    _d_g_out_err: Optional[Dict[int, Sequence[float]]] = None
+
+    def __init__(self,
+                 l_filenames: Sequence[str],
+                 workdir: str,
+                 method: ShearEstimationMethods):
+
+        # Set attributes from args
+        self.l_filenames = l_filenames
+        self.workdir = workdir
+        self.method = method
+
+        # Create a table loader with this list of filenames
+        self._table_loader = BinnedMultiTableLoader(l_filenames=self.l_filenames,
+                                                    workdir=self.workdir)
+
+        # Determine the table format
+        self._sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
+
+    # Public loading methods
+
+    def load_ids(self,
+                 l_ids: Sequence[int],
+                 *args, **kwargs) -> None:
+        self.table = self.get_ids(l_ids=l_ids, *args, **kwargs)
+        self.table_loaded = True
+
+    def load_all(self, *args, **kwargs):
+        self.table = self.get_all(*args, **kwargs)
+        self.table_loaded = True
+
+    def get_ids(self,
+                l_ids: Sequence[int],
+                *args, **kwargs) -> Table:
+        return self._table_loader.get_table_for_ids(l_ids=l_ids, *args, **kwargs)
+
+    def get_all(self, *args, **kwargs) -> Table:
+        return self._table_loader.get_table_for_all(*args, **kwargs)
+
+    # Output properties
+
+    @property
+    def d_g_in(self) -> Dict[int, Sequence[float]]:
+        if not self.table_loaded:
+            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+        if not self._d_g_in:
+            self._calc()
+        return self._d_g_in
+
+    @d_g_in.setter
+    def d_g_in(self, d_g_in) -> None:
+        self._d_g_in = d_g_in
+
+    @property
+    def d_g_out(self) -> Dict[int, Sequence[float]]:
+        if not self.table_loaded:
+            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+        if not self._d_g_out:
+            self._calc()
+        return self._d_g_out
+
+    @d_g_out.setter
+    def d_g_out(self, d_g_out) -> None:
+        self._d_g_out = d_g_out
+
+    @property
+    def d_g_out_err(self) -> Dict[int, Sequence[float]]:
+        if not self.table_loaded:
+            raise ValueError("Most load data with load_ids or load_all before accessing this attribute.")
+        if not self._d_g_out_err:
+            self._calc()
+        return self._d_g_out_err
+
+    @d_g_out_err.setter
+    def d_g_out_err(self, d_g_out_err) -> None:
+        self._d_g_out_err = d_g_out_err
+
+    # Private methods
+
+    def _calc(self):
+        """ Calculate the shear bias columns we need.
+        """
+
+        if not self.table_loaded:
+            raise ValueError("Most load data with load_ids or load_all before calculating properties.")
+
+        # If no tables were loaded, set up empty data
+        if self.table is None:
+
+            self._d_g_in = {1: np.array([], dtype=float),
+                            2: np.array([], dtype=float)}
+            self._d_g_out = {1: np.array([], dtype=float),
+                             2: np.array([], dtype=float)}
+            self._d_g_out_err = {1: np.array([], dtype=float),
+                                 2: np.array([], dtype=float)}
+
+            return
+
+        # Get the data we need out of the table
+        l_g1_in: Column = -(self.table[self._sem_tf.tu_gamma1] / (1 - self.table[self._sem_tf.tu_kappa]))
+        l_g2_in: Column = (self.table[self._sem_tf.tu_gamma2] / (1 - self.table[self._sem_tf.tu_kappa]))
+        l_g1_out: Column = self.table[self._sem_tf.g1]
+        l_g2_out: Column = self.table[self._sem_tf.g2]
+        l_g1_out_err: Column = self.table[self._sem_tf.g1_err]
+        l_g2_out_err: Column = self.table[self._sem_tf.g2_err]
+
+        # Combine the data into the output dicts
+        self._d_g_in = {1: l_g1_in,
+                        2: l_g2_in}
+        self._d_g_out = {1: l_g1_out,
+                         2: l_g2_out}
+        self._d_g_out_err = {1: l_g1_out_err,
+                             2: l_g2_out_err}
 
 
 class ShearBiasTestCaseDataProcessor():
@@ -54,15 +189,16 @@ class ShearBiasTestCaseDataProcessor():
     n_bootstrap: int = 1000
 
     # Attributes set directly at init
-    gal_matched_table: Table
-    workdir: str
+    data_loader: ShearBiasDataLoader
     test_case_info: TestCaseInfo
-    bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS
     pipeline_config: Optional[Dict[ConfigKeys, Any]] = D_SHEAR_BIAS_CONFIG_DEFAULTS
 
     # Attributes calculated at init
     method: ShearEstimationMethods
     bin_parameter: BinParameters
+
+    # Intermediate attributes determined when loading data
+    gal_matched_table: Table
 
     # Intermediate attributes determined when processing data
     _sem_tf: SheTableFormat
@@ -78,55 +214,42 @@ class ShearBiasTestCaseDataProcessor():
     _d_bias_strings: Optional[Dict[str, str]] = None
 
     def __init__(self,
-                 l_method_matched_catalog_filenames: List[str],
+                 data_loader: ShearBiasDataLoader,
                  test_case_info: TestCaseInfo,
-                 workdir: str,
-                 bin_limits: Optional[Sequence[float]] = None,
                  pipeline_config: Optional[Dict[ConfigKeys, Any]] = None,) -> None:
 
         # Set attrs directly
-        self.l_method_matched_catalog_filenames = l_method_matched_catalog_filenames
+        self.data_loader = data_loader
         self.test_case_info = test_case_info
-        self.workdir = workdir
-        if bin_limits:
-            self.bin_limits = bin_limits
         self.pipeline_config = pipeline_config
+
+        # Sanity check on method
+        assert self.test_case_info.method == self.data_loader.method
 
         # Get values from the test_case_info
         self.method = test_case_info.method
         self.bin_parameter = test_case_info.bin_parameter
 
+        # Determine table format
+        self._sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
+
     # Getters and setters for output attributes, which calculate if needed
 
     @property
-    def d_g_in(self) -> Dict[int, Sequence[float]]:
-        if not self._d_g_in:
-            self.calc()
-        return self._d_g_in
+    def workdir(self) -> str:
+        return self.data_loader.workdir
 
-    @d_g_in.setter
-    def d_g_in(self, d_g_in) -> None:
-        self._d_g_in = d_g_in
+    @property
+    def d_g_in(self) -> Dict[int, Sequence[float]]:
+        return self.data_loader.d_g_in
 
     @property
     def d_g_out(self) -> Dict[int, Sequence[float]]:
-        if not self._d_g_out:
-            self.calc()
-        return self._d_g_out
-
-    @d_g_out.setter
-    def d_g_out(self, d_g_out) -> None:
-        self._d_g_out = d_g_out
+        return self.data_loader.d_g_out
 
     @property
     def d_g_out_err(self) -> Dict[int, Sequence[float]]:
-        if not self._d_g_out_err:
-            self.calc()
-        return self._d_g_out_err
-
-    @d_g_out_err.setter
-    def d_g_out_err(self, d_g_out_err) -> None:
-        self._d_g_out_err = d_g_out_err
+        return self.data_loader.d_g_out_err
 
     @property
     def d_bias_measurements(self) -> Dict[int, BiasMeasurements]:
@@ -156,73 +279,9 @@ class ShearBiasTestCaseDataProcessor():
 
     # Private methods
 
-    def _load_data(self):
-        """ Initializes and loads in data we'll be calculating.
-        """
-
-        # Init empty dicts for intermediate data used when plotting
-        self._d_bias_measurements: Dict[int, BiasMeasurements] = {}
-
-        # Determine attrs from kwargs
-        self._sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
-
-        # Read in each table and get the data we need out of it
-        l_g1_in: List[Column] = []
-        l_g2_in: List[Column] = []
-        l_g1_out: List[Column] = []
-        l_g2_out: List[Column] = []
-        l_g1_out_err: List[Column] = []
-        l_g2_out_err: List[Column] = []
-        l_fitclass_zero_rows: List[Sequence[bool]] = []
-
-        method_matched_catalog_filename: str
-        for method_matched_catalog_filename in self.l_method_matched_catalog_filenames:
-
-            if method_matched_catalog_filename is None:
-                continue
-
-            qualified_method_matched_catalog_filename: str = os.path.join(self.workdir, method_matched_catalog_filename)
-            logger.info(
-                f"Reading in matched catalog for method {self.method} from {qualified_method_matched_catalog_filename}.")
-
-            gal_matched_table: Table = Table.read(qualified_method_matched_catalog_filename, hdu=1)
-            self._good_rows: Sequence[bool] = gal_matched_table[self._sem_tf.fit_flags] == 0
-
-            l_g1_in.append(-(gal_matched_table[self._sem_tf.tu_gamma1] /
-                             (1 - gal_matched_table[self._sem_tf.tu_kappa]))[self._good_rows])
-            l_g2_in.append((gal_matched_table[self._sem_tf.tu_gamma2] /
-                            (1 - gal_matched_table[self._sem_tf.tu_kappa]))[self._good_rows])
-            l_g1_out.append((gal_matched_table[self._sem_tf.g1])[self._good_rows])
-            l_g2_out.append((gal_matched_table[self._sem_tf.g2])[self._good_rows])
-            l_g1_out_err.append((gal_matched_table[self._sem_tf.g1_err])[self._good_rows])
-            l_g2_out_err.append((gal_matched_table[self._sem_tf.g2_err])[self._good_rows])
-            l_fitclass_zero_rows.append((gal_matched_table[self._sem_tf.fit_class] == 0)[self._good_rows])
-
-        # Check if we have some data, otherwise use empty arrays
-        if len(l_g1_in) > 0:
-            self._d_g_in = {1: np.concatenate(l_g1_in), 2: np.concatenate(l_g2_in)}
-            self._d_g_out = {1: np.concatenate(l_g1_out),
-                             2: np.concatenate(l_g2_out)}
-            self._d_g_out_err = {1: np.concatenate(l_g1_out_err),
-                                 2: np.concatenate(l_g2_out_err)}
-            self._fitclass_zero_rows = np.concatenate(l_fitclass_zero_rows)
-        else:
-            self._d_g_in = {1: np.array([], dtype=float),
-                            2: np.array([], dtype=float)}
-            self._d_g_out = {1: np.array([], dtype=float),
-                             2: np.array([], dtype=float)}
-            self._d_g_out_err = {1: np.array([], dtype=float),
-                                 2: np.array([], dtype=float)}
-            self._fitclass_zero_rows = np.array([], dtype=bool)
-
-        # Init empty dicts for output data
-        self._d_linregress_results = {}
-        self._d_bias_measurements = {}
-
     def _calc_component_shear_bias(self,
                                    i: int,
                                    bootstrap_errors: bool,
-                                   require_fitclass_zero: bool,
                                    max_g_in: float):
         """ Calculate shear bias for an individual component.
         """
@@ -234,13 +293,6 @@ class ShearBiasTestCaseDataProcessor():
         g_in = self.d_g_in[i][good_g_in_rows]
         g_out = self.d_g_out[i][good_g_in_rows]
         g_out_err = self.d_g_out_err[i][good_g_in_rows]
-
-        # Limit to FITCLASS==0 if desired
-        if require_fitclass_zero:
-            good_fitclass_zero_rows = self._fitclass_zero_rows[good_g_in_rows]
-            g_in = g_in[good_fitclass_zero_rows]
-            g_out = g_out[good_fitclass_zero_rows]
-            g_out_err = g_out_err[good_fitclass_zero_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         if not bootstrap_errors:
@@ -292,27 +344,32 @@ class ShearBiasTestCaseDataProcessor():
                                                f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
             logger.info(self._d_bias_strings[f"{a}{i}"])
 
-    def _calc_shear_bias(self):
-        """ Plot shear bias for both components.
+    # Public methods
+
+    def load_all(self, *args, **kwargs) -> None:
+        self.data_loader.load_all(*args, **kwargs)
+
+    def load_ids(self,
+                 l_ids: Sequence[int],
+                 *args, **kwargs) -> None:
+        self.data_loader.load_ids(l_ids=l_ids, *args, **kwargs)
+
+    def calc(self) -> None:
+        """ Performs data processing, calculating bias measurements and other output data.
         """
 
+        # Init empty dicts for intermediate data used when plotting
+        self._d_bias_measurements: Dict[int, BiasMeasurements] = {}
+
+        # Init empty dicts for output data
+        self._d_linregress_results = {}
+        self._d_bias_measurements = {}
+
         bootstrap_errors = self.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
-        require_fitclass_zero = self.pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]
         max_g_in = self.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
 
         for i in (1, 2):
 
             self._calc_component_shear_bias(i,
                                             bootstrap_errors=bootstrap_errors,
-                                            require_fitclass_zero=require_fitclass_zero,
                                             max_g_in=max_g_in)
-
-    # Public methods
-
-    def calc(self) -> None:
-        """ Performs data processing, calculating bias measurements and other output data.
-        """
-
-        self._load_data()
-
-        self._calc_shear_bias()

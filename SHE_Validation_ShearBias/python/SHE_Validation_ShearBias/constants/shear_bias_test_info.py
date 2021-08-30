@@ -5,7 +5,7 @@
     Default values for information about tests and test cases.
 """
 
-__updated__ = "2021-08-11"
+__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,8 +22,10 @@ __updated__ = "2021-08-11"
 
 from enum import Enum
 
-from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo
-from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
+from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo,\
+    BinParameters
+from SHE_Validation.test_info_utility import make_test_case_info_for_methods,\
+    make_test_case_info_for_bins_and_methods
 
 
 # Metadata about the requirements
@@ -52,15 +54,19 @@ class ShearBiasTestCases(Enum):
 
 M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
 BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id=M_TEST_CASE_ID,
-                                                base_description=("Multiplicative shear bias."),)
+                                                base_description=("Multiplicative shear bias."),
+                                                bins=BinParameters.GLOBAL)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
 BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id=C_TEST_CASE_ID,
-                                                base_description=("Additive shear bias."),)
+                                                base_description=("Additive shear bias."),
+                                                bins=BinParameters.GLOBAL,)
 
 # Create lists of the test case info for just m, just c, and combined
-L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
-L_SHEAR_BIAS_TEST_CASE_C_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
+L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
+L_SHEAR_BIAS_TEST_CASE_C_INFO = make_test_case_info_for_methods([BASE_SHEAR_BIAS_TEST_CASE_C_INFO])
 L_SHEAR_BIAS_TEST_CASE_INFO = [*L_SHEAR_BIAS_TEST_CASE_M_INFO, *L_SHEAR_BIAS_TEST_CASE_C_INFO]
+
+FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
 
 NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_M_INFO)
 NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_C_INFO)
