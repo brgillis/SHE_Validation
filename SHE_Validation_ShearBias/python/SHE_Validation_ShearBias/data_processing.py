@@ -196,11 +196,12 @@ class ShearBiasTestCaseDataProcessor():
     bootstrap_errors: bool = False
     max_g_in: float = 1.0
 
-    # Attributes calculated at init
+    # Attributes determined at init
     method: ShearEstimationMethods
     bin_parameter: BinParameters
 
-    # Intermediate attributes determined when loading data
+    # Intermediate attributes set when loading data
+    bin_index: Optional[int] = None
     gal_matched_table: Table
 
     # Intermediate attributes determined when processing data

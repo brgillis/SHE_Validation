@@ -28,7 +28,9 @@ from matplotlib import pyplot as plt
 
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
+
 from .data_processing import ShearBiasTestCaseDataProcessor
+from .file_io import ShearBiasPlotFileNamer
 
 
 logger = getLogger(__name__)
@@ -67,9 +69,12 @@ class ShearBiasPlotter(ValidationPlotter):
                  data_processor: ShearBiasTestCaseDataProcessor,
                  ) -> None:
 
-        super().__init__(workdir=data_processor.workdir,
-                         method=data_processor.method,
-                         bin_parameter=data_processor.bin_parameter)
+        file_namer = ShearBiasPlotFileNamer(workdir=data_processor.workdir,
+                                            method=data_processor.method,
+                                            bin_parameter=data_processor.bin_parameter,
+                                            bin_index=data_processor.bin_index)
+
+        super().__init__(file_namer=file_namer)
 
         # Set attrs directly
         self.data_processor = data_processor
@@ -102,7 +107,7 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         # Set the instance id for this component
-        self._instance_id_tail = f"g{i}"
+        self.file_namer.instance_id_tail = f"g{i}"
 
         # Use the parent method to save the plot and get the filename of it
         bias_plot_filename = super()._save_plot()
