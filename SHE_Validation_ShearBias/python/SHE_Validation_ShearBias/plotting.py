@@ -20,15 +20,12 @@ __updated__ = "2021-08-30"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from typing import Dict, Sequence, Optional
+from typing import Dict, Sequence
 
-from SHE_PPT import file_io
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from matplotlib import pyplot as plt
 
-import SHE_Validation
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 from .data_processing import ShearBiasTestCaseDataProcessor
@@ -70,14 +67,12 @@ class ShearBiasPlotter(ValidationPlotter):
                  data_processor: ShearBiasTestCaseDataProcessor,
                  ) -> None:
 
-        super().__init__()
+        super().__init__(workdir=data_processor.workdir,
+                         method=data_processor.method,
+                         bin_parameter=data_processor.bin_parameter)
 
         # Set attrs directly
         self.data_processor = data_processor
-
-        # Get attrs from the data processor
-        self.method = self.data_processor.method
-        self.bin_parameter = self.data_processor.bin_parameter
 
         # Init empty dicts for intermediate data used when plotting
         self._d_bias_plot_filename = {}
@@ -161,7 +156,7 @@ class ShearBiasPlotter(ValidationPlotter):
         # Clear the plot to make way for future plots
         self.clear_plots()
 
-    def plot_shear_bias(self):
+    def plot(self):
         """ Plot shear bias for both components.
         """
 

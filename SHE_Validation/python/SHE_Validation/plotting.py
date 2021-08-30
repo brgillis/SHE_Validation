@@ -21,6 +21,7 @@ __updated__ = "2021-08-30"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
+import abc
 from copy import deepcopy
 import os
 from typing import Iterable, Optional, Tuple
@@ -43,12 +44,18 @@ import numpy as np
 logger = getLogger(__name__)
 
 
-class ValidationPlotter():
+class ValidationPlotter(abc.ABC):
 
-    # Fixed values which can be overridden by child classes
+    # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
 
-    # Values used to generate the filename - can be set at init or otherwise before plotting
+    # Attributes set at init
+    workdir: str
+    method: Optional[ShearEstimationMethods] = None
+    bin_parameter: Optional[BinParameters] = None
+    bin_index: Optional[int] = None
+
+    # Attributes used to generate the filename - can be set at init or otherwise before plotting
 
     # For type ID
     _type_name_head: Optional[str] = None
@@ -59,8 +66,6 @@ class ValidationPlotter():
 
     # For instance ID
     _instance_id_head: Optional[str] = None
-    method: Optional[ShearEstimationMethods] = None
-    bin_parameter: Optional[BinParameters] = None
     _instance_id_tail: Optional[str] = None
 
     _default_instance_id: str = "0"
@@ -78,6 +83,24 @@ class ValidationPlotter():
     # Output values from plotting
     plot_filename: Optional[str] = None
     qualified_plot_filename: Optional[str] = None
+
+    @abc.abstractmethod
+    def __init__(self,
+                 workdir: str,
+                 method: Optional[ShearEstimationMethods] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_index: Optional[int] = None):
+
+        self.workdir = workdir
+
+        if method is not None:
+            self.method = method
+
+        if bin_parameter is not None:
+            self.bin_parameter = bin_parameter
+
+        if bin_index is not None:
+            self.bin_index = bin_index
 
     @property
     def ax(self) -> Axes:
@@ -141,6 +164,7 @@ class ValidationPlotter():
         self._instance_id = join_without_none(l_s=[self._instance_id_head,
                                                    self.method.value,
                                                    self.bin_parameter.value,
+                                                   self.bin_index,
                                                    self._instance_id_tail],
                                               default=self._default_instance_id)
 
@@ -153,7 +177,7 @@ class ValidationPlotter():
                                                           instance_id=self.instance_id,
                                                           extension=self.plot_format,
                                                           version=SHE_Validation.__version__)
-        self.qualified_plot_filename = os.path.join(self.data_processor.workdir, self.plot_filename)
+        self.qualified_plot_filename = os.path.join(self.workdir, self.plot_filename)
 
         # Save the figure and close it
         plt.savefig(self.qualified_plot_filename, format=self.plot_format,
@@ -240,3 +264,9 @@ class ValidationPlotter():
         plt.close()
         self.ax = None
         self.fig = None
+
+    @abc.abstractmethod
+    def plot(self, *args, **kwargs):
+        """ Makes and saves the plot(s).
+        """
+        pass

@@ -225,8 +225,8 @@ class ShearBiasTestCaseDataProcessor():
         self.data_loader = data_loader
         self.test_case_info = test_case_info
         if pipeline_config:
-            self.bootstrap_errors = self.pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
-            self.max_g_in = self.pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
+            self.bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
+            self.max_g_in = pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
 
         # Sanity check on method
         assert self.test_case_info.method == self.data_loader.method

@@ -5,7 +5,7 @@
     Code to implement shear bias validation test.
 """
 
-__updated__ = "2021-08-27"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -140,7 +140,7 @@ def validate_shear_bias_from_args(args, mode):
             shear_bias_data_processor.calc()
 
             shear_bias_plotter = ShearBiasPlotter(data_processor=shear_bias_data_processor)
-            shear_bias_plotter.plot_shear_bias()
+            shear_bias_plotter.plot()
 
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
 

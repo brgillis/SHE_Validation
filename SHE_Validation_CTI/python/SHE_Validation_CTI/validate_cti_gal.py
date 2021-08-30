@@ -293,7 +293,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                         bin_limits=bin_limits,
                                         l_ids_in_bin=l_test_case_object_ids,
                                         workdir=workdir,)
-                plotter.plot_cti_gal()
+                plotter.plot()
                 plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
                 plot_filenames[test_case_info.name][plot_label] = plotter.cti_gal_plot_filename
 

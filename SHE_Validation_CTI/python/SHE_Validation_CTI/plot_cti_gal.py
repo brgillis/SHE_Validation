@@ -5,7 +5,7 @@
     Code to make plots for CTI-Gal Validation test.
 """
 
-__updated__ = "2021-08-27"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -78,16 +78,16 @@ class CtiGalPlotter(ValidationPlotter):
                  l_ids_in_bin: Sequence[int],
                  workdir: str,):
 
-        super().__init__()
+        super().__init__(workdir=workdir,
+                         method=method,
+                         bin_parameter=bin_parameter,
+                         bin_index=bin_index)
 
         # Set attrs directly
         self.object_table = object_table
-        self.method_name = method.value
-        self.bin_parameter = bin_parameter
-        self.bin_index = bin_index
+        self.method_name = self.method.value
         self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
-        self.workdir = workdir
 
         # Determine attrs from kwargs
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
@@ -131,7 +131,7 @@ class CtiGalPlotter(ValidationPlotter):
 
     # Callable methods
 
-    def plot_cti_gal(self) -> None:
+    def plot(self) -> None:
         """ Plot CTI-Gal validation test data.
         """
 

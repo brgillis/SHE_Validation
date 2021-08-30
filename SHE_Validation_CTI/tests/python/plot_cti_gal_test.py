@@ -96,7 +96,7 @@ class TestCase:
                                 bin_limits=DEFAULT_BIN_LIMITS,
                                 l_ids_in_bin=indices[:l],
                                 workdir=self.workdir)
-        plotter.plot_cti_gal()
+        plotter.plot()
 
         # Check the results
 

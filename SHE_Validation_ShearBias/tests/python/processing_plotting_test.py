@@ -151,44 +151,40 @@ class TestShearBias:
         self.c_test_case_info.method = self.METHOD
         self.c_test_case_info.bins = self.BINS
 
-    def test_plot_shear_bias(self):
+    def test_data_loader(self):
+        """ Tests loading in shear bias data.
+        """
+        pass
+
+    def test_data_processor(self):
+        """ Tests processing shear bias data.
+        """
+        pass
+
+    def test_plotter(self):
+        """ Runs a test of plotting the results of a shear bias test.
+        """
 
         # Process the data
-        m_data_processor = ShearBiasTestCaseDataProcessor(data_loader=self.data_loader,
-                                                          test_case_info=self.m_test_case_info,)
-        c_data_processor = ShearBiasTestCaseDataProcessor(data_loader=self.data_loader,
-                                                          test_case_info=self.c_test_case_info,)
+        data_processor = ShearBiasTestCaseDataProcessor(data_loader=self.data_loader,
+                                                        test_case_info=self.m_test_case_info,)
 
         # Run the plotting
 
-        m_plotter = ShearBiasPlotter(data_processor=m_data_processor)
-        m_plotter.plot_shear_bias()
-
-        c_plotter = ShearBiasPlotter(data_processor=c_data_processor)
-        c_plotter.plot_shear_bias()
+        plotter = ShearBiasPlotter(data_processor=data_processor)
+        plotter.plot()
 
         # Check the results
 
-        d_qualified_m_plot_filenames = {}
-        d_qualified_c_plot_filenames = {}
+        d_qualified_plot_filenames = {}
 
         for i in (1, 2):
 
-            qualified_m_plot_filename = os.path.join(self.workdir, m_plotter.d_bias_plot_filename[i])
-            d_qualified_m_plot_filenames[i] = qualified_m_plot_filename
+            qualified_plot_filename = os.path.join(self.workdir, plotter.d_bias_plot_filename[i])
+            d_qualified_plot_filenames[i] = qualified_plot_filename
 
-            assert self.METHOD.name in qualified_m_plot_filename
-            assert self.BINS.name in qualified_m_plot_filename
-            assert os.path.isfile(qualified_m_plot_filename)
+            assert self.METHOD.name in qualified_plot_filename
+            assert self.BINS.name in qualified_plot_filename
+            assert os.path.isfile(qualified_plot_filename)
 
-            qualified_c_plot_filename = os.path.join(self.workdir, c_plotter.d_bias_plot_filename[i])
-            d_qualified_c_plot_filenames[i] = qualified_c_plot_filename
-
-            assert self.METHOD.name in qualified_c_plot_filename
-            assert self.BINS.name in qualified_c_plot_filename
-            assert os.path.isfile(qualified_c_plot_filename)
-
-            assert qualified_m_plot_filename != qualified_c_plot_filename
-
-        assert d_qualified_m_plot_filenames[1] != d_qualified_m_plot_filenames[2]
-        assert d_qualified_c_plot_filenames[1] != d_qualified_c_plot_filenames[2]
+        assert d_qualified_plot_filenames[1] != d_qualified_plot_filenames[2]
