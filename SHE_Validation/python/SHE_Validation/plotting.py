@@ -5,7 +5,7 @@
     Common functions to aid with plotting.
 """
 
-__updated__ = "2021-08-04"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -22,23 +22,62 @@ __updated__ = "2021-08-04"
 # Boston, MA 02110-1301 USA
 
 from copy import deepcopy
+import os
 from typing import Iterable, Optional, Tuple
-from SHE_PPT.math import LinregressResults
 
+from SHE_PPT import file_io
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import LinregressResults
+from SHE_PPT.utility import join_without_none
 from matplotlib import cm, pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.figure import Figure, Axes
 from scipy.interpolate import interpn
 
+import SHE_Validation
+from SHE_Validation.constants.test_info import BinParameters
 import numpy as np
+
+
+logger = getLogger(__name__)
 
 
 class ValidationPlotter():
 
+    # Fixed values which can be overridden by child classes
+    plot_format: str = "png"
+
+    # Values used to generate the filename - can be set at init or otherwise before plotting
+
+    # For type ID
+    _type_name_head: Optional[str] = None
+    _short_test_case_name: Optional[str] = None
+    _type_name_tail: Optional[str] = None
+
+    _default_type_name: str = "SHE_VALIDATION_PLOT"
+
+    # For instance ID
+    _instance_id_head: Optional[str] = None
+    method: Optional[ShearEstimationMethods] = None
+    bin_parameter: Optional[BinParameters] = None
+    _instance_id_tail: Optional[str] = None
+
+    _default_instance_id: str = "0"
+
+    # Cached values
+    _type_name: Optional[str] = None
+    _instance_id: Optional[str] = None
+
+    # Intermediate values used while plotting
     _fig: Optional[Figure] = None
     _ax: Optional[Axes] = None
     _xlim: Optional[Tuple[float, float]] = None
     _ylim: Optional[Tuple[float, float]] = None
+
+    # Output values from plotting
+    plot_filename: Optional[str] = None
+    qualified_plot_filename: Optional[str] = None
 
     @property
     def ax(self) -> Axes:
@@ -75,6 +114,53 @@ class ValidationPlotter():
         if self._ylim is None:
             self._ylim = deepcopy(self.ax.get_ylim())
         return self._ylim
+
+    @property
+    def type_name(self) -> str:
+        if not self._type_name:
+            self._determine_type_name()
+        return self._type_name
+
+    @property
+    def instance_id(self) -> str:
+        if not self._instance_id:
+            self._determine_instance_id()
+        return self._instance_id
+
+    # Protected methods
+
+    def _determine_type_name(self):
+        # Piece together the type ID from the components, leaving out Nones
+        self._type_name = join_without_none(l_s=[self._type_name_head,
+                                                 self._short_test_case_name,
+                                                 self._type_name_tail],
+                                            default=self._default_type_name)
+
+    def _determine_instance_id(self):
+        # Piece together the instance ID from the components, leaving out Nones
+        self._instance_id = join_without_none(l_s=[self._instance_id_head,
+                                                   self.method.value,
+                                                   self.bin_parameter.value,
+                                                   self._instance_id_tail],
+                                              default=self._default_instance_id)
+
+    # Public methods
+
+    def _save_plot(self) -> str:
+
+        # Get the filename to save to
+        self.plot_filename = file_io.get_allowed_filename(type_name=self.type_name,
+                                                          instance_id=self.instance_id,
+                                                          extension=self.plot_format,
+                                                          version=SHE_Validation.__version__)
+        self.qualified_plot_filename = os.path.join(self.data_processor.workdir, self.plot_filename)
+
+        # Save the figure and close it
+        plt.savefig(self.qualified_plot_filename, format=self.plot_format,
+                    bbox_inches="tight", pad_inches=0.05)
+        logger.info(f"Saved {self.type_name} plot {self.instance_id} to {self.qualified_plot_filename}")
+
+        return self.plot_filename
 
     def density_scatter(self,
                         l_x: Iterable[float],

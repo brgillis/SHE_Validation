@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-25"
+__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,7 +21,7 @@ __updated__ = "2021-08-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Optional
 
 from SHE_PPT import file_io
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -29,6 +29,7 @@ from SHE_PPT.logging import getLogger
 from matplotlib import pyplot as plt
 
 import SHE_Validation
+from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 from .data_processing import ShearBiasTestCaseDataProcessor
 
@@ -49,6 +50,13 @@ class ShearBiasPlotter(ValidationPlotter):
 
     # Attributes determined at init
     method: ShearEstimationMethods
+    bin_parameter: BinParameters
+
+    # Attributes overriding parent to use specific values
+    _short_test_case_name: str = "SHEAR-BIAS"
+
+    # Attributes used when plotting
+    _instance_id_tail: str
 
     # Attributes calculated when plotting
     _d_g_in = Dict[int, Sequence[float]]
@@ -69,6 +77,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Get attrs from the data processor
         self.method = self.data_processor.method
+        self.bin_parameter = self.data_processor.bin_parameter
 
         # Init empty dicts for intermediate data used when plotting
         self._d_bias_plot_filename = {}
@@ -97,17 +106,11 @@ class ShearBiasPlotter(ValidationPlotter):
         """ Save the plot for bias component i.
         """
 
-        # Get the filename to save to
-        bias_plot_filename = file_io.get_allowed_filename(type_name="SHEAR-BIAS-VAL",
-                                                          instance_id=f"{self.method.value}-g{i}-{os.getpid()}".upper(),
-                                                          extension=PLOT_FORMAT,
-                                                          version=SHE_Validation.__version__)
-        qualified_bias_plot_filename = os.path.join(self.data_processor.workdir, bias_plot_filename)
+        # Set the instance id for this component
+        self._instance_id_tail = f"g{i}"
 
-        # Save the figure and close it
-        plt.savefig(qualified_bias_plot_filename, format=PLOT_FORMAT,
-                    bbox_inches="tight", pad_inches=0.05)
-        logger.info(f"Saved {self.method} g{i} bias plot to {qualified_bias_plot_filename}")
+        # Use the parent method to save the plot and get the filename of it
+        bias_plot_filename = super()._save_plot()
 
         # Record the filename for this plot in the filenams dict
         self.d_bias_plot_filename[i] = bias_plot_filename
