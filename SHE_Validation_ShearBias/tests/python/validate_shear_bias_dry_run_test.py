@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the Shear Bias validation task.
 """
 
-__updated__ = "2021-08-27"
+__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,6 +28,7 @@ from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         )
 from SHE_PPT.file_io import read_xml_product, write_xml_product
+from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import write_config, read_config
 from SHE_PPT.table_utility import SheTableFormat
 from astropy.table import Table
@@ -38,11 +39,13 @@ from SHE_Validation.constants.default_config import (ValidationConfigKeys,
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS,
                                                                           D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
                                                                           D_SHEAR_BIAS_CONFIG_TYPES)
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_INFO,
-                                                                     FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO)
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 import numpy as np
+
+logger = getLogger(__name__)
+
 
 # Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
@@ -229,8 +232,10 @@ class TestCase:
                 subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
 
             qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
+            logger.info(f"Opening file: {qualified_directory_filename}")
             with open(qualified_directory_filename, "r") as fi:
                 for line in fi:
+                    logger.info(f"Checking line: {line}")
                     if line[0] == "#":
                         continue
                     key, value = line.strip().split(": ")

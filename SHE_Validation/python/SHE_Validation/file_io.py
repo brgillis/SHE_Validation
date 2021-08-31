@@ -108,9 +108,10 @@ class SheValFileNamer(SheFileNamer):
         """
 
         try:
-            super().get()
+            return super().get()
         except ValueError as e:
             if not "instance_id including timestamp and release" in str(e):
                 raise
             # Instance ID is too long, so shorten it just enough to fit
             self.instance_id = self.instance_id[-instance_id_maxlen:]
+            return super().get()
