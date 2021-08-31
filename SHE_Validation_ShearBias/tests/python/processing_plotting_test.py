@@ -129,6 +129,8 @@ class TestShearBias:
         full_g2_out_data = (self.M2 * full_g2_in_data + self.C2 +
                             full_g2_out_err_data * self.rng.standard_normal(size=self.LTOT))
 
+        full_indices = np.indices(self.LTOT, dtype=int)
+
         # Get arrays of just the good data
         g1_in_data = full_g1_in_data[:self.L]
         g1_out_err_data = full_g1_out_err_data[:self.L]
@@ -138,9 +140,14 @@ class TestShearBias:
         g2_out_err_data = full_g2_out_err_data[:self.L]
         g2_out_data = full_g2_out_data[:self.L]
 
+        indices = full_indices[:self.L]
+
         # Put the data into a table
 
         self.matched_table = TF.init_table(size=self.LTOT)
+
+        self.matched_table[TF.ID] = full_indices
+        self.matched_table[TF.fit_flags] = np.where(indices < self.L, 0, 1)
 
         self.matched_table[TF.tu_gamma1] = -full_g1_in_data
         self.matched_table[TF.tu_gamma2] = full_g2_in_data
