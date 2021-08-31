@@ -24,19 +24,17 @@ from copy import deepcopy
 import os
 from typing import NamedTuple, Dict, Sequence
 
-from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods, D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS)
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.table_formats.she_lensmc_tu_matched import tf as TF
-from SHE_PPT.table_utility import SheTableFormat
 import pytest
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import BASE_SHEAR_BIAS_TEST_CASE_M_INFO,\
-    BASE_SHEAR_BIAS_TEST_CASE_C_INFO
-from SHE_Validation_ShearBias.data_processing import ShearBiasTestCaseDataProcessor,\
-    C_DIGITS, M_DIGITS, SIGMA_DIGITS
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (BASE_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                     BASE_SHEAR_BIAS_TEST_CASE_C_INFO)
+from SHE_Validation_ShearBias.data_processing import (ShearBiasTestCaseDataProcessor,
+                                                      C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader)
 from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
 import numpy as np
 
@@ -144,7 +142,7 @@ class TestShearBias:
 
         self.matched_table = TF.init_table(size=self.LTOT)
 
-        self.matched_table[TF.tu_gamma1] = full_g1_in_data
+        self.matched_table[TF.tu_gamma1] = -full_g1_in_data
         self.matched_table[TF.tu_gamma2] = full_g2_in_data
         self.matched_table[TF.tu_kappa] = np.zeros_like(full_g1_in_data)
 
@@ -208,7 +206,28 @@ class TestShearBias:
     def test_data_loader(self):
         """ Tests loading in shear bias data.
         """
-        pass
+
+        # Set up filenames
+        tu_matched_product_filename = "tu_matched_product.xml"
+        qualified_tu_matched_product_filename = os.path.join(self.workdir, tu_matched_product_filename)
+        tu_matched_table_filename = "tu_matched_table.fits"
+        qualified_tu_matched_table_filename = os.path.join(self.workdir, tu_matched_table_filename)
+
+        # Write out the table
+        self.matched_table.write(qualified_tu_matched_table_filename, overwrite=True)
+
+        # Create a data loader object and load in the data
+        data_loader = ShearBiasDataLoader(l_filenames=[tu_matched_table_filename],
+                                          workdir=self.workdir,
+                                          method=self.METHOD)
+        data_loader.load_all()
+
+        # Check that the loaded data is correct
+        i: int
+        for i in range(1, 2):
+            np.testing.assert_allclose(data_loader.d_g_in[i], self.mock_data_loader.d_g_in[i])
+            np.testing.assert_allclose(data_loader.d_g_out[i], self.mock_data_loader.d_g_out[i])
+            np.testing.assert_allclose(data_loader.d_g_out_err[i], self.mock_data_loader.d_g_out_err[i])
 
     def test_data_processor(self):
         """ Tests processing shear bias data.
