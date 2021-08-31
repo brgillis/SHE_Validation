@@ -30,7 +30,8 @@ from SHE_PPT.math import (BiasMeasurements, linregress_with_errors,
 from SHE_PPT.pipeline_utility import ValidationConfigKeys, ConfigKeys
 from SHE_PPT.table_utility import SheTableFormat
 from astropy.table import Column, Table
-from SHE_Validation.binning.bin_constraints import BinnedMultiTableLoader
+from SHE_Validation.binning.bin_constraints import BinnedMultiTableLoader,\
+    BinConstraint
 
 from SHE_Validation.constants.test_info import TestCaseInfo, BinParameters
 import numpy as np
@@ -86,26 +87,6 @@ class ShearBiasDataLoader():
         # Determine the table format
         self._sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
 
-    # Public loading methods
-
-    def load_ids(self,
-                 l_ids: Sequence[int],
-                 *args, **kwargs) -> None:
-        self.table = self.get_ids(l_ids=l_ids, *args, **kwargs)
-        self.table_loaded = True
-
-    def load_all(self, *args, **kwargs):
-        self.table = self.get_all(*args, **kwargs)
-        self.table_loaded = True
-
-    def get_ids(self,
-                l_ids: Sequence[int],
-                *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_ids(l_ids=l_ids, *args, **kwargs)
-
-    def get_all(self, *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_all(*args, **kwargs)
-
     # Output properties
 
     @property
@@ -145,6 +126,14 @@ class ShearBiasDataLoader():
         self._d_g_out_err = d_g_out_err
 
     # Private methods
+    def __clear(self):
+        if self.table_loaded:
+            self.table_loaded = False
+            self.d_g_in = None
+            self.d_g_out = None
+            self.d_g_out_err = None
+
+    # Protected methods
 
     def _calc(self):
         """ Calculate the shear bias columns we need.
@@ -180,6 +169,40 @@ class ShearBiasDataLoader():
                          2: l_g2_out}
         self._d_g_out_err = {1: l_g1_out_err,
                              2: l_g2_out_err}
+
+    # Public loading methods
+
+    def load_ids(self,
+                 l_ids: Sequence[int],
+                 *args, **kwargs) -> None:
+        self.__clear()
+        self.table = self.get_ids(l_ids=l_ids, *args, **kwargs)
+        self.table_loaded = True
+
+    def load_all(self, *args, **kwargs):
+        self.__clear()
+        self.table = self.get_all(*args, **kwargs)
+        self.table_loaded = True
+
+    def load_for_bin_constraint(self,
+                                bin_constraint: BinConstraint,
+                                *args, **kwargs):
+        self.__clear()
+        self.table = self.get_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
+        self.table_loaded = True
+
+    def get_all(self, *args, **kwargs) -> Table:
+        return self._table_loader.get_table_for_all(*args, **kwargs)
+
+    def get_ids(self,
+                l_ids: Sequence[int],
+                *args, **kwargs) -> Table:
+        return self._table_loader.get_table_for_ids(l_ids=l_ids, *args, **kwargs)
+
+    def get_for_bin_constraint(self,
+                               bin_constraint: BinConstraint,
+                               *args, **kwargs) -> Table:
+        return self._table_loader.get_table_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
 
 
 class ShearBiasTestCaseDataProcessor():

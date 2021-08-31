@@ -4,6 +4,25 @@
 
     Unit tests of the Shear Bias data processing and plotting.
 """
+from copy import deepcopy
+import os
+from typing import NamedTuple, Dict, Sequence
+
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
+from SHE_PPT.table_formats.she_lensmc_tu_matched import tf as TF
+import pytest
+
+from ElementsServices.DataSync import DataSync
+from SHE_Validation.binning.bin_constraints import GoodMeasurementBinConstraint
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (BASE_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                     BASE_SHEAR_BIAS_TEST_CASE_C_INFO)
+from SHE_Validation_ShearBias.data_processing import (ShearBiasTestCaseDataProcessor,
+                                                      C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader)
+from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
+import numpy as np
+
 
 __updated__ = "2021-08-31"
 
@@ -19,24 +38,6 @@ __updated__ = "2021-08-31"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-from copy import deepcopy
-import os
-from typing import NamedTuple, Dict, Sequence
-
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
-from SHE_PPT.table_formats.she_lensmc_tu_matched import tf as TF
-import pytest
-
-from ElementsServices.DataSync import DataSync
-from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (BASE_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                                                     BASE_SHEAR_BIAS_TEST_CASE_C_INFO)
-from SHE_Validation_ShearBias.data_processing import (ShearBiasTestCaseDataProcessor,
-                                                      C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader)
-from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
-import numpy as np
 
 
 class MockDataLoader(NamedTuple):
@@ -119,6 +120,8 @@ class TestShearBias:
 
         # Set up the data we'll be processing
 
+        full_indices = np.arange(self.LTOT, dtype=int)
+
         full_g1_in_data = self.G1_IN_ERR * self.rng.standard_normal(size=self.LTOT)
         full_g1_out_err_data = self.G1_OUT_ERR * np.ones(self.LTOT, dtype='>f4')
         full_g1_out_data = (self.M1 * full_g1_in_data + self.C1 +
@@ -129,7 +132,18 @@ class TestShearBias:
         full_g2_out_data = (self.M2 * full_g2_in_data + self.C2 +
                             full_g2_out_err_data * self.rng.standard_normal(size=self.LTOT))
 
-        full_indices = np.arange(self.LTOT, dtype=int)
+        weight_data = 0.5 * full_g1_out_err_data**-2
+        fit_flags_data = np.where(full_indices < self.L, 0, np.where(full_indices < self.L + self.LNAN, 1, 0))
+
+        # Flag the last bit of data as bad or zero weight
+        full_g1_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
+        full_g1_out_err_data[-self.LNAN - self.LZERO:] = np.NaN
+        full_g2_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
+        full_g2_out_err_data[-self.LNAN - self.LZERO:] = np.NaN
+
+        full_g1_out_err_data[-self.LZERO:] = np.inf
+        full_g2_out_err_data[-self.LZERO:] = np.inf
+        weight_data[-self.LZERO:] = 0
 
         # Get arrays of just the good data
         g1_in_data = full_g1_in_data[:self.L]
@@ -147,7 +161,7 @@ class TestShearBias:
         self.matched_table = TF.init_table(size=self.LTOT)
 
         self.matched_table[TF.ID] = full_indices
-        self.matched_table[TF.fit_flags] = np.where(full_indices < self.L, 0, 1)
+        self.matched_table[TF.fit_flags] = fit_flags_data
 
         self.matched_table[TF.tu_gamma1] = -full_g1_in_data
         self.matched_table[TF.tu_gamma2] = full_g2_in_data
@@ -157,7 +171,7 @@ class TestShearBias:
         self.matched_table[TF.g1_err] = full_g1_out_err_data
         self.matched_table[TF.g2] = full_g2_out_data
         self.matched_table[TF.g2_err] = full_g2_out_err_data
-        self.matched_table[TF.weight] = 0.5 * full_g1_out_err_data**-2
+        self.matched_table[TF.weight] = weight_data
 
         # Make a mock data loader we can use for tests which assume data has already been loaded in
         self.mock_data_loader: MockDataLoader = MockDataLoader(method=self.METHOD,
@@ -210,13 +224,19 @@ class TestShearBias:
         self.c_test_case_info.method = self.METHOD
         self.c_test_case_info.bins = self.BINS
 
+    def _check_loaded_data(self, data_loader: ShearBiasDataLoader):
+        # Check that the loaded data is correct
+        i: int
+        for i in range(1, 2):
+            np.testing.assert_allclose(data_loader.d_g_in[i], self.mock_data_loader.d_g_in[i])
+            np.testing.assert_allclose(data_loader.d_g_out[i], self.mock_data_loader.d_g_out[i])
+            np.testing.assert_allclose(data_loader.d_g_out_err[i], self.mock_data_loader.d_g_out_err[i])
+
     def test_data_loader(self):
         """ Tests loading in shear bias data.
         """
 
         # Set up filenames
-        tu_matched_product_filename = "tu_matched_product.xml"
-        qualified_tu_matched_product_filename = os.path.join(self.workdir, tu_matched_product_filename)
         tu_matched_table_filename = "tu_matched_table.fits"
         qualified_tu_matched_table_filename = os.path.join(self.workdir, tu_matched_table_filename)
 
@@ -229,12 +249,18 @@ class TestShearBias:
                                           method=self.METHOD)
         data_loader.load_ids(self.good_ids)
 
-        # Check that the loaded data is correct
-        i: int
-        for i in range(1, 2):
-            np.testing.assert_allclose(data_loader.d_g_in[i], self.mock_data_loader.d_g_in[i])
-            np.testing.assert_allclose(data_loader.d_g_out[i], self.mock_data_loader.d_g_out[i])
-            np.testing.assert_allclose(data_loader.d_g_out_err[i], self.mock_data_loader.d_g_out_err[i])
+        self._check_loaded_data(data_loader=data_loader)
+
+        # Try loading with a bin constraint
+        bin_constraint = GoodMeasurementBinConstraint(method=ShearEstimationMethods.LENSMC)
+        data_loader.load_for_bin_constraint(bin_constraint=bin_constraint)
+
+        self._check_loaded_data(data_loader=data_loader)
+
+        # Try loading all data, and check that NaN values were read in
+        data_loader.load_all()
+        assert np.isnan(data_loader.d_g_out[1][self.L + 1])
+        assert np.isinf(data_loader.d_g_out_err[1][self.L + self.LNAN + 1])
 
     def test_data_processor(self):
         """ Tests processing shear bias data.

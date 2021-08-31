@@ -5,7 +5,7 @@
     Common functions and classes to aid with binning data.
 """
 
-__updated__ = "2021-08-30"
+__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -149,11 +149,17 @@ class RangeBinConstraint(BinConstraint):
         bin_colname: str
             Name of the column that's being used for binning
         bin_limits: Sequence[float]
-            Sequence of min and max of bin limits. Will check min <= val < max
+            Sequence of min and max of bin limits. Will check min <(=) val <(=) max
+        include_min: Sequence[float]
+            If True (default), will check min <= val, otherwise will check min < val
+        include_max: Sequence[float]
+            If True, will check val <= max, otherwise (default) will check val < max
     """
 
     bin_colname: str
     bin_limits: Sequence[float]
+    include_min: bool = True
+    include_max: bool = False
 
     def __init__(self,
                  bin_colname: Optional[str] = None,
@@ -185,8 +191,17 @@ class RangeBinConstraint(BinConstraint):
             else:
                 return True * np.ones(len(data), dtype=bool)
 
-        return np.logical_and(self.bin_limits[0] <= data[self.bin_colname],
-                              data[self.bin_colname] < self.bin_limits[1])
+        # Check against min and max, based on whether they're included in the bin or not
+        if self.include_min:
+            min_check = self.bin_limits[0] <= data[self.bin_colname]
+        else:
+            min_check = self.bin_limits[0] < data[self.bin_colname]
+        if self.include_max:
+            max_check = self.bin_limits[1] >= data[self.bin_colname]
+        else:
+            max_check = self.bin_limits[1] > data[self.bin_colname]
+
+        return np.logical_and(min_check, max_check)
 
 
 class ValueBinConstraint(BinConstraint):
@@ -459,7 +474,9 @@ class WeightBinConstraint(RangeBinConstraint):
     """
 
     bin_colname: str
-    bin_limits: Sequence[float] = (0, 1e99)
+    bin_limits: Sequence[float] = (0, np.inf)
+    include_min: bool = False
+    include_max: bool = False
 
     def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
@@ -791,23 +808,37 @@ class BinnedMultiTableLoader(MultiTableLoader):
         if id_colname:
             self.id_colname = id_colname
 
+    # Private methods
+
+    @staticmethod
+    def __get_with_keep_open(file_loader: TableLoader,
+                             keep_open: bool = True,
+                             *args, **kwargs):
+        """ Load a table, keeping it open if desired. """
+        if keep_open:
+            file_loader.load(*args, **kwargs)
+            t = file_loader.obj
+        else:
+            t = file_loader.get(*args, **kwargs)
+        return t
+
+    # Public methods
+
     def get_table_for_ids(self,
                           l_ids: Sequence[int],
-                          keep_open: bool = True) -> Table:
+                          keep_open: bool = True,
+                          *args, **kwargs) -> Table:
         """ Get a table with only objects with IDs in the list.
         """
 
         l_binned_tables: List[Table] = [None] * len(self.l_file_loaders)
 
         # Get a binned table from each file loader
+        i: int
+        file_loader: TableLoader
         for i, file_loader in enumerate(self.l_file_loaders):
 
-            # Load the table, keeping it open if desired
-            if keep_open:
-                file_loader.load()
-                t = file_loader.obj
-            else:
-                t = file_loader.get()
+            t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
 
             l_binned_tables[i] = get_table_of_ids(table=t,
                                                   l_ids=l_ids,
@@ -829,6 +860,33 @@ class BinnedMultiTableLoader(MultiTableLoader):
             self.load_all(*args, **kwargs)
 
         l_binned_tables: List[Table] = self.get_all(*args, **kwargs)
+
+        # Check that we have at least one table
+        if len(l_binned_tables) == 0:
+            return None
+
+        return table.vstack(tables=l_binned_tables)
+
+    def get_table_for_bin_constraint(self,
+                                     bin_constraint: BinConstraint,
+                                     keep_open: bool = True,
+                                     *args, **kwargs) -> Table:
+        """ Get a combined table of all objects which pass quality checks on shear estimates.
+
+            Requires the table format to properly check estimates tables.
+        """
+
+        l_binned_tables: List[Table] = [None] * len(self.l_file_loaders)
+
+        # Get a binned table from each file loader
+        i: int
+        file_loader: TableLoader
+        for i, file_loader in enumerate(self.l_file_loaders):
+
+            t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
+
+            # Get a list of IDs for this bin constraint
+            l_binned_tables[i] = bin_constraint.get_rows_in_bin(table=t)
 
         # Check that we have at least one table
         if len(l_binned_tables) == 0:
