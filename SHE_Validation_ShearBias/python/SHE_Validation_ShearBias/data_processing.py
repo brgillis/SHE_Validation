@@ -5,7 +5,7 @@
     Code to process data for shear bias validation tests
 """
 
-__updated__ = "2021-08-30"
+__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -220,6 +220,7 @@ class ShearBiasTestCaseDataProcessor():
     def __init__(self,
                  data_loader: ShearBiasDataLoader,
                  test_case_info: TestCaseInfo,
+                 bin_index: int = 0,
                  pipeline_config: Optional[Dict[ConfigKeys, Any]] = None,) -> None:
 
         # Set attrs directly
@@ -235,6 +236,7 @@ class ShearBiasTestCaseDataProcessor():
         # Get values from the test_case_info
         self.method = test_case_info.method
         self.bin_parameter = test_case_info.bin_parameter
+        self.bin_index = bin_index
 
         # Determine table format
         self._sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]

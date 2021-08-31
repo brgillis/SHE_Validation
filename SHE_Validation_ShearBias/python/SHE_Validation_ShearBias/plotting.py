@@ -5,7 +5,7 @@
     Code to make plots for shear bias validation test.
 """
 
-__updated__ = "2021-08-30"
+__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,6 +24,7 @@ from typing import Dict, Sequence
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
+from SHE_PPT.math import BiasMeasurements, LinregressResults
 from matplotlib import pyplot as plt
 
 from SHE_Validation.constants.test_info import BinParameters
@@ -85,16 +86,16 @@ class ShearBiasPlotter(ValidationPlotter):
     # Property getters and setters
 
     @property
-    def d_bias_measurements(self):
+    def d_bias_measurements(self) -> Dict[int, BiasMeasurements]:
         if not self._d_bias_measurements:
             self._d_bias_measurements = self.data_processor.d_bias_measurements
 
     @property
-    def d_bias_plot_filename(self):
+    def d_bias_plot_filename(self) -> Dict[int, str]:
         return self._d_bias_plot_filename
 
     @d_bias_plot_filename.setter
-    def d_bias_plot_filename(self, d_bias_plot_filename):
+    def d_bias_plot_filename(self, d_bias_plot_filename: Dict[int, str]):
         if d_bias_plot_filename is None:
             self._d_bias_plot_filename = {}
         else:
@@ -102,7 +103,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
     # Private methods
 
-    def _save_component_plot(self, i):
+    def _save_component_plot(self, i: int) -> None:
         """ Save the plot for bias component i.
         """
 
@@ -116,14 +117,14 @@ class ShearBiasPlotter(ValidationPlotter):
         self.d_bias_plot_filename[i] = bias_plot_filename
 
     def _plot_component_shear_bias(self,
-                                   i: int,):
+                                   i: int,) -> None:
         """ Plot shear bias for an individual component.
         """
 
         # Get the needed data from the data_processor
         g_in = self.data_processor.d_g_in[i]
         g_out = self.data_processor.d_g_out[i]
-        linregress_results = self.data_processor.d_linregress_results[i]
+        linregress_results: LinregressResults = self.data_processor.d_linregress_results[i]
         d_bias_strings = self.data_processor.d_bias_strings
 
         # Make a plot of the shear estimates
@@ -161,7 +162,7 @@ class ShearBiasPlotter(ValidationPlotter):
         # Clear the plot to make way for future plots
         self.clear_plots()
 
-    def plot(self):
+    def plot(self) -> None:
         """ Plot shear bias for both components.
         """
 
