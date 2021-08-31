@@ -5,7 +5,7 @@
     Utility functions and classes related to I/O
 """
 
-__updated__ = "2021-08-30"
+__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,7 +24,7 @@ import os
 from typing import Optional
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.file_io import SheFileNamer
+from SHE_PPT.file_io import SheFileNamer, instance_id_maxlen
 from SHE_PPT.utility import join_without_none
 
 from SHE_Validation.constants.test_info import BinParameters
@@ -100,3 +100,17 @@ class SheValFileNamer(SheFileNamer):
                                                         self.bin_index,
                                                         os.getpid()],
                                                    default=None)
+
+    # Public methods
+
+    def get(self):
+        """ Wrapper for parent get to check for too-long filenames.
+        """
+
+        try:
+            super().get()
+        except ValueError as e:
+            if not "instance_id including timestamp and release" in str(e):
+                raise
+            # Instance ID is too long, so shorten it just enough to fit
+            self.instance_id = self.instance_id[-instance_id_maxlen:]
