@@ -87,7 +87,7 @@ class TestShearBias:
     G2_IN_ERR = 0.03
     G2_OUT_ERR = 0.35
 
-    L = 100000  # Length of good data
+    L = 10000  # Length of good data
     LNAN = 5  # Length of bad data
     LZERO = 5  # Length of zero-weight data
     LTOT = L + LNAN + LZERO
@@ -129,7 +129,7 @@ class TestShearBias:
         full_g2_out_data = (self.M2 * full_g2_in_data + self.C2 +
                             full_g2_out_err_data * self.rng.standard_normal(size=self.LTOT))
 
-        full_indices = np.indices(self.LTOT, dtype=int)
+        full_indices = np.arange(self.LTOT, dtype=int)
 
         # Get arrays of just the good data
         g1_in_data = full_g1_in_data[:self.L]
@@ -140,14 +140,14 @@ class TestShearBias:
         g2_out_err_data = full_g2_out_err_data[:self.L]
         g2_out_data = full_g2_out_data[:self.L]
 
-        indices = full_indices[:self.L]
+        self.good_ids = full_indices[:self.L]
 
         # Put the data into a table
 
         self.matched_table = TF.init_table(size=self.LTOT)
 
         self.matched_table[TF.ID] = full_indices
-        self.matched_table[TF.fit_flags] = np.where(indices < self.L, 0, 1)
+        self.matched_table[TF.fit_flags] = np.where(full_indices < self.L, 0, 1)
 
         self.matched_table[TF.tu_gamma1] = -full_g1_in_data
         self.matched_table[TF.tu_gamma2] = full_g2_in_data
@@ -227,7 +227,7 @@ class TestShearBias:
         data_loader = ShearBiasDataLoader(l_filenames=[tu_matched_table_filename],
                                           workdir=self.workdir,
                                           method=self.METHOD)
-        data_loader.load_all()
+        data_loader.load_ids(self.good_ids)
 
         # Check that the loaded data is correct
         i: int
