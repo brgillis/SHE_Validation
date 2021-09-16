@@ -23,23 +23,18 @@ __updated__ = "2021-08-31"
 import os
 from typing import Dict
 
-from SHE_PPT import file_io
-from SHE_PPT import products
+from SHE_PPT import file_io, products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.utility import is_any_type_of_none
-
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
-
-from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                             L_SHEAR_BIAS_TEST_CASE_C_INFO,
-                                             NUM_SHEAR_BIAS_TEST_CASES)
-from .data_processing import ShearBiasTestCaseDataProcessor, ShearBiasDataLoader
+from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO, L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                             NUM_SHEAR_BIAS_TEST_CASES, )
+from .data_processing import ShearBiasDataLoader, ShearBiasTestCaseDataProcessor
 from .plotting import ShearBiasPlotter
 from .results_reporting import fill_shear_bias_test_results
-
 
 logger = getLogger(__name__)
 
@@ -52,10 +47,10 @@ def fix_pipeline_config_types(pipeline_config):
         pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN])
     if not isinstance(pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS], bool):
         pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS] = (
-            pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS].lower() in ['true', 't'])
+                pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS].lower() in ['true', 't'])
     if not isinstance(pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO], bool):
         pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO] = (
-            pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO].lower() in ['true', 't'])
+                pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO].lower() in ['true', 't'])
 
     return pipeline_config
 
@@ -76,12 +71,10 @@ def validate_shear_bias_from_args(args, mode):
         # In global mode, read in the listfile to get the list of filenames
         logger.info(f"Using matched data from products in listfile {args.matched_catalog_listfile}")
         qualified_matched_catalog_listfile_filename = file_io.find_file(args.matched_catalog_listfile,
-                                                                        path=args.workdir)
+                                                                        path = args.workdir)
         l_matched_catalog_product_filenames = file_io.read_listfile(qualified_matched_catalog_listfile_filename)
     else:
         raise ValueError(f"Unrecognized operation mode: {mode}")
-
-    num_matched_catalogs = len(l_matched_catalog_product_filenames)
 
     # Init lists of filenames for each method
     d_method_l_table_filenames = {}
@@ -112,9 +105,9 @@ def validate_shear_bias_from_args(args, mode):
     # Make a data loader for each shear estimation method
     d_data_loaders: Dict[ShearEstimationMethods, ShearBiasDataLoader] = {}
     for method in ShearEstimationMethods:
-        d_data_loaders[method] = ShearBiasDataLoader(l_filenames=d_method_l_table_filenames[method],
-                                                     workdir=args.workdir,
-                                                     method=method)
+        d_data_loaders[method] = ShearBiasDataLoader(l_filenames = d_method_l_table_filenames[method],
+                                                     workdir = args.workdir,
+                                                     method = method)
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
@@ -134,12 +127,12 @@ def validate_shear_bias_from_args(args, mode):
             data_loader: ShearBiasDataLoader = d_data_loaders[method]
             data_loader.load_all()
 
-            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader=data_loader,
-                                                                       test_case_info=test_case_info,
-                                                                       pipeline_config=pipeline_config)
+            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
+                                                                       test_case_info = test_case_info,
+                                                                       pipeline_config = pipeline_config)
             shear_bias_data_processor.calc()
 
-            shear_bias_plotter = ShearBiasPlotter(data_processor=shear_bias_data_processor)
+            shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor)
             shear_bias_plotter.plot()
 
             d_method_bias_plot_filename = shear_bias_plotter.d_bias_plot_filename
@@ -157,14 +150,15 @@ def validate_shear_bias_from_args(args, mode):
         except Exception as e:
             import traceback
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
-                           "Traceback: " + "".join(traceback.format_tb(e.__traceback__)))
+                                                                                            "Traceback: " + "".join(
+                traceback.format_tb(e.__traceback__)))
         else:
             data_exists = True
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     test_result_product = products.she_validation_test_results.create_validation_test_results_product(
-        num_tests=NUM_SHEAR_BIAS_TEST_CASES)
+        num_tests = NUM_SHEAR_BIAS_TEST_CASES)
     test_result_product.Data.TileId = None
     test_result_product.Data.PointingId = None
     test_result_product.Data.ExposureProductId = None
@@ -173,22 +167,21 @@ def validate_shear_bias_from_args(args, mode):
 
     # Fill in the products with the results
     if not args.dry_run:
-
         d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
         # And fill in the observation product
-        fill_shear_bias_test_results(test_result_product=test_result_product,
-                                     workdir=args.workdir,
-                                     d_bin_limits=d_bin_limits,
-                                     d_bias_measurements=d_bias_measurements,
-                                     pipeline_config=pipeline_config,
-                                     dl_l_figures=d_d_plot_filenames,
-                                     method_data_exists=data_exists,
-                                     mode=mode)
+        fill_shear_bias_test_results(test_result_product = test_result_product,
+                                     workdir = args.workdir,
+                                     d_bin_limits = d_bin_limits,
+                                     d_bias_measurements = d_bias_measurements,
+                                     pipeline_config = pipeline_config,
+                                     dl_l_figures = d_d_plot_filenames,
+                                     method_data_exists = data_exists,
+                                     mode = mode)
 
     # Write out test results product
     file_io.write_xml_product(test_result_product,
-                              args.shear_bias_validation_test_results_product, workdir=args.workdir)
+                              args.shear_bias_validation_test_results_product, workdir = args.workdir)
 
     logger.info("Output shear bias validation test results to: " +
                 os.path.join(args.workdir, args.shear_bias_validation_test_results_product))
