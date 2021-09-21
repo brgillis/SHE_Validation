@@ -20,7 +20,9 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_CLINE_ARGS
 
 
 class ShearValidationArgumentParser(ValidationArgumentParser):
@@ -38,3 +40,15 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
                           default = "shear_bias_validation_test_results_product.xml",
                           help = 'OUTPUT: Desired filename for output shear bias validation test results (XML data '
                                  'product).')
+
+        # Options
+        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_MAX_G_IN]}',
+                          type = float, default = None,
+                          help = 'OPTION: Maximum value of input shear to allow.')
+        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]}',
+                          type = bool, default = None,
+                          help = 'OPTION: If set to True, will use bootstrap calculation for errors.')
+        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]}',
+                          type = bool, default = None,
+                          help = 'OPTION: If set to true, will only include objects identified as galaxies ('
+                                 'FITCLASS==0) in analysis.')
