@@ -25,23 +25,21 @@ import abc
 from copy import deepcopy
 from typing import Iterable, Optional, Tuple
 
+import numpy as np
+from matplotlib import cm, pyplot as plt
+from matplotlib.colors import Normalize
+from matplotlib.figure import Axes, Figure
+from scipy.interpolate import interpn
+
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
-from matplotlib import cm, pyplot as plt
-from matplotlib.colors import Normalize
-from matplotlib.figure import Figure, Axes
-from scipy.interpolate import interpn
-
-from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.file_io import SheValFileNamer
-import numpy as np
 
 logger = getLogger(__name__)
 
 
 class ValidationPlotter(abc.ABC):
-
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
 
@@ -128,16 +126,16 @@ class ValidationPlotter(abc.ABC):
         self.qualified_plot_filename = self.file_namer.qualified_filename
 
         # Save the figure and close it
-        plt.savefig(self.qualified_plot_filename, format=self.plot_format,
-                    bbox_inches="tight", pad_inches=0.05)
+        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
+                    bbox_inches = "tight", pad_inches = 0.05)
         logger.info(f"Saved {self.file_namer.type_name} plot {self.file_namer.instance_id} to "
                     f"{self.qualified_plot_filename}")
 
         return self.plot_filename
 
     def density_scatter(self,
-                        l_x: Iterable[float],
-                        l_y: Iterable[float],
+                        l_x: np.ndarray,
+                        l_y: np.ndarray,
                         sort: bool = True,
                         bins: int = 20,
                         colorbar: bool = False,
@@ -146,39 +144,39 @@ class ValidationPlotter(abc.ABC):
             Credit: Guillaume on StackOverflow
         """
 
-        data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins=bins, density=True)
-        l_z: Iterable[float] = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
-                                       np.vstack([l_x, l_y]).T, method="splinef2d", bounds_error=False)
+        data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins = bins, density = True)
+        l_z: np.ndarray = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
+                                  np.vstack([l_x, l_y]).T, method = "splinef2d", bounds_error = False)
 
         # To be sure to plot all data
         l_z[np.where(np.isnan(l_z))] = 0.0
 
         # Sort the points by density, so that the densest points are plotted last
         if sort:
-            idx: Iterable[int] = l_z.argsort()
+            idx: np.ndarray = l_z.argsort()
             l_x, l_y, l_z = l_x[idx], l_y[idx], l_z[idx]
 
-        self.ax.scatter(l_x, l_y, c=l_z, **kwargs)
+        self.ax.scatter(l_x, l_y, c = l_z, **kwargs)
 
         if colorbar:
             if len(l_z) == 0:
-                norm = Normalize(vmin=0, vmax=1)
+                norm = Normalize(vmin = 0, vmax = 1)
             else:
-                norm = Normalize(vmin=np.min(l_z), vmax=np.max(l_z))
-            cbar = self.fig.colorbar(cm.ScalarMappable(norm=norm), ax=self.ax)
+                norm = Normalize(vmin = np.min(l_z), vmax = np.max(l_z))
+            cbar = self.fig.colorbar(cm.ScalarMappable(norm = norm), ax = self.ax)
             cbar.ax.set_ylabel('Density')
 
     def draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis on a plot.
         """
 
-        self.ax.plot(self.xlim, [0, 0], label=None, color=color, linestyle=linestyle, **kwargs)
+        self.ax.plot(self.xlim, [0, 0], label = None, color = color, linestyle = linestyle, **kwargs)
 
     def draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws a y-axis on a plot.
         """
 
-        self.ax.plot([0, 0], self.ylim, label=None, color=color, linestyle=linestyle, **kwargs)
+        self.ax.plot([0, 0], self.ylim, label = None, color = color, linestyle = linestyle, **kwargs)
 
     def draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis and y-axis on a plot.
@@ -197,14 +195,14 @@ class ValidationPlotter(abc.ABC):
 
         bestfit_x: Iterable[float] = np.array(self.xlim)
         bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
-        self.ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
+        self.ax.plot(bestfit_x, bestfit_y, label = label, color = color, linestyle = linestyle)
 
     def reset_axes(self):
         """ Resets the axes to saved xlim/ylim from when they were first accessed.
         """
 
-        self.ax.set_xlim(self.xlim)
-        self.ax.set_ylim(self.ylim)
+        self.ax.set_xlim(*self.xlim)
+        self.ax.set_ylim(*self.ylim)
 
     def clear_plots(self):
         """ Closes the plots and resets self.ax and self.fig.

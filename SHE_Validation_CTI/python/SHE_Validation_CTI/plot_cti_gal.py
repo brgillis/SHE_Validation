@@ -20,28 +20,21 @@ __updated__ = "2021-08-30"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from typing import Dict, Iterable, Optional, Sequence
+from typing import Dict, Optional, Sequence
 
-from SHE_PPT import file_io
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import linregress_with_errors, LinregressResults
-from astropy.table import Table, Row
+import numpy as np
+from astropy.table import Row, Table
 from matplotlib import pyplot as plt
 
-import SHE_Validation
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import LinregressResults, linregress_with_errors
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
-import numpy as np
-
 from .file_io import CtiGalPlotFileNamer
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
-
 logger = getLogger(__name__)
-
 
 TITLE_FONTSIZE = 12
 AXISLABEL_FONTSIZE = 12
@@ -53,7 +46,6 @@ SIGMA_DIGITS = 1
 
 
 class CtiGalPlotter(ValidationPlotter):
-
     # Attributes set directly at init
     _object_table: Table
 
@@ -72,9 +64,9 @@ class CtiGalPlotter(ValidationPlotter):
                  object_table: Table,
                  file_namer: CtiGalPlotFileNamer,
                  bin_limits: Sequence[float],
-                 l_ids_in_bin: Sequence[int],):
+                 l_ids_in_bin: Sequence[int], ):
 
-        super().__init__(file_namer=file_namer)
+        super().__init__(file_namer = file_namer)
 
         # Set attrs directly
         self.object_table = object_table
@@ -86,8 +78,8 @@ class CtiGalPlotter(ValidationPlotter):
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{self.method_name}")
 
-        self._t_good = get_table_of_ids(table=self.object_table,
-                                        l_ids=self.l_ids_in_bin,)
+        self._t_good = get_table_of_ids(table = self.object_table,
+                                        l_ids = self.l_ids_in_bin, )
 
     # Property getters and setters
 
@@ -100,7 +92,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._object_table = object_table
 
     @property
-    def t_good(self) -> Iterable[Row]:
+    def t_good(self) -> Sequence[Row]:
         return self._t_good
 
     @property
@@ -125,9 +117,9 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        l_rr_dist: Iterable[float] = self.t_good[CGOD_TF.readout_dist]
-        l_g1: Iterable[float] = self.t_good[self.g1_colname]
-        l_g1_err: Iterable[float] = 1 / np.sqrt(self.t_good[self.weight_colname])
+        l_rr_dist: Sequence[float] = self.t_good[CGOD_TF.readout_dist]
+        l_g1: Sequence[float] = self.t_good[self.g1_colname]
+        l_g1_err: Sequence[float] = 1 / np.sqrt(self.t_good[self.weight_colname])
 
         # Check if there's any valid data for this bin
         if len(l_rr_dist) <= 1:
@@ -141,35 +133,35 @@ class CtiGalPlotter(ValidationPlotter):
                 return
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
-        linregress_results: LinregressResults = linregress_with_errors(x=l_rr_dist,
-                                                                       y=l_g1,
-                                                                       y_err=l_g1_err)
+        linregress_results: LinregressResults = linregress_with_errors(x = l_rr_dist,
+                                                                       y = l_g1,
+                                                                       y_err = l_g1_err)
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Linear regression for method {self.method_name}, test case {self.bin_parameter.value}, "
                     f"bin {self.bin_limits}:")
         d_linregress_strings: Dict[str, str] = {}
         for a, d in ("slope", SLOPE_DIGITS), ("intercept", INTERCEPT_DIGITS):
-            d_linregress_strings[f"{a}"] = (f"{a} = {getattr(linregress_results,a):.{d}f} +/- "
-                                            f"{getattr(linregress_results,f'{a}_err'):.{d}f} "
-                                            f"({getattr(linregress_results,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
+            d_linregress_strings[f"{a}"] = (f"{a} = {getattr(linregress_results, a):.{d}f} +/- "
+                                            f"{getattr(linregress_results, f'{a}_err'):.{d}f} "
+                                            f"({getattr(linregress_results, f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
             logger.info(d_linregress_strings[f"{a}"])
 
         # Make a plot of the data and bestfit line
 
         # Set up the figure, with a density scatter as a base
 
-        self.fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
+        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
 
-        self.density_scatter(l_rr_dist, l_g1, sort=True, bins=200, colorbar=False, s=4)
+        self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
 
         plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
         if self.bin_parameter != BinParameters.GLOBAL:
             plot_title += f" {self.bin_limits}"
-        plt.title(plot_title, fontsize=TITLE_FONTSIZE)
+        plt.title(plot_title, fontsize = TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize=AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"g1 (detector coordinates)", fontsize=AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(f"g1 (detector coordinates)", fontsize = AXISLABEL_FONTSIZE)
 
         # Draw the x axis
         self.draw_x_axis()
@@ -181,10 +173,12 @@ class CtiGalPlotter(ValidationPlotter):
         self.reset_axes()
 
         # Write the bias
-        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"], horizontalalignment='left', verticalalignment='top',
-                     transform=self.ax.transAxes, fontsize=TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"], horizontalalignment='left', verticalalignment='top',
-                     transform=self.ax.transAxes, fontsize=TEXT_SIZE)
+        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"], horizontalalignment = 'left',
+                     verticalalignment = 'top',
+                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
+        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"], horizontalalignment = 'left',
+                     verticalalignment = 'top',
+                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
