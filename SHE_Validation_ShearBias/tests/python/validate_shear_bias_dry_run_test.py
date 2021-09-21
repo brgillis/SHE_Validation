@@ -23,29 +23,26 @@ __updated__ = "2021-08-31"
 import os
 import subprocess
 
+import numpy as np
+import pytest
+from astropy.table import Table
+
 from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
-                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
-                                                        )
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        ShearEstimationMethods, )
 from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import write_config, read_config
+from SHE_PPT.pipeline_utility import read_config, write_config
 from SHE_PPT.table_utility import SheTableFormat
-from astropy.table import Table
-import pytest
-
-from SHE_Validation.constants.default_config import (ValidationConfigKeys,
-                                                     ExecutionMode)
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                                                          D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
-                                                                          D_SHEAR_BIAS_CONFIG_TYPES)
+from SHE_Validation.constants.default_config import (ExecutionMode, ValidationConfigKeys)
+from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                                          D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                                          D_SHEAR_BIAS_CONFIG_TYPES, )
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
-import numpy as np
 
 logger = getLogger(__name__)
-
 
 # Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
@@ -87,7 +84,7 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
     rng = np.random.default_rng(seed)
 
     # Create the table
-    matched_table = tf.init_table(size=NUM_TEST_POINTS)
+    matched_table = tf.init_table(size = NUM_TEST_POINTS)
 
     # Fill in rows with input data
     matched_table[tf.tu_gamma1] = -np.linspace(INPUT_G_MIN, INPUT_G_MAX, NUM_TEST_POINTS)
@@ -96,7 +93,7 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
 
     # Generate random noise for output data
     l_extra_g_err = EXTRA_EST_G_ERR + EXTRA_EST_G_ERR_ERR * rng.standard_normal(NUM_TEST_POINTS)
-    l_g_err = np.sqrt(EST_G_ERR**2 + l_extra_g_err**2)
+    l_g_err = np.sqrt(EST_G_ERR ** 2 + l_extra_g_err ** 2)
     l_g1_deviates = l_g_err * rng.standard_normal(NUM_TEST_POINTS)
     l_g2_deviates = l_g_err * rng.standard_normal(NUM_TEST_POINTS)
 
@@ -105,7 +102,7 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
     matched_table[tf.g2] = G2_C + G2_M * matched_table[tf.tu_gamma2] + l_g2_deviates
     matched_table[tf.g1_err] = l_g_err
     matched_table[tf.g2_err] = l_g_err
-    matched_table[tf.weight] = 0.5 * l_g_err**-2
+    matched_table[tf.weight] = 0.5 * l_g_err ** -2
 
     return matched_table
 
@@ -113,6 +110,10 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
 class Args(object):
     """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
     """
+
+    bootstrap_errors = None
+    max_g_in = None
+    require_fitclass_zero = None
 
     def __init__(self):
         self.matched_catalog = MATCHED_CATALOG_PRODUCT_FILENAME
@@ -150,45 +151,45 @@ class TestCase:
             os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_FILENAME))
             os.remove(os.path.join(cls.args.workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
 
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(autouse = True)
     def setup(self, tmpdir):
         self.workdir = tmpdir.strpath
         self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok=True)
+        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
 
         # Set up the args to pass to the task
         self.args.workdir = self.workdir
         self.args.logdir = self.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 4.,
-                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
-                     config_filename=PIPELINE_CONFIG_FILENAME,
-                     workdir=self.args.workdir,
-                     config_keys=ValidationConfigKeys)
+        write_config(config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : 4.,
+                                    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
+                     config_filename = PIPELINE_CONFIG_FILENAME,
+                     workdir = self.args.workdir,
+                     config_keys = ValidationConfigKeys)
 
         # Write the matched catalog we'll be using and its data product
         matched_table = make_mock_matched_table()
         matched_table.write(os.path.join(self.workdir, MATCHED_CATALOG_FILENAME))
 
         matched_table_product = products.she_measurements.create_dpd_she_measurements()
-        matched_table_product.set_method_filename(method=TEST_METHOD, filename=MATCHED_CATALOG_FILENAME)
-        write_xml_product(matched_table_product, MATCHED_CATALOG_PRODUCT_FILENAME, workdir=self.workdir)
+        matched_table_product.set_method_filename(method = TEST_METHOD, filename = MATCHED_CATALOG_FILENAME)
+        write_xml_product(matched_table_product, MATCHED_CATALOG_PRODUCT_FILENAME, workdir = self.workdir)
 
     def test_shear_bias_dry_run(self):
 
         # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
         self.args.pipeline_config = read_config(None,
-                                                workdir=self.args.workdir,
-                                                defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                                d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
-                                                parsed_args=self.args,
-                                                config_keys=ValidationConfigKeys,
-                                                d_types=D_SHEAR_BIAS_CONFIG_TYPES)
+                                                workdir = self.args.workdir,
+                                                defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                d_cline_args = D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                parsed_args = self.args,
+                                                config_keys = ValidationConfigKeys,
+                                                d_types = D_SHEAR_BIAS_CONFIG_TYPES)
 
         # Call to validation function
-        validate_shear_bias_from_args(self.args, mode=ExecutionMode.LOCAL)
+        validate_shear_bias_from_args(self.args, mode = ExecutionMode.LOCAL)
 
     def test_shear_bias_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
@@ -198,15 +199,15 @@ class TestCase:
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
         self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
-                                                workdir=self.args.workdir,
-                                                defaults=D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                                d_cline_args=D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
-                                                parsed_args=self.args,
-                                                config_keys=ValidationConfigKeys,
-                                                d_types=D_SHEAR_BIAS_CONFIG_TYPES)
+                                                workdir = self.args.workdir,
+                                                defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                d_cline_args = D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                parsed_args = self.args,
+                                                config_keys = ValidationConfigKeys,
+                                                d_types = D_SHEAR_BIAS_CONFIG_TYPES)
 
         # Call to validation function
-        validate_shear_bias_from_args(self.args, mode=ExecutionMode.LOCAL)
+        validate_shear_bias_from_args(self.args, mode = ExecutionMode.LOCAL)
 
         # Check the resulting data product and plot exist
 
@@ -215,7 +216,7 @@ class TestCase:
 
         assert os.path.isfile(output_filename)
 
-        p = read_xml_product(xml_filename=output_filename)
+        p = read_xml_product(xml_filename = output_filename)
 
         test_list = p.Data.ValidationTestList
         plot_filename = None
@@ -229,7 +230,7 @@ class TestCase:
             figures_tarball_filename = test.AnalysisResult.AnalysisFiles.Figures.FileName
 
             for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-                subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+                subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell = True)
 
             qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
             logger.info(f"Opening file: {qualified_directory_filename}")
