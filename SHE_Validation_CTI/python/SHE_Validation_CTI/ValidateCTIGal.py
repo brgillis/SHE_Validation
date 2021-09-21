@@ -52,22 +52,14 @@ def defineSpecificProgramOptions():
 
     logger.debug('# Entering SHE_Validation_ValidateCTIGal defineSpecificProgramOptions()')
 
-    parser = ValidationArgumentParser(bin_limits_args = True)
+    # Set up the argument parser, using built-in methods where possible
+    parser = ValidationArgumentParser()
 
-    # Required input arguments
-
-    parser.add_argument('--vis_calibrated_frame_listfile', type = str,
-                        help = 'INPUT: .json listfile containing filenames of exposure image products.')
-
-    parser.add_argument('--mer_final_catalog_listfile', type = str,
-                        help = 'INPUT: .json listfile containing filenames of mer final catalogs.')
-
-    parser.add_argument('--she_validated_measurements_product', type = str,
-                        help = 'INPUT: Filename of the cross-validated shear measurements .xml data product.')
-
-    # Use default to allow simple running with default values
-    parser.add_argument('--mdb', type = str, default = None,
-                        help = 'INPUT: Mission Database .xml file')
+    parser.add_calibrated_frame_arg()
+    parser.add_final_catalog_arg()
+    parser.add_measurements_arg()
+    parser.add_mdb_arg()
+    parser.add_bin_parameter_args()
 
     # Output arguments
 

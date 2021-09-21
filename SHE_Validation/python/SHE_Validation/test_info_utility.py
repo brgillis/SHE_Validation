@@ -20,33 +20,18 @@ __updated__ = "2021-08-06"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import argparse
 from copy import deepcopy
 from typing import Iterable, List, Union
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.utility import coerce_to_list
-
-from SHE_Validation.constants.test_info import BinParameterMeta
-
-from .constants.test_info import BinParameters, TestCaseInfo, D_BIN_PARAMETER_META
-
-
-def add_bin_limits_cline_args(parser: argparse.ArgumentParser,
-                              l_bin_parameters: Iterable[BinParameters] = BinParameters):
-    """ Adds bin limits arguments to an argument parser.
-    """
-
-    for bin_parameter in l_bin_parameters:
-        bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
-        parser.add_argument('--' + bin_parameter_meta.cline_arg, type=str, default=None,
-                            help=bin_parameter_meta.help_text)
+from .constants.test_info import BinParameters, TestCaseInfo
 
 
 def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
                                  l_bin_parameters: Iterable[BinParameters] = BinParameters) -> List[TestCaseInfo]:
-    """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the provided
-        list.
+    """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the
+        provided list.
     """
 
     # Silently coerce test_case_info into a list
@@ -101,8 +86,8 @@ def make_test_case_info_for_bins_and_methods(test_case_info: Union[TestCaseInfo,
 
 def find_test_case_info(l_test_case_info: List[TestCaseInfo],
                         methods: Union[None, str, List[str]] = None,
-                        bin_parameters:  Union[None, BinParameters, List[BinParameters]] = None,
-                        return_one=False) -> Union[List[TestCaseInfo], TestCaseInfo]:
+                        bin_parameters: Union[None, BinParameters, List[BinParameters]] = None,
+                        return_one = False) -> Union[List[TestCaseInfo], TestCaseInfo]:
     """ Finds all test_case_info in the provided list matching the method and bin_parameter provided, and returns as a
         list.
 
@@ -111,8 +96,8 @@ def find_test_case_info(l_test_case_info: List[TestCaseInfo],
     """
 
     # Make sure methods and bin_parameters input are always lists if they aren't None
-    l_methods: List[str] = coerce_to_list(methods, keep_none=True)
-    l_bin_parameters: List[BinParameters] = coerce_to_list(bin_parameters, keep_none=True)
+    l_methods: List[str] = coerce_to_list(methods, keep_none = True)
+    l_bin_parameters: List[BinParameters] = coerce_to_list(bin_parameters, keep_none = True)
 
     # Init list which will store all matching test cases
     l_matching_test_case_info: List[TestCaseInfo] = []

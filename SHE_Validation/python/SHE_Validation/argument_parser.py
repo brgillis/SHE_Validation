@@ -21,21 +21,38 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.argument_parser import SheArgumentParser
-from .test_info_utility import add_bin_limits_cline_args
+from .constants.test_info import BinParameterMeta, BinParameters, D_BIN_PARAMETER_META
 
 
 class ValidationArgumentParser(SheArgumentParser):
     """ Argument parser specialized for SHE Validation executables.
     """
 
-    def __init__(self,
-                 bin_parameter_args: bool = True,
-                 matched_catalog_arg: bool = False, ):
+    def __init__(self):
         super().__init__()
 
-        if matched_catalog_arg:
-            self.add_argument('--matched_catalog_listfile', type = str,
-                              help = 'Filename of .json listfile pointing to matched catalog products.')
+    def add_bin_parameter_args(self):
+        for bin_parameter in BinParameters:
+            bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
+            self.add_argument('--' + bin_parameter_meta.cline_arg, type = str, default = None,
+                              help = bin_parameter_meta.help_text)
 
-        if bin_parameter_args:
-            add_bin_limits_cline_args(self)
+    def add_mdb_arg(self):
+        self.add_argument('--mdb', type = str, default = None,
+                          help = 'INPUT: Mission Database .xml file')
+
+    def add_measurements_arg(self):
+        self.add_argument('--she_validated_measurements_product', type = str,
+                          help = 'INPUT: Filename of the cross-validated shear measurements .xml data product.')
+
+    def add_final_catalog_arg(self):
+        self.add_argument('--mer_final_catalog_listfile', type = str,
+                          help = 'INPUT: .json listfile containing filenames of mer final catalogs.')
+
+    def add_calibrated_frame_arg(self):
+        self.add_argument('--vis_calibrated_frame_listfile', type = str,
+                          help = 'INPUT: .json listfile containing filenames of exposure image products.')
+
+    def add_matched_catalog_arg(self) -> None:
+        self.add_argument('--matched_catalog_listfile', type = str,
+                          help = 'INPUT: Filename of .json listfile pointing to matched catalog products.')

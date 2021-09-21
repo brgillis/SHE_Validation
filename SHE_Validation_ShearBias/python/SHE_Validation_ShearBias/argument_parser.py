@@ -28,10 +28,13 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
     """
 
     def __init__(self):
-        super().__init__(bin_parameter_args = True,
-                         matched_catalog_arg = True, )
+        super().__init__()
+
+        self.add_bin_parameter_args()
+        self.add_matched_catalog_arg()
 
         # Output filenames
         self.add_argument('--shear_bias_validation_test_results_product', type = str,
                           default = "shear_bias_validation_test_results_product.xml",
-                          help = 'Desired filename for output shear bias validation test results (XML data product).')
+                          help = 'OUTPUT: Desired filename for output shear bias validation test results (XML data '
+                                 'product).')

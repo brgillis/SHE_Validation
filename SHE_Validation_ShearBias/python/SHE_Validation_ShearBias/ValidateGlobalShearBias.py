@@ -27,7 +27,7 @@ from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
 from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation.test_info_utility import add_bin_limits_cline_args
+from SHE_Validation.constants.test_info import BinParameterMeta, BinParameters, D_BIN_PARAMETER_META
 from SHE_Validation_ShearBias.argument_parser import ShearValidationArgumentParser
 from . import __version__
 from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS, D_SHEAR_BIAS_CONFIG_DEFAULTS,
@@ -54,11 +54,16 @@ def defineSpecificProgramOptions():
 
     parser = ShearValidationArgumentParser()
 
-    add_bin_limits_cline_args(parser)
+    for bin_parameter in BinParameters:
 
-    logger.debug('Exiting SHE_Validation_ValidateGlobalShearBias defineSpecificProgramOptions()')
 
-    return parser
+bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
+parser.add_argument('--' + bin_parameter_meta.cline_arg, type = str, default = None,
+                    help = bin_parameter_meta.help_text)
+
+logger.debug('Exiting SHE_Validation_ValidateGlobalShearBias defineSpecificProgramOptions()')
+
+return parser
 
 
 def mainMethod(args):
