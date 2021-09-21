@@ -20,22 +20,18 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.argument_parser import SheArgumentParser
-from .test_info_utility import add_bin_limits_cline_args
+from SHE_Validation.argument_parser import ValidationArgumentParser
 
 
-class ValidationArgumentParser(SheArgumentParser):
+class ShearValidationArgumentParser(ValidationArgumentParser):
     """ Argument parser specialized for SHE Validation executables.
     """
 
-    def __init__(self,
-                 bin_parameter_args: bool = True,
-                 matched_catalog_arg: bool = False, ):
-        super().__init__()
+    def __init__(self):
+        super().__init__(bin_parameter_args = True,
+                         matched_catalog_arg = True, )
 
-        if matched_catalog_arg:
-            self.add_argument('--matched_catalog_listfile', type = str,
-                              help = 'Filename of .json listfile pointing to matched catalog products.')
-
-        if bin_parameter_args:
-            add_bin_limits_cline_args(self)
+        # Output filenames
+        self.add_argument('--shear_bias_validation_test_results_product', type = str,
+                          default = "shear_bias_validation_test_results_product.xml",
+                          help = 'Desired filename for output shear bias validation test results (XML data product).')
