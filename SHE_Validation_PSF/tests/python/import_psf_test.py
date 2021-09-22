@@ -1,9 +1,9 @@
-""" @file import_test.py
+""" @file import_psf_test.py
 
     Created 20 August 2021
 
     This module tests importing all modules in each package, to make sure nothing obvious goes wrong, even if the code
-    is otherwise untested. 
+    is otherwise untested.
 """
 
 __updated__ = "2021-08-20"
@@ -20,9 +20,6 @@ __updated__ = "2021-08-20"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-from SHE_Validation_ShearBias import *
-from SHE_Validation_ShearBias.constants import *
 
 
 class TestImports():
