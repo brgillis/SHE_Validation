@@ -28,6 +28,7 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults, linregress_with_errors
+from SHE_PPT.utility import coerce_to_list
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
@@ -117,9 +118,9 @@ class CtiGalPlotter(ValidationPlotter):
         """ Plot CTI-Gal validation test data.
         """
 
-        l_rr_dist: Sequence[float] = self.t_good[CGOD_TF.readout_dist]
-        l_g1: Sequence[float] = self.t_good[self.g1_colname]
-        l_g1_err: Sequence[float] = 1 / np.sqrt(self.t_good[self.weight_colname])
+        l_rr_dist: Sequence[float] = np.array(coerce_to_list(self.t_good[CGOD_TF.readout_dist]))
+        l_g1: Sequence[float] = np.array(coerce_to_list(self.t_good[self.g1_colname]))
+        l_g1_err: Sequence[float] = np.array(coerce_to_list(1 / np.sqrt(self.t_good[self.weight_colname])))
 
         # Check if there's any valid data for this bin
         if len(l_rr_dist) <= 1:
