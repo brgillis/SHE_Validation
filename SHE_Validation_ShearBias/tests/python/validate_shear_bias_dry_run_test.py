@@ -22,10 +22,13 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
+from argparse import ArgumentParser
+from typing import Optional
 
 import numpy as np
 import pytest
 from astropy.table import Table
+from dataclasses import dataclass
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
@@ -33,7 +36,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import read_config, write_config
-from SHE_PPT.table_utility import SheTableFormat
+from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_Validation.constants.default_config import (ExecutionMode, ValidationConfigKeys)
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
                                                                           D_SHEAR_BIAS_CONFIG_DEFAULTS,
@@ -75,7 +78,7 @@ G2_M = -0.1
 G2_C = 0.01
 
 
-def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
+def make_mock_matched_table(tf: SheTUMatchedFormat = MATCHED_TF,
                             seed: int = EST_SEED) -> Table:
     """ Function to generate a mock matched catalog table.
     """
@@ -107,36 +110,39 @@ def make_mock_matched_table(tf: SheTableFormat = MATCHED_TF,
     return matched_table
 
 
-class Args(object):
+@dataclass
+class Args(ArgumentParser):
     """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
     """
 
-    bootstrap_errors = None
-    max_g_in = None
-    require_fitclass_zero = None
+    workdir: str  # Needs to be set in setup_class
+    logdir: str  # Needs to be set in setup_class
+
+    bootstrap_errors: Optional[bool] = None
+    max_g_in: Optional[float] = None
+    require_fitclass_zero: Optional[bool] = None
+
+    matched_catalog: str = MATCHED_CATALOG_PRODUCT_FILENAME
+    pipeline_config: str = PIPELINE_CONFIG_FILENAME
+    shear_bias_validation_test_results_product: str = SHE_BIAS_TEST_RESULT_FILENAME
+
+    profile: bool = False
+    dry_run: bool = True
 
     def __init__(self):
-        self.matched_catalog = MATCHED_CATALOG_PRODUCT_FILENAME
-        self.pipeline_config = PIPELINE_CONFIG_FILENAME
-        self.shear_bias_validation_test_results_product = SHE_BIAS_TEST_RESULT_FILENAME
-
-        self.profile = False
-        self.dry_run = True
+        super().__init__()
 
         for test_case_info in FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO:
             bin_limits_cline_arg = test_case_info.bins_cline_arg
             if bin_limits_cline_arg is not None:
                 setattr(self, bin_limits_cline_arg, None)
 
-        self.workdir = None  # Needs to be set in setup_class
-        self.logdir = None  # Needs to be set in setup_class
-
 
 class TestCase:
     """
-
-
     """
+
+    args: Args
 
     @classmethod
     def setup_class(cls):
