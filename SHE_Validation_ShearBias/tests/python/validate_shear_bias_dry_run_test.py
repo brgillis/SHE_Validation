@@ -38,6 +38,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import read_config, write_config
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_Validation.constants.default_config import (ExecutionMode, ValidationConfigKeys)
+from SHE_Validation_ShearBias.ValidateShearBias import mainMethod as validate_shear_bias_main
 from SHE_Validation_ShearBias.constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
                                                                           D_SHEAR_BIAS_CONFIG_DEFAULTS,
                                                                           D_SHEAR_BIAS_CONFIG_TYPES, )
@@ -204,16 +205,10 @@ class TestCase:
 
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
-        self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
-                                                workdir = self.args.workdir,
-                                                defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                                d_cline_args = D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
-                                                parsed_args = self.args,
-                                                config_keys = ValidationConfigKeys,
-                                                d_types = D_SHEAR_BIAS_CONFIG_TYPES)
+        self.args.pipeline_config = PIPELINE_CONFIG_FILENAME
 
         # Call to validation function
-        validate_shear_bias_from_args(self.args, mode = ExecutionMode.LOCAL)
+        validate_shear_bias_main(self.args)
 
         # Check the resulting data product and plot exist
 
