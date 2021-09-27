@@ -4,37 +4,6 @@
 
     Unit tests of the results_reporting.py module
 """
-from collections import namedtuple
-from copy import deepcopy
-import os
-from typing import NamedTuple
-
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import _make_config_from_defaults, GlobalConfigKeys, ValidationConfigKeys
-import pytest
-
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
-from SHE_Validation.constants.default_config import FailSigmaScaling
-from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.results_writer import (RESULT_PASS, RESULT_FAIL,
-                                           INFO_MULTIPLE, WARNING_TEST_NOT_RUN, WARNING_MULTIPLE,
-                                           KEY_REASON, DESC_NOT_RUN_REASON, MSG_NO_DATA, MSG_NOT_IMPLEMENTED,
-                                           WARNING_BAD_DATA,)
-from SHE_Validation_CTI.constants.cti_gal_default_config import D_CTI_GAL_CONFIG_DEFAULTS,\
-    D_CTI_GAL_CONFIG_TYPES
-from SHE_Validation_CTI.constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
-                                                            CTI_GAL_REQUIREMENT_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES)
-from SHE_Validation_CTI.results_reporting import (fill_cti_gal_validation_results,
-                                                  KEY_SLOPE_INFO, KEY_INTERCEPT_INFO,
-                                                  DESC_SLOPE_INFO, DESC_INTERCEPT_INFO,
-                                                  MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
-                                                  FailSigmaCalculator)
-from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
-import numpy as np
-
 
 __updated__ = "2021-08-27"
 
@@ -51,6 +20,30 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+from copy import deepcopy
+from typing import NamedTuple
+
+import numpy as np
+import pytest
+
+from SHE_PPT import products
+from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.logging import getLogger
+from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, _make_config_from_defaults
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR, FailSigmaScaling
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MSG_NOT_IMPLEMENTED,
+                                           MSG_NO_DATA, RESULT_FAIL, RESULT_PASS, WARNING_BAD_DATA, WARNING_MULTIPLE,
+                                           WARNING_TEST_NOT_RUN, )
+from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS,
+                                                                 D_CTI_GAL_CONFIG_TYPES, )
+from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO, L_CTI_GAL_TEST_CASE_INFO,
+                                                            NUM_CTI_GAL_TEST_CASES, )
+from SHE_Validation_CTI.results_reporting import (DESC_INTERCEPT_INFO, DESC_SLOPE_INFO, FailSigmaCalculator,
+                                                  KEY_INTERCEPT_INFO, KEY_SLOPE_INFO, MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
+                                                  fill_cti_gal_validation_results, )
+from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
@@ -61,16 +54,16 @@ class TestCase:
 
     """
 
-    @pytest.fixture(autouse=True)
+    @pytest.fixture(autouse = True)
     def setup(self, tmpdir):
 
         self.workdir = tmpdir.strpath
         os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        self.pipeline_config = _make_config_from_defaults(config_keys=(GlobalConfigKeys, ValidationConfigKeys,),
-                                                          defaults=D_CTI_GAL_CONFIG_DEFAULTS,
-                                                          d_types=D_CTI_GAL_CONFIG_TYPES)
+        self.pipeline_config = _make_config_from_defaults(config_keys = (GlobalConfigKeys, ValidationConfigKeys,),
+                                                          defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                          d_types = D_CTI_GAL_CONFIG_TYPES)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
 
         # Make a dictionary of bin limits
@@ -83,7 +76,7 @@ class TestCase:
                 bin_limits_string = D_CTI_GAL_CONFIG_DEFAULTS[bins_config_key]
 
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype=float)
+            bin_limits_array = np.array(bin_limits_list, dtype = float)
 
             self.d_bin_limits[test_case_info.bins] = bin_limits_array
 
@@ -97,9 +90,9 @@ class TestCase:
 
         # Test with no scaling - all sigma should be unchanged
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
-        ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
-                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_bin_limits=self.d_bin_limits)
+        ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
+                                                       l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                       d_bin_limits = self.d_bin_limits)
 
         for test_case in L_CTI_GAL_TEST_CASE_INFO:
             assert np.isclose(ns_fail_sigma_calculator.d_scaled_local_sigma[test_case.name], base_local_fail_sigma)
@@ -108,17 +101,17 @@ class TestCase:
         # Test with other scaling types, and check that the fail sigmas increase with number of tries
 
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.BINS
-        bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
-                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits=self.d_bin_limits)
+        bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
+                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_bin_limits = self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASES
-        tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
-                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_bin_limits=self.d_bin_limits)
+        tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
+                                                       l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                       d_bin_limits = self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_BINS
-        tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
-                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits=self.d_bin_limits)
+        tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
+                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_bin_limits = self.d_bin_limits)
 
         first_tc_global_fail_sigma = None
         first_tc_local_fail_sigma = None
@@ -184,7 +177,7 @@ class TestCase:
         exp_product_list = [None] * num_exposures
 
         # Set up mock input data and fill the products for each set of possible results
-        base_exp_results_table = RR_TF.init_table(product_type="EXP", size=len(exp_results_list))
+        base_exp_results_table = RR_TF.init_table(product_type = "EXP", size = len(exp_results_list))
 
         d_exp_results_tables = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
@@ -212,15 +205,15 @@ class TestCase:
         # Set up the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests=NUM_CTI_GAL_TEST_CASES)
+                num_tests = NUM_CTI_GAL_TEST_CASES)
 
-            fill_cti_gal_validation_results(test_result_product=exp_product,
-                                            regression_results_row_index=exp_index,
-                                            d_regression_results_tables=d_exp_results_tables,
-                                            pipeline_config=self.pipeline_config,
-                                            d_bin_limits=self.d_bin_limits,
-                                            workdir=self.workdir,
-                                            method_data_exists=True)
+            fill_cti_gal_validation_results(test_result_product = exp_product,
+                                            regression_results_row_index = exp_index,
+                                            d_regression_results_tables = d_exp_results_tables,
+                                            pipeline_config = self.pipeline_config,
+                                            d_bin_limits = self.d_bin_limits,
+                                            workdir = self.workdir,
+                                            method_data_exists = True)
 
             exp_product_list[exp_index] = exp_product
 
@@ -352,23 +345,23 @@ class TestCase:
         assert MSG_NAN_SLOPE in exp_slope_info_string
 
         # With the observation, test saying we have no data
-        obs_results_table = RR_TF.init_table(product_type="OBS", size=1)
+        obs_results_table = RR_TF.init_table(product_type = "OBS", size = 1)
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests=NUM_CTI_GAL_TEST_CASES)
+            num_tests = NUM_CTI_GAL_TEST_CASES)
 
         d_obs_results_tables = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
             d_obs_results_tables[test_case_info.name] = [obs_results_table] * num_bins
 
-        fill_cti_gal_validation_results(test_result_product=obs_product,
-                                        regression_results_row_index=exp_index,
-                                        d_regression_results_tables=d_obs_results_tables,
-                                        pipeline_config=self.pipeline_config,
-                                        d_bin_limits=self.d_bin_limits,
-                                        workdir=self.workdir,
-                                        method_data_exists=False)
+        fill_cti_gal_validation_results(test_result_product = obs_product,
+                                        regression_results_row_index = exp_index,
+                                        d_regression_results_tables = d_obs_results_tables,
+                                        pipeline_config = self.pipeline_config,
+                                        d_bin_limits = self.d_bin_limits,
+                                        workdir = self.workdir,
+                                        method_data_exists = False)
 
         # Check that the product validates its binding
         obs_product.validateBinding()

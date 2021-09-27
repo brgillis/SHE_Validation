@@ -22,27 +22,24 @@ __updated__ = "2021-08-27"
 
 from enum import Enum
 
-from SHE_Validation.constants.test_info import RequirementInfo, TestInfo, TestCaseInfo,\
-    BinParameters
-from SHE_Validation.test_info_utility import make_test_case_info_for_methods,\
-    make_test_case_info_for_bins_and_methods
-
+from SHE_Validation.constants.test_info import (BinParameters, RequirementInfo, TestCaseInfo, TestInfo)
+from SHE_Validation.test_info_utility import (make_test_case_info_for_bins_and_methods, make_test_case_info_for_methods)
 
 # Metadata about the requirements
-SHEAR_BIAS_M_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-070",
-                                                description=("Multiplicative bias mu of shear measurement "
-                                                             "<2x10^-3."),
-                                                parameter=("Z-value for measured multiplicative bias compared to "
-                                                           "target value of <2x10^-3."))
-SHEAR_BIAS_C_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-080",
-                                                description=("Additive bias c of shear measurement "
-                                                             "<1x10^-4"),
-                                                parameter=("Z-value for measured additive bias compared to "
-                                                           "target value of <1x10^-4."))
+SHEAR_BIAS_M_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-CAL-F-070",
+                                                description = ("Multiplicative bias mu of shear measurement "
+                                                               "<2x10^-3."),
+                                                parameter = ("Z-value for measured multiplicative bias compared to "
+                                                             "target value of <2x10^-3."))
+SHEAR_BIAS_C_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-CAL-F-080",
+                                                description = ("Additive bias c of shear measurement "
+                                                               "<1x10^-4"),
+                                                parameter = ("Z-value for measured additive bias compared to "
+                                                             "target value of <1x10^-4."))
 
 # Metadata about the test
-SHEAR_BIAS_TEST_INFO = TestInfo(test_id="T-SHE-000006-shear-bias",
-                                description=("Multiplicative and additive bias of shear estimation."))
+SHEAR_BIAS_TEST_INFO = TestInfo(test_id = "T-SHE-000006-shear-bias",
+                                description = ("Multiplicative and additive bias of shear estimation."))
 
 
 class ShearBiasTestCases(Enum):
@@ -53,13 +50,13 @@ class ShearBiasTestCases(Enum):
 
 
 M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
-BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id=M_TEST_CASE_ID,
-                                                base_description=("Multiplicative shear bias."),
-                                                bins=BinParameters.GLOBAL)
+BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id = M_TEST_CASE_ID,
+                                                base_description = ("Multiplicative shear bias."),
+                                                bins = BinParameters.GLOBAL)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
-BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id=C_TEST_CASE_ID,
-                                                base_description=("Additive shear bias."),
-                                                bins=BinParameters.GLOBAL,)
+BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id = C_TEST_CASE_ID,
+                                                base_description = ("Additive shear bias."),
+                                                bins = BinParameters.GLOBAL, )
 
 # Create lists of the test case info for just m, just c, and combined
 L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
@@ -69,16 +66,16 @@ L_SHEAR_BIAS_TEST_CASE_INFO = [*L_SHEAR_BIAS_TEST_CASE_M_INFO, *L_SHEAR_BIAS_TES
 FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])
 
 NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_M_INFO)
-NUM_SHEAR_BIAS_M_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_C_INFO)
+NUM_SHEAR_BIAS_C_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_C_INFO)
 NUM_SHEAR_BIAS_TEST_CASES = len(L_SHEAR_BIAS_TEST_CASE_INFO)
 
 
 def get_prop_from_id(test_case_id: str):
     """ Utility function to determine whether a test case refers to M or C from the test case ID.
     """
-    if M_TEST_CASE_ID in test_case_info.id:
+    if M_TEST_CASE_ID in test_case_id:
         return ShearBiasTestCases.M
-    elif C_TEST_CASE_ID in test_case_info.id:
+    elif C_TEST_CASE_ID in test_case_id:
         return ShearBiasTestCases.C
     else:
         raise ValueError(f"Unrecognized test case ID: {test_case_id}")
