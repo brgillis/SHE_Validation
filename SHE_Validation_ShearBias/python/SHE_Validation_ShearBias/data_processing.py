@@ -20,22 +20,19 @@ __updated__ = "2021-08-31"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Sequence, Optional, Any
+from typing import Any, Dict, List, Optional, Sequence
 
-from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
-                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
-from SHE_PPT.logging import getLogger
-from SHE_PPT.math import (BiasMeasurements, linregress_with_errors,
-                          LinregressResults)
-from SHE_PPT.pipeline_utility import ValidationConfigKeys, ConfigKeys
-from SHE_PPT.table_utility import SheTableFormat
-from astropy.table import Column, Table
-from SHE_Validation.binning.bin_constraints import BinnedMultiTableLoader,\
-    BinConstraint
-
-from SHE_Validation.constants.test_info import TestCaseInfo, BinParameters
 import numpy as np
+from astropy.table import Column, Table
 
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        ShearEstimationMethods, )
+from SHE_PPT.logging import getLogger
+from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_errors)
+from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.table_utility import SheTableFormat
+from SHE_Validation.binning.bin_constraints import BinConstraint, BinParameterBinConstraint, BinnedMultiTableLoader
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 
 logger = getLogger(__name__)
 
@@ -48,7 +45,7 @@ SIGMA_DIGITS: int = 1
 ERR_MUST_LOAD = "Most load data with load_ids or load_all before accessing this attribute."
 
 
-class ShearBiasDataLoader():
+class ShearBiasDataLoader:
     """ Class to load in needed data for shear bias data processing.
     """
 
@@ -73,7 +70,7 @@ class ShearBiasDataLoader():
     def __init__(self,
                  l_filenames: Sequence[str],
                  workdir: str,
-                 method: ShearEstimationMethods):
+                 method: ShearEstimationMethods, ):
 
         # Set attributes from args
         self.l_filenames = l_filenames
@@ -81,8 +78,8 @@ class ShearBiasDataLoader():
         self.method = method
 
         # Create a table loader with this list of filenames
-        self._table_loader = BinnedMultiTableLoader(l_filenames=self.l_filenames,
-                                                    workdir=self.workdir)
+        self._table_loader = BinnedMultiTableLoader(l_filenames = self.l_filenames,
+                                                    workdir = self.workdir)
 
         # Determine the table format
         self._sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
@@ -126,12 +123,11 @@ class ShearBiasDataLoader():
         self._d_g_out_err = d_g_out_err
 
     # Private methods
-    def __clear(self):
-        if self.table_loaded:
-            self.table_loaded = False
-            self.d_g_in = None
-            self.d_g_out = None
-            self.d_g_out_err = None
+
+    def __decache(self) -> None:
+        self.d_g_in = None
+        self.d_g_out = None
+        self.d_g_out_err = None
 
     # Protected methods
 
@@ -145,12 +141,12 @@ class ShearBiasDataLoader():
         # If no tables were loaded, set up empty data
         if self.table is None:
 
-            self._d_g_in = {1: np.array([], dtype=float),
-                            2: np.array([], dtype=float)}
-            self._d_g_out = {1: np.array([], dtype=float),
-                             2: np.array([], dtype=float)}
-            self._d_g_out_err = {1: np.array([], dtype=float),
-                                 2: np.array([], dtype=float)}
+            self._d_g_in = {1: np.array([], dtype = float),
+                            2: np.array([], dtype = float)}
+            self._d_g_out = {1: np.array([], dtype = float),
+                             2: np.array([], dtype = float)}
+            self._d_g_out_err = {1: np.array([], dtype = float),
+                                 2: np.array([], dtype = float)}
 
             return
 
@@ -170,25 +166,25 @@ class ShearBiasDataLoader():
         self._d_g_out_err = {1: l_g1_out_err,
                              2: l_g2_out_err}
 
-    # Public loading methods
+    # Public methods
 
     def load_ids(self,
                  l_ids: Sequence[int],
                  *args, **kwargs) -> None:
-        self.__clear()
-        self.table = self.get_ids(l_ids=l_ids, *args, **kwargs)
+        self.__decache()
+        self.table = self.get_ids(l_ids = l_ids, *args, **kwargs)
         self.table_loaded = True
 
     def load_all(self, *args, **kwargs):
-        self.__clear()
+        self.__decache()
         self.table = self.get_all(*args, **kwargs)
         self.table_loaded = True
 
     def load_for_bin_constraint(self,
                                 bin_constraint: BinConstraint,
                                 *args, **kwargs):
-        self.__clear()
-        self.table = self.get_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
+        self.__decache()
+        self.table = self.get_for_bin_constraint(bin_constraint = bin_constraint, *args, **kwargs)
         self.table_loaded = True
 
     def get_all(self, *args, **kwargs) -> Table:
@@ -197,15 +193,21 @@ class ShearBiasDataLoader():
     def get_ids(self,
                 l_ids: Sequence[int],
                 *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_ids(l_ids=l_ids, *args, **kwargs)
+        return self._table_loader.get_table_for_ids(l_ids = l_ids, *args, **kwargs)
 
     def get_for_bin_constraint(self,
                                bin_constraint: BinConstraint,
                                *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
+        return self._table_loader.get_table_for_bin_constraint(bin_constraint = bin_constraint, *args, **kwargs)
+
+    def clear(self):
+        if self.table_loaded:
+            self.table_loaded = False
+            self._table_loader.close_all()
+            self.__decache()
 
 
-class ShearBiasTestCaseDataProcessor():
+class ShearBiasTestCaseDataProcessor:
     """ Class to handle and perform calculations for an individual Shear Bias Test Case.
     """
 
@@ -216,50 +218,57 @@ class ShearBiasTestCaseDataProcessor():
     # Attributes set directly at init
     data_loader: ShearBiasDataLoader
     test_case_info: TestCaseInfo
+    l_bin_limits: Sequence[float]
     bootstrap_errors: bool = False
     max_g_in: float = 1.0
 
     # Attributes determined at init
     method: ShearEstimationMethods
     bin_parameter: BinParameters
+    num_bins: int
 
     # Intermediate attributes set when loading data
-    bin_index: Optional[int] = None
-    gal_matched_table: Table
+    _bin_index: Optional[int] = None
+    _bin_limits: Sequence[float]
+    _gal_matched_table: Table
 
     # Intermediate attributes determined when processing data
     _sem_tf: SheTableFormat
     _good_rows: Sequence[bool]
     _fitclass_zero_rows: Sequence[bool]
 
-    # Output attributes
-    _d_g_in: Optional[Dict[int, Sequence[float]]] = None
-    _d_g_out: Optional[Dict[int, Sequence[float]]] = None
-    _d_g_out_err: Optional[Dict[int, Sequence[float]]] = None
-    _d_bias_measurements: Optional[Dict[int, BiasMeasurements]] = None
-    _d_linregress_results: Optional[Dict[int, LinregressResults]] = None
-    _d_bias_strings: Optional[Dict[str, str]] = None
+    # Output attributes - each are list (for bin limits): component index: value
+    _l_d_g_in: Optional[List[Dict[int, Sequence[float]]]] = None
+    _l_d_g_out: Optional[List[Dict[int, Sequence[float]]]] = None
+    _l_d_g_out_err: Optional[List[Dict[int, Sequence[float]]]] = None
+    _l_d_bias_measurements: Optional[List[Dict[int, BiasMeasurements]]] = None
+    _l_d_linregress_results: Optional[List[Dict[int, LinregressResults]]] = None
+
+    # list (for bin limits): component string: value
+    _l_d_bias_strings: Optional[List[Dict[str, str]]] = None
 
     def __init__(self,
                  data_loader: ShearBiasDataLoader,
                  test_case_info: TestCaseInfo,
-                 bin_index: int = 0,
-                 pipeline_config: Optional[Dict[ConfigKeys, Any]] = None,) -> None:
+                 l_bin_limits: Sequence[float],
+                 pipeline_config: Optional[Dict[ConfigKeys, Any]] = None, ) -> None:
 
         # Set attrs directly
         self.data_loader = data_loader
         self.test_case_info = test_case_info
+        self.l_bin_limits = l_bin_limits
         if pipeline_config:
             self.bootstrap_errors = pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
             self.max_g_in = pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN]
 
         # Sanity check on method
-        assert self.test_case_info.method == self.data_loader.method
+        if self.test_case_info.method != self.data_loader.method:
+            raise ValueError(f"Method from test_case_info ({self.test_case_info.method}) differs from method from "
+                             f"data loader ({self.data_loader.method}).")
 
         # Get values from the test_case_info
         self.method = test_case_info.method
         self.bin_parameter = test_case_info.bin_parameter
-        self.bin_index = bin_index
 
         # Determine table format
         self._sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
@@ -283,64 +292,62 @@ class ShearBiasTestCaseDataProcessor():
         return self.data_loader.d_g_out_err
 
     @property
-    def d_bias_measurements(self) -> Dict[int, BiasMeasurements]:
-        if not self._d_bias_measurements:
+    def l_d_bias_measurements(self) -> List[Dict[int, BiasMeasurements]]:
+        if not self._l_d_bias_measurements:
             self.calc()
-        return self._d_bias_measurements
-
-    @d_bias_measurements.setter
-    def d_bias_measurements(self, d_bias_measurements) -> None:
-        self._d_bias_measurements = d_bias_measurements
+        return self._l_d_bias_measurements
 
     @property
-    def d_linregress_results(self) -> Dict[int, LinregressResults]:
-        if not self._d_linregress_results:
+    def l_d_linregress_results(self) -> List[Dict[int, LinregressResults]]:
+        if not self._l_d_linregress_results:
             self.calc()
-        return self._d_linregress_results
+        return self._l_d_linregress_results
 
     @property
-    def d_bias_strings(self) -> Dict[str, str]:
-        if not self._d_bias_strings:
+    def l_d_bias_strings(self) -> List[Dict[str, str]]:
+        if not self._l_d_bias_strings:
             self.calc()
-        return self._d_bias_strings
-
-    @d_bias_strings.setter
-    def d_bias_strings(self, d_bias_strings) -> None:
-        self._d_bias_strings = d_bias_strings
+        return self._l_d_bias_strings
 
     # Private methods
 
     def _calc_component_shear_bias(self,
-                                   i: int):
+                                   bin_index: int,
+                                   component_index: int):
         """ Calculate shear bias for an individual component.
         """
 
         # Get data limited to the rows where g_in is less than the allowed max
-        g = np.sqrt(self.d_g_in[1]**2 + self.d_g_in[2]**2)
+        g = np.sqrt(self.d_g_in[1] ** 2 + self.d_g_in[2] ** 2)
         good_g_in_rows = g < self.max_g_in
 
-        g_in = self.d_g_in[i][good_g_in_rows]
-        g_out = self.d_g_out[i][good_g_in_rows]
-        g_out_err = self.d_g_out_err[i][good_g_in_rows]
+        # Limit the data to that in the current bin
+        bin_constraint = BinParameterBinConstraint(test_case_info = self.test_case_info,
+                                                   bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
+        self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+
+        g_in = self.d_g_in[component_index][good_g_in_rows]
+        g_out = self.d_g_out[component_index][good_g_in_rows]
+        g_out_err = self.d_g_out_err[component_index][good_g_in_rows]
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
         if not self.bootstrap_errors:
 
-            linregress_results = linregress_with_errors(x=g_in,
-                                                        y=g_out,
-                                                        y_err=g_out_err)
+            linregress_results = linregress_with_errors(x = g_in,
+                                                        y = g_out,
+                                                        y_err = g_out_err)
 
         else:
 
-            g_table = Table([g_in, g_out, g_out_err], names=("g_in", "g_out", "g_out_err"))
+            g_table = Table([g_in, g_out, g_out_err], names = ("g_in", "g_out", "g_out_err"))
 
             # Seed the random number generator
             np.random.seed(self.bootstrap_seed)
 
             # Get a base object for the m and c calculations
-            linregress_results = linregress_with_errors(x=g_table["g_in"],
-                                                        y=g_table["g_out"],
-                                                        y_err=g_table["g_out_err"])
+            linregress_results = linregress_with_errors(x = g_table["g_in"],
+                                                        y = g_table["g_out"],
+                                                        y_err = g_table["g_out_err"])
 
             # Bootstrap to get errors on slope and intercept
             n_sample = len(g_table)
@@ -349,9 +356,9 @@ class ShearBiasTestCaseDataProcessor():
             intercept_bs = np.empty(self.n_bootstrap)
             for b_i in range(self.n_bootstrap):
                 u = np.random.randint(0, n_sample, n_sample)
-                linregress_results_bs = linregress_with_errors(x=g_table[u]["g_in"],
-                                                               y=g_table[u]["g_out"],
-                                                               y_err=g_table[u]["g_out_err"])
+                linregress_results_bs = linregress_with_errors(x = g_table[u]["g_in"],
+                                                               y = g_table[u]["g_out"],
+                                                               y_err = g_table[u]["g_out_err"])
                 slope_bs[b_i] = linregress_results_bs.slope
                 intercept_bs[b_i] = linregress_results_bs.intercept
 
@@ -359,41 +366,38 @@ class ShearBiasTestCaseDataProcessor():
             linregress_results.slope_err = np.std(slope_bs)
             linregress_results.intercept_err = np.std(intercept_bs)
 
-        self._d_linregress_results[i] = linregress_results
+        self._l_d_linregress_results[bin_index][component_index] = linregress_results
 
         bias = BiasMeasurements(linregress_results)
-        self._d_bias_measurements[i] = bias
+        self._l_d_bias_measurements[bin_index][component_index] = bias
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Bias measurements for method {self.method.value}:")
-        if self._d_bias_strings is None:
-            self._d_bias_strings = {}
         for a, d in ("c", C_DIGITS), ("m", M_DIGITS):
-            self._d_bias_strings[f"{a}{i}"] = (f"{a}{i} = {getattr(bias,a):.{d}f} +/- {getattr(bias,f'{a}_err'):.{d}f} "
-                                               f"({getattr(bias,f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
-            logger.info(self._d_bias_strings[f"{a}{i}"])
+            self._l_d_bias_strings[bin_index][f"{a}{component_index}"] = (
+                f"{a}{component_index} = {getattr(bias, a):.{d}f} +/- {getattr(bias, f'{a}_err'):.{d}f} "
+                f"({getattr(bias, f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
+            logger.info(self._l_d_bias_strings[bin_index][f"{a}{component_index}"])
 
     # Public methods
-
-    def load_all(self, *args, **kwargs) -> None:
-        self.data_loader.load_all(*args, **kwargs)
-
-    def load_ids(self,
-                 l_ids: Sequence[int],
-                 *args, **kwargs) -> None:
-        self.data_loader.load_ids(l_ids=l_ids, *args, **kwargs)
 
     def calc(self) -> None:
         """ Performs data processing, calculating bias measurements and other output data.
         """
 
-        # Init empty dicts for intermediate data used when plotting
-        self._d_bias_measurements: Dict[int, BiasMeasurements] = {}
+        # Init empty lists for output data
+        self._l_d_bias_measurements = [None] * self.num_bins
+        self._l_d_linregress_results = [None] * self.num_bins
+        self._l_d_bias_strings = [None] * self.num_bins
 
-        # Init empty dicts for output data
-        self._d_linregress_results = {}
-        self._d_bias_measurements = {}
+        for bin_index in range(self.num_bins):
 
-        for i in (1, 2):
+            # Init empty dicts for output data for this bin
+            self._l_d_bias_measurements[bin_index] = {}
+            self._l_d_linregress_results[bin_index] = {}
+            self._l_d_bias_strings[bin_index] = {}
 
-            self._calc_component_shear_bias(i)
+            for component_index in (1, 2):
+
+                self._calc_component_shear_bias(bin_index = bin_index,
+                                                component_index = component_index, )

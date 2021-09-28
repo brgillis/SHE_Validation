@@ -47,6 +47,9 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     """ @TODO Fill in docstring
     """
 
+    # Get the bin limits from the pipeline_config
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_bin_limits(args.pipeline_config)
+
     # Get the list of matched catalog products to be read in, depending on mode
     if mode == ExecutionMode.LOCAL:
         # In local mode, read in the one product and put it in a list of one item
@@ -121,6 +124,8 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
             shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
                                                                        test_case_info = test_case_info,
+                                                                       l_bin_limits = d_l_bin_limits[
+                                                                           test_case_info.name],
                                                                        pipeline_config = args.pipeline_config)
             shear_bias_data_processor.calc()
 
@@ -161,12 +166,10 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
     # Fill in the products with the results
     if not args.dry_run:
-        d_bin_limits: Dict[BinParameters, np.ndarray] = get_d_bin_limits(args.pipeline_config)
-
         # And fill in the observation product
         fill_shear_bias_test_results(test_result_product = test_result_product,
                                      workdir = args.workdir,
-                                     d_bin_limits = d_bin_limits,
+                                     d_bin_limits = d_l_bin_limits,
                                      d_bias_measurements = d_d_bias_measurements,
                                      pipeline_config = args.pipeline_config,
                                      dl_l_figures = d_d_plot_filenames,

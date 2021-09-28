@@ -824,7 +824,7 @@ class BinnedMultiTableLoader(MultiTableLoader):
     def get_table_for_ids(self,
                           l_ids: Sequence[int],
                           keep_open: bool = True,
-                          *args, **kwargs) -> Table:
+                          *args, **kwargs) -> Optional[Table]:
         """ Get a table with only objects with IDs in the list.
         """
 
