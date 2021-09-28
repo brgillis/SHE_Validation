@@ -69,12 +69,12 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
     # Attributes set and used while writing
     prop: Optional[ShearBiasTestCases] = None
-    val: Optional[Dict[int, float]] = None
-    val_err: Optional[Dict[int, float]] = None
-    val_target: Optional[float] = None
-    val_z: Optional[Dict[int, float]] = None
+    l_val: Optional[Dict[int, float]] = None
+    l_val_err: Optional[Dict[int, float]] = None
+    l_val_target: Optional[float] = None
+    l_val_z: Optional[Dict[int, float]] = None
     fail_sigma: Optional[float] = None
-    test_pass: Optional[Dict[int, bool]] = None
+    l_test_pass: Optional[Dict[int, bool]] = None
     result: Optional[Dict[int, str]] = None
     good_data: Optional[Dict[int, bool]] = None
 
@@ -171,18 +171,18 @@ class ShearBiasRequirementWriter(RequirementWriter):
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
               prop: Optional[ShearBiasTestCases] = None,
-              val: Optional[Dict[int, float]] = None,
-              val_err: Optional[Dict[int, float]] = None,
-              val_target: Optional[float] = None,
-              val_z: Optional[Dict[int, float]] = None,
+              l_val: Optional[List[Dict[int, float]]] = None,
+              l_val_err: Optional[List[Dict[int, float]]] = None,
+              l_val_target: Optional[List[float]] = None,
+              l_val_z: Optional[List[Dict[int, float]]] = None,
               fail_sigma: Optional[float] = None,
               report_kwargs: Optional[Dict[str, Any]] = None) -> str:
 
         self.prop = prop
-        self.val = val
-        self.val_err = val_err
-        self.val_target = val_target
-        self.val_z = val_z
+        self.l_val = l_val
+        self.l_val_err = l_val_err
+        self.l_val_target = l_val_target
+        self.l_val_z = l_val_z
         self.fail_sigma = fail_sigma
 
         # If report method is supplied, go with that rather than figuring it out
@@ -219,19 +219,21 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         self.requirement_object.MeasuredValue[0].Parameter = parameter
 
+        # TODO: Make sure this works for lists of values
+
         # Check for data quality issues and report as proper if found
-        if self.val_err[1] == 0 or self.val_err[2] == 0:
+        if self.l_val_err[1] == 0 or self.l_val_err[2] == 0:
             report_method = self.report_zero_err
             extra_report_kwargs = {}
-        elif (any_is_inf_or_nan((self.val[1], self.val_err[1])) and
-              any_is_inf_or_nan((self.val[2], self.val_err[2]))):
+        elif (any_is_inf_or_nan((self.l_val[1], self.l_val_err[1])) and
+              any_is_inf_or_nan((self.l_val[2], self.l_val_err[2]))):
             report_method = self.report_bad_data
             extra_report_kwargs = {}
         else:
             report_method = self.report_good_data
 
             # Report the maximum z as the measured value for this test
-            extra_report_kwargs = {"measured_value": np.nanmax((self.val_z[1], self.val_z[2]))}
+            extra_report_kwargs = {"measured_value": np.nanmax((self.l_val_z[1], self.l_val_z[2]))}
 
         return super().write(result = result,
                              report_method = report_method,
@@ -278,14 +280,11 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
     # Types of child classes
     test_case_writer_type = ShearBiasTestCaseWriter
 
-    def __init__(self,
-                 test_object: dpdSheValidationTestResults,
-                 workdir: str,
-                 d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
-                 fail_sigma_calculator: FailSigmaCalculator,
-                 method_data_exists: bool = True,
-                 mode: ExecutionMode = ExecutionMode,
-                 *args, **kwargs):
+    def __init__(self, test_object: dpdSheValidationTestResults, workdir: str,
+                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
+                 d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                 fail_sigma_calculator: FailSigmaCalculator, method_data_exists: bool = True,
+                 mode: ExecutionMode = ExecutionMode, *args, **kwargs):
 
         super().__init__(test_object = test_object,
                          workdir = workdir,
@@ -293,7 +292,8 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                          dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO,
                          *args, **kwargs)
 
-        self.d_bias_measurements = d_bias_measurements
+        self.d_l_d_bias_measurements = d_l_d_bias_measurements
+        self.d_l_bin_limits = d_l_bin_limits
         self.fail_sigma_calculator = fail_sigma_calculator
         self.method_data_exists = method_data_exists
         self.mode = mode
@@ -307,6 +307,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
         for test_case_info, test_case_writer in zip(self.l_test_case_info, self.l_test_case_writers):
 
             test_case_name = test_case_info.name
+            l_bin_limits = self.d_l_bin_limits[test_case_info.bins]
 
             # Get whether this relates to m or c from the test case info's test_case_id's last letter
             prop = get_prop_from_id(test_case_info.id).value
@@ -318,27 +319,38 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
             if (self.method_data_exists and test_case_info.bins != BinParameters.EPOCH and
-                    test_case_name in self.d_bias_measurements):
+                    test_case_name in self.d_l_d_bias_measurements):
 
-                d_test_case_bias_measurements = self.d_bias_measurements[test_case_name]
+                num_bins = len(l_bin_limits) - 1
 
-                val = {1: getattr(d_test_case_bias_measurements[1], prop),
-                       2: getattr(d_test_case_bias_measurements[2], prop)}
-                val_err = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
-                           2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
-                val_target = getattr(d_test_case_bias_measurements[1], f"{prop}_target")
-                val_z = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
-                         2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
+                l_val = [None] * num_bins
+                l_val_err = [None] * num_bins
+                l_val_target = [None] * num_bins
+                l_val_z = [None] * num_bins
+
+                l_d_bias_measurements = self.d_l_d_bias_measurements[test_case_name]
+
+                for bin_index in range(num_bins):
+
+                    d_test_case_bias_measurements = l_d_bias_measurements[bin_index]
+
+                    l_val[bin_index] = {1: getattr(d_test_case_bias_measurements[1], prop),
+                                        2: getattr(d_test_case_bias_measurements[2], prop)}
+                    l_val_err[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
+                                            2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
+                    l_val_target[bin_index] = getattr(d_test_case_bias_measurements[1], f"{prop}_target")
+                    l_val_z[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
+                                          2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
 
                 report_method = None
                 report_kwargs = {}
-                write_kwargs = {"have_data" : True,
-                                "prop"      : prop,
-                                "val"       : val,
-                                "val_err"   : val_err,
-                                "val_target": val_target,
-                                "val_z"     : val_z,
-                                "fail_sigma": fail_sigma}
+                write_kwargs = {"have_data"   : True,
+                                "prop"        : prop,
+                                "l_val"       : l_val,
+                                "l_val_err"   : l_val_err,
+                                "l_val_target": l_val_target,
+                                "l_val_z"     : l_val_z,
+                                "fail_sigma"  : fail_sigma}
 
             else:
                 # Report that the test wasn't run due to a lack of data
@@ -353,30 +365,29 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
 
 def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
-                                 d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]],
+                                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
                                  pipeline_config: Dict[ConfigKeys, Any],
-                                 d_bin_limits: Dict[BinParameters, np.ndarray],
-                                 workdir: str,
-                                 dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                     List[Union[Dict[str, str], List[str]]],] = None,
-                                 method_data_exists: bool = True,
-                                 mode: ExecutionMode = ExecutionMode.LOCAL):
+                                 d_l_bin_limits: Dict[BinParameters, np.ndarray], workdir: str,
+                                 dl_dl_plot_filenames: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                             List[Union[Dict[str, str], List[str]]],] = None,
+                                 method_data_exists: bool = True, mode: ExecutionMode = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
                                                 l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO,
-                                                d_bin_limits = d_bin_limits,
+                                                d_bin_limits = d_l_bin_limits,
                                                 mode = mode)
 
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object = test_result_product,
                                                            workdir = workdir,
-                                                           d_bias_measurements = d_bias_measurements,
+                                                           d_l_d_bias_measurements = d_l_d_bias_measurements,
+                                                           d_l_bin_limits = d_l_bin_limits,
                                                            fail_sigma_calculator = fail_sigma_calculator,
                                                            method_data_exists = method_data_exists,
-                                                           dl_l_figures = dl_l_figures,
-                                                           mode = mode)
+                                                           mode = mode,
+                                                           dl_l_figures = dl_dl_plot_filenames)
 
     test_results_writer.write()

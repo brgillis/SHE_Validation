@@ -89,8 +89,8 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     # Test case name: plot label: filename
     d_d_plot_filenames: Dict[str, Dict[str, str]] = {}
 
-    # Test case name: component index: bias measurements
-    d_d_bias_measurements: Dict[str, Dict[int, BiasMeasurements]] = {}
+    # Test case name: bin index: component index: bias measurements
+    d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {}
 
     # Keep track if we have valid data for any method
     data_exists: bool = False
@@ -122,29 +122,32 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
             data_loader: ShearBiasDataLoader = d_data_loaders[method]
             data_loader.load_all()
 
+            l_bin_limits = d_l_bin_limits[test_case_info.name]
+
             shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
                                                                        test_case_info = test_case_info,
-                                                                       l_bin_limits = d_l_bin_limits[
-                                                                           test_case_info.name],
+                                                                       l_bin_limits = l_bin_limits,
                                                                        pipeline_config = args.pipeline_config)
             shear_bias_data_processor.calc()
 
-            shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor)
-            shear_bias_plotter.plot()
+            # Plot for each bin index
+            for bin_index in range(len(l_bin_limits) - 1):
+                shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor)
+                shear_bias_plotter.plot()
 
-            # Component index: filename
-            d_method_bias_plot_filename: Dict[int, str] = shear_bias_plotter.d_bias_plot_filename
+                # Component index: filename
+                d_method_bias_plot_filename: Dict[int, str] = shear_bias_plotter.d_bias_plot_filename
 
-            d_d_bias_measurements[test_case_name] = shear_bias_data_processor.d_bias_measurements
+                d_l_d_bias_measurements[test_case_name] = shear_bias_data_processor.l_d_bias_measurements
 
-            # Get the name of the corresponding C test case, and store the info for that too
-            c_test_case_name: str = L_SHEAR_BIAS_TEST_CASE_C_INFO[test_case_index].name
-            d_d_bias_measurements[c_test_case_name] = shear_bias_data_processor.d_bias_measurements
+                # Get the name of the corresponding C test case, and store the info for that too
+                c_test_case_name: str = L_SHEAR_BIAS_TEST_CASE_C_INFO[test_case_index].name
+                d_l_d_bias_measurements[c_test_case_name] = shear_bias_data_processor.l_d_bias_measurements
 
-            # Save the filename for each component plot
-            for i in d_method_bias_plot_filename:
-                plot_label: str = f"{method.value}-{bin_parameter.value}-g{i}"
-                test_case_plot_filenames[plot_label] = d_method_bias_plot_filename[i]
+                # Save the filename for each component plot
+                for i in d_method_bias_plot_filename:
+                    plot_label: str = f"{method.value}-{bin_parameter.value}-{bin_index}-g{i}"
+                    test_case_plot_filenames[plot_label] = d_method_bias_plot_filename[i]
 
         except Exception as e:
             import traceback
@@ -168,11 +171,11 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     if not args.dry_run:
         # And fill in the observation product
         fill_shear_bias_test_results(test_result_product = test_result_product,
-                                     workdir = args.workdir,
-                                     d_bin_limits = d_l_bin_limits,
-                                     d_bias_measurements = d_d_bias_measurements,
+                                     d_l_d_bias_measurements = d_l_d_bias_measurements,
                                      pipeline_config = args.pipeline_config,
-                                     dl_l_figures = d_d_plot_filenames,
+                                     d_l_bin_limits = d_l_bin_limits,
+                                     workdir = args.workdir,
+                                     dl_dl_plot_filenames = d_d_plot_filenames,
                                      method_data_exists = data_exists,
                                      mode = mode)
 
