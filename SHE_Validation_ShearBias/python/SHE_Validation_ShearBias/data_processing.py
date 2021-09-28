@@ -266,9 +266,11 @@ class ShearBiasTestCaseDataProcessor:
             raise ValueError(f"Method from test_case_info ({self.test_case_info.method}) differs from method from "
                              f"data loader ({self.data_loader.method}).")
 
-        # Get values from the test_case_info
+        # Get values from the input
         self.method = test_case_info.method
         self.bin_parameter = test_case_info.bin_parameter
+        self.num_bins = len(self.l_bin_limits) - 1
+        assert self.num_bins >= 1
 
         # Determine table format
         self._sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
