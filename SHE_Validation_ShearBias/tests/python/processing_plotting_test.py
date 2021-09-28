@@ -330,7 +330,8 @@ class TestShearBias:
 
         # Run the plotting
 
-        plotter = ShearBiasPlotter(data_processor = self.mock_data_processor)
+        plotter = ShearBiasPlotter(data_processor = self.mock_data_processor,
+                                   bin_index = 0)
         plotter.plot()
 
         # Check the results
