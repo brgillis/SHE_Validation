@@ -26,7 +26,6 @@ from typing import Dict
 from SHE_PPT import file_io, products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.utility import is_any_type_of_none
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
@@ -39,28 +38,9 @@ from .results_reporting import fill_shear_bias_test_results
 logger = getLogger(__name__)
 
 
-def fix_pipeline_config_types(pipeline_config):
-    """ Fixes data types in the pipeline config so they aren't all just strings.
-    """
-
-    pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN] = float(
-        pipeline_config[ValidationConfigKeys.SBV_MAX_G_IN])
-    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS], bool):
-        pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS] = (
-                pipeline_config[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS].lower() in ['true', 't'])
-    if not isinstance(pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO], bool):
-        pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO] = (
-                pipeline_config[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO].lower() in ['true', 't'])
-
-    return pipeline_config
-
-
 def validate_shear_bias_from_args(args, mode):
     """ @TODO Fill in docstring
     """
-
-    # Fix types in the pipeline_config
-    pipeline_config = fix_pipeline_config_types(args.pipeline_config)
 
     # Get the list of matched catalog products to be read in, depending on mode
     if mode == ExecutionMode.LOCAL:
@@ -129,7 +109,7 @@ def validate_shear_bias_from_args(args, mode):
 
             shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
                                                                        test_case_info = test_case_info,
-                                                                       pipeline_config = pipeline_config)
+                                                                       pipeline_config = args.pipeline_config)
             shear_bias_data_processor.calc()
 
             shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor)
@@ -174,7 +154,7 @@ def validate_shear_bias_from_args(args, mode):
                                      workdir = args.workdir,
                                      d_bin_limits = d_bin_limits,
                                      d_bias_measurements = d_bias_measurements,
-                                     pipeline_config = pipeline_config,
+                                     pipeline_config = args.pipeline_config,
                                      dl_l_figures = d_d_plot_filenames,
                                      method_data_exists = data_exists,
                                      mode = mode)
