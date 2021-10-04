@@ -29,7 +29,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.utility import is_inf_or_nan, is_zero
-from SHE_Validation.constants.default_config import ExecutionMode
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NO_DATA, RESULT_PASS,
                                            RequirementWriter, SupplementaryInfo, TestCaseWriter,
@@ -291,6 +291,13 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.method = method
         self.bin_parameter = bin_parameter
         self.l_bin_limits = l_bin_limits
+        if self.l_bin_limits is not None:
+            self.num_bins = len(self.l_bin_limits) - 1
+            if not self.num_bins >= 1:
+                raise ValueError(f"Too few bins in bin limits: {self.l_bin_limits}.")
+        else:
+            self.num_bins = 1
+            self.l_bin_limits = DEFAULT_BIN_LIMITS
 
         # If report method is supplied, go with that rather than figuring it out
         if report_method:
@@ -323,7 +330,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
         l_bad_val_err: np.ndarray = l_f_for_1_or_2(is_inf_or_nan, self.l_d_val_err)
 
         def logical_not_a_b_or_c(a, b, c):
-            return ~np.logical_or(a, np.logical_or(b, c))
+            return np.logical_not(np.logical_or(a, np.logical_or(b, c)))
 
         # Mark which bins/components have good data
         self.l_good_data = logical_not_a_b_or_c(l_zero_err, l_bad_val, l_bad_val_err)

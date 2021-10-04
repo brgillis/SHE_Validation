@@ -122,7 +122,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
             data_loader: ShearBiasDataLoader = d_data_loaders[method]
             data_loader.load_all()
 
-            l_bin_limits = d_l_bin_limits[test_case_info.name]
+            l_bin_limits = d_l_bin_limits[test_case_info.bins]
 
             shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
                                                                        test_case_info = test_case_info,
@@ -132,7 +132,8 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
             # Plot for each bin index
             for bin_index in range(len(l_bin_limits) - 1):
-                shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor)
+                shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor,
+                                                      bin_index = bin_index)
                 shear_bias_plotter.plot()
 
                 # Component index: filename

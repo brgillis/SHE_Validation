@@ -21,7 +21,7 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import NamedTuple
+from typing import Dict, List, NamedTuple
 
 import numpy as np
 import pytest
@@ -105,18 +105,18 @@ class TestCase:
         lmc_global_c_name: str = lmc_global_c_test_case_info.name
 
         # Fill the bias measurements with mock data
-        d_bias_measurements = {}
+        d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {}
 
-        d_bias_measurements[lmc_global_m_name] = {1: BiasMeasurements(RegResults(1.1, 0.03, 0.002, 0.0003, 0)),
-                                                  2: BiasMeasurements(RegResults(0.9, 0.01, -0.002, 0.0004, 0))}
-        d_bias_measurements[lmc_global_c_name] = d_bias_measurements[lmc_global_m_name]
+        d_l_d_bias_measurements[lmc_global_m_name] = [{1: BiasMeasurements(RegResults(1.1, 0.03, 0.002, 0.0003, 0)),
+                                                       2: BiasMeasurements(RegResults(0.9, 0.01, -0.002, 0.0004, 0))}]
+        d_l_d_bias_measurements[lmc_global_c_name] = d_l_d_bias_measurements[lmc_global_m_name]
 
         # Set up the output data product
         sb_test_results_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests = NUM_SHEAR_BIAS_TEST_CASES)
 
         fill_shear_bias_test_results(test_result_product = sb_test_results_product,
-                                     d_l_d_bias_measurements = d_bias_measurements,
+                                     d_l_d_bias_measurements = d_l_d_bias_measurements,
                                      pipeline_config = self.pipeline_config, d_l_bin_limits = self.d_bin_limits,
                                      workdir = self.workdir, dl_dl_plot_filenames = None, method_data_exists = True,
                                      mode = ExecutionMode.LOCAL)
