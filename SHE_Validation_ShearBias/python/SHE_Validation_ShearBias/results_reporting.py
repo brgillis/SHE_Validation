@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 
@@ -28,12 +28,13 @@ from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
-from SHE_PPT.utility import any_is_inf_or_nan
+from SHE_PPT.utility import is_inf_or_nan, is_zero
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NO_DATA, RESULT_FAIL, RESULT_PASS,
                                            RequirementWriter, SupplementaryInfo, TestCaseWriter,
-                                           ValidationResultsWriter, WARNING_MULTIPLE, )
+                                           ValidationResultsWriter, WARNING_MULTIPLE, check_test_pass,
+                                           check_test_pass_if_data, get_result_string, )
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import get_prop_from_id
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from .constants.shear_bias_test_info import (D_L_SHEAR_BIAS_REQUIREMENT_INFO, L_SHEAR_BIAS_TEST_CASE_INFO,
@@ -62,25 +63,121 @@ SHEAR_BIAS_DIRECTORY_HEADER = "### OU-SHE Shear Bias Analysis Results File Direc
 
 REPORT_DIGITS = 8
 
+# Type definitions for types used here
+TK = TypeVar('TK')
+TV = TypeVar('TV')
+TIn = TypeVar('TIn')
+TOut = TypeVar('TOut')
+Number = TypeVar('Number', float, int)
+ComponentDict = Dict[int, Number]
+
+
+def get_l_of_component(l_d_x: Sequence[Dict[TK, TV]], i: TK) -> List[TV]:
+    l_xi: List[TV] = [d_x[i] for d_x in l_d_x]
+    return l_xi
+
+
+def get_t_l_of_components_1_2(l_d_x: Sequence[Dict[int, TV]]) -> Tuple[List[TV], List[TV]]:
+    l_x1: List[TV] = get_l_of_component(l_d_x, 1)
+    l_x2: List[TV] = get_l_of_component(l_d_x, 2)
+    return l_x1, l_x2
+
+
+def map_for_1_2(f: Callable[[TIn], TOut], *l_l_d_x: Sequence[Dict[int, TIn]]) -> List[Dict[int, TOut]]:
+    """ Maps a function to lists of components 1 and 2.
+    """
+
+    l_l_x1: List[Optional[Sequence[TIn]]] = [None] * len(l_l_d_x)
+    l_l_x2: List[Optional[Sequence[TIn]]] = [None] * len(l_l_d_x)
+    for i, l_d_x in enumerate(l_l_d_x):
+        l_l_x1[i], l_l_x2[i] = get_t_l_of_components_1_2(l_d_x)
+
+    l_y1, l_y2 = map(f, *l_l_x1), map(f, *l_l_x2)
+    l_d_y = [{1: y1, 2: y2} for y1, y2 in zip(l_y1, l_y2)]
+
+    return l_d_y
+
+
+# Utility function to simplify tests on values that have components 1 and 2
+def f_for_1_or_2(f: Callable[[Number], bool], d_x: ComponentDict):
+    return f(d_x[1]) or f(d_x[2])
+
+
+# Utility function to simplify tests on values that have components 1 and 2
+def f_for_1_and_2(f: Callable[[Number], bool], d_x: ComponentDict):
+    return f(d_x[1]) and f(d_x[2])
+
+
+# Utility function to simplify tests on values that have components 1 and 2
+def l_f_for_1_or_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
+    l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
+    l_b1, l_b2 = map(f, l_x1), map(f, l_x2)
+    return np.logical_or(l_b1, l_b2)
+
+
+# Utility function to simplify tests on values that have components 1 and 2
+def l_f_for_1_and_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
+    l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
+    l_b1, l_b2 = map(f, l_x1), map(f, l_x2)
+    return np.logical_and(l_b1, l_b2)
+
 
 class ShearBiasRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
 
+    # Attributes set directly at init
+    method: ShearEstimationMethods
+    bin_parameter: BinParameters
+    bin_limits: Sequence[float]
+
+    # Attributes determined at init
+    num_bins: int
+
     # Attributes set and used while writing
     prop: Optional[ShearBiasTestCases] = None
-    l_val: Optional[Dict[int, float]] = None
-    l_val_err: Optional[Dict[int, float]] = None
-    l_val_target: Optional[float] = None
-    l_val_z: Optional[Dict[int, float]] = None
+    l_d_val: Optional[Sequence[Dict[int, float]]] = None
+    l_d_val_err: Optional[Sequence[Dict[int, float]]] = None
+    l_d_val_target: Optional[Sequence[Dict[int, float]]] = None
+    l_d_val_z: Optional[Sequence[Dict[int, float]]] = None
     fail_sigma: Optional[float] = None
-    l_test_pass: Optional[Dict[int, bool]] = None
-    result: Optional[Dict[int, str]] = None
-    good_data: Optional[Dict[int, bool]] = None
+
+    # Which component(s) have at least some good data / pass / result?
+    d_good_data: Optional[Dict[int, bool]] = None
+    d_test_pass: Optional[Dict[int, bool]] = None
+    d_result: Optional[Dict[int, str]] = None
+
+    # Which bin(s) have at least some good data / pass / result?
+    l_good_data: Optional[Sequence[bool]] = None
+    l_test_pass: Optional[Sequence[bool]] = None
+    l_result: Optional[Sequence[str]] = None
+
+    # Which bin(s) for which component(s) have good data / pass / result?
+    l_d_good_data: Optional[Sequence[Dict[int, bool]]] = None
+    l_d_test_pass: Optional[Sequence[Dict[int, bool]]] = None
+    l_d_result: Optional[Sequence[Dict[int, str]]] = None
+
+    # Is there any good data?
+    good_data: Optional[bool] = None
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 bin_parameter: BinParameters,
+                 bin_limits: Sequence[float],
+                 *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.method = method
+        self.bin_parameter = bin_parameter
+        self.bin_limits = bin_limits
+        self.num_bins = len(bin_limits) - 1
+
+        if not self.num_bins > 0:
+            raise ValueError(f"List of bin limits is too short (>= 2 elements required): {bin_limits}")
 
     def _get_supplementary_info(self,
                                 extra_g1_message: str = "",
-                                extra_g2_message: str = "", ) -> SupplementaryInfo:
+                                extra_g2_message: str = "", ) -> Sequence[SupplementaryInfo]:
 
         # Check the extra messages and make sure they end in a linebreak
         if extra_g1_message != "" and extra_g1_message[-1:] != "\n":
@@ -88,16 +185,39 @@ class ShearBiasRequirementWriter(RequirementWriter):
         if extra_g2_message != "" and extra_g2_message[-1:] != "\n":
             extra_g2_message = extra_g2_message + "\n"
 
-        # Set up result messages for each component
-        d_messages: Dict[int, str] = {1: extra_g1_message + "\n",
-                                      2: extra_g2_message + "\n"}
-        for i in (1, 2):
+        method_bin_message: str = (f"Test results for method {self.method.value}, with {self.bin_parameter.value} "
+                                   f"bins.\n")
 
-            d_messages[i] += (f"{self.prop}{i} = {self.val[i]:.{REPORT_DIGITS}f}\n" +
-                              f"{self.prop}{i}_err = {self.val_err[i]:.{REPORT_DIGITS}f}\n" +
-                              f"{self.prop}{i}_z = {self.val_z[i]:.{REPORT_DIGITS}f}\n" +
-                              f"Maximum allowed {self.prop}_z = {self.fail_sigma:.{REPORT_DIGITS}f}\n" +
-                              f"Result: {self.result[i]}\n\n")
+        # Set up result messages for each component
+        d_messages: Dict[int, str] = {1: method_bin_message + extra_g1_message + "\n",
+                                      2: method_bin_message + extra_g2_message + "\n"}
+
+        # Report results for each bin of each component
+
+        for bin_index in range(self.num_bins):
+
+            d_val = self.l_d_val[bin_index]
+            d_val_err = self.l_d_val_err[bin_index]
+            d_val_z = self.l_d_val_z[bin_index]
+            d_result = self.l_d_result[bin_index]
+
+            bin_min = self.bin_limits[bin_index]
+            bin_max = self.bin_limits[bin_index + 1]
+
+            for component_index in (1, 2):
+
+                val = d_val[component_index]
+                val_err = d_val_err[component_index]
+                val_z = d_val_z[component_index]
+                result = d_result[component_index]
+
+                d_messages[component_index] += (
+                        f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+                        f"{self.prop}{component_index} = {val:.{REPORT_DIGITS}f}\n" +
+                        f"{self.prop}{component_index}_err = {val_err:.{REPORT_DIGITS}f}\n" +
+                        f"{self.prop}{component_index}_z = {val_z:.{REPORT_DIGITS}f}\n" +
+                        f"Maximum allowed {self.prop}_z = {self.fail_sigma:.{REPORT_DIGITS}f}\n" +
+                        f"Result: {result}\n\n")
 
         l_supplementary_info = (SupplementaryInfo(key = KEY_G1_INFO,
                                                   description = D_DESC_INFO[f"{self.prop}1"],
@@ -108,7 +228,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         return l_supplementary_info
 
-    def report_bad_data(self):
+    def report_bad_shear_bias_data(self):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         l_supplementary_info = self._get_supplementary_info(extra_g1_message = MSG_NAN_VAL,
@@ -126,11 +246,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.add_supplementary_info(self._get_supplementary_info(extra_g1_message = MSG_ZERO_ERR,
                                                                  extra_g2_message = MSG_ZERO_ERR, ))
 
-    def report_good_data(self,
-                         measured_value: float):
+    def report_good_shear_bias_data(self,
+                                    measured_value: float):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info: List[SupplementaryInfo] = self._get_supplementary_info()
+        l_supplementary_info: Sequence[SupplementaryInfo] = self._get_supplementary_info()
         super().report_good_data(measured_value = measured_value,
                                  warning = False,
                                  l_supplementary_info = l_supplementary_info)
@@ -139,50 +259,39 @@ class ShearBiasRequirementWriter(RequirementWriter):
         """ Calculate the test results
         """
 
-        # Init each of pass and result as empty dicts
-        self.test_pass = {}
-        self.result = {}
-        self.good_data = {}
-        some_good_data: bool = False
+        # Map the test check function to get the test pass results
+        self.l_d_test_pass = map_for_1_2(check_test_pass, self.l_d_val, self.l_d_val_err, self.l_d_val_z,
+                                         self.l_d_val_target)
+        l_d_test_pass_if_data = map_for_1_2(check_test_pass_if_data, self.l_d_val, self.l_d_val_err, self.l_d_val_z,
+                                            self.l_d_val_target, self.l_d_good_data)
+        self.d_test_pass = {1: np.all(get_l_of_component(l_d_test_pass_if_data, 1)),
+                            2: np.all(get_l_of_component(l_d_test_pass_if_data, 2))}
+        self.l_test_pass = list(map((lambda d_x: d_x[1] and d_x[2]), l_d_test_pass_if_data))
+        self.test_pass = self.d_test_pass[1] and self.d_test_pass[2]
 
-        for i in (1, 2):
-            if (np.isnan(self.val[i]) or np.isnan(self.val_err[i])):
-                self.test_pass[i] = False
-                self.good_data[i] = False
-            else:
-                self.test_pass[i] = self.val_z[i] < self.fail_sigma
-                self.good_data[i] = True
-                some_good_data = True
-            if self.test_pass[i]:
-                self.result[i] = RESULT_PASS
-            else:
-                self.result[i] = RESULT_FAIL
-
-        # Pass if there's at least some good data, and all good data passes
-        if (not some_good_data) or ((self.test_pass[1] or not self.good_data[1]) and
-                                    (self.test_pass[2] or not self.good_data[2])):
-            setattr(self, f"{prop}_pass", True)
-            setattr(self, f"{prop}_result", RESULT_PASS)
-        else:
-            setattr(self, f"{prop}_pass", False)
-            setattr(self, f"{prop}_result", RESULT_FAIL)
+        # Map the get_result_string function to get result strings
+        self.l_d_result = map_for_1_2(get_result_string, self.l_d_test_pass)
+        self.d_result = {1: get_result_string(self.d_test_pass[1]),
+                         2: get_result_string(self.d_test_pass[2]), }
+        self.l_result = list(map(get_result_string, self.l_test_pass))
+        self.result = get_result_string(self.test_pass)
 
     def write(self,
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
               prop: Optional[ShearBiasTestCases] = None,
-              l_val: Optional[List[Dict[int, float]]] = None,
-              l_val_err: Optional[List[Dict[int, float]]] = None,
-              l_val_target: Optional[List[float]] = None,
-              l_val_z: Optional[List[Dict[int, float]]] = None,
+              l_d_val: Optional[List[Dict[int, float]]] = None,
+              l_d_val_err: Optional[List[Dict[int, float]]] = None,
+              l_d_val_target: Optional[List[Dict[int, float]]] = None,
+              l_d_val_z: Optional[List[Dict[int, float]]] = None,
               fail_sigma: Optional[float] = None,
               report_kwargs: Optional[Dict[str, Any]] = None) -> str:
 
         self.prop = prop
-        self.l_val = l_val
-        self.l_val_err = l_val_err
-        self.l_val_target = l_val_target
-        self.l_val_z = l_val_z
+        self.l_d_val = l_d_val
+        self.l_d_val_err = l_d_val_err
+        self.l_d_val_target = l_d_val_target
+        self.l_d_val_z = l_d_val_z
         self.fail_sigma = fail_sigma
 
         # If report method is supplied, go with that rather than figuring it out
@@ -192,7 +301,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         # Default to reporting good data
         if report_method is None:
-            report_method = self.report_good_data
+            report_method = self.report_good_shear_bias_data
 
         # Default to empty dict for report_kwargs
         if report_kwargs is None:
@@ -222,18 +331,49 @@ class ShearBiasRequirementWriter(RequirementWriter):
         # TODO: Make sure this works for lists of values
 
         # Check for data quality issues and report as proper if found
-        if self.l_val_err[1] == 0 or self.l_val_err[2] == 0:
+
+        # Check for data quality issues in each bin, and each bin for each component separately
+        l_d_zero_err: List[Dict[int, bool]] = map_for_1_2(is_zero, self.l_d_val_err)
+        l_zero_err: np.ndarray = l_f_for_1_or_2(is_zero, self.l_d_val_err)
+
+        l_d_bad_val: List[Dict[int, bool]] = map_for_1_2(is_inf_or_nan, self.l_d_val)
+        l_bad_val: np.ndarray = l_f_for_1_or_2(is_inf_or_nan, self.l_d_val)
+
+        l_d_bad_val_err: List[Dict[int, bool]] = map_for_1_2(is_inf_or_nan, self.l_d_val_err)
+        l_bad_val_err: np.ndarray = l_f_for_1_or_2(is_inf_or_nan, self.l_d_val_err)
+
+        def logical_not_a_b_or_c(a, b, c):
+            return ~np.logical_or(a, np.logical_or(b, c))
+
+        # Mark which bins/components have good data
+        self.l_good_data = logical_not_a_b_or_c(l_zero_err, l_bad_val, l_bad_val_err)
+        self.l_d_good_data = map_for_1_2(logical_not_a_b_or_c, l_d_zero_err, l_d_bad_val, l_d_bad_val_err)
+        self.d_good_data = {1: np.any(get_l_of_component(self.l_d_good_data, 1)),
+                            2: np.any(get_l_of_component(self.l_d_good_data, 2))}
+        self.good_data = np.any(self.l_good_data)
+
+        # Choose report method depending on data quality issues
+
+        # Check if all bins have zero error
+        if np.all(l_zero_err):
             report_method = self.report_zero_err
             extra_report_kwargs = {}
-        elif (any_is_inf_or_nan((self.l_val[1], self.l_val_err[1])) and
-              any_is_inf_or_nan((self.l_val[2], self.l_val_err[2]))):
-            report_method = self.report_bad_data
-            extra_report_kwargs = {}
-        else:
-            report_method = self.report_good_data
 
-            # Report the maximum z as the measured value for this test
-            extra_report_kwargs = {"measured_value": np.nanmax((self.l_val_z[1], self.l_val_z[2]))}
+        # Check there isn't any good data
+        elif not np.any(self.good_data):
+            report_method = self.report_bad_shear_bias_data
+            extra_report_kwargs = {}
+
+        # Otherwise, we have at least one bin with good data
+        else:
+            report_method = self.report_good_shear_bias_data
+
+            # Report the maximum z across both components as the measured value for this test
+
+            l_val_z1: List[float] = get_l_of_component(l_d_val_z, 1)
+            l_val_z2: List[float] = get_l_of_component(l_d_val_z, 2)
+
+            extra_report_kwargs = {"measured_value": np.nanmax((*l_val_z1, *l_val_z2))}
 
         return super().write(result = result,
                              report_method = report_method,
@@ -323,10 +463,10 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 num_bins = len(l_bin_limits) - 1
 
-                l_val = [None] * num_bins
-                l_val_err = [None] * num_bins
+                l_d_val = [None] * num_bins
+                l_d_val_err = [None] * num_bins
                 l_val_target = [None] * num_bins
-                l_val_z = [None] * num_bins
+                l_d_val_z = [None] * num_bins
 
                 l_d_bias_measurements = self.d_l_d_bias_measurements[test_case_name]
 
@@ -334,22 +474,22 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                     d_test_case_bias_measurements = l_d_bias_measurements[bin_index]
 
-                    l_val[bin_index] = {1: getattr(d_test_case_bias_measurements[1], prop),
-                                        2: getattr(d_test_case_bias_measurements[2], prop)}
-                    l_val_err[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
-                                            2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
+                    l_d_val[bin_index] = {1: getattr(d_test_case_bias_measurements[1], prop),
+                                          2: getattr(d_test_case_bias_measurements[2], prop)}
+                    l_d_val_err[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
+                                              2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
                     l_val_target[bin_index] = getattr(d_test_case_bias_measurements[1], f"{prop}_target")
-                    l_val_z[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
-                                          2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
+                    l_d_val_z[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
+                                            2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
 
                 report_method = None
                 report_kwargs = {}
                 write_kwargs = {"have_data"   : True,
                                 "prop"        : prop,
-                                "l_val"       : l_val,
-                                "l_val_err"   : l_val_err,
+                                "l_d_val"     : l_d_val,
+                                "l_d_val_err" : l_d_val_err,
                                 "l_val_target": l_val_target,
-                                "l_val_z"     : l_val_z,
+                                "l_d_val_z"   : l_d_val_z,
                                 "fail_sigma"  : fail_sigma}
 
             else:
