@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 import numpy as np
 
@@ -126,21 +126,21 @@ class ShearBiasRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
 
-    # Attributes set directly at init
-    method: ShearEstimationMethods
-    bin_parameter: BinParameters
-    bin_limits: Sequence[float]
-
-    # Attributes determined at init
-    num_bins: int
-
     # Attributes set and used while writing
     prop: Optional[ShearBiasTestCases] = None
+
     l_d_val: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_err: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_target: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_z: Optional[Sequence[Dict[int, float]]] = None
+
     fail_sigma: Optional[float] = None
+
+    method: ShearEstimationMethods
+
+    bin_parameter: BinParameters
+    l_bin_limits: Sequence[float]
+    num_bins: int
 
     # Which component(s) have at least some good data / pass / result?
     d_good_data: Optional[Dict[int, bool]] = None
@@ -159,21 +159,6 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
     # Is there any good data?
     good_data: Optional[bool] = None
-
-    def __init__(self,
-                 method: ShearEstimationMethods,
-                 bin_parameter: BinParameters,
-                 bin_limits: Sequence[float],
-                 *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.method = method
-        self.bin_parameter = bin_parameter
-        self.bin_limits = bin_limits
-        self.num_bins = len(bin_limits) - 1
-
-        if not self.num_bins > 0:
-            raise ValueError(f"List of bin limits is too short (>= 2 elements required): {bin_limits}")
 
     def _get_supplementary_info(self,
                                 extra_g1_message: str = "",
@@ -201,8 +186,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
             d_val_z = self.l_d_val_z[bin_index]
             d_result = self.l_d_result[bin_index]
 
-            bin_min = self.bin_limits[bin_index]
-            bin_max = self.bin_limits[bin_index + 1]
+            bin_min: float = 0.
+            bin_max: float = 0.
+            if self.l_bin_limits is not None:
+                bin_min = self.l_bin_limits[bin_index]
+                bin_max = self.l_bin_limits[bin_index + 1]
 
             for component_index in (1, 2):
 
@@ -211,8 +199,11 @@ class ShearBiasRequirementWriter(RequirementWriter):
                 val_z = d_val_z[component_index]
                 result = d_result[component_index]
 
+                if self.l_bin_limits is not None:
+                    d_messages[component_index] += (f"Results for bin {bin_index}, for values from {bin_min} to"
+                                                    f" {bin_max}:")
+
                 d_messages[component_index] += (
-                        f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
                         f"{self.prop}{component_index} = {val:.{REPORT_DIGITS}f}\n" +
                         f"{self.prop}{component_index}_err = {val_err:.{REPORT_DIGITS}f}\n" +
                         f"{self.prop}{component_index}_z = {val_z:.{REPORT_DIGITS}f}\n" +
@@ -285,14 +276,21 @@ class ShearBiasRequirementWriter(RequirementWriter):
               l_d_val_target: Optional[List[Dict[int, float]]] = None,
               l_d_val_z: Optional[List[Dict[int, float]]] = None,
               fail_sigma: Optional[float] = None,
+              method: Optional[ShearEstimationMethods] = None,
+              bin_parameter: Optional[BinParameters] = None,
+              l_bin_limits: Optional[Sequence[float]] = None,
               report_kwargs: Optional[Dict[str, Any]] = None) -> str:
 
+        # Set attributes from input kwargs
         self.prop = prop
         self.l_d_val = l_d_val
         self.l_d_val_err = l_d_val_err
         self.l_d_val_target = l_d_val_target
         self.l_d_val_z = l_d_val_z
         self.fail_sigma = fail_sigma
+        self.method = method
+        self.bin_parameter = bin_parameter
+        self.l_bin_limits = l_bin_limits
 
         # If report method is supplied, go with that rather than figuring it out
         if report_method:
@@ -311,8 +309,6 @@ class ShearBiasRequirementWriter(RequirementWriter):
         if not have_data:
             report_method(**report_kwargs)
             return RESULT_PASS
-
-        # TODO: Make sure this works for lists of values
 
         # Check for data quality issues and report as proper if found
 
@@ -405,9 +401,11 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
 
 
 class ShearBiasTestCaseWriter(TestCaseWriter):
+    # Class members
+
     # Types of child objects, overriding those in base class
-    requirement_writer_type = ShearBiasRequirementWriter
-    analysis_writer_type = ShearBiasAnalysisWriter
+    requirement_writer_type: Type = ShearBiasRequirementWriter
+    analysis_writer_type: Type = ShearBiasAnalysisWriter
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
@@ -485,7 +483,10 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                                 "l_d_val_err"   : l_d_val_err,
                                 "l_d_val_target": l_d_val_target,
                                 "l_d_val_z"     : l_d_val_z,
-                                "fail_sigma"    : fail_sigma}
+                                "fail_sigma"    : fail_sigma,
+                                "method"        : test_case_info.method,
+                                "bin_parameter" : test_case_info.bin_parameter,
+                                "l_bin_limits"  : self.d_l_bin_limits[test_case_info.bins]}
 
             else:
                 # Report that the test wasn't run due to a lack of data

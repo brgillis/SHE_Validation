@@ -832,7 +832,7 @@ class TestCaseWriter():
         return self._l_requirement_objects
 
     @property
-    def analysis_writer(self) -> List[AnalysisWriter]:
+    def analysis_writer(self) -> Optional[AnalysisWriter]:
         return self._analysis_writer
 
     @property
@@ -850,7 +850,8 @@ class TestCaseWriter():
         """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
             in case they need to alter the kwargs in any way..
         """
-        return self.analysis_writer_type(self, **kwargs)
+        return self.analysis_writer_type(self,
+                                         **kwargs)
 
     # Public methods
     def write_meta(self) -> None:
