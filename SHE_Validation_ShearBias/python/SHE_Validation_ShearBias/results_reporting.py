@@ -31,7 +31,7 @@ from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.utility import is_inf_or_nan, is_zero
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NO_DATA, RESULT_FAIL, RESULT_PASS,
+from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NO_DATA, RESULT_PASS,
                                            RequirementWriter, SupplementaryInfo, TestCaseWriter,
                                            ValidationResultsWriter, WARNING_MULTIPLE, check_test_pass,
                                            check_test_pass_if_data, get_result_string, )
@@ -312,22 +312,6 @@ class ShearBiasRequirementWriter(RequirementWriter):
             report_method(**report_kwargs)
             return RESULT_PASS
 
-        # Calculate test results for both components
-        self._calc_test_results()
-
-        # Report the result based on whether or not bothc components passed
-        test_pass: bool = self.test_pass[1] and self.test_pass[2]
-        result: str
-        if test_pass:
-            result = RESULT_PASS
-        else:
-            result = RESULT_FAIL
-        self.requirement_object.ValidationResult = result
-
-        parameter: str = self.requirement_info.parameter
-
-        self.requirement_object.MeasuredValue[0].Parameter = parameter
-
         # TODO: Make sure this works for lists of values
 
         # Check for data quality issues and report as proper if found
@@ -352,6 +336,16 @@ class ShearBiasRequirementWriter(RequirementWriter):
                             2: np.any(get_l_of_component(self.l_d_good_data, 2))}
         self.good_data = np.any(self.l_good_data)
 
+        # Calculate test results for both components
+        self._calc_test_results()
+
+        # Report the result based on whether or not both components passed wherever there's good data
+        self.requirement_object.ValidationResult = self.result
+
+        parameter: str = self.requirement_info.parameter
+
+        self.requirement_object.MeasuredValue[0].Parameter = parameter
+
         # Choose report method depending on data quality issues
 
         # Check if all bins have zero error
@@ -375,7 +369,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
             extra_report_kwargs = {"measured_value": np.nanmax((*l_val_z1, *l_val_z2))}
 
-        return super().write(result = result,
+        return super().write(result = self.result,
                              report_method = report_method,
                              report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
 
@@ -463,10 +457,10 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 num_bins = len(l_bin_limits) - 1
 
-                l_d_val = [None] * num_bins
-                l_d_val_err = [None] * num_bins
-                l_val_target = [None] * num_bins
-                l_d_val_z = [None] * num_bins
+                l_d_val: List[Optional[Dict[int, float]]] = [None] * num_bins
+                l_d_val_err: List[Optional[Dict[int, float]]] = [None] * num_bins
+                l_d_val_target: List[Optional[Dict[int, float]]] = [None] * num_bins
+                l_d_val_z: List[Optional[Dict[int, float]]] = [None] * num_bins
 
                 l_d_bias_measurements = self.d_l_d_bias_measurements[test_case_name]
 
@@ -478,19 +472,20 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                                           2: getattr(d_test_case_bias_measurements[2], prop)}
                     l_d_val_err[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_err"),
                                               2: getattr(d_test_case_bias_measurements[2], f"{prop}_err")}
-                    l_val_target[bin_index] = getattr(d_test_case_bias_measurements[1], f"{prop}_target")
+                    l_d_val_target[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_target"),
+                                                 2: getattr(d_test_case_bias_measurements[2], f"{prop}_target")}
                     l_d_val_z[bin_index] = {1: getattr(d_test_case_bias_measurements[1], f"{prop}_sigma"),
                                             2: getattr(d_test_case_bias_measurements[2], f"{prop}_sigma")}
 
                 report_method = None
                 report_kwargs = {}
-                write_kwargs = {"have_data"   : True,
-                                "prop"        : prop,
-                                "l_d_val"     : l_d_val,
-                                "l_d_val_err" : l_d_val_err,
-                                "l_val_target": l_val_target,
-                                "l_d_val_z"   : l_d_val_z,
-                                "fail_sigma"  : fail_sigma}
+                write_kwargs = {"have_data"     : True,
+                                "prop"          : prop,
+                                "l_d_val"       : l_d_val,
+                                "l_d_val_err"   : l_d_val_err,
+                                "l_d_val_target": l_d_val_target,
+                                "l_d_val_z"     : l_d_val_z,
+                                "fail_sigma"    : fail_sigma}
 
             else:
                 # Report that the test wasn't run due to a lack of data
@@ -509,7 +504,7 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
                                  pipeline_config: Dict[ConfigKeys, Any],
                                  d_l_bin_limits: Dict[BinParameters, np.ndarray], workdir: str,
                                  dl_dl_plot_filenames: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                             List[Union[Dict[str, str], List[str]]],] = None,
+                                                             List[Union[Dict[str, str], List[str]]]] = None,
                                  method_data_exists: bool = True, mode: ExecutionMode = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
