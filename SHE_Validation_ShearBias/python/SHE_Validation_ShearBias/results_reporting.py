@@ -111,15 +111,15 @@ def f_for_1_and_2(f: Callable[[Number], bool], d_x: ComponentDict):
 # Utility function to simplify tests on values that have components 1 and 2
 def l_f_for_1_or_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
     l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
-    l_b1, l_b2 = map(f, l_x1), map(f, l_x2)
-    return np.logical_or(l_b1, l_b2)
+    l_b1, l_b2 = list(map(f, l_x1)), list(map(f, l_x2))
+    return np.array(np.logical_or(l_b1, l_b2))
 
 
 # Utility function to simplify tests on values that have components 1 and 2
 def l_f_for_1_and_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
     l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
-    l_b1, l_b2 = map(f, l_x1), map(f, l_x2)
-    return np.logical_and(l_b1, l_b2)
+    l_b1, l_b2 = list(map(f, l_x1)), list(map(f, l_x2))
+    return np.array(np.logical_and(l_b1, l_b2))
 
 
 class ShearBiasRequirementWriter(RequirementWriter):

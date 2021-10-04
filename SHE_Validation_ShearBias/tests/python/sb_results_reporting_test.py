@@ -117,8 +117,11 @@ class TestCase:
 
         fill_shear_bias_test_results(test_result_product = sb_test_results_product,
                                      d_l_d_bias_measurements = d_l_d_bias_measurements,
-                                     pipeline_config = self.pipeline_config, d_l_bin_limits = self.d_bin_limits,
-                                     workdir = self.workdir, dl_dl_plot_filenames = None, method_data_exists = True,
+                                     pipeline_config = self.pipeline_config,
+                                     d_l_bin_limits = self.d_bin_limits,
+                                     workdir = self.workdir,
+                                     dl_dl_plot_filenames = None,
+                                     method_data_exists = True,
                                      mode = ExecutionMode.LOCAL)
 
         # Check the results are as expected. Only check for LensMC-Global here
