@@ -94,8 +94,8 @@ class CtiGalRequirementWriter(RequirementWriter):
             for bin_index in range(self.num_bins):
 
                 if self.l_bin_limits is not None:
-                    bin_min = self.l_bin_limits[bin_index]
-                    bin_max = self.l_bin_limits[bin_index + 1]
+                    bin_min = self.l_bin_limits[bin_index][0]
+                    bin_max = self.l_bin_limits[bin_index][1]
                     messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
 
                 messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
