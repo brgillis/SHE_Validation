@@ -140,6 +140,17 @@ class TestShearBias:
         weight_data = 0.5 * full_g1_out_err_data ** -2
         fit_flags_data = np.where(full_indices < self.L, 0, np.where(full_indices < self.L + self.LNAN, 1, 0))
 
+        # Set mock snr, bg, colour, and size values to test different bins
+
+        indices = np.indices((self.LTOT,), dtype = int, )[0]
+        zeros = np.zeros(self.LTOT, dtype = '>f4')
+        ones = np.ones(self.LTOT, dtype = '>f4')
+
+        snr_data = np.where(indices % 2 < 1, ones, zeros)
+        bg_data = np.where(indices % 4 < 2, ones, zeros)
+        colour_data = np.where(indices % 8 < 4, ones, zeros)
+        size_data = np.where(indices % 16 < 8, ones, zeros)
+
         # Flag the last bit of data as bad or zero weight
         full_g1_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
         full_g1_out_err_data[-self.LNAN - self.LZERO:] = np.NaN

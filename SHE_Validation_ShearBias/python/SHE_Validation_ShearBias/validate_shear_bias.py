@@ -104,6 +104,10 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
+        
+        # Skip this section in a dry run
+        if args.dry_run:
+            break
 
         test_case_name: str = test_case_info.name
         method: ShearEstimationMethods = test_case_info.method

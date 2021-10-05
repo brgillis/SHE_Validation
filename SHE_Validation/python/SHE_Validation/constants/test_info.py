@@ -106,11 +106,11 @@ class BinParameterMeta():
         return self._enum
 
     @property
-    def long_name(self) -> BinParameters:
+    def long_name(self) -> Optional[str]:
         return self._long_name
 
     @property
-    def id_tail(self) -> BinParameters:
+    def id_tail(self) -> Optional[str]:
         return self._id_tail
 
     @property

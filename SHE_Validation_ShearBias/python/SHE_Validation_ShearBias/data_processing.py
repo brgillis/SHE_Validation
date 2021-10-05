@@ -30,6 +30,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_errors)
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_PPT.table_utility import SheTableFormat
 from SHE_Validation.binning.bin_constraints import BinConstraint, BinParameterBinConstraint, BinnedMultiTableLoader
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -56,7 +57,7 @@ class ShearBiasDataLoader:
 
     # Attributes determined at init
     _table_loader: BinnedMultiTableLoader
-    _sem_tf: SheTableFormat
+    _sem_tf: SheTUMatchedFormat
 
     # Attributes set when loaded
     table: Optional[Table] = None
@@ -151,6 +152,7 @@ class ShearBiasDataLoader:
             return
 
         # Get the data we need out of the table
+        # noinspection PyTypeChecker
         l_g1_in: Column = -(self.table[self._sem_tf.tu_gamma1] / (1 - self.table[self._sem_tf.tu_kappa]))
         l_g2_in: Column = (self.table[self._sem_tf.tu_gamma2] / (1 - self.table[self._sem_tf.tu_kappa]))
         l_g1_out: Column = self.table[self._sem_tf.g1]
@@ -320,6 +322,7 @@ class ShearBiasTestCaseDataProcessor:
         """
 
         # Get data limited to the rows where g_in is less than the allowed max
+        # noinspection PyTypeChecker
         g = np.sqrt(self.d_g_in[1] ** 2 + self.d_g_in[2] ** 2)
         good_g_in_rows = g < self.max_g_in
 
