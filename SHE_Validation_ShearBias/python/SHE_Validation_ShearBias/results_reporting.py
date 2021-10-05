@@ -92,7 +92,7 @@ def map_for_1_2(f: Callable[[TIn], TOut], *l_l_d_x: Sequence[Dict[int, TIn]]) ->
     for i, l_d_x in enumerate(l_l_d_x):
         l_l_x1[i], l_l_x2[i] = get_t_l_of_components_1_2(l_d_x)
 
-    l_y1, l_y2 = map(f, *l_l_x1), map(f, *l_l_x2)
+    l_y1, l_y2 = list(map(f, *l_l_x1)), list(map(f, *l_l_x2))
     l_d_y = [{1: y1, 2: y2} for y1, y2 in zip(l_y1, l_y2)]
 
     return l_d_y
@@ -133,6 +133,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
     l_d_val_err: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_target: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_z: Optional[Sequence[Dict[int, float]]] = None
+    l_d_fail_sigma: Optional[List[Dict[int, float]]] = None
 
     fail_sigma: Optional[float] = None
 
@@ -252,9 +253,9 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         # Map the test check function to get the test pass results
         self.l_d_test_pass = map_for_1_2(check_test_pass, self.l_d_val, self.l_d_val_err, self.l_d_val_z,
-                                         self.l_d_val_target)
+                                         self.l_d_fail_sigma)
         l_d_test_pass_if_data = map_for_1_2(check_test_pass_if_data, self.l_d_val, self.l_d_val_err, self.l_d_val_z,
-                                            self.l_d_val_target, self.l_d_good_data)
+                                            self.l_d_fail_sigma, self.l_d_good_data)
         self.d_test_pass = {1: np.all(get_l_of_component(l_d_test_pass_if_data, 1)),
                             2: np.all(get_l_of_component(l_d_test_pass_if_data, 2))}
         self.l_test_pass = list(map((lambda d_x: d_x[1] and d_x[2]), l_d_test_pass_if_data))
@@ -298,6 +299,19 @@ class ShearBiasRequirementWriter(RequirementWriter):
         else:
             self.num_bins = 1
             self.l_bin_limits = DEFAULT_BIN_LIMITS
+
+        # Check the number of bins is right for all input data, if it's not None
+        def none_or_metch_len(l_x: Optional[List[Any]]):
+            if l_x is None:
+                return True
+            return self.num_bins == len(l_x)
+
+        if not (none_or_metch_len(self.l_d_val) and none_or_metch_len(self.l_d_val_err) and
+                none_or_metch_len(self.l_d_val_target) and none_or_metch_len(self.l_d_val_z)):
+            raise ValueError(f"Inconsistent array lengths in Shear Bias test results writing.")
+
+        # Fill out the fail sigma list of dicts, to help with mapping function calls
+        self.l_d_fail_sigma = [{1: fail_sigma, 2: fail_sigma}] * self.num_bins
 
         # If report method is supplied, go with that rather than figuring it out
         if report_method:
