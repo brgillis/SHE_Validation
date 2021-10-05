@@ -229,6 +229,9 @@ class ShearBiasTestCaseDataProcessor:
     bin_parameter: BinParameters
     num_bins: int
 
+    # Flag for whether or not we've calculated data
+    _calculated: bool = False
+
     # Intermediate attributes set when loading data
     _bin_index: Optional[int] = None
     _bin_limits: Sequence[float]
@@ -321,15 +324,15 @@ class ShearBiasTestCaseDataProcessor:
         """ Calculate shear bias for an individual component.
         """
 
-        # Get data limited to the rows where g_in is less than the allowed max
-        # noinspection PyTypeChecker
-        g = np.sqrt(self.d_g_in[1] ** 2 + self.d_g_in[2] ** 2)
-        good_g_in_rows = g < self.max_g_in
-
         # Limit the data to that in the current bin
         bin_constraint = BinParameterBinConstraint(test_case_info = self.test_case_info,
                                                    bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
         self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+
+        # Get data limited to the rows where g_in is less than the allowed max
+        # noinspection PyTypeChecker
+        g = np.sqrt(self.d_g_in[1] ** 2 + self.d_g_in[2] ** 2)
+        good_g_in_rows = g < self.max_g_in
 
         g_in = self.d_g_in[component_index][good_g_in_rows]
         g_out = self.d_g_out[component_index][good_g_in_rows]
@@ -390,6 +393,9 @@ class ShearBiasTestCaseDataProcessor:
         """ Performs data processing, calculating bias measurements and other output data.
         """
 
+        if self._calculated:
+            return
+
         # Init empty lists for output data
         self._l_d_bias_measurements = [None] * self.num_bins
         self._l_d_linregress_results = [None] * self.num_bins
@@ -406,3 +412,5 @@ class ShearBiasTestCaseDataProcessor:
 
                 self._calc_component_shear_bias(bin_index = bin_index,
                                                 component_index = component_index, )
+
+        self._calculated = True

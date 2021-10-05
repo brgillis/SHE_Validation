@@ -120,7 +120,7 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
         if bin_parameter == BinParameters.GLOBAL:
             continue
         factor = 2 ** i
-        matched_table[bin_parameter.value] = np.where(indices % factor < factor / 2, ones, zeros)
+        matched_table[bin_parameter.name] = np.where(indices % factor < factor / 2, ones, zeros)
 
     # Generate random noise for output data
     l_extra_g_err = EXTRA_EST_G_ERR + EXTRA_EST_G_ERR_ERR * rng.standard_normal(NUM_TEST_POINTS)
@@ -141,13 +141,15 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
         bias_0m2 = d_l_input_bias[BinParameters.SNR][0]
         bias_1m2 = d_l_input_bias[BinParameters.SNR][1]
 
-    g1_0m2 = bias_0m2["c1"] + bias_0m2["m1"] * matched_table[tf.tu_gamma1] + l_g1_deviates
-    g1_1m2 = bias_1m2["c1"] + bias_1m2["m1"] * matched_table[tf.tu_gamma1] + l_g1_deviates
+    # TODO - figure out why c1 is flipped
+    g1_0m2 = bias_0m2["c1"] + (1 + bias_0m2["m1"]) * matched_table[tf.tu_gamma1] + l_g1_deviates
+    g1_1m2 = bias_1m2["c1"] + (1 + bias_1m2["m1"]) * matched_table[tf.tu_gamma1] + l_g1_deviates
 
-    g2_0m2 = bias_0m2["c2"] + bias_0m2["m2"] * matched_table[tf.tu_gamma1] + l_g1_deviates
-    g2_1m2 = bias_1m2["c2"] + bias_1m2["m2"] * matched_table[tf.tu_gamma1] + l_g1_deviates
+    g2_0m2 = bias_0m2["c2"] + (1 + bias_0m2["m2"]) * matched_table[tf.tu_gamma1] + l_g1_deviates
+    g2_1m2 = bias_1m2["c2"] + (1 + bias_1m2["m2"]) * matched_table[tf.tu_gamma1] + l_g1_deviates
 
-    matched_table[tf.g1] = np.where(indices % 2 < 1, g1_0m2, g1_1m2)
+    # Add to table, flipping g1 due to SIM's format
+    matched_table[tf.g1] = -np.where(indices % 2 < 1, g1_0m2, g1_1m2)
     matched_table[tf.g2] = np.where(indices % 2 < 1, g2_0m2, g2_1m2)
 
     return matched_table
