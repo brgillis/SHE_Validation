@@ -26,7 +26,7 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.math import BiasMeasurements, LinregressResults
+from SHE_PPT.math import LinregressResults
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
 from .data_processing import ShearBiasTestCaseDataProcessor
@@ -44,6 +44,7 @@ PLOT_FORMAT: str = "png"
 class ShearBiasPlotter(ValidationPlotter):
     # Attributes set directly at init
     data_processor: ShearBiasTestCaseDataProcessor
+    bin_index: int
 
     # Attributes determined at init
     method: ShearEstimationMethods
@@ -65,12 +66,13 @@ class ShearBiasPlotter(ValidationPlotter):
 
     def __init__(self,
                  data_processor: ShearBiasTestCaseDataProcessor,
+                 bin_index: int,
                  ) -> None:
 
         file_namer = ShearBiasPlotFileNamer(workdir = data_processor.workdir,
                                             method = data_processor.method,
                                             bin_parameter = data_processor.bin_parameter,
-                                            bin_index = data_processor.bin_index)
+                                            bin_index = bin_index)
 
         super().__init__(file_namer = file_namer)
 
@@ -81,12 +83,6 @@ class ShearBiasPlotter(ValidationPlotter):
         self._d_bias_plot_filename = {}
 
     # Property getters and setters
-
-    @property
-    def d_bias_measurements(self) -> Dict[int, BiasMeasurements]:
-        if not self._d_bias_measurements:
-            self._d_bias_measurements = self.data_processor.d_bias_measurements
-        return self._d_bias_measurements
 
     @property
     def d_bias_plot_filename(self) -> Dict[int, str]:
@@ -122,8 +118,8 @@ class ShearBiasPlotter(ValidationPlotter):
         # Get the needed data from the data_processor
         g_in = self.data_processor.d_g_in[i]
         g_out = self.data_processor.d_g_out[i]
-        linregress_results: LinregressResults = self.data_processor.d_linregress_results[i]
-        d_bias_strings = self.data_processor.d_bias_strings
+        linregress_results: LinregressResults = self.data_processor.l_d_linregress_results[self.bin_index][i]
+        d_bias_strings = self.data_processor.l_d_bias_strings[self.bin_index]
 
         # Make a plot of the shear estimates
 

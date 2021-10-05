@@ -23,15 +23,15 @@ __updated__ = "2021-08-05"
 from enum import EnumMeta
 from typing import Any, Dict, Tuple, Type, Union
 
-from SHE_PPT.pipeline_utility import ConfigKeys, GlobalConfigKeys, ValidationConfigKeys
-from SHE_PPT.utility import AllowedEnum
-
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 import numpy as np
+
+from SHE_PPT.constants.classes import AllowedEnum
+from SHE_PPT.pipeline_utility import ConfigKeys, GlobalConfigKeys, ValidationConfigKeys
+from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
 class ExecutionMode(AllowedEnum):
-    """ Execution mode options - whether an executable operates on individual observation or tile (local) or 
+    """ Execution mode options - whether an executable operates on individual observation or tile (local) or
         all that are available (global).
     """
     LOCAL = "local"
@@ -57,16 +57,15 @@ class FailSigmaScaling(AllowedEnum):
 
 # Default values
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
-    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 2.,
-    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 5.,
+    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : 2.,
+    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : 5.,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling.TEST_CASE_BINS,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: "0 5 10 30 100 1e99",
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS: "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99",
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: "0 10 30 100 300 1000 1e99",
-    GlobalConfigKeys.PIP_PROFILE: "False",
-}
-
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : "0 5 10 30 100 1e99",
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99",
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : "0 10 30 100 300 1000 1e99",
+    GlobalConfigKeys.PIP_PROFILE               : "False",
+    }
 
 DEFAULT_BIN_LIMIT_MIN: float = -1e99
 DEFAULT_BIN_LIMIT_MAX: float = 1e99
@@ -75,20 +74,20 @@ DEFAULT_BIN_LIMITS_STR: str = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
 
 # Types
 D_VALIDATION_CONFIG_TYPES: Dict[ConfigKeys, Union[Type, EnumMeta]] = {
-    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: float,
-    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: float,
+    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : float,
+    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : float,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: np.ndarray,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS: np.ndarray,
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: np.ndarray,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: np.ndarray,
-    GlobalConfigKeys.PIP_PROFILE: bool,
-}
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : np.ndarray,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : np.ndarray,
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : np.ndarray,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : np.ndarray,
+    GlobalConfigKeys.PIP_PROFILE               : bool,
+    }
 
 # Command-line arguments
 D_VALIDATION_CONFIG_CLINE_ARGS: Dict[ConfigKeys, str] = {
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.SNR].cline_arg,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.BG].cline_arg,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS   : D_BIN_PARAMETER_META[BinParameters.SNR].cline_arg,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS    : D_BIN_PARAMETER_META[BinParameters.BG].cline_arg,
     ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.COLOUR].cline_arg,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.SIZE].cline_arg,
-}
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS  : D_BIN_PARAMETER_META[BinParameters.SIZE].cline_arg,
+    }

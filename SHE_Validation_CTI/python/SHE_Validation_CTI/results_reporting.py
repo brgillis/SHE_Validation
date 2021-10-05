@@ -20,24 +20,21 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List,  Any, Callable, Tuple, Union, Sequence
+from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 
-from SHE_PPT.logging import getLogger
+import numpy as np
 from astropy import table
 
+from SHE_PPT.logging import getLogger
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation.results_writer import (SupplementaryInfo, RequirementWriter, AnalysisWriter,
-                                           TestCaseWriter, ValidationResultsWriter, RESULT_PASS, RESULT_FAIL,
-                                           WARNING_MULTIPLE, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
-                                           FailSigmaCalculator)
+from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
+                                           RESULT_FAIL, RESULT_PASS, RequirementWriter, SupplementaryInfo,
+                                           TestCaseWriter, ValidationResultsWriter, WARNING_MULTIPLE, )
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
-import numpy as np
-
 from .constants.cti_gal_test_info import (D_L_CTI_GAL_REQUIREMENT_INFO,
-                                          L_CTI_GAL_TEST_CASE_INFO)
+                                          L_CTI_GAL_TEST_CASE_INFO, )
 from .table_formats.regression_results import TF as RR_TF
-
 
 logger = getLogger(__name__)
 
@@ -91,35 +88,36 @@ class CtiGalRequirementWriter(RequirementWriter):
             extra_intercept_message = extra_intercept_message + "\n"
 
         # Set up result messages for each bin, for both the slope and intercept
-        messages = {"slope": extra_slope_message + "\n",
+        messages = {"slope"    : extra_slope_message + "\n",
                     "intercept": extra_intercept_message + "\n"}
         for prop in messages:
             for bin_index in range(self.num_bins):
 
                 if self.l_bin_limits is not None:
-                    messages[prop] += (f"bin_min = {self.l_bin_limits[bin_index][0]}\n" +
-                                       f"bin_max = {self.l_bin_limits[bin_index][1]}\n")
+                    bin_min = self.l_bin_limits[bin_index]
+                    bin_max = self.l_bin_limits[bin_index + 1]
+                    messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
 
-                messages[prop] += (f"{prop} = {getattr(self,f'l_{prop}')[bin_index]}\n" +
-                                   f"{prop}_err = {getattr(self,f'l_{prop}_err')[bin_index]}\n" +
-                                   f"{prop}_z = {getattr(self,f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self,f'fail_sigma')}\n" +
-                                   f"Result: {getattr(self,f'l_{prop}_result')[bin_index]}\n\n")
+                messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
+                                   f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
+                                   f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
+                                   f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
+                                   f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
 
-        slope_supplementary_info = SupplementaryInfo(key=KEY_SLOPE_INFO,
-                                                     description=DESC_SLOPE_INFO,
-                                                     message=messages["slope"])
+        slope_supplementary_info = SupplementaryInfo(key = KEY_SLOPE_INFO,
+                                                     description = DESC_SLOPE_INFO,
+                                                     message = messages["slope"])
 
-        intercept_supplementary_info = SupplementaryInfo(key=KEY_INTERCEPT_INFO,
-                                                         description=DESC_INTERCEPT_INFO,
-                                                         message=messages["intercept"])
+        intercept_supplementary_info = SupplementaryInfo(key = KEY_INTERCEPT_INFO,
+                                                         description = DESC_INTERCEPT_INFO,
+                                                         message = messages["intercept"])
 
         return slope_supplementary_info, intercept_supplementary_info
 
     def report_bad_data(self):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_NAN_SLOPE)
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_NAN_SLOPE)
         super().report_bad_data(l_supplementary_info)
 
     def report_zero_slope_err(self):
@@ -130,7 +128,7 @@ class CtiGalRequirementWriter(RequirementWriter):
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message=MSG_ZERO_SLOPE_ERR)
+        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_ZERO_SLOPE_ERR)
         self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self,
@@ -144,9 +142,9 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         l_supplementary_info = self._get_slope_intercept_info()
-        super().report_good_data(measured_value=measured_value,
-                                 warning=warning,
-                                 l_supplementary_info=l_supplementary_info)
+        super().report_good_data(measured_value = measured_value,
+                                 warning = warning,
+                                 l_supplementary_info = l_supplementary_info)
 
     def _calc_test_results(self,
                            prop: str):
@@ -154,13 +152,13 @@ class CtiGalRequirementWriter(RequirementWriter):
         """
 
         # Init each z, pass, and result as empy lists
-        l_prop_z = np.empty(self.num_bins, dtype=float)
+        l_prop_z = np.empty(self.num_bins, dtype = float)
         setattr(self, f"l_{prop}_z", l_prop_z)
-        l_prop_pass = np.empty(self.num_bins, dtype=bool)
+        l_prop_pass = np.empty(self.num_bins, dtype = bool)
         setattr(self, f"l_{prop}_pass", l_prop_pass)
-        l_prop_result = np.empty(self.num_bins, dtype='<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
+        l_prop_result = np.empty(self.num_bins, dtype = '<U' + str(np.max([len(RESULT_PASS), len(RESULT_FAIL)])))
         setattr(self, f"l_{prop}_result", l_prop_result)
-        l_prop_good_data = np.empty(self.num_bins, dtype=bool)
+        l_prop_good_data = np.empty(self.num_bins, dtype = bool)
 
         for bin_index in range(self.num_bins):
             if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
@@ -250,9 +248,9 @@ class CtiGalRequirementWriter(RequirementWriter):
             # Report the maximum slope_z as the measured value for this test
             extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
 
-        return super().write(result=self.slope_result,
-                             report_method=report_method,
-                             report_kwargs={**report_kwargs, **extra_report_kwargs},)
+        return super().write(result = self.slope_result,
+                             report_method = report_method,
+                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
 
 
 class CtiGalAnalysisWriter(AnalysisWriter):
@@ -260,7 +258,7 @@ class CtiGalAnalysisWriter(AnalysisWriter):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(product_type="CTI-GAL-ANALYSIS-FILES",
+        super().__init__(product_type = "CTI-GAL-ANALYSIS-FILES",
                          *args, **kwargs)
 
     def _generate_directory_filename(self):
@@ -275,14 +273,12 @@ class CtiGalAnalysisWriter(AnalysisWriter):
 
 
 class CtiGalTestCaseWriter(TestCaseWriter):
-
     # Types of child objects, overriding those in base class
     requirement_writer_type = CtiGalRequirementWriter
     analysis_writer_type = CtiGalAnalysisWriter
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
-
     # Types of child classes
     test_case_writer_type = CtiGalTestCaseWriter
 
@@ -296,10 +292,10 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
-        super().__init__(test_object=test_object,
-                         workdir=workdir,
-                         l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                         dl_l_requirement_info=D_L_CTI_GAL_REQUIREMENT_INFO,
+        super().__init__(test_object = test_object,
+                         workdir = workdir,
+                         l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                         dl_l_requirement_info = D_L_CTI_GAL_REQUIREMENT_INFO,
                          *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
@@ -369,13 +365,13 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
                 report_method = None
                 report_kwargs = {}
-                write_kwargs = {"have_data": True,
-                                "l_slope": l_slope,
-                                "l_slope_err": l_slope_err,
-                                "l_intercept": l_intercept,
+                write_kwargs = {"have_data"      : True,
+                                "l_slope"        : l_slope,
+                                "l_slope_err"    : l_slope_err,
+                                "l_intercept"    : l_intercept,
                                 "l_intercept_err": l_intercept_err,
-                                "l_bin_limits": l_bin_limits,
-                                "fail_sigma": fail_sigma, }
+                                "l_bin_limits"   : l_bin_limits,
+                                "fail_sigma"     : fail_sigma, }
 
             elif test_case_info.bins == BinParameters.EPOCH:
                 # Report that the test wasn't run due to it not yet being implemented
@@ -391,7 +387,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
             write_kwargs["report_method"] = report_method
             write_kwargs["report_kwargs"] = report_kwargs
 
-            test_case_writer.write(requirements_kwargs=write_kwargs,)
+            test_case_writer.write(requirements_kwargs = write_kwargs, )
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
@@ -401,26 +397,26 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                        List[Union[Dict[str, str], List[str]]], ] = None,
+                                                        List[Union[Dict[str, str], List[str]]],] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
     """
 
     # Set up a calculator object for scaled fail sigmas
-    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
-                                                l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
-                                                d_bin_limits=d_bin_limits,
-                                                mode=ExecutionMode.LOCAL)
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
+                                                l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                d_bin_limits = d_bin_limits,
+                                                mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer
-    test_results_writer = CtiGalValidationResultsWriter(test_object=test_result_product,
-                                                        workdir=workdir,
-                                                        regression_results_row_index=regression_results_row_index,
-                                                        d_regression_results_tables=d_regression_results_tables,
-                                                        fail_sigma_calculator=fail_sigma_calculator,
-                                                        d_bin_limits=d_bin_limits,
-                                                        method_data_exists=method_data_exists,
-                                                        dl_l_figures=dl_l_figures,)
+    test_results_writer = CtiGalValidationResultsWriter(test_object = test_result_product,
+                                                        workdir = workdir,
+                                                        regression_results_row_index = regression_results_row_index,
+                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        fail_sigma_calculator = fail_sigma_calculator,
+                                                        d_bin_limits = d_bin_limits,
+                                                        method_data_exists = method_data_exists,
+                                                        dl_l_figures = dl_l_figures, )
 
     test_results_writer.write()

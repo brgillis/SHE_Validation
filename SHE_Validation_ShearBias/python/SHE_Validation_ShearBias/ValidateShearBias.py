@@ -21,9 +21,12 @@ __updated__ = "2021-08-09"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
+from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation_ShearBias.argument_parser import ShearValidationArgumentParser
@@ -35,7 +38,7 @@ from .validate_shear_bias import validate_shear_bias_from_args
 logger = log.getLogger(__name__)
 
 
-def defineSpecificProgramOptions():
+def defineSpecificProgramOptions() -> ArgumentParser:
     """
     @brief
         Defines options for this program, using all possible configurations.
@@ -48,14 +51,14 @@ def defineSpecificProgramOptions():
     logger.debug('# Entering SHE_Validation_ValidateShearBias defineSpecificProgramOptions()')
     logger.debug('#')
 
-    parser = ShearValidationArgumentParser()
+    parser: ShearValidationArgumentParser = ShearValidationArgumentParser()
 
     logger.debug('Exiting SHE_Validation_ValidateShearBias defineSpecificProgramOptions()')
 
     return parser
 
 
-def mainMethod(args):
+def mainMethod(args) -> None:
     """
     @brief
         The "main" method for this program, to generate galaxy images.
@@ -69,31 +72,32 @@ def mainMethod(args):
     logger.debug('# Entering SHE_Validation_ValidateShearBias mainMethod()')
     logger.debug('#')
 
-    exec_cmd = get_arguments_string(args, cmd = f"E-Run SHE_Validation {__version__} SHE_Validation_ValidateShearBias",
-                                    store_true = ["profile", "dry_run"])
+    exec_cmd: str = get_arguments_string(args, cmd = f"E-Run SHE_Validation {__version__} "
+                                                     f"SHE_Validation_ValidateShearBias",
+                                         store_true = ["profile", "dry_run"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
     # load the pipeline config in
-    pipeline_config = read_config(args.pipeline_config,
-                                  workdir = args.workdir,
-                                  defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,
-                                  d_cline_args = D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
-                                  parsed_args = args,
-                                  config_keys = ValidationConfigKeys,
-                                  d_types = D_SHEAR_BIAS_CONFIG_TYPES)
+    pipeline_config: Dict[ConfigKeys, Any] = read_config(args.pipeline_config,
+                                                         workdir = args.workdir,
+                                                         defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,
+                                                         d_cline_args = D_SHEAR_BIAS_CONFIG_CLINE_ARGS,
+                                                         parsed_args = args,
+                                                         config_keys = ValidationConfigKeys,
+                                                         d_types = D_SHEAR_BIAS_CONFIG_TYPES)
 
     # set args.pipeline_config to the read-in pipeline_config
     args.pipeline_config = pipeline_config
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
+    profiling: bool = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile
 
         logger.info("Profiling enabled")
-        filename = os.path.join(args.workdir, args.logdir, LOCAL_PROFILING_FILENAME)
+        filename: str = os.path.join(args.workdir, args.logdir, LOCAL_PROFILING_FILENAME)
         logger.info("Writing profiling data to %s", filename)
 
         cProfile.runctx("validate_shear_bias_from_args(args, mode=LOCAL_MODE)", {},
@@ -110,15 +114,15 @@ def mainMethod(args):
     logger.info('#')
 
 
-def main():
+def main() -> None:
     """
     @brief
         Alternate entry point for non-Elements execution.
     """
 
-    parser = defineSpecificProgramOptions()
+    parser: ArgumentParser = defineSpecificProgramOptions()
 
-    args = parser.parse_args()
+    args: Namespace = parser.parse_args()
 
     mainMethod(args)
 

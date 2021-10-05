@@ -20,12 +20,11 @@ __updated__ = "2021-08-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
+from SHE_PPT.constants.classes import AllowedEnum
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
-from SHE_PPT.utility import AllowedEnum
-
 
 # Bin units and definitions
 BACKGROUND_LEVEL_UNITS: str = "ADU/pixel"
@@ -79,7 +78,7 @@ class BinParameterMeta():
                  units: str = None,
                  definition: str = None,
                  extra_help_text: str = None,
-                 config_key: ConfigKeys = None,):
+                 config_key: ConfigKeys = None, ):
 
         # Set values directly from init
         self._enum = bin_parameter_enum
@@ -195,27 +194,27 @@ class BinParameterMeta():
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum=BinParameters.GLOBAL)
+D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL)
 
-D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
-                                                           long_name="SNR",
-                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS,)
+D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
+                                                           long_name = "SNR",
+                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS, )
 
-D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
-                                                          long_name="background level",
-                                                          units=BACKGROUND_LEVEL_UNITS,
-                                                          config_key=ValidationConfigKeys.VAL_BG_BIN_LIMITS)
+D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum = BinParameters.BG,
+                                                          long_name = "background level",
+                                                          units = BACKGROUND_LEVEL_UNITS,
+                                                          config_key = ValidationConfigKeys.VAL_BG_BIN_LIMITS)
 
-D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum=BinParameters.COLOUR,
-                                                              definition=COLOUR_DEFINITION,
-                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,)
+D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum = BinParameters.COLOUR,
+                                                              definition = COLOUR_DEFINITION,
+                                                              config_key = ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS, )
 
-D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=BinParameters.SIZE,
-                                                            units=SIZE_UNITS,
-                                                            definition=SIZE_DEFINITION,
-                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,)
+D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum = BinParameters.SIZE,
+                                                            units = SIZE_UNITS,
+                                                            definition = SIZE_DEFINITION,
+                                                            config_key = ValidationConfigKeys.VAL_SIZE_BIN_LIMITS, )
 
-D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
+D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum = BinParameters.EPOCH)
 
 # Set up the dict relating cline-args to config keys
 D_BIN_LIMITS_CLINE_ARGS: Dict[BinParameters, str] = {}
@@ -237,7 +236,6 @@ class RequirementInfo():
                  requirement_id: Optional[str] = None,
                  description: Optional[str] = None,
                  parameter: Optional[str] = None):
-
         self._requirement_id = requirement_id
         self._description = description
         self._parameter = parameter
@@ -269,8 +267,7 @@ class TestInfo():
 
     def __init__(self,
                  test_id: Optional[str] = None,
-                 description: Optional[str] = None,):
-
+                 description: Optional[str] = None, ):
         self._test_id = test_id
         self._description = description
 

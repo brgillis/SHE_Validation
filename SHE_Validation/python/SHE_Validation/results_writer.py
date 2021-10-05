@@ -20,23 +20,22 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 from copy import deepcopy
 from io import IOBase
-import os
-from typing import Any, Callable, Dict, List, Optional, Union, TypeVar, Set
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TypeVar, Union
+
+import numpy as np
+import scipy.stats
 
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
-from SHE_PPT.utility import coerce_to_list
-import scipy.stats
-
+from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
-import numpy as np
-
 from . import __version__
 from .constants.default_config import FailSigmaScaling
 from .constants.test_info import RequirementInfo, TestCaseInfo
@@ -55,7 +54,6 @@ DEFAULT_DIRECTORY_HEADER: str = "### OU-SHE Analysis Results File Directory ###"
 TEXTFILES_SECTION_HEADER: str = "# Textfiles:"
 FIGURES_SECTION_HEADER: str = "# Figures:"
 DIRECTORY_KEY: str = "Directory"
-
 
 # Define constants for various messages
 
@@ -84,6 +82,40 @@ MSG_NOT_IMPLEMENTED: str = "This test has not yet been implemented."
 MSG_NO_INFO: str = "No supplementary information available."
 
 
+# Utility functions
+
+
+def check_test_pass(val: float, val_err: float, val_z: float, val_target: float) -> bool:
+    """ Check if a given test has good data and passes.
+    """
+    if val_err == 0.:
+        return False
+    if any_is_inf_or_nan([val, val_err]):
+        return False
+    if val_z > val_target:
+        return False
+    return True
+
+
+def check_test_pass_if_data(val: float, val_err: float, val_z: float, val_target: float,
+                            good_data: bool) -> bool:
+    """ Check if a test either doesn't have good data, or does and passes.
+    """
+    if not good_data:
+        return True
+    return check_test_pass(val, val_err, val_z, val_target)
+
+
+def get_result_string(test_pass: bool):
+    """ Get the appropriate result string depending on if the test passed.
+    """
+    if test_pass:
+        return RESULT_PASS
+    return RESULT_FAIL
+
+
+# Classes
+
 class FailSigmaCalculator():
     """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
     """
@@ -110,7 +142,7 @@ class FailSigmaCalculator():
                  pipeline_config: Dict[ConfigKeys, Any],
                  l_test_case_info: List[TestCaseInfo],
                  d_bin_limits: Dict[BinParameters, np.ndarray] = None,
-                 mode: ExecutionMode = ExecutionMode.LOCAL,):
+                 mode: ExecutionMode = ExecutionMode.LOCAL, ):
 
         # Set attributes directly from args
         self.global_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
@@ -184,8 +216,8 @@ class FailSigmaCalculator():
             else:
                 raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
 
-            d_scaled_sigma[test_case_info.name] = self._calc_scaled_sigma_from_tries(base_sigma=base_sigma,
-                                                                                     num_tries=num_tries)
+            d_scaled_sigma[test_case_info.name] = self._calc_scaled_sigma_from_tries(base_sigma = base_sigma,
+                                                                                     num_tries = num_tries)
 
         return d_scaled_sigma
 
@@ -198,7 +230,7 @@ class FailSigmaCalculator():
             return base_sigma
 
         p_good: float = (1 - 2 * scipy.stats.norm.cdf(-base_sigma))
-        return -scipy.stats.norm.ppf((1 - p_good**(1 / num_tries)) / 2)
+        return -scipy.stats.norm.ppf((1 - p_good ** (1 / num_tries)) / 2)
 
 
 class SupplementaryInfo():
@@ -243,7 +275,7 @@ class RequirementWriter():
 
     def __init__(self,
                  parent_test_case_writer: Optional["TestCaseWriter"] = None,
-                 requirement_object=None,
+                 requirement_object = None,
                  requirement_info: RequirementInfo = None):
 
         self._parent_test_case_writer = parent_test_case_writer
@@ -261,14 +293,14 @@ class RequirementWriter():
 
     # Public methods
     def add_supplementary_info(self,
-                               l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                               l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                                ) -> None:
         """ Fills out supplementary information in the data model object for one or more items,
             modifying self._requirement_object.
         """
 
         # Silently coerce single item into list
-        l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none=True)
+        l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none = True)
 
         # Use defaults if None provided
         if l_supplementary_info is None:
@@ -276,7 +308,7 @@ class RequirementWriter():
 
         base_supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
 
-        l_supplementary_info_parameter: List[str] = [None] * len(l_supplementary_info)
+        l_supplementary_info_parameter: List[str] = [""] * len(l_supplementary_info)
 
         i: int
         supplementary_info: SupplementaryInfo
@@ -292,7 +324,7 @@ class RequirementWriter():
         self.requirement_object.SupplementaryInformation.Parameter = l_supplementary_info_parameter
 
     def report_bad_data(self,
-                        l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                        l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                         ) -> None:
         """ Reports bad data in the data model object for one or more items, modifying self._requirement_object.
         """
@@ -303,12 +335,12 @@ class RequirementWriter():
         self.requirement_object.Comment = WARNING_BAD_DATA
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
+        self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
                          measured_value: float = -99.,
                          warning: bool = False,
-                         l_supplementary_info: Union[None, SupplementaryInfo, List[SupplementaryInfo]] = None
+                         l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                          ) -> None:
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
@@ -325,7 +357,7 @@ class RequirementWriter():
         self.requirement_object.Comment = f"{comment_level}: " + COMMENT_MULTIPLE
 
         # Add supplementary info
-        self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
+        self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_test_not_run(self,
                             reason: str = "Unspecified reason."
@@ -461,11 +493,11 @@ class AnalysisWriter():
                 instance_id_tail = ""
             else:
                 instance_id_tail = f"-{filename_tag.upper()}"
-            self._textfiles_filename = file_io.get_allowed_filename(type_name=self.product_type,
-                                                                    instance_id=(f"TEXTFILES-{os.getpid()}"
-                                                                                 f"{instance_id_tail}"),
-                                                                    extension=".tar.gz",
-                                                                    version=__version__)
+            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type,
+                                                                    instance_id = (f"TEXTFILES-{os.getpid()}"
+                                                                                   f"{instance_id_tail}"),
+                                                                    extension = ".tar.gz",
+                                                                    version = __version__)
         return self._textfiles_filename
 
     @property
@@ -485,11 +517,11 @@ class AnalysisWriter():
                 instance_id_tail = ""
             else:
                 instance_id_tail = f"-{filename_tag.upper()}"
-            self._figures_filename = file_io.get_allowed_filename(type_name=self.product_type,
-                                                                  instance_id=(f"FIGURES-{os.getpid()}"
-                                                                               f"{instance_id_tail}"),
-                                                                  extension=".tar.gz",
-                                                                  version=__version__)
+            self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type,
+                                                                  instance_id = (f"FIGURES-{os.getpid()}"
+                                                                                 f"{instance_id_tail}"),
+                                                                  extension = ".tar.gz",
+                                                                  version = __version__)
         return self._figures_filename
 
     @property
@@ -616,10 +648,10 @@ class AnalysisWriter():
             return
 
         # Tar the files into the desired tarball
-        file_io.tar_files(tarball_filename=tarball_filename,
-                          l_filenames=l_filenames,
-                          workdir=self.workdir,
-                          delete_files=delete_files)
+        file_io.tar_files(tarball_filename = tarball_filename,
+                          l_filenames = l_filenames,
+                          workdir = self.workdir,
+                          delete_files = delete_files)
 
     def _write_files(self,
                      files: Optional[DictOrList[str, str]],
@@ -637,9 +669,9 @@ class AnalysisWriter():
             if len(files) == 0:
                 self._write_dummy_data(os.path.join(self.workdir, tarball_filename))
             else:
-                self._tar_files(tarball_filename=tarball_filename,
-                                filenames=files,
-                                delete_files=delete_files)
+                self._tar_files(tarball_filename = tarball_filename,
+                                filenames = files,
+                                delete_files = delete_files)
         else:
             # No file for the data product, so set the attribute to None
             setattr(self.analysis_object, data_container_attr, None)
@@ -660,17 +692,17 @@ class AnalysisWriter():
             self._add_directory_to_textfiles(self.dl_l_textfiles)
 
         # Write out textfiles and figures
-        self._write_files(files=self.dl_l_textfiles,
-                          tarball_filename=self.textfiles_filename,
-                          data_container_attr="TextFiles",
-                          write_dummy_files=write_dummy_files,
-                          delete_files=delete_files)
+        self._write_files(files = self.dl_l_textfiles,
+                          tarball_filename = self.textfiles_filename,
+                          data_container_attr = "TextFiles",
+                          write_dummy_files = write_dummy_files,
+                          delete_files = delete_files)
 
-        self._write_files(files=self.dl_l_figures,
-                          tarball_filename=self.figures_filename,
-                          data_container_attr="Figures",
-                          write_dummy_files=write_dummy_files,
-                          delete_files=delete_files)
+        self._write_files(files = self.dl_l_figures,
+                          tarball_filename = self.figures_filename,
+                          data_container_attr = "Figures",
+                          write_dummy_files = write_dummy_files,
+                          delete_files = delete_files)
 
 
 class TestCaseWriter():
@@ -698,15 +730,15 @@ class TestCaseWriter():
                               dl_l_textfiles,
                               dl_l_figures):
 
-        analysis_textfiles_object: Any = dataContainer(filestatus="PROPOSED")
+        analysis_textfiles_object: Any = dataContainer(filestatus = "PROPOSED")
         analysis_object.TextFiles = analysis_textfiles_object
 
-        analysis_figures_object: Any = dataContainer(filestatus="PROPOSED")
+        analysis_figures_object: Any = dataContainer(filestatus = "PROPOSED")
         analysis_object.Figures = analysis_figures_object
 
         self._analysis_object = analysis_object
-        self._analysis_writer = self._make_analysis_writer(dl_l_textfiles=dl_l_textfiles,
-                                                           dl_l_figures=dl_l_figures)
+        self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
+                                                           dl_l_figures = dl_l_figures)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
@@ -740,8 +772,8 @@ class TestCaseWriter():
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
             requirement_object: Any = base_requirement_object
-            self._l_requirement_writers = [self._make_requirement_writer(requirement_object=requirement_object,
-                                                                         requirement_info=l_requirement_info)]
+            self._l_requirement_writers = [self._make_requirement_writer(requirement_object = requirement_object,
+                                                                         requirement_info = l_requirement_info)]
             self._l_requirement_objects = [requirement_object]
 
         else:
@@ -760,8 +792,8 @@ class TestCaseWriter():
 
                 requirement_object = deepcopy(base_requirement_object)
                 self.l_requirement_objects[i] = requirement_object
-                self.l_requirement_writers[i] = self._make_requirement_writer(requirement_object=requirement_object,
-                                                                              requirement_info=requirement_info)
+                self.l_requirement_writers[i] = self._make_requirement_writer(requirement_object = requirement_object,
+                                                                              requirement_info = requirement_info)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -800,7 +832,7 @@ class TestCaseWriter():
         return self._l_requirement_objects
 
     @property
-    def analysis_writer(self) -> List[AnalysisWriter]:
+    def analysis_writer(self) -> Optional[AnalysisWriter]:
         return self._analysis_writer
 
     @property
@@ -818,7 +850,8 @@ class TestCaseWriter():
         """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
             in case they need to alter the kwargs in any way..
         """
-        return self.analysis_writer_type(self, **kwargs)
+        return self.analysis_writer_type(self,
+                                         **kwargs)
 
     # Public methods
     def write_meta(self) -> None:
@@ -855,7 +888,7 @@ class TestCaseWriter():
 
         self.analysis_writer.write(**kwargs)
 
-    def write(self, requirements_kwargs=None, analysis_kwargs=None) -> None:
+    def write(self, requirements_kwargs = None, analysis_kwargs = None) -> None:
         """ Fills in metadata of the test case object and writes all data for each requirement subobject, modifying
             self._test_case_object.
         """
@@ -912,7 +945,7 @@ class ValidationResultsWriter():
         self.dl_l_textfiles = dl_l_textfiles
         self.dl_l_figures = dl_l_figures
         self.num_test_cases = num_test_cases
-        self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none=True)
+        self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none = True)
         self.dl_num_requirements = dl_num_requirements
         self.dl_l_requirement_info = dl_l_requirement_info
         self._test_object = test_object
@@ -933,9 +966,9 @@ class ValidationResultsWriter():
         base_test_case_object = self.test_object.Data.ValidationTestList[0]
 
         for i, test_case_info in enumerate(self.l_test_case_info):
-            self._init_test_case_writer(test_case_info=test_case_info,
-                                        i=i,
-                                        base_test_case_object=base_test_case_object,)
+            self._init_test_case_writer(test_case_info = test_case_info,
+                                        i = i,
+                                        base_test_case_object = base_test_case_object, )
 
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
@@ -1068,12 +1101,12 @@ class ValidationResultsWriter():
 
         # Create a test case writer and keep it in the list of writers
         test_case_object = deepcopy(base_test_case_object)
-        self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object=test_case_object,
-                                                                  test_case_info=test_case_info,
-                                                                  dl_l_textfiles=test_case_textfiles,
-                                                                  dl_l_figures=test_case_figures,
-                                                                  num_requirements=num_requirements,
-                                                                  l_requirement_info=l_requirement_info)
+        self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object = test_case_object,
+                                                                  test_case_info = test_case_info,
+                                                                  dl_l_textfiles = test_case_textfiles,
+                                                                  dl_l_figures = test_case_figures,
+                                                                  num_requirements = num_requirements,
+                                                                  l_requirement_info = l_requirement_info)
         self.l_test_case_objects[i] = test_case_object
 
     def _make_test_case_writer(self, **kwargs) -> TestCaseWriter:
