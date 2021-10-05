@@ -22,10 +22,11 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
-from typing import NamedTuple
+from typing import Any, Dict, List, NamedTuple, Optional
 
 import numpy as np
 import pytest
+from astropy.table import Table
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -173,13 +174,13 @@ class TestCase:
                             RegResults(-15., 0., 44., 0.),
                             RegResults(np.NaN, np.NaN, np.NaN, np.NaN), ]
 
-        num_exposures = len(exp_results_list)
-        exp_product_list = [None] * num_exposures
+        num_exposures: int = len(exp_results_list)
+        exp_product_list: List[Any] = [None] * num_exposures
 
         # Set up mock input data and fill the products for each set of possible results
         base_exp_results_table = RR_TF.init_table(product_type = "EXP", size = len(exp_results_list))
 
-        d_exp_results_tables = {}
+        d_exp_results_tables: Dict[str, List[Optional[Table]]] = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
             d_exp_results_tables[test_case_info.name] = [None] * num_bins
@@ -221,6 +222,8 @@ class TestCase:
 
         # Figure out the index for LensMC Global and Colour test results and save it for each check
         test_case_index = 0
+        lensmc_global_test_case_index: int = -1
+        lensmc_colour_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             if test_case_info.method == ShearEstimationMethods.LENSMC:
                 if test_case_info.bins == BinParameters.GLOBAL:
@@ -229,6 +232,9 @@ class TestCase:
                     lensmc_colour_test_case_index = test_case_index
 
             test_case_index += 1
+
+        assert lensmc_global_test_case_index >= 0
+        assert lensmc_colour_test_case_index >= 0
 
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -356,7 +362,7 @@ class TestCase:
             d_obs_results_tables[test_case_info.name] = [obs_results_table] * num_bins
 
         fill_cti_gal_validation_results(test_result_product = obs_product,
-                                        regression_results_row_index = exp_index,
+                                        regression_results_row_index = 0,
                                         d_regression_results_tables = d_obs_results_tables,
                                         pipeline_config = self.pipeline_config,
                                         d_bin_limits = self.d_bin_limits,

@@ -94,19 +94,16 @@ def mainMethod(args):
     logger.info(exec_cmd)
 
     # load the pipeline config in
-    pipeline_config = read_config(args.pipeline_config,
-                                  workdir = args.workdir,
-                                  defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                  d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                  parsed_args = args,
-                                  config_keys = (ValidationConfigKeys, AnalysisConfigKeys),
-                                  d_types = D_CTI_GAL_CONFIG_TYPES)
-
-    # set args.pipeline_config to the read-in pipeline_config
-    args.pipeline_config = pipeline_config
+    args.pipeline_config = read_config(args.pipeline_config,
+                                       workdir = args.workdir,
+                                       defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                       d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                       parsed_args = args,
+                                       config_keys = (ValidationConfigKeys, AnalysisConfigKeys),
+                                       d_types = D_CTI_GAL_CONFIG_TYPES)
 
     # check if profiling is to be enabled from the pipeline config
-    profiling = pipeline_config[GlobalConfigKeys.PIP_PROFILE]
+    profiling = args.pipeline_config[GlobalConfigKeys.PIP_PROFILE]
 
     if args.profile or profiling:
         import cProfile

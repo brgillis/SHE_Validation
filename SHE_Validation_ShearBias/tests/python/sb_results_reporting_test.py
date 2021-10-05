@@ -105,10 +105,10 @@ class TestCase:
         lmc_global_c_name: str = lmc_global_c_test_case_info.name
 
         # Fill the bias measurements with mock data
-        d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {}
+        d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {
+            lmc_global_m_name: [{1: BiasMeasurements(RegResults(1.1, 0.03, 0.002, 0.0003, 0)),
+                                 2: BiasMeasurements(RegResults(0.9, 0.01, -0.002, 0.0004, 0))}]}
 
-        d_l_d_bias_measurements[lmc_global_m_name] = [{1: BiasMeasurements(RegResults(1.1, 0.03, 0.002, 0.0003, 0)),
-                                                       2: BiasMeasurements(RegResults(0.9, 0.01, -0.002, 0.0004, 0))}]
         d_l_d_bias_measurements[lmc_global_c_name] = d_l_d_bias_measurements[lmc_global_m_name]
 
         # Set up the output data product
@@ -128,6 +128,8 @@ class TestCase:
 
         # Figure out the index for LensMC Global test results and save it for each check
         test_case_index = 0
+        lensmc_global_m_test_case_index = -1
+        lensmc_global_c_test_case_index = -1
         for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
             if (test_case_info.method == ShearEstimationMethods.LENSMC and
                     test_case_info.bins == BinParameters.GLOBAL):
@@ -136,6 +138,10 @@ class TestCase:
                 elif get_prop_from_id(test_case_info.id) == ShearBiasTestCases.C:
                     lensmc_global_c_test_case_index = test_case_index
             test_case_index += 1
+
+        # Make sure we've found the test case
+        assert lensmc_global_m_test_case_index >= 0
+        assert lensmc_global_c_test_case_index >= 0
 
         sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
         sb_c_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_c_test_case_index]

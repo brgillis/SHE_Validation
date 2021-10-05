@@ -25,6 +25,7 @@ from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
 import numpy as np
 from astropy import table
 
+from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -393,7 +394,7 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
-                                    pipeline_config: Dict[str, Any],
+                                    pipeline_config: Dict[ConfigKeys, Any],
                                     d_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],

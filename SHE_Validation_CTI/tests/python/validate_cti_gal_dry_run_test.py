@@ -22,19 +22,19 @@ __updated__ = "2021-08-26"
 
 import os
 import subprocess
+from argparse import Namespace
 
-from SHE_PPT.constants.test_data import (TEST_DATA_LOCATION,
-                                         MDB_PRODUCT_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                         MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
-from SHE_PPT.file_io import read_xml_product
-from SHE_PPT.pipeline_utility import read_config, write_config, ValidationConfigKeys
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME, TEST_DATA_LOCATION,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
+from SHE_PPT.file_io import read_xml_product
+from SHE_PPT.pipeline_utility import ValidationConfigKeys, read_config, write_config
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
-from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS, D_CTI_GAL_CONFIG_TYPES,
-                                                                 D_CTI_GAL_CONFIG_CLINE_ARGS)
+from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
+                                                                 D_CTI_GAL_CONFIG_TYPES, )
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
@@ -48,11 +48,12 @@ SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
 
-class Args(object):
+class Args(Namespace):
     """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
     """
 
     def __init__(self):
+        super().__init__()
         self.vis_calibrated_frame_listfile = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME
         self.mer_final_catalog_listfile = MER_FINAL_CATALOG_LISTFILE_FILENAME
         self.she_validated_measurements_product = SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
@@ -76,9 +77,11 @@ class Args(object):
 
 class TestCase:
     """
-
-
     """
+
+    workdir: str
+    logdir: str
+    args: Args
 
     @classmethod
     def setup_class(cls):
@@ -105,11 +108,11 @@ class TestCase:
         cls.args.logdir = cls.logdir
 
         # Write the pipeline config we'll be using
-        write_config(config_dict={ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: 4.,
-                                  ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
-                     config_filename=PIPELINE_CONFIG_FILENAME,
-                     workdir=cls.args.workdir,
-                     config_keys=ValidationConfigKeys)
+        write_config(config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : 4.,
+                                    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
+                     config_filename = PIPELINE_CONFIG_FILENAME,
+                     workdir = cls.args.workdir,
+                     config_keys = ValidationConfigKeys)
 
     @classmethod
     def teardown_class(cls):
@@ -123,12 +126,12 @@ class TestCase:
         # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
         self.args.pipeline_config = read_config(None,
-                                                workdir=self.args.workdir,
-                                                defaults=D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                parsed_args=self.args,
-                                                config_keys=ValidationConfigKeys,
-                                                d_types=D_CTI_GAL_CONFIG_TYPES)
+                                                workdir = self.args.workdir,
+                                                defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                parsed_args = self.args,
+                                                config_keys = ValidationConfigKeys,
+                                                d_types = D_CTI_GAL_CONFIG_TYPES)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
@@ -141,12 +144,12 @@ class TestCase:
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
         self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
-                                                workdir=self.args.workdir,
-                                                defaults=D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_cline_args=D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                parsed_args=self.args,
-                                                config_keys=ValidationConfigKeys,
-                                                d_types=D_CTI_GAL_CONFIG_TYPES)
+                                                workdir = self.args.workdir,
+                                                defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                parsed_args = self.args,
+                                                config_keys = ValidationConfigKeys,
+                                                d_types = D_CTI_GAL_CONFIG_TYPES)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
@@ -158,18 +161,23 @@ class TestCase:
 
         assert os.path.isfile(output_filename)
 
-        p = read_xml_product(xml_filename=output_filename)
+        p = read_xml_product(xml_filename = output_filename)
 
         # Find the index for the LensMC Global test case
 
+        textfiles_tarball_filename: str = ""
+        figures_tarball_filename: str = ""
         for val_test in p.Data.ValidationTestList:
-            if not "global-lensmc" in val_test.TestId.lower():
+            if "global-lensmc" not in val_test.TestId.lower():
                 continue
             textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
             figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
 
+        assert textfiles_tarball_filename
+        assert figures_tarball_filename
+
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
+            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell = True)
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
         plot_filename = None

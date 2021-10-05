@@ -21,18 +21,21 @@ __updated__ = "2021-08-17"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from typing import List
 
+from SHE_PPT.table_utility import SheTableFormat
 from SHE_PPT.testing.tables import _test_is_in_format
-
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 
 class TestTableFormats:
     """
-
-
     """
+
+    formats: List[SheTableFormat]
+    filename_base: str
+    filenames: List[str]
 
     @classmethod
     def setup_class(cls):

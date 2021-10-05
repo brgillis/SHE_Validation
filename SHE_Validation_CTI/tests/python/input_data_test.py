@@ -20,30 +20,30 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
 import os
+from copy import deepcopy
 
-from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
-                                                        D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS)
-from SHE_PPT.constants.test_data import (SYNC_CONF, TEST_FILES_DATA_STACK, TEST_DATA_LOCATION,
-                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         LENSMC_MEASUREMENTS_TABLE_FILENAME)
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+import numpy as np
 from astropy.table import Table
 
 from ElementsServices.DataSync import DataSync
-from SHE_Validation_CTI.input_data import (SingleObjectData, PositionInfo, ShearEstimate,
-                                           get_raw_cti_gal_object_data, sort_raw_object_data_into_table)
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods)
+from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                         SYNC_CONF, TEST_DATA_LOCATION, TEST_FILES_DATA_STACK,
+                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
+from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from SHE_Validation_CTI.input_data import (PositionInfo, ShearEstimate, SingleObjectData, get_raw_cti_gal_object_data,
+                                           sort_raw_object_data_into_table, )
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
-import numpy as np
 
 
 class TestCase:
     """
-
-
     """
+
+    workdir: str
+    logdir: str
 
     @classmethod
     def setup_class(cls):
@@ -61,12 +61,12 @@ class TestCase:
         cls.logdir = os.path.join(cls.workdir, "logs")
 
         # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename=VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                            detections_listfile_filename=MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                            workdir=cls.workdir,
-                                            clean_detections=False,
-                                            memmap=True,
-                                            mode='denywrite')
+        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
+                                            detections_listfile_filename = MER_FINAL_CATALOG_LISTFILE_FILENAME,
+                                            workdir = cls.workdir,
+                                            clean_detections = False,
+                                            memmap = True,
+                                            mode = 'denywrite')
 
         # Set up some expected values
         cls.EX_BG_LEVEL = 45.71
@@ -82,13 +82,13 @@ class TestCase:
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]
         lensmc_shear_estimates_table = Table.read(os.path.join(
             self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
-        d_shear_estimates_tables = {ShearEstimationMethods.KSB: None,
-                                    ShearEstimationMethods.LENSMC: lensmc_shear_estimates_table,
+        d_shear_estimates_tables = {ShearEstimationMethods.KSB      : None,
+                                    ShearEstimationMethods.LENSMC   : lensmc_shear_estimates_table,
                                     ShearEstimationMethods.MOMENTSML: None,
-                                    ShearEstimationMethods.REGAUSS: None}
+                                    ShearEstimationMethods.REGAUSS  : None}
 
-        raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack=self.data_stack,
-                                                              d_shear_estimate_tables=d_shear_estimates_tables)
+        raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack = self.data_stack,
+                                                              d_shear_estimate_tables = d_shear_estimates_tables)
 
         # Check the results
 
@@ -120,7 +120,7 @@ class TestCase:
             assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
             # Check the shear info for each exposure
-            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width=1)
+            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width = 1)
 
             ra = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_x_world]
             dec = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_y_world]
@@ -164,12 +164,12 @@ class TestCase:
         dg2_dexp = 0.02
         dweight_dexp = 1
 
-        ID_0 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
-        ID_1 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+        id_0 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
+        id_1 = self.data_stack.detections_catalogue[mfc_tf.ID][0]
 
-        for object_id, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((ID_0, 128, 129, 0.1, 0.3, 10,
+        for object_id, x, y, g1, g2, weight, fvis, fvis_err, fnir, area in ((id_0, 128, 129, 0.1, 0.3, 10,
                                                                              100., 10., 200., 50),
-                                                                            (ID_1, 2000, 2000, -0.1, 0.2, 11,
+                                                                            (id_1, 2000, 2000, -0.1, 0.2, 11,
                                                                              150., 20., 150., 100)):
 
             data_stack_copy = deepcopy(self.data_stack)
@@ -182,12 +182,12 @@ class TestCase:
             detections_row[mfc_tf.FLUX_NIR_STACK_APER] = fnir
             detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
-            object_data = SingleObjectData(object_id=object_id,
-                                           num_exposures=num_exposures,)
+            object_data = SingleObjectData(object_id = object_id,
+                                           num_exposures = num_exposures, )
 
-            object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
-                                                                                        g2=g2,
-                                                                                        weight=weight)
+            object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1 = g1,
+                                                                                        g2 = g2,
+                                                                                        weight = weight)
             object_data.world_shear_info[ShearEstimationMethods.KSB] = ShearEstimate()
             object_data.world_shear_info[ShearEstimationMethods.MOMENTSML] = ShearEstimate()
             object_data.world_shear_info[ShearEstimationMethods.REGAUSS] = ShearEstimate()
@@ -196,14 +196,15 @@ class TestCase:
                 position_info = PositionInfo()
                 position_info.x_pix = x + dx_dexp * exp_index
                 position_info.y_pix = y + dy_dexp * exp_index
-                position_info.exposure_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1 + dg1_dexp * exp_index,
-                                                                                                 g2=g2 + dg2_dexp * exp_index,
-                                                                                                 weight=weight + dweight_dexp * exp_index)
+                position_info.exposure_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(
+                    g1 = g1 + dg1_dexp * exp_index,
+                    g2 = g2 + dg2_dexp * exp_index,
+                    weight = weight + dweight_dexp * exp_index)
                 object_data.position_info[exp_index] = position_info
 
             l_raw_object_data.append(object_data)
 
-        object_data_table_list = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
+        object_data_table_list = sort_raw_object_data_into_table(l_raw_object_data = l_raw_object_data)
 
         # Check that the tables are as expected
         for exp_index, object_data_table in enumerate(object_data_table_list):
@@ -214,9 +215,12 @@ class TestCase:
 
                 assert np.isclose(object_data.position_info[exp_index].x_pix, row[CGOD_TF.x])
                 assert np.isclose(object_data.position_info[exp_index].y_pix, row[CGOD_TF.y])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g1,
-                                  row[getattr(CGOD_TF, "g1_image_LensMC")])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g2,
-                                  row[getattr(CGOD_TF, "g2_image_LensMC")])
-                assert np.isclose(object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].weight,
-                                  row[getattr(CGOD_TF, "weight_LensMC")])
+                assert np.isclose(
+                    object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g1,
+                    row[getattr(CGOD_TF, "g1_image_LensMC")])
+                assert np.isclose(
+                    object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].g2,
+                    row[getattr(CGOD_TF, "g2_image_LensMC")])
+                assert np.isclose(
+                    object_data.position_info[exp_index].exposure_shear_info[ShearEstimationMethods.LENSMC].weight,
+                    row[getattr(CGOD_TF, "weight_LensMC")])
