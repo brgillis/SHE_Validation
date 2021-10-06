@@ -33,7 +33,7 @@ from SHE_PPT.file_io import MultiTableLoader, TableLoader
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
-from SHE_PPT.table_utility import SheTableFormat
+from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
 from .bin_data import D_COLUMN_ADDING_METHODS, TF as BIN_TF
 from ..constants.default_config import DEFAULT_BIN_LIMITS
 from ..constants.test_info import BinParameters, TestCaseInfo
@@ -451,8 +451,8 @@ class FitclassZeroBinConstraint(ValueBinConstraint):
     def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
         """
-        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        self.bin_colname = tf.fit_class
+        tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        super().__init__(bin_colname = tf.fit_class)
 
 
 class FitflagsBinConstraint(BitFlagsBinConstraint):
@@ -466,8 +466,8 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
     def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
         """
-        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        self.bin_colname = tf.fit_flags
+        tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        super().__init__(bin_colname = tf.fit_flags)
 
 
 class WeightBinConstraint(RangeBinConstraint):
@@ -482,8 +482,8 @@ class WeightBinConstraint(RangeBinConstraint):
     def __init__(self, method: ShearEstimationMethods) -> None:
         """ Get the bin colname from the shear estimation method.
         """
-        tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        self.bin_colname = tf.weight
+        tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        super().__init__(bin_colname = tf.weight)
 
 
 # Convenience multi bin constraints
@@ -502,7 +502,7 @@ class VisDetBinParameterBinConstraint(MultiBinConstraint):
                                                      bin_parameter = bin_parameter,
                                                      bin_limits = bin_limits)
 
-        self.l_bin_constraints = [vis_det_bc, bin_parameter_bc]
+        super().__init__(l_bin_constraints = [vis_det_bc, bin_parameter_bc])
 
 
 class GoodMeasurementBinConstraint(MultiBinConstraint):
@@ -513,7 +513,7 @@ class GoodMeasurementBinConstraint(MultiBinConstraint):
         fitflags_bc = FitflagsBinConstraint(method = method)
         weight_bc = WeightBinConstraint(method = method)
 
-        self.l_bin_constraints = [fitflags_bc, weight_bc]
+        super().__init__(l_bin_constraints = [fitflags_bc, weight_bc])
 
 
 class GoodGalaxyMeasurementBinConstraint(MultiBinConstraint):
@@ -525,7 +525,41 @@ class GoodGalaxyMeasurementBinConstraint(MultiBinConstraint):
         fitflags_bc = FitflagsBinConstraint(method = method)
         weight_bc = WeightBinConstraint(method = method)
 
-        self.l_bin_constraints = [fitclass_zero_bc, fitflags_bc, weight_bc]
+        super().__init__(l_bin_constraints = [fitclass_zero_bc, fitflags_bc, weight_bc])
+
+
+class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
+    """ Bin constrained which combines VisDetBinParameterBinConstraint and GoodMeasurementBinConstraint.
+    """
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+        det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
+                                               bin_parameter = bin_parameter,
+                                               bin_limits = bin_limits)
+        good_meas_bc = GoodMeasurementBinConstraint(method = method)
+
+        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
+
+
+class GoodBinnedGalaxyMeasurementBinConstraint(MultiBinConstraint):
+    """ Bin constrained which combines VisDetBinParameterBinConstraint and GoodMeasurementBinConstraint.
+    """
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 test_case_info: Optional[TestCaseInfo] = None,
+                 bin_parameter: Optional[BinParameters] = None,
+                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+        det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
+                                               bin_parameter = bin_parameter,
+                                               bin_limits = bin_limits)
+        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method = method)
+
+        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
 
 
 # Convenience hetero bin constraints
@@ -545,7 +579,7 @@ class GoodBinnedMeasurementHBC(HeteroBinConstraint):
                                                      bin_limits = bin_limits)
         good_meas_bc = GoodMeasurementBinConstraint(method = method)
 
-        self.l_bin_constraints = [det_bin_bc, good_meas_bc]
+        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
 
 
 class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
@@ -562,7 +596,7 @@ class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
                                                      bin_limits = bin_limits)
         good_meas_bc = GoodGalaxyMeasurementBinConstraint(method = method)
 
-        self.l_bin_constraints = [det_bin_bc, good_meas_bc]
+        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
 
 
 # Functions to apply bin constraints

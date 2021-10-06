@@ -30,7 +30,7 @@ from astropy.table import Table
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
-from SHE_Validation.binning.bin_constraints import GoodMeasurementBinConstraint
+from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
@@ -261,6 +261,41 @@ class TestShearBias:
             assert np.isnan(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
             assert np.isinf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
                                                        NUM_ZERO_WEIGHT_TEST_POINTS - 1])
+
+        # Test loading, binned on the mock SNR data
+        bin_test_method = ShearEstimationMethods.KSB
+        bin_test_bin_parameter = BinParameters.SNR
+
+        self.d_matched_tables[bin_test_method].write(qualified_tu_matched_table_filename,
+                                                     overwrite = True)
+
+        # Create a data loader object and load in the data
+        data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+                                          workdir = self.workdir,
+                                          method = bin_test_method)
+
+        bin_constraint_0 = GoodBinnedMeasurementBinConstraint(method = bin_test_method,
+                                                              bin_parameter = bin_test_bin_parameter,
+                                                              bin_limits = self.d_l_bin_limits[bin_test_bin_parameter][
+                                                                           0:2])
+        data_loader.load_for_bin_constraint(bin_constraint = bin_constraint_0)
+        bin_0_data = set(data_loader.d_g_out[1])
+
+        bin_constraint_1 = GoodBinnedMeasurementBinConstraint(method = bin_test_method,
+                                                              bin_parameter = bin_test_bin_parameter,
+                                                              bin_limits = self.d_l_bin_limits[bin_test_bin_parameter][
+                                                                           1:3])
+        data_loader.load_for_bin_constraint(bin_constraint = bin_constraint_1)
+        bin_1_data = set(data_loader.d_g_out[1])
+
+        # Make sure the data from the two bins adds up
+        assert len(bin_0_data) + len(bin_1_data) == NUM_GOOD_TEST_POINTS
+
+        # Make sure the data from the two bins is non-overlapping
+        for x in bin_0_data:
+            assert x not in bin_1_data
+        for x in bin_1_data:
+            assert x not in bin_0_data
 
     def test_data_processor(self):
         """ Tests processing shear bias data.
