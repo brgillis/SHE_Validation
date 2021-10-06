@@ -10,12 +10,12 @@ This shall be demonstrated on emulated Euclid images with realistic SEDs for sta
 Requirements Chain:
 
 ## Validation Test: T-SHE-000002-PSF-lambda
-Estimate PSF model residuals at star positions and compare with suitable expected distribution (eg chi^2) with eg KL test (ANT: should this be KS-test?)
+Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g. KL test (ANT: should this be KS-test?)
 
 This test is defined in the WL Validation doc in VAL-WL-SHE-0020.
 
 ## Rational:
-Ensures that the object PSF model model captures the correct wavelength dependence for stars.
+Ensures that the object PSF model captures the correct wavelength dependence for stars.
 
 ## Test Cases:
 ### TC-SHE-100003-PSF-lambda-ell

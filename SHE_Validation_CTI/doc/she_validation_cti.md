@@ -36,7 +36,7 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 1. This process is carried out on simulated Euclid Observations. 
 1. This test is carried out per Observation. 
 1. Stars are binned by SNR over the range [TBD] with bin intervals of [TBD]. [Note: what sample of stars?]
-1. Each SNR sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
+1. Each SNR sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Don't need to bin, but would to plot results? ]
 1. The average difference between the Model PSF ellipticity and simulated Stellar image ellipticity calculated, with error. 
 1. The linear regression of the slope of the differential ellipticity as a function of readout distance is estimated, with error. 
 1. The slope and its error are compare to a threshold [TBD - Presently using z=5].
@@ -55,7 +55,7 @@ Linear dependence of residual PSF ellipticity with read-out register distance (s
 1. This process is carried out on simulated Euclid Observations. 
 1. This test is carried out per Observation. 
 1. Stars are binned by Sky Background Level over the range [TBD] with bin intervals of [TBD]. [Note: what sample of stars?]
-1. Each Sky Background Level sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Dont need to bin, but would to plot results? ]
+1. Each Sky Background Level sample is binned in distance from the Readout Register on each CCD. [Note: per pixel? Don't need to bin, but would to plot results? ]
 1. The average difference between the Model Sky Background Level ellipticity and simulated Stellar image ellipticity calculated, with error. 
 1. The linear regression of the slope of the differential ellipticity as a function of readout distance is estimated, with error. 
 1. The slope and its error are compare to a threshold [TBD - currently z=5].

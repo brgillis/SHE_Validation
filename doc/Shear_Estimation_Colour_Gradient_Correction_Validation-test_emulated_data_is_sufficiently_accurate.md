@@ -8,7 +8,7 @@ R-SHE-PRD-F-150: The error on the additive bias (c) on galaxy ellipticity determ
 [ANT Note: The accuracy was a TBD, will be updated in latest SHE RSD. ]
 
 ## Requirement Comment from GDPRD
-This shall be demonstrated by an end-to-end analysis on validated HST and emulated Euclid data. This requires sub-Requirements internal to SHE to validate HST data on fields on which there is overlap with Euclid data when available and and to validate emulated Euclid
+This shall be demonstrated by an end-to-end analysis on validated HST and emulated Euclid data. This requires sub-Requirements internal to SHE to validate HST data on fields on which there is overlap with Euclid data when available and to validate emulated Euclid
 
 Requirements Chain:
 

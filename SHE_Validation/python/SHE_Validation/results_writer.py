@@ -709,7 +709,7 @@ class TestCaseWriter():
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
-    # Types of child objects, which can be overriden by derived classes
+    # Types of child objects, which can be overridden by derived classes
     requirement_writer_type = RequirementWriter
     analysis_writer_type = AnalysisWriter
 
@@ -910,7 +910,7 @@ class ValidationResultsWriter():
     """ Base class to handle the writing out of validation test results.
     """
 
-    # Types of child classes, which can be overriden by derived classes
+    # Types of child classes, which can be overridden by derived classes
     test_case_writer_type = TestCaseWriter
 
     # Attributes set at init from arguments
@@ -1089,7 +1089,7 @@ class ValidationResultsWriter():
                                i: int,
                                base_test_case_object: Any,
                                ) -> None:
-        """ Initilizes a single test case object and writer.
+        """ Initializes a single test case object and writer.
         """
 
         # Get the proper textfiles and figures for this test case
@@ -1133,7 +1133,7 @@ class ValidationResultsWriter():
             test_case_writer.write()
 
     def write(self) -> None:
-        """ Fills in metadata of the validaiton test results object and writes all data for each test case to the
+        """ Fills in metadata of the validation test results object and writes all data for each test case to the
             validation test results object, self._test_object.
         """
         self.write_meta()

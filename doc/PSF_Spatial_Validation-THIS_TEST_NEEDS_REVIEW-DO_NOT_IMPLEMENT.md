@@ -17,7 +17,7 @@ Compare the PSF at a stellar position for a star **not** used in the PSF Fitting
 This test is defined in the [WL Validation](https://euclid.roe.ac.uk/attachments/download/21974/EUCL-UBN-TS-8-001_WLValidation_2018-06-18.pdf) doc in VAL-WL-SHE-0020.
 
 ## Rational:
-To test accuracy of the effective PSF model (i.e., the spatial interpolation of the object PSF model model).  
+To test accuracy of the effective PSF model (i.e., the spatial interpolation of the object PSF model).  
 
 [ANT - the spatial interpolation test is no longer appropriate with the wavefront model.]
 
@@ -33,4 +33,3 @@ To test accuracy of the effective PSF model (i.e., the spatial interpolation of 
 ### TC-SHE-100006-PSF-res-interp-star-pos-epoch
 
 ### TC-SHE-100006-PSF-res-interp-star-pos-aspect
-

@@ -22,7 +22,7 @@ Propagation of PSF model parameter errors from the posterior of the PSF model pa
 
 #### Test Procedure:
 1. Applied to emulated (HST) Euclid galaxies.
-1. Apply shear estimation to galaxies with fiducual PSF parameters.
+1. Apply shear estimation to galaxies with fiducial PSF parameters.
 1. Repeat shear estimation with a range of PSF parameters based in parameter uncertainties.
 1. Measure the variance of galaxy ellipticities.
 1. Test is variance is with Requirements.
@@ -32,4 +32,3 @@ Propagation of PSF model parameter errors from the posterior of the PSF model pa
 
 #### Test Procedure:
 As for TC-SHE-100011-PSF-model-err-propa-ell with ellipticity reply red by size.
-

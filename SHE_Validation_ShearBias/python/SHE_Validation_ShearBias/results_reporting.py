@@ -301,13 +301,13 @@ class ShearBiasRequirementWriter(RequirementWriter):
             self.l_bin_limits = DEFAULT_BIN_LIMITS
 
         # Check the number of bins is right for all input data, if it's not None
-        def none_or_metch_len(l_x: Optional[List[Any]]):
+        def none_or_match_len(l_x: Optional[List[Any]]):
             if l_x is None:
                 return True
             return self.num_bins == len(l_x)
 
-        if not (none_or_metch_len(self.l_d_val) and none_or_metch_len(self.l_d_val_err) and
-                none_or_metch_len(self.l_d_val_target) and none_or_metch_len(self.l_d_val_z)):
+        if not (none_or_match_len(self.l_d_val) and none_or_match_len(self.l_d_val_err) and
+                none_or_match_len(self.l_d_val_target) and none_or_match_len(self.l_d_val_z)):
             raise ValueError(f"Inconsistent array lengths in Shear Bias test results writing.")
 
         # Fill out the fail sigma list of dicts, to help with mapping function calls

@@ -22,7 +22,7 @@ This shall be demonstrated by estimating the chi-squared distribution of stellar
 Requirements Chain: TBD
 
 #### Validation Test: T-SHE-000001-PSF-res-star-pos
-Estimate PSF model residuals at star positions and compare with suitable expected distribution (eg chi^2) with eg KL test (ANT: should this be KS-test?)
+Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g. KL test (ANT: should this be KS-test?)
 
 This test is defined in the WL Validation doc in VAL-WL-SHE-0010.
 
@@ -35,7 +35,7 @@ which does measure the difference between 2 distributions, but there is no
 obvious threshold. I'd suggest a KS (Kolomogorov-Smirnov) Test is what was meant here.]
 
 #### Rational:
-To verify that the object PSF model model residuals are consistent with noise, i.e., that there are no remaining systematics in the PSF model.
+To verify that the object PSF model residuals are consistent with noise, i.e., that there are no remaining systematics in the PSF model.
 
 
 #### Test Case:
@@ -78,4 +78,3 @@ As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by epoch.
 ####   Test Case:
 TC-SHE-100002-PSF-res-star-pos-solaspang
 As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by solar aspect angle.
-

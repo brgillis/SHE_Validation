@@ -107,7 +107,7 @@ class ShearBiasPlotter(ValidationPlotter):
         # Use the parent method to save the plot and get the filename of it
         bias_plot_filename = super()._save_plot()
 
-        # Record the filename for this plot in the filenams dict
+        # Record the filename for this plot in the filenames dict
         self.d_bias_plot_filename[i] = bias_plot_filename
 
     def _plot_component_shear_bias(self,

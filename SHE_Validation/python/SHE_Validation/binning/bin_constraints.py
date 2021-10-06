@@ -51,7 +51,7 @@ class BinConstraint(abc.ABC):
     bin_parameter: Optional[BinParameters] = None
 
     def __init__(self, bin_parameter: Optional[BinParameters] = None):
-        """ Inits values only if not None, to allow simple overriding in inherited classes.
+        """ Initializes values only if not None, to allow simple overriding in inherited classes.
         """
         if bin_parameter:
             self.bin_parameter = bin_parameter
@@ -165,7 +165,7 @@ class RangeBinConstraint(BinConstraint):
                  bin_colname: Optional[str] = None,
                  bin_limits: Sequence[float] = None,
                  *args, **kwargs):
-        """ Inits values only if not None, to allow simple overriding in inherited classes.
+        """ Initializes values only if not None, to allow simple overriding in inherited classes.
         """
 
         super().__init__(*args, **kwargs)
@@ -227,7 +227,7 @@ class ValueBinConstraint(BinConstraint):
                  value: Optional[Any] = None,
                  invert: Optional[bool] = None,
                  *args, **kwargs):
-        """ Inits values only if not None, to allow simple overriding in inherited classes.
+        """ Initializes values only if not None, to allow simple overriding in inherited classes.
         """
 
         super().__init__(*args, **kwargs)
@@ -276,7 +276,7 @@ class BitFlagsBinConstraint(BinConstraint):
                  bit_flags: Optional[int] = None,
                  invert: Optional[bool] = None,
                  *args, **kwargs):
-        """ Inits values only if not None, to allow simple overriding in inherited classes.
+        """ Initializes values only if not None, to allow simple overriding in inherited classes.
         """
 
         super().__init__(*args, **kwargs)
