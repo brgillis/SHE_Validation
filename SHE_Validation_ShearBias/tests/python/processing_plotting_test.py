@@ -467,23 +467,35 @@ class TestShearBias:
         """ Runs a test of plotting the results of a shear bias test.
         """
 
-        # Run the plotting
+        # Test for each bin of each bin parameter of each method
 
-        plotter = ShearBiasPlotter(data_processor = self.mock_data_processor,
-                                   bin_index = 0)
-        plotter.plot()
+        for method in TEST_METHODS:
+            for bin_parameter in TEST_BIN_PARAMETERS:
 
-        # Check the results
+                l_bin_limits = self.d_l_bin_limits[bin_parameter]
 
-        d_qualified_plot_filenames = {}
+                # Now test for actual bin limits
+                for bin_index in range(len(l_bin_limits) - 1):
 
-        for i in (1, 2):
+                    mock_data_processor = self.d_d_l_mock_data_processors[method][bin_parameter][bin_index]
 
-            qualified_plot_filename = os.path.join(self.workdir, plotter.d_bias_plot_filename[i])
-            d_qualified_plot_filenames[i] = qualified_plot_filename
+                    # Run the plotting
 
-            assert self.METHOD.name in qualified_plot_filename
-            assert self.BINS.name in qualified_plot_filename
-            assert os.path.isfile(qualified_plot_filename)
+                    plotter = ShearBiasPlotter(data_processor = mock_data_processor,
+                                               bin_index = 0)
+                    plotter.plot()
 
-        assert d_qualified_plot_filenames[1] != d_qualified_plot_filenames[2]
+                    # Check the results
+
+                    d_qualified_plot_filenames = {}
+
+                    for i in (1, 2):
+
+                        qualified_plot_filename = os.path.join(self.workdir, plotter.d_bias_plot_filename[i])
+                        d_qualified_plot_filenames[i] = qualified_plot_filename
+
+                        assert method.name in qualified_plot_filename
+                        assert bin_parameter.name in qualified_plot_filename
+                        assert os.path.isfile(qualified_plot_filename)
+
+                    assert d_qualified_plot_filenames[1] != d_qualified_plot_filenames[2]
