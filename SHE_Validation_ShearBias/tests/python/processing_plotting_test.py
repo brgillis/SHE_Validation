@@ -224,8 +224,10 @@ class TestShearBias:
                                                                              "c2": "c2 bias string"}], )
                 self.d_d_mock_data_processors[method][bin_parameter] = mock_data_processor
 
+                # noinspection PyTypeChecker
                 self.d_d_l_mock_data_loaders[method][bin_parameter] = [None] * (
                         len(self.d_l_bin_limits[bin_parameter]) - 1)
+                # noinspection PyTypeChecker
                 self.d_d_l_mock_data_processors[method][bin_parameter] = [None] * (
                         len(self.d_l_bin_limits[bin_parameter]) - 1)
 
@@ -390,7 +392,6 @@ class TestShearBias:
                 # Now test for actual bin limits
                 for bin_index in range(len(l_bin_limits) - 1):
 
-                    mock_data_processor = self.d_d_l_mock_data_processors[method][bin_parameter][bin_index]
                     bin_limits = l_bin_limits[bin_index: bin_index + 2]
 
                     # Use a specific mock data loader and processor for this bin
@@ -408,10 +409,8 @@ class TestShearBias:
                                       mock_data_loader: MockDataLoader,
                                       mock_data_processor: MockDataProcessor):
 
-        method = mock_data_processor.method
-        bin_parameter = mock_data_processor.bin_parameter
-
         # Process the data and check that it matches the mock processor
+        # noinspection PyTypeChecker
         data_processor = ShearBiasTestCaseDataProcessor(data_loader = mock_data_loader,
                                                         test_case_info = test_case_info,
                                                         l_bin_limits = bin_limits)
@@ -481,6 +480,7 @@ class TestShearBias:
 
                     # Run the plotting
 
+                    # noinspection PyTypeChecker
                     plotter = ShearBiasPlotter(data_processor = mock_data_processor,
                                                bin_index = 0)
                     plotter.plot()
@@ -495,7 +495,7 @@ class TestShearBias:
                         d_qualified_plot_filenames[i] = qualified_plot_filename
 
                         assert method.name in qualified_plot_filename
-                        assert bin_parameter.name in qualified_plot_filename
+                        assert f"{bin_parameter.name}-0" in qualified_plot_filename
                         assert os.path.isfile(qualified_plot_filename)
 
                     assert d_qualified_plot_filenames[1] != d_qualified_plot_filenames[2]
