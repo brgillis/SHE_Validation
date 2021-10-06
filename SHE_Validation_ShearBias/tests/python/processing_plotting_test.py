@@ -4,27 +4,8 @@
 
     Unit tests of the Shear Bias data processing and plotting.
 """
-import os
-from copy import deepcopy
-from typing import Dict, List, NamedTuple, Sequence
-
-import numpy as np
-import pytest
-
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
-from SHE_PPT.table_formats.she_lensmc_tu_matched import tf as TF
-from SHE_Validation.binning.bin_constraints import GoodMeasurementBinConstraint
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import (BASE_SHEAR_BIAS_TEST_CASE_C_INFO,
-                                                                     BASE_SHEAR_BIAS_TEST_CASE_M_INFO, )
-from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
-                                                      ShearBiasTestCaseDataProcessor, )
-from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
 
 __updated__ = "2021-08-31"
-
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -38,6 +19,31 @@ __updated__ = "2021-08-31"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import os
+from typing import Any, Dict, List, NamedTuple, Sequence
+
+import numpy as np
+import pytest
+from astropy.table import Table
+
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        ShearEstimationMethods, )
+from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
+from SHE_Validation.binning.bin_constraints import GoodMeasurementBinConstraint
+from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
+from SHE_Validation.test_info_utility import find_test_case_info
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                     )
+from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
+                                                      ShearBiasTestCaseDataProcessor, )
+from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
+from SHE_Validation_ShearBias.testing.mock_shear_bias_data import (EST_SEED, NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS,
+                                                                   NUM_TEST_POINTS,
+                                                                   NUM_ZERO_WEIGHT_TEST_POINTS, TEST_METHODS,
+                                                                   cleanup_mock_matched_tables,
+                                                                   make_mock_bin_limits, make_mock_matched_table, )
 
 
 class MockDataLoader(NamedTuple):
@@ -77,26 +83,20 @@ class TestShearBias:
     """ Unit tests for plotting shear bias results
     """
 
-    METHOD: ShearEstimationMethods = ShearEstimationMethods.LENSMC
-    BINS: BinParameters = BinParameters.GLOBAL
-    BIN_INDEX: int = 0
+    workdir: str = ""
+    logdir: str = ""
 
-    # Details of mock data
-    M1 = 2e-4
-    M2 = -1e-3
-    C1 = -0.2
-    C2 = 0.01
+    rng: Any
 
-    G1_IN_ERR = 0.02
-    G1_OUT_ERR = 0.25
+    d_l_bin_limits: Dict[BinParameters, np.ndarray]
 
-    G2_IN_ERR = 0.03
-    G2_OUT_ERR = 0.35
+    good_ids: np.ndarray
 
-    L = 10000  # Length of good data
-    LNAN = 5  # Length of bad data
-    LZERO = 5  # Length of zero-weight data
-    LTOT = L + LNAN + LZERO
+    d_matched_tables: Dict[ShearEstimationMethods, Table]
+    d_mock_data_loaders: Dict[ShearEstimationMethods, MockDataLoader]
+    d_d_l_mock_data_processors: Dict[ShearEstimationMethods, Dict[BinParameters, List[MockDataProcessor]]]
+    d_d_m_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
+    d_d_c_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
 
     @classmethod
     def setup_class(cls):
@@ -108,7 +108,10 @@ class TestShearBias:
     def teardown_class(cls):
         """ Necessary presence alongside setup_class.
         """
-        pass
+
+        # Delete the created data
+        if cls.workdir:
+            cleanup_mock_matched_tables(cls.workdir)
 
     @pytest.fixture(autouse = True)
     def setup(self, tmpdir):
@@ -120,134 +123,108 @@ class TestShearBias:
         self.logdir = os.path.join(tmpdir.strpath, "logs")
         os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
 
-        # Set up an RNG
-        self.rng = np.random.default_rng(seed = 54352)
-
         # Set up the data we'll be processing
 
-        full_indices = np.arange(self.LTOT, dtype = int)
+        self.d_l_bin_limits = make_mock_bin_limits()
 
-        full_g1_in_data = self.G1_IN_ERR * self.rng.standard_normal(size = self.LTOT)
-        full_g1_out_err_data = self.G1_OUT_ERR * np.ones(self.LTOT, dtype = '>f4')
-        full_g1_out_data = (self.M1 * full_g1_in_data + self.C1 +
-                            full_g1_out_err_data * self.rng.standard_normal(size = self.LTOT))
+        full_indices = np.arange(NUM_TEST_POINTS, dtype = int)
+        self.good_ids = full_indices[:NUM_GOOD_TEST_POINTS]
 
-        full_g2_in_data = self.G2_IN_ERR * self.rng.standard_normal(size = self.LTOT)
-        full_g2_out_err_data = self.G2_OUT_ERR * np.ones(self.LTOT, dtype = '>f4')
-        full_g2_out_data = (self.M2 * full_g2_in_data + self.C2 +
-                            full_g2_out_err_data * self.rng.standard_normal(size = self.LTOT))
+        # Set up dicts for each method and bin we'll be testing
+        self.d_matched_tables = {}
+        self.d_mock_data_loaders = {}
+        self.d_d_l_mock_data_processors = {}
+        self.d_d_m_test_case_info = {}
+        self.d_d_c_test_case_info = {}
 
-        weight_data = 0.5 * full_g1_out_err_data ** -2
-        fit_flags_data = np.where(full_indices < self.L, 0, np.where(full_indices < self.L + self.LNAN, 1, 0))
+        for method_index, method in enumerate([ShearEstimationMethods.LENSMC,
+                                               ShearEstimationMethods.KSB]):
+            tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
-        # Set mock snr, bg, colour, and size values to test different bins
+            matched_table = make_mock_matched_table(method = method,
+                                                    seed = EST_SEED + method_index)
+            self.d_matched_tables[method] = matched_table
 
-        indices = np.indices((self.LTOT,), dtype = int, )[0]
-        zeros = np.zeros(self.LTOT, dtype = '>f4')
-        ones = np.ones(self.LTOT, dtype = '>f4')
+            # Make a mock data loader we can use for tests which assume data has already been loaded in
+            self.d_mock_data_loaders[method] = MockDataLoader(method = method,
+                                                              workdir = self.workdir,
+                                                              d_g_in = {1: -matched_table[tf.tu_gamma1][
+                                                                            :NUM_GOOD_TEST_POINTS],
+                                                                        2: matched_table[tf.tu_gamma2][
+                                                                           :NUM_GOOD_TEST_POINTS]},
+                                                              d_g_out = {1: matched_table[tf.g1][
+                                                                            :NUM_GOOD_TEST_POINTS],
+                                                                         2: matched_table[tf.g2][
+                                                                            :NUM_GOOD_TEST_POINTS]},
+                                                              d_g_out_err = {1: matched_table[tf.g1_err][
+                                                                                :NUM_GOOD_TEST_POINTS],
+                                                                             2: matched_table[tf.g2_err][
+                                                                                :NUM_GOOD_TEST_POINTS]}, )
 
-        snr_data = np.where(indices % 2 < 1, ones, zeros)
-        bg_data = np.where(indices % 4 < 2, ones, zeros)
-        colour_data = np.where(indices % 8 < 4, ones, zeros)
-        size_data = np.where(indices % 16 < 8, ones, zeros)
+            # Similarly, make a mock data processor to use for tests
 
-        # Flag the last bit of data as bad or zero weight
-        full_g1_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
-        full_g1_out_err_data[-self.LNAN - self.LZERO:] = np.NaN
-        full_g2_out_data[-self.LNAN - self.LZERO:-self.LZERO] = np.NaN
-        full_g2_out_err_data[-self.LNAN - self.LZERO:] = np.NaN
+            g1_linregress_results = linregress_with_errors(x = -matched_table[tf.tu_gamma1],
+                                                           y = matched_table[tf.g1],
+                                                           y_err = matched_table[tf.g1_err])
+            g1_bias_measurements = BiasMeasurements(g1_linregress_results)
 
-        full_g1_out_err_data[-self.LZERO:] = np.inf
-        full_g2_out_err_data[-self.LZERO:] = np.inf
-        weight_data[-self.LZERO:] = 0
+            g2_linregress_results = linregress_with_errors(x = matched_table[tf.tu_gamma2],
+                                                           y = matched_table[tf.g2],
+                                                           y_err = matched_table[tf.g2_err])
+            g2_bias_measurements = BiasMeasurements(g2_linregress_results)
 
-        # Get arrays of just the good data
-        g1_in_data = full_g1_in_data[:self.L]
-        g1_out_err_data = full_g1_out_err_data[:self.L]
-        g1_out_data = full_g1_out_data[:self.L]
+            # Get a separate data processors and test case info for each bin parameter
+            self.d_d_m_test_case_info[method] = {}
+            self.d_d_c_test_case_info[method] = {}
+            self.d_d_l_mock_data_processors[method] = {}
 
-        g2_in_data = full_g2_in_data[:self.L]
-        g2_out_err_data = full_g2_out_err_data[:self.L]
-        g2_out_data = full_g2_out_data[:self.L]
+            for bin_parameter in [BinParameters.GLOBAL, BinParameters.SNR]:
 
-        self.good_ids = full_indices[:self.L]
+                # Make mock test case info to use
 
-        # Put the data into a table
+                self.d_d_m_test_case_info[method][bin_parameter] = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                                       methods = method,
+                                                                                       bin_parameters = bin_parameter,
+                                                                                       return_one = True)
 
-        self.matched_table = TF.init_table(size = self.LTOT)
+                self.d_d_c_test_case_info[method][bin_parameter] = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_M_INFO,
+                                                                                       methods = method,
+                                                                                       bin_parameters = bin_parameter,
+                                                                                       return_one = True)
 
-        self.matched_table[TF.ID] = full_indices
-        self.matched_table[TF.fit_flags] = fit_flags_data
+                self.d_d_l_mock_data_processors[method][bin_parameter] = []
 
-        self.matched_table[TF.tu_gamma1] = -full_g1_in_data
-        self.matched_table[TF.tu_gamma2] = full_g2_in_data
-        self.matched_table[TF.tu_kappa] = np.zeros_like(full_g1_in_data)
+                for bin_index in range(len(self.d_l_bin_limits[bin_parameter]) - 1):
 
-        self.matched_table[TF.g1] = full_g1_out_data
-        self.matched_table[TF.g1_err] = full_g1_out_err_data
-        self.matched_table[TF.g2] = full_g2_out_data
-        self.matched_table[TF.g2_err] = full_g2_out_err_data
-        self.matched_table[TF.weight] = weight_data
+                    mock_data_processor = MockDataProcessor(method = method,
+                                                            bin_parameter = bin_parameter,
+                                                            bin_index = bin_index,
+                                                            workdir = self.workdir,
+                                                            d_g_in = {1: -matched_table[tf.tu_gamma1],
+                                                                      2: matched_table[tf.tu_gamma2]},
+                                                            d_g_out = {1: matched_table[tf.g1],
+                                                                       2: matched_table[tf.g2]},
+                                                            d_g_out_err = {1: matched_table[tf.g1_err],
+                                                                           2: matched_table[tf.g2_err]},
+                                                            l_d_bias_measurements = [{1: g1_bias_measurements,
+                                                                                      2: g2_bias_measurements}],
+                                                            l_d_linregress_results = [{
+                                                                1: g1_linregress_results,
+                                                                2: g2_linregress_results}],
+                                                            l_d_bias_strings = [{"m1": "m1 bias string",
+                                                                                 "m2": "m2 bias string",
+                                                                                 "c1": "c1 bias string",
+                                                                                 "c2": "c2 bias string"}], )
+                    self.d_d_l_mock_data_processors[method][bin_parameter].append(mock_data_processor)
 
-        # Make a mock data loader we can use for tests which assume data has already been loaded in
-        self.mock_data_loader: MockDataLoader = MockDataLoader(method = self.METHOD,
-                                                               workdir = self.workdir,
-                                                               d_g_in = {1: g1_in_data,
-                                                                         2: g2_in_data},
-                                                               d_g_out = {1: g1_out_data,
-                                                                          2: g2_out_data},
-                                                               d_g_out_err = {1: g1_out_err_data,
-                                                                              2: g2_out_err_data}, )
-
-        # Similarly, make a mock data processor to use for tests
-
-        g1_linregress_results = linregress_with_errors(x = g1_in_data,
-                                                       y = g1_out_data,
-                                                       y_err = g1_out_err_data)
-        g1_bias_measurements = BiasMeasurements(g1_linregress_results)
-
-        g2_linregress_results = linregress_with_errors(x = g2_in_data,
-                                                       y = g2_out_data,
-                                                       y_err = g2_out_err_data)
-        g2_bias_measurements = BiasMeasurements(g2_linregress_results)
-
-        self.mock_data_processor = MockDataProcessor(method = self.METHOD,
-                                                     bin_parameter = BinParameters.GLOBAL,
-                                                     bin_index = self.BIN_INDEX,
-                                                     workdir = self.workdir,
-                                                     d_g_in = {1: g1_in_data,
-                                                               2: g2_in_data},
-                                                     d_g_out = {1: g1_out_data,
-                                                                2: g2_out_data},
-                                                     d_g_out_err = {1: g1_out_err_data,
-                                                                    2: g2_out_err_data},
-                                                     l_d_bias_measurements = [{1: g1_bias_measurements,
-                                                                               2: g2_bias_measurements}],
-                                                     l_d_linregress_results = [{
-                                                         1: g1_linregress_results,
-                                                         2: g2_linregress_results}],
-                                                     l_d_bias_strings = [{"m1": "m1 bias string",
-                                                                          "m2": "m2 bias string",
-                                                                          "c1": "c1 bias string",
-                                                                          "c2": "c2 bias string"}], )
-
-        # Make mock test case info to use
-
-        self.m_test_case_info: TestCaseInfo = deepcopy(BASE_SHEAR_BIAS_TEST_CASE_M_INFO)
-        self.m_test_case_info.method = self.METHOD
-        self.m_test_case_info.bins = self.BINS
-
-        self.c_test_case_info: TestCaseInfo = deepcopy(BASE_SHEAR_BIAS_TEST_CASE_C_INFO)
-        self.c_test_case_info.method = self.METHOD
-        self.c_test_case_info.bins = self.BINS
-
-    def _check_loaded_data(self, data_loader: ShearBiasDataLoader):
+    @staticmethod
+    def _check_loaded_data(data_loader: ShearBiasDataLoader, mock_data_loader: MockDataLoader):
         # Check that the loaded data is correct
         i: int
         for i in range(1, 2):
-            np.testing.assert_allclose(data_loader.d_g_in[i], self.mock_data_loader.d_g_in[i])
-            np.testing.assert_allclose(data_loader.d_g_out[i], self.mock_data_loader.d_g_out[i])
-            np.testing.assert_allclose(data_loader.d_g_out_err[i], self.mock_data_loader.d_g_out_err[i])
+            np.testing.assert_allclose(data_loader.d_g_in[i], mock_data_loader.d_g_in[i])
+            np.testing.assert_allclose(data_loader.d_g_out[i], mock_data_loader.d_g_out[i])
+            np.testing.assert_allclose(data_loader.d_g_out_err[i], mock_data_loader.d_g_out_err[i])
 
     def test_data_loader(self):
         """ Tests loading in shear bias data.
@@ -257,27 +234,33 @@ class TestShearBias:
         tu_matched_table_filename = "tu_matched_table.fits"
         qualified_tu_matched_table_filename = os.path.join(self.workdir, tu_matched_table_filename)
 
-        # Write out the table
-        self.matched_table.write(qualified_tu_matched_table_filename, overwrite = True)
+        for method in TEST_METHODS:
 
-        # Create a data loader object and load in the data
-        data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
-                                          workdir = self.workdir,
-                                          method = self.METHOD)
-        data_loader.load_ids(self.good_ids)
+            # Write out the table
+            self.d_matched_tables[method].write(qualified_tu_matched_table_filename,
+                                                overwrite = True)
 
-        self._check_loaded_data(data_loader = data_loader)
+            # Create a data loader object and load in the data
+            data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+                                              workdir = self.workdir,
+                                              method = method)
+            data_loader.load_ids(self.good_ids)
 
-        # Try loading with a bin constraint
-        bin_constraint = GoodMeasurementBinConstraint(method = ShearEstimationMethods.LENSMC)
-        data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+            self._check_loaded_data(data_loader = data_loader,
+                                    mock_data_loader = self.d_mock_data_loaders[method])
 
-        self._check_loaded_data(data_loader = data_loader)
+            # Try loading with a bin constraint
+            bin_constraint = GoodMeasurementBinConstraint(method = method)
+            data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
 
-        # Try loading all data, and check that NaN values were read in
-        data_loader.load_all()
-        assert np.isnan(data_loader.d_g_out[1][self.L + 1])
-        assert np.isinf(data_loader.d_g_out_err[1][self.L + self.LNAN + 1])
+            self._check_loaded_data(data_loader = data_loader,
+                                    mock_data_loader = self.d_mock_data_loaders[method])
+
+            # Try loading all data, and check that NaN values were read in
+            data_loader.load_all()
+            assert np.isnan(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
+            assert np.isinf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
+                                                       NUM_ZERO_WEIGHT_TEST_POINTS - 1])
 
     def test_data_processor(self):
         """ Tests processing shear bias data.

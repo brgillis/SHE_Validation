@@ -57,8 +57,16 @@ TEST_METHOD_SNR = ShearEstimationMethods.KSB
 MATCHED_TF_GLOBAL = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[TEST_METHOD_GLOBAL]
 MATCHED_TF_SNR = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[TEST_METHOD_SNR]
 
+TEST_METHODS = (ShearEstimationMethods.LENSMC, ShearEstimationMethods.KSB)
+TEST_BIN_PARAMETERS = (BinParameters.GLOBAL, BinParameters.SNR)
+
+# General info about the data
+NUM_GOOD_TEST_POINTS = 32
+NUM_NAN_TEST_POINTS = 2
+NUM_ZERO_WEIGHT_TEST_POINTS = 1
+NUM_TEST_POINTS = NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS + NUM_ZERO_WEIGHT_TEST_POINTS
+
 # Input shear info
-NUM_TEST_POINTS = 32
 INPUT_G_MIN = -0.7
 INPUT_G_MAX = 0.7
 
@@ -72,26 +80,24 @@ EXTRA_EST_G_ERR_ERR = 0.005
 LOCAL_FAIL_SIGMA = 4
 GLOBAL_FAIL_SIGMA = 10
 
-INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, float]]]] = {}
-
-INPUT_BIAS[ShearEstimationMethods.LENSMC] = {BinParameters.GLOBAL: [{"m1": 0.05,
-                                                                     "c1": -0.2,
-                                                                     "m2": -0.1,
-                                                                     "c2": 0.01, }]}
-
-INPUT_BIAS[ShearEstimationMethods.KSB] = {BinParameters.SNR: [{"m1": 0.2,
-                                                               "c1": -0.3,
-                                                               "m2": 0.1,
-                                                               "c2": -0.4, },
-                                                              {"m1": -0.3,
-                                                               "c1": -0.5,
-                                                               "m2": 0.35,
-                                                               "c2": 0.,
-                                                               }]}
+INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, float]]]] = {
+    ShearEstimationMethods.LENSMC: {BinParameters.GLOBAL: [{"m1": 0.05,
+                                                            "c1": -0.2,
+                                                            "m2": -0.1,
+                                                            "c2": 0.01, }]},
+    ShearEstimationMethods.KSB   : {BinParameters.SNR: [{"m1": 0.2,
+                                                         "c1": -0.3,
+                                                         "m2": 0.1,
+                                                         "c2": -0.4, },
+                                                        {"m1": -0.3,
+                                                         "c1": -0.5,
+                                                         "m2": 0.35,
+                                                         "c2": 0.,
+                                                         }]}}
 
 
 def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
-                            seed: int = EST_SEED) -> Table:
+                            seed: int = EST_SEED, ) -> Table:
     """ Function to generate a mock matched catalog table.
     """
 
@@ -104,15 +110,18 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
     # Create the table
     matched_table = tf.init_table(size = NUM_TEST_POINTS)
 
+    indices = np.indices((NUM_TEST_POINTS,), dtype = int, )[0]
+    zeros = np.zeros(NUM_TEST_POINTS, dtype = '>f4')
+    ones = np.ones(NUM_TEST_POINTS, dtype = '>f4')
+
+    matched_table[tf.ID] = indices
+
     # Fill in input data
     matched_table[tf.tu_gamma1] = -np.linspace(INPUT_G_MIN, INPUT_G_MAX, NUM_TEST_POINTS)
     matched_table[tf.tu_gamma2] = np.linspace(INPUT_G_MAX, INPUT_G_MIN, NUM_TEST_POINTS)
     matched_table[tf.tu_kappa] = np.zeros_like(matched_table[tf.tu_gamma1])
 
     # Fill in data for bin parameter info, with different bins for each parameter
-    indices = np.indices((NUM_TEST_POINTS,), dtype = int, )[0]
-    zeros = np.zeros(NUM_TEST_POINTS, dtype = '>f4')
-    ones = np.ones(NUM_TEST_POINTS, dtype = '>f4')
 
     i: int
     bin_parameter: BinParameters
@@ -151,6 +160,20 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
     matched_table[tf.g1] = np.where(indices % 2 < 1, g1_0m2, g1_1m2)
     matched_table[tf.g2] = np.where(indices % 2 < 1, g2_0m2, g2_1m2)
 
+    # Flag the last bit of data as bad or zero weight
+    matched_table[tf.g1][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:-NUM_ZERO_WEIGHT_TEST_POINTS] = np.NaN
+    matched_table[tf.g1_err][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:] = np.NaN
+    matched_table[tf.g2][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:-NUM_ZERO_WEIGHT_TEST_POINTS] = np.NaN
+    matched_table[tf.g2_err][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:] = np.NaN
+
+    matched_table[tf.g1_err][-NUM_ZERO_WEIGHT_TEST_POINTS:] = np.inf
+    matched_table[tf.g2_err][-NUM_ZERO_WEIGHT_TEST_POINTS:] = np.inf
+    matched_table[tf.weight][-NUM_ZERO_WEIGHT_TEST_POINTS:] = 0
+
+    # Set the fit flags
+    matched_table[tf.fit_flags] = np.where(indices < NUM_GOOD_TEST_POINTS, 0,
+                                           np.where(indices < NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS, 1, 0))
+
     return matched_table
 
 
@@ -182,20 +205,31 @@ def cleanup_mock_matched_tables(workdir: str):
     os.remove(os.path.join(workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
 
 
+def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = {}
+    for bin_parameter in BinParameters:
+        if bin_parameter == BinParameters.SNR:
+            d_l_bin_limits[bin_parameter] = np.array([-0.5, 0.5, 1.5])
+        else:
+            d_l_bin_limits[bin_parameter] = np.array(DEFAULT_BIN_LIMITS)
+
+    return d_l_bin_limits
+
+
 def write_mock_pipeline_config(workdir: str):
     # Put fail sigma values in the dict
     config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : LOCAL_FAIL_SIGMA,
                    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: GLOBAL_FAIL_SIGMA}
+
+    mock_bin_limits = make_mock_bin_limits()
 
     # Set modified bin limits in the dict
     for bin_parameter in BinParameters:
         config_key = D_BIN_PARAMETER_META[bin_parameter].config_key
         if bin_parameter == BinParameters.GLOBAL or bin_parameter == BinParameters.EPOCH:
             continue
-        elif bin_parameter == BinParameters.SNR:
-            config_dict[config_key] = [-0.5, 0.5, 1.5]
         else:
-            config_dict[config_key] = DEFAULT_BIN_LIMITS
+            config_dict[config_key] = mock_bin_limits[bin_parameter]
 
     write_config(config_dict = config_dict,
                  config_filename = PIPELINE_CONFIG_FILENAME,

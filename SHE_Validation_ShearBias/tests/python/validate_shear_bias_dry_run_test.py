@@ -42,8 +42,8 @@ class TestCase:
     """
 
     args: MockShearBiasArgs
-    workdir: str
-    logdir: str
+    workdir: str = ""
+    logdir: str = ""
 
     @classmethod
     def setup_class(cls):
@@ -52,10 +52,10 @@ class TestCase:
     @classmethod
     def teardown_class(cls):
 
-        # Delete the pipeline config file
-        if cls.args.workdir:
-            cleanup_mock_pipeline_config(cls.args.workdir)
-            cleanup_mock_matched_tables(cls.args.workdir)
+        # Delete the created data
+        if cls.workdir:
+            cleanup_mock_pipeline_config(cls.workdir)
+            cleanup_mock_matched_tables(cls.workdir)
 
     @pytest.fixture(autouse = True)
     def setup(self, tmpdir):
