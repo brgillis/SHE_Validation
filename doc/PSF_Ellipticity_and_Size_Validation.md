@@ -40,7 +40,7 @@ effect on ellipticity.
 
 ### TC-SHE-100011-PSF-model-err-propa-R2
 
-Propagation of PSF model parameter errors from the posterior of the PSF model param-eters to galaxy shape and size PDF,
+Propagation of PSF model parameter errors from the posterior of the PSF model parameters to galaxy shape and size PDF,
 effect on size.
 
 #### Test Procedure:

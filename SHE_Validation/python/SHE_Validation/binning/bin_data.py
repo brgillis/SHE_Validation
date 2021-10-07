@@ -139,7 +139,7 @@ def add_bg_column(t: Table,
 
     l_object_ids: Sequence[int] = t[MFC_TF.ID]
 
-    bg_data: Sequence[float] = np.zeros_like(l_object_ids, dtype = TF.dtypes[TF.bg])
+    bg_data: np.ndarray = np.zeros_like(l_object_ids, dtype = TF.dtypes[TF.bg])
 
     # Loop over objects to calculate background level
     for object_index, object_id in enumerate(l_object_ids):
@@ -152,8 +152,9 @@ def add_bg_column(t: Table,
                 l_background_level[exp_index] = exp_image.background_map.mean()
 
         # Calculate the mean background level of all valid exposures
-        bg_array = np.array(l_background_level)
-        valid_bg = bg_array != None
+        bg_array: np.ndarray = np.array(l_background_level)
+        # noinspection PyPep8
+        valid_bg: np.ndarray = bg_array != None
         if valid_bg.sum() > 0:
             bg_data[object_index] = bg_array[valid_bg].mean()
         else:
