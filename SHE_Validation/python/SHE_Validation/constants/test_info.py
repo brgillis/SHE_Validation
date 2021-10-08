@@ -126,7 +126,7 @@ class BinParameterMeta():
         return self._extra_help_text
 
     @property
-    def config_key(self) -> Optional[str]:
+    def config_key(self) -> Optional[ConfigKeys]:
         return self._config_key
 
     @property

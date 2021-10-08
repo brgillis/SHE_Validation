@@ -27,15 +27,15 @@ import numpy as np
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import write_config
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, ValidationConfigKeys)
+from SHE_PPT.pipeline_utility import read_config
+from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
+from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
+                                                     ValidationConfigKeys, )
 from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
-from SHE_Validation.file_io import SheValFileNamer
 
 logger = getLogger(__name__)
 
 # Default values for the factory class
-DEFAULT_PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
 DEFAULT_MOCK_BIN_LIMITS = [-0.5, 0.5, 1.5]
 DEFAULT_TEST_BIN_PARAMETER = BinParameters.SNR
 
@@ -43,31 +43,19 @@ DEFAULT_LOCAL_FAIL_SIGMA = 4
 DEFAULT_GLOBAL_FAIL_SIGMA = 10
 
 
-class MockPipelineConfigFactory:
+class MockValPipelineConfigFactory(MockPipelineConfigFactory):
+    # Attributes to override from parent class
+    _config_keys = ValidationConfigKeys
+    _config_defaults = D_VALIDATION_CONFIG_DEFAULTS
+
     # Input values with defaults
     _test_bin_parameter: BinParameters = BinParameters.SNR
     _mock_bin_limits: np.ndarray = np.array(DEFAULT_MOCK_BIN_LIMITS)
     _local_fail_sigma: float = DEFAULT_LOCAL_FAIL_SIGMA
     _global_fail_sigma: float = DEFAULT_GLOBAL_FAIL_SIGMA
 
-    # Utilities
-    file_namer: SheValFileNamer = SheValFileNamer(type_name = "PIPELINE-CONFIG",
-                                                  extension = ".txt")
-
     # Generated values
     _d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None
-    _pipeline_config: Optional[Dict[ConfigKeys, Any]] = None
-
-    def __init__(self,
-                 workdir: Optional[str] = None,
-                 **kwargs):
-
-        self.file_namer.workdir = workdir
-
-        # Update values from kwargs if not None
-        for key in kwargs:
-            if kwargs[key] is not None:
-                setattr(self, key, kwargs[key])
 
     # Getters and setters for input properties
 
@@ -78,7 +66,7 @@ class MockPipelineConfigFactory:
     @test_bin_parameter.setter
     def test_bin_parameter(self, value) -> None:
         self._test_bin_parameter = value
-        self.__decache()
+        self._decache()
 
     @property
     def mock_bin_limits(self) -> np.ndarray:
@@ -87,7 +75,7 @@ class MockPipelineConfigFactory:
     @mock_bin_limits.setter
     def mock_bin_limits(self, value) -> None:
         self._mock_bin_limits = value
-        self.__decache()
+        self._decache()
 
     @property
     def local_fail_sigma(self) -> float:
@@ -96,7 +84,7 @@ class MockPipelineConfigFactory:
     @local_fail_sigma.setter
     def local_fail_sigma(self, value) -> None:
         self._local_fail_sigma = value
-        self.__decache()
+        self._decache()
 
     @property
     def global_fail_sigma(self) -> float:
@@ -105,7 +93,7 @@ class MockPipelineConfigFactory:
     @global_fail_sigma.setter
     def global_fail_sigma(self, value) -> None:
         self._global_fail_sigma = value
-        self.__decache()
+        self._decache()
 
     @property
     def d_l_bin_limits(self) -> Dict[BinParameters, np.ndarray]:
@@ -113,17 +101,11 @@ class MockPipelineConfigFactory:
             self._d_l_bin_limits = self._make_d_l_bin_limits()
         return self._d_l_bin_limits
 
-    @property
-    def pipeline_config(self) -> Dict[ConfigKeys, Any]:
-        if self._pipeline_config is None:
-            self._pipeline_config = self._make_pipeline_config()
-        return self._pipeline_config
-
     # Private and protected methods
 
-    def __decache(self):
+    def _decache(self):
+        super()._decache()
         self._d_l_bin_limits = None
-        self._pipeline_config = None
 
     def _make_d_l_bin_limits(self) -> Dict[BinParameters, np.ndarray]:
         d_l_bin_limits: Dict[BinParameters, np.ndarray] = {}
@@ -139,8 +121,13 @@ class MockPipelineConfigFactory:
         """ Create and return a mock pipeline config dict.
         """
 
-        config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : self._local_fail_sigma,
-                       ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: self._global_fail_sigma}
+        config_dict = read_config(config_filename = None,
+                                  config_keys = self.config_keys,
+                                  defaults = self.config_defaults)
+
+        config_dict[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA] = self._local_fail_sigma
+        config_dict[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA] = self._global_fail_sigma
+
         # Set modified bin limits in the dict
         for bin_parameter in BinParameters:
             config_key = D_BIN_PARAMETER_META[bin_parameter].config_key
@@ -148,6 +135,7 @@ class MockPipelineConfigFactory:
                 continue
             else:
                 config_dict[config_key] = self.d_l_bin_limits[bin_parameter]
+
         return config_dict
 
     # Public methods
@@ -155,11 +143,6 @@ class MockPipelineConfigFactory:
     def write(self, workdir: str) -> None:
         """ Create and output a mock pipeline config file.
         """
-
-        write_config(config_dict = self.pipeline_config,
-                     config_filename = self.file_namer.filename,
-                     workdir = self.file_namer.workdir,
-                     config_keys = ValidationConfigKeys)
 
     def cleanup(self):
         os.remove(os.path.join(self.file_namer.qualified_filename))
