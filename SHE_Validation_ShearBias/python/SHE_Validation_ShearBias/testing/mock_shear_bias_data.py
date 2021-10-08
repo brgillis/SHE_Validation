@@ -22,13 +22,14 @@ __updated__ = "2021-10-05"
 
 import os
 from argparse import Namespace
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from astropy.table import Table
 from dataclasses import dataclass
 
 from SHE_PPT import products
+from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import write_xml_product
@@ -216,13 +217,22 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
     return d_l_bin_limits
 
 
-def write_mock_pipeline_config(workdir: str):
-    # Put fail sigma values in the dict
+def write_mock_pipeline_config(workdir: str) -> None:
+    """ Create and output a mock pipeline config file."""
+    config_dict = make_mock_pipeline_config()
+
+    write_config(config_dict = config_dict,
+                 config_filename = PIPELINE_CONFIG_FILENAME,
+                 workdir = workdir,
+                 config_keys = ValidationConfigKeys)
+
+
+def make_mock_pipeline_config() -> Dict[ConfigKeys, Any]:
+    """ Create and return a mock pipeline config dict.
+    """
     config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : LOCAL_FAIL_SIGMA,
                    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: GLOBAL_FAIL_SIGMA}
-
     mock_bin_limits = make_mock_bin_limits()
-
     # Set modified bin limits in the dict
     for bin_parameter in BinParameters:
         config_key = D_BIN_PARAMETER_META[bin_parameter].config_key
@@ -230,11 +240,7 @@ def write_mock_pipeline_config(workdir: str):
             continue
         else:
             config_dict[config_key] = mock_bin_limits[bin_parameter]
-
-    write_config(config_dict = config_dict,
-                 config_filename = PIPELINE_CONFIG_FILENAME,
-                 workdir = workdir,
-                 config_keys = ValidationConfigKeys)
+    return config_dict
 
 
 def cleanup_mock_pipeline_config(workdir: str):
