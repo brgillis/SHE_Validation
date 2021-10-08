@@ -26,9 +26,7 @@ from typing import Optional
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import SheFileNamer, instance_id_maxlen
 from SHE_PPT.utility import join_without_none
-
 from SHE_Validation.constants.test_info import BinParameters
-
 from . import __version__
 
 
@@ -95,11 +93,22 @@ class SheValFileNamer(SheFileNamer):
     def _determine_instance_id_body(self):
 
         # Piece together the instance ID body from the components, leaving out Nones
-        self._instance_id_body = join_without_none(l_s=[self.method.value,
-                                                        self.bin_parameter.value,
-                                                        self.bin_index,
-                                                        os.getpid()],
-                                                   default=None)
+
+        if self.method is not None:
+            method_value: Optional[str] = self.method.value
+        else:
+            method_value: Optional[str] = None
+
+        if self.bin_parameter is not None:
+            bin_parameter_value: Optional[str] = self.bin_parameter.value
+        else:
+            bin_parameter_value: Optional[str] = None
+
+        self._instance_id_body = join_without_none(l_s = [method_value,
+                                                          bin_parameter_value,
+                                                          self.bin_index,
+                                                          os.getpid()],
+                                                   default = None)
 
     # Public methods
 

@@ -1,4 +1,4 @@
-""" @file mock_shear_bias_data.py
+""" @file mock_pipeline_config.py
 
     Created 5 October 2021.
 
@@ -22,21 +22,19 @@ __updated__ = "2021-10-05"
 
 import os
 from argparse import Namespace
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 from astropy.table import Table
 from dataclasses import dataclass
 
 from SHE_PPT import products
-from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import write_config
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, ValidationConfigKeys)
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
+from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 
 logger = getLogger(__name__)
@@ -215,36 +213,6 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
             d_l_bin_limits[bin_parameter] = np.array(DEFAULT_BIN_LIMITS)
 
     return d_l_bin_limits
-
-
-def write_mock_pipeline_config(workdir: str) -> None:
-    """ Create and output a mock pipeline config file."""
-    config_dict = make_mock_pipeline_config()
-
-    write_config(config_dict = config_dict,
-                 config_filename = PIPELINE_CONFIG_FILENAME,
-                 workdir = workdir,
-                 config_keys = ValidationConfigKeys)
-
-
-def make_mock_pipeline_config() -> Dict[ConfigKeys, Any]:
-    """ Create and return a mock pipeline config dict.
-    """
-    config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : LOCAL_FAIL_SIGMA,
-                   ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: GLOBAL_FAIL_SIGMA}
-    mock_bin_limits = make_mock_bin_limits()
-    # Set modified bin limits in the dict
-    for bin_parameter in BinParameters:
-        config_key = D_BIN_PARAMETER_META[bin_parameter].config_key
-        if bin_parameter == BinParameters.GLOBAL or bin_parameter == BinParameters.EPOCH:
-            continue
-        else:
-            config_dict[config_key] = mock_bin_limits[bin_parameter]
-    return config_dict
-
-
-def cleanup_mock_pipeline_config(workdir: str):
-    os.remove(os.path.join(workdir, PIPELINE_CONFIG_FILENAME))
 
 
 @dataclass

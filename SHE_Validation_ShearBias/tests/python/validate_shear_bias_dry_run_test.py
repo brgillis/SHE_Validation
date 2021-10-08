@@ -22,17 +22,17 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
+from typing import Optional
 
 import pytest
 
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
+from SHE_Validation.testing.mock_pipeline_config import MockPipelineConfigFactory
 from SHE_Validation_ShearBias.ValidateShearBias import mainMethod as validate_shear_bias_main
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.testing.mock_shear_bias_data import (MockShearBiasArgs, cleanup_mock_matched_tables,
-                                                                   cleanup_mock_pipeline_config,
-                                                                   write_mock_matched_tables,
-                                                                   write_mock_pipeline_config, )
+                                                                   write_mock_matched_tables, )
 
 logger = getLogger(__name__)
 
@@ -44,6 +44,7 @@ class TestCase:
     args: MockShearBiasArgs
     workdir: str = ""
     logdir: str = ""
+    mock_pipeline_config_factory: Optional[MockPipelineConfigFactory] = None
 
     @classmethod
     def setup_class(cls):
@@ -53,8 +54,9 @@ class TestCase:
     def teardown_class(cls):
 
         # Delete the created data
+        if cls.mock_pipeline_config_factory:
+            cls.mock_pipeline_config_factory.cleanup()
         if cls.workdir:
-            cleanup_mock_pipeline_config(cls.workdir)
             cleanup_mock_matched_tables(cls.workdir)
 
     @pytest.fixture(autouse = True)
@@ -67,8 +69,10 @@ class TestCase:
         self.args.workdir = self.workdir
         self.args.logdir = self.logdir
 
-        # Write the pipeline config we'll be using
-        write_mock_pipeline_config(self.workdir)
+        # Write the pipeline config we'll be using and note its filename
+        self.mock_pipeline_config_factory = MockPipelineConfigFactory(workdir = self.workdir)
+        self.mock_pipeline_config_factory.write(self.workdir)
+        self.args.pipeline_config = self.mock_pipeline_config_factory.file_namer.filename
 
         # Write the matched catalog we'll be using and its data product
         write_mock_matched_tables(self.workdir)
