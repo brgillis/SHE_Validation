@@ -29,6 +29,7 @@ import pytest
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
+from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_ShearBias.ValidateShearBias import mainMethod as validate_shear_bias_main
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 from SHE_Validation_ShearBias.testing.mock_shear_bias_data import (MockShearBiasArgs, cleanup_mock_matched_tables,
@@ -70,7 +71,7 @@ class TestCase:
         self.args.logdir = self.logdir
 
         # Write the pipeline config we'll be using and note its filename
-        self.mock_pipeline_config_factory = MockPipelineConfigFactory(workdir = self.workdir)
+        self.mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir = self.workdir)
         self.mock_pipeline_config_factory.write(self.workdir)
         self.args.pipeline_config = self.mock_pipeline_config_factory.file_namer.filename
 
