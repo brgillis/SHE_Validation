@@ -40,7 +40,6 @@ from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIA
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      NUM_SHEAR_BIAS_TEST_CASES,
-                                                                     SHEAR_BIAS_C_REQUIREMENT_INFO,
                                                                      SHEAR_BIAS_M_REQUIREMENT_INFO, ShearBiasTestCases,
                                                                      get_prop_from_id, )
 from SHE_Validation_ShearBias.results_reporting import (D_DESC_INFO, KEY_G1_INFO, KEY_G2_INFO,
@@ -165,8 +164,6 @@ class TestCase:
         assert lensmc_global_c_test_case_index >= 0
         assert ksb_snr_m_test_case_index >= 0
         assert ksb_snr_c_test_case_index >= 0
-
-        lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
         lmc_sb_c_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_c_test_case_index]
         ksb_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[ksb_snr_m_test_case_index]
         ksb_sb_c_test_result = sb_test_results_product.Data.ValidationTestList[ksb_snr_c_test_case_index]
@@ -174,84 +171,64 @@ class TestCase:
         # Do detailed checks on the m and c test results
 
         # M
-        assert lmc_sb_m_test_result.GlobalResult == RESULT_FAIL
 
-        lmc_m1 = INPUT_BIAS[LMC][GBL][0]["m1"]
-        lmc_m1_err = INPUT_BIAS[LMC][GBL][0]["m1_err"]
-        lmc_m1_z = (abs(lmc_m1) - DEFAULT_M_TARGET) / lmc_m1_err
+        lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
 
-        lmc_m2 = INPUT_BIAS[LMC][GBL][0]["m2"]
-        lmc_m2_err = INPUT_BIAS[LMC][GBL][0]["m2_err"]
-        lmc_m2_z = (abs(lmc_m2) - DEFAULT_M_TARGET) / lmc_m2_err
+        d_ex_result = {"m1": RESULT_PASS,
+                       "m2": RESULT_FAIL,
+                       "c1": RESULT_FAIL,
+                       "c2": RESULT_PASS, }
+        d_info_keys = {"m1": KEY_G1_INFO,
+                       "m2": KEY_G2_INFO,
+                       "c1": KEY_G1_INFO,
+                       "c2": KEY_G2_INFO, }
+        method = LMC
+        bins = GBL
 
-        requirement_object = lmc_sb_m_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue[0].Parameter == SHEAR_BIAS_M_REQUIREMENT_INFO.parameter
-        assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue, max(lmc_m1_z, lmc_m2_z))
-        assert requirement_object.ValidationResult == RESULT_FAIL
+        for comp, test_result, ex_global_result, target in (("m", lmc_sb_m_test_result, RESULT_FAIL, DEFAULT_M_TARGET),
+                                                            ("c", lmc_sb_c_test_result, RESULT_FAIL, DEFAULT_C_TARGET),
+                                                            ):
+            self._check_results_string(method = method,
+                                       bins = bins,
+                                       comp = comp,
+                                       target_val = target,
+                                       test_result_object = test_result,
+                                       ex_global_result = ex_global_result,
+                                       d_ex_results = d_ex_result,
+                                       d_ex_info_keys = d_info_keys, )
 
-        sb_info = requirement_object.SupplementaryInformation
+    def _check_results_string(self, method, bins, comp, target_val, test_result_object, ex_global_result, d_ex_results,
+                              d_ex_info_keys):
 
-        assert sb_info.Parameter[0].Key == KEY_G1_INFO
-        assert sb_info.Parameter[0].Description == D_DESC_INFO["m1"]
-        m1_info_string = sb_info.Parameter[0].StringValue
+        assert test_result_object.GlobalResult == ex_global_result
 
-        assert f"m1 = {lmc_m1:.{REPORT_DIGITS}f}\n" in m1_info_string
-        assert f"m1_err = {lmc_m1_err:.{REPORT_DIGITS}f}\n" in m1_info_string
-        assert f"m1_z = {lmc_m1_z:.{REPORT_DIGITS}f}\n" in m1_info_string
-        assert (f"Maximum allowed m_z = " +
-                f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
-                in m1_info_string)
-        assert f"Result: {RESULT_PASS}\n" in m1_info_string
+        d_bias = {}
 
-        assert sb_info.Parameter[1].Key == KEY_G2_INFO
-        assert sb_info.Parameter[1].Description == D_DESC_INFO["m2"]
-        m2_info_string = sb_info.Parameter[1].StringValue
-        assert f"m2 = {lmc_m2:.{REPORT_DIGITS}f}\n" in m2_info_string
-        assert f"m2_err = {lmc_m2_err:.{REPORT_DIGITS}f}\n" in m2_info_string
-        assert f"m2_z = {lmc_m2_z:.{REPORT_DIGITS}f}\n" in m2_info_string
-        assert (f"Maximum allowed m_z = " +
-                f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
-                in m2_info_string)
-        assert f"Result: {RESULT_FAIL}\n" in m2_info_string
+        for index in (1, 2):
+            d_bias[f'{comp}{index}'] = INPUT_BIAS[method][bins][0][f"{comp}{index}"]
+            d_bias[f'{comp}{index}_err'] = INPUT_BIAS[method][bins][0][f"{comp}{index}_err"]
+            d_bias[f'{comp}{index}_z'] = ((abs(d_bias[f'{comp}{index}']) - target_val) /
+                                          d_bias[f'{comp}{index}_err'])
 
-        # C
-        assert lmc_sb_c_test_result.GlobalResult == RESULT_FAIL
+            requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
+            assert requirement_object.Comment == INFO_MULTIPLE
+            # TODO - fix parameter
+            assert requirement_object.MeasuredValue[0].Parameter == SHEAR_BIAS_M_REQUIREMENT_INFO.parameter
+            assert requirement_object.ValidationResult == RESULT_FAIL
 
-        lmc_c1 = INPUT_BIAS[LMC][GBL][0]["c1"]
-        lmc_c1_err = INPUT_BIAS[LMC][GBL][0]["c1_err"]
-        lmc_c1_z = (abs(lmc_c1) - DEFAULT_C_TARGET) / lmc_c1_err
+            sb_info = requirement_object.SupplementaryInformation
 
-        lmc_c2 = INPUT_BIAS[LMC][GBL][0]["c2"]
-        lmc_c2_err = INPUT_BIAS[LMC][GBL][0]["c2_err"]
-        lmc_c2_z = (abs(lmc_c2) - DEFAULT_C_TARGET) / lmc_c2_err
+            assert sb_info.Parameter[index - 1].Key == d_ex_info_keys[f"{comp}{index}"]
+            assert sb_info.Parameter[index - 1].Description == D_DESC_INFO[f"{comp}{index}"]
+            info_string = sb_info.Parameter[index - 1].StringValue
 
-        requirement_object = lmc_sb_c_test_result.ValidatedRequirements.Requirement[0]
-        assert requirement_object.Comment == INFO_MULTIPLE
-        assert requirement_object.MeasuredValue[0].Parameter == SHEAR_BIAS_C_REQUIREMENT_INFO.parameter
-        assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue, max(lmc_c1_z, lmc_c2_z))
-        assert requirement_object.ValidationResult == RESULT_FAIL
+            assert f"{comp}{index} = {d_bias[f'{comp}{index}']:.{REPORT_DIGITS}f}\n" in info_string
+            assert f"{comp}{index}_err = {d_bias[f'{comp}{index}_err']:.{REPORT_DIGITS}f}\n" in info_string
+            assert f"{comp}{index}_z = {d_bias[f'{comp}{index}_z']:.{REPORT_DIGITS}f}\n" in info_string
+            assert (f"Maximum allowed m_z = " +
+                    f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
+                    in info_string)
+            assert f"Result: {d_ex_results[f'{comp}{index}']}\n" in info_string
 
-        sb_info = requirement_object.SupplementaryInformation
-
-        assert sb_info.Parameter[0].Key == KEY_G1_INFO
-        assert sb_info.Parameter[0].Description == D_DESC_INFO["c1"]
-        c1_info_string = sb_info.Parameter[0].StringValue
-        assert f"c1 = {lmc_c1:.{REPORT_DIGITS}f}\n" in c1_info_string
-        assert f"c1_err = {lmc_c1_err:.{REPORT_DIGITS}f}\n" in c1_info_string
-        assert f"c1_z = {lmc_c1_z:.{REPORT_DIGITS}f}\n" in c1_info_string
-        assert (f"Maximum allowed c_z = " +
-                f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
-                in c1_info_string)
-        assert f"Result: {RESULT_FAIL}\n" in c1_info_string
-
-        assert sb_info.Parameter[1].Key == KEY_G2_INFO
-        assert sb_info.Parameter[1].Description == D_DESC_INFO["c2"]
-        c2_info_string = sb_info.Parameter[1].StringValue
-        assert f"c2 = {lmc_c2:.{REPORT_DIGITS}f}\n" in c2_info_string
-        assert f"c2_err = {lmc_c2_err:.{REPORT_DIGITS}f}\n" in c2_info_string
-        assert f"c2_z = {lmc_c2_z:.{REPORT_DIGITS}f}\n" in c2_info_string
-        assert (f"Maximum allowed c_z = " +
-                f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
-                in c2_info_string)
-        assert f"Result: {RESULT_PASS}\n" in c2_info_string
+        assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue,
+                          max(d_bias[f'{comp}1_z'], d_bias[f'{comp}2_z']))
