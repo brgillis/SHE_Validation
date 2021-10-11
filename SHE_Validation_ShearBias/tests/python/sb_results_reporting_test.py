@@ -21,7 +21,7 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 
 import numpy as np
 import pytest
@@ -40,6 +40,7 @@ from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIA
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      NUM_SHEAR_BIAS_TEST_CASES,
+                                                                     SHEAR_BIAS_C_REQUIREMENT_INFO,
                                                                      SHEAR_BIAS_M_REQUIREMENT_INFO, ShearBiasTestCases,
                                                                      get_prop_from_id, )
 from SHE_Validation_ShearBias.results_reporting import (D_DESC_INFO, KEY_G1_INFO, KEY_G2_INFO,
@@ -47,6 +48,9 @@ from SHE_Validation_ShearBias.results_reporting import (D_DESC_INFO, KEY_G1_INFO
 from SHE_Validation_ShearBias.testing.mock_shear_bias_data import INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
 
 logger = getLogger(__name__)
+
+D_REQUIREMENT_INFO = {"m": SHEAR_BIAS_M_REQUIREMENT_INFO,
+                      "c": SHEAR_BIAS_C_REQUIREMENT_INFO}
 
 
 class TestCase:
@@ -197,8 +201,15 @@ class TestCase:
                                        d_ex_results = d_ex_result,
                                        d_ex_info_keys = d_info_keys, )
 
-    def _check_results_string(self, method, bins, comp, target_val, test_result_object, ex_global_result, d_ex_results,
-                              d_ex_info_keys):
+    def _check_results_string(self,
+                              method: ShearEstimationMethods,
+                              bins: BinParameters,
+                              comp: str,
+                              target_val: float,
+                              test_result_object: Any,
+                              ex_global_result: str,
+                              d_ex_results: Dict[str, str],
+                              d_ex_info_keys: Dict[str, str]):
 
         assert test_result_object.GlobalResult == ex_global_result
 
@@ -212,8 +223,7 @@ class TestCase:
 
             requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
             assert requirement_object.Comment == INFO_MULTIPLE
-            # TODO - fix parameter
-            assert requirement_object.MeasuredValue[0].Parameter == SHEAR_BIAS_M_REQUIREMENT_INFO.parameter
+            assert requirement_object.MeasuredValue[0].Parameter == D_REQUIREMENT_INFO[comp].parameter
             assert requirement_object.ValidationResult == RESULT_FAIL
 
             sb_info = requirement_object.SupplementaryInformation
@@ -225,7 +235,7 @@ class TestCase:
             assert f"{comp}{index} = {d_bias[f'{comp}{index}']:.{REPORT_DIGITS}f}\n" in info_string
             assert f"{comp}{index}_err = {d_bias[f'{comp}{index}_err']:.{REPORT_DIGITS}f}\n" in info_string
             assert f"{comp}{index}_z = {d_bias[f'{comp}{index}_z']:.{REPORT_DIGITS}f}\n" in info_string
-            assert (f"Maximum allowed m_z = " +
+            assert (f"Maximum allowed {comp}_z = " +
                     f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
                     in info_string)
             assert f"Result: {d_ex_results[f'{comp}{index}']}\n" in info_string
