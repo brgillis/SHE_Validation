@@ -27,7 +27,6 @@ import numpy as np
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import read_config
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
                                                      ValidationConfigKeys, )
@@ -121,9 +120,7 @@ class MockValPipelineConfigFactory(MockPipelineConfigFactory):
         """ Create and return a mock pipeline config dict.
         """
 
-        config_dict = read_config(config_filename = None,
-                                  config_keys = self.config_keys,
-                                  defaults = self.config_defaults)
+        config_dict = super()._make_pipeline_config()
 
         config_dict[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA] = self._local_fail_sigma
         config_dict[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA] = self._global_fail_sigma
@@ -140,9 +137,6 @@ class MockValPipelineConfigFactory(MockPipelineConfigFactory):
 
     # Public methods
 
-    def write(self, workdir: str) -> None:
-        """ Create and output a mock pipeline config file.
-        """
-
     def cleanup(self):
+        super().cleanup()
         os.remove(os.path.join(self.file_namer.qualified_filename))

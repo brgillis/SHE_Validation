@@ -32,7 +32,8 @@ from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_e
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_PPT.table_utility import SheTableFormat
-from SHE_Validation.binning.bin_constraints import BinConstraint, BinParameterBinConstraint, BinnedMultiTableLoader
+from SHE_Validation.binning.bin_constraints import (BinConstraint, BinnedMultiTableLoader,
+                                                    GoodBinnedMeasurementBinConstraint, )
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 
 logger = getLogger(__name__)
@@ -325,8 +326,8 @@ class ShearBiasTestCaseDataProcessor:
         """
 
         # Limit the data to that in the current bin
-        bin_constraint = BinParameterBinConstraint(test_case_info = self.test_case_info,
-                                                   bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
+        bin_constraint = GoodBinnedMeasurementBinConstraint(test_case_info = self.test_case_info,
+                                                            bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
         self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
 
         # Get data limited to the rows where g_in is less than the allowed max

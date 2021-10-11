@@ -533,13 +533,17 @@ class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
     """
 
     def __init__(self,
-                 method: ShearEstimationMethods,
+                 method: Optional[ShearEstimationMethods] = None,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+
         det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                bin_parameter = bin_parameter,
                                                bin_limits = bin_limits)
+        if method is None:
+            method = test_case_info.method
+
         good_meas_bc = GoodMeasurementBinConstraint(method = method)
 
         super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
