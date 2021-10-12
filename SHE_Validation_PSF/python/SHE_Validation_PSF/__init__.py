@@ -20,7 +20,8 @@ __updated__ = "2021-03-24"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __license__, __version__, __maintainer__,
-                                     __email__, __status__, __url__)
+# noinspection PyUnresolvedReferences
+from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__, __maintainer__,
+                                     __status__, __url__, __version__, )
 
 __description__ = 'Python package for unit tests relating to PSF.'

@@ -21,24 +21,23 @@ __updated__ = "2021-08-18"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from typing import Optional
 
-from SHE_PPT import file_io
-from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods,
-                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS)
-from SHE_PPT.file_io import read_listfile
-from SHE_PPT.logging import getLogger
-from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
-from SHE_PPT.utility import is_any_type_of_none
+import numpy as np
 from astropy import units
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import table_to_hdu
-from astropy.table import Table, Column, join, vstack
+from astropy.table import Column, Table, join, vstack
 
 import SHE_Validation
-import numpy as np
-
+from SHE_PPT import file_io, products
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        ShearEstimationMethods, )
+from SHE_PPT.file_io import read_listfile
+from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
+from SHE_PPT.utility import is_any_type_of_none
 
 logger = getLogger(__name__)
 
@@ -51,20 +50,22 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
 
     """
     # Loop over the True Universe catalog files and select the relevant sources
-    merged_catalog = None
+    merged_catalog: Optional[Table] = None
+    catalog: Optional[Table] = None
+    cond: Optional[np.ndarray] = None
 
     logger.info("Reading in overlapping sources.")
 
     for filename in catalog_filenames:
 
-        qualified_filename = file_io.find_file(filename, path=path)
+        qualified_filename = file_io.find_file(filename, path = path)
 
         logger.debug("Reading overlapping sources from " + qualified_filename + ".")
 
         # Load the catalog table
 
         try:
-            catalog = Table.read(qualified_filename, format="fits")
+            catalog = Table.read(qualified_filename, format = "fits")
         except OSError:
             logger.error(filename + " is corrupt or missing")
             raise
@@ -89,10 +90,14 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
                 merged_catalog = vstack([merged_catalog, catalog[cond]])
 
     if merged_catalog is None:
-        logger.warning("No TU sources found in region: \n" +
-                       f"R.A.: {ra_range}\n" +
-                       f"Dec.: {dec_range}")
-        merged_catalog = catalog[cond]
+
+        err: str = f"No TU sources found in region: \nR.A.: {ra_range}\nDec.: {dec_range}"
+
+        if catalog is not None and cond is not None:
+            logger.warning(err)
+            merged_catalog = catalog[cond]
+        else:
+            raise ValueError(err)
 
     return merged_catalog
 
@@ -106,7 +111,7 @@ def match_to_tu_from_args(args):
     # If possible, get the catalogs for this observation from a provided TU output product
     if args.tu_output_product is not None:
         qualified_tu_output_product_filename = file_io.find_file(args.tu_output_product,
-                                                                 path=search_path)
+                                                                 path = search_path)
         tu_output_product = file_io.read_xml_product(qualified_tu_output_product_filename)
 
         star_catalog_filenames = [tu_output_product.get_star_filename()]
@@ -118,7 +123,7 @@ def match_to_tu_from_args(args):
 
         if args.tu_star_catalog_list is not None:
             qualified_tu_star_catalog_list = file_io.find_file(args.tu_star_catalog_list,
-                                                               path=search_path)
+                                                               path = search_path)
             tu_star_catalog_product_filenames = read_listfile(qualified_tu_star_catalog_list)
         elif args.tu_star_catalog is not None:
             tu_star_catalog_product_filenames = [args.tu_star_catalog]
@@ -127,7 +132,7 @@ def match_to_tu_from_args(args):
 
         if args.tu_galaxy_catalog_list is not None:
             qualified_tu_galaxy_catalog_list = file_io.find_file(args.tu_galaxy_catalog_list,
-                                                                 path=search_path)
+                                                                 path = search_path)
             tu_galaxy_catalog_product_filenames = read_listfile(qualified_tu_galaxy_catalog_list)
         elif args.tu_galaxy_catalog is not None:
             tu_galaxy_catalog_product_filenames = [args.tu_galaxy_catalog]
@@ -140,7 +145,7 @@ def match_to_tu_from_args(args):
         star_catalog_filenames = []
         for tu_star_catalog_product_filename in tu_star_catalog_product_filenames:
             qualified_star_catalog_product_filename = file_io.find_file(tu_star_catalog_product_filename,
-                                                                        path=search_path)
+                                                                        path = search_path)
             logger.info("Reading in True Universe star catalog product from " + qualified_star_catalog_product_filename)
             star_catalog_product = file_io.read_xml_product(qualified_star_catalog_product_filename)
             star_catalog_filenames.append(star_catalog_product.get_data_filename())
@@ -148,7 +153,7 @@ def match_to_tu_from_args(args):
         galaxy_catalog_filenames = []
         for tu_galaxy_catalog_product_filename in tu_galaxy_catalog_product_filenames:
             qualified_galaxy_catalog_product_filename = file_io.find_file(tu_galaxy_catalog_product_filename,
-                                                                          path=search_path)
+                                                                          path = search_path)
             logger.info("Reading in True Universe galaxy catalog product from " +
                         qualified_galaxy_catalog_product_filename)
             galaxy_catalog_product = file_io.read_xml_product(qualified_galaxy_catalog_product_filename)
@@ -156,7 +161,7 @@ def match_to_tu_from_args(args):
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it.
     qualified_shear_estimates_product_filename = file_io.find_file(args.she_measurements_product,
-                                                                   path=args.workdir)
+                                                                   path = args.workdir)
     logger.info("Reading in Shear Estimates product from " + qualified_shear_estimates_product_filename)
     shear_estimates_product = file_io.read_xml_product(qualified_shear_estimates_product_filename)
 
@@ -229,10 +234,10 @@ def match_to_tu_from_args(args):
     logger.info("  RA : " + str(ra_range[0]) + " to " + str(ra_range[1]))
     logger.info("  DEC: " + str(dec_range[0]) + " to " + str(dec_range[1]))
 
-    ra_limits = np.linspace(ra_range[0], ra_range[1], num=int(
-        (ra_range[1] - ra_range[0]) / max_coverage) + 2, endpoint=True)
-    dec_limits = np.linspace(dec_range[0], dec_range[1], num=int(
-        (dec_range[1] - dec_range[0]) / max_coverage) + 2, endpoint=True)
+    ra_limits = np.linspace(ra_range[0], ra_range[1], num = int(
+        (ra_range[1] - ra_range[0]) / max_coverage) + 2, endpoint = True)
+    dec_limits = np.linspace(dec_range[0], dec_range[1], num = int(
+        (dec_range[1] - dec_range[0]) / max_coverage) + 2, endpoint = True)
 
     star_matched_tables = {}
     gal_matched_tables = {}
@@ -252,17 +257,17 @@ def match_to_tu_from_args(args):
             logger.info("      and dec range: " + str(local_dec_range))
 
             # Read in the star and galaxy catalogs from the overlapping area
-            overlapping_star_catalog = select_true_universe_sources(catalog_filenames=star_catalog_filenames,
-                                                                    ra_range=local_ra_range,
-                                                                    dec_range=local_dec_range,
-                                                                    path=search_path)
+            overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
+                                                                    ra_range = local_ra_range,
+                                                                    dec_range = local_dec_range,
+                                                                    path = search_path)
 
             logger.info("Found " + str(len(overlapping_star_catalog)) + " stars in overlapping region.")
 
-            overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames=galaxy_catalog_filenames,
-                                                                      ra_range=local_ra_range,
-                                                                      dec_range=local_dec_range,
-                                                                      path=search_path)
+            overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames = galaxy_catalog_filenames,
+                                                                      ra_range = local_ra_range,
+                                                                      dec_range = local_dec_range,
+                                                                      path = search_path)
 
             logger.info("Found " + str(len(overlapping_galaxy_catalog)) + " galaxies in overlapping region.")
 
@@ -307,15 +312,15 @@ def match_to_tu_from_args(args):
 
             ra_star = overlapping_star_catalog["RA"]
             dec_star = overlapping_star_catalog["DEC"]
-            sky_coord_star = SkyCoord(ra=ra_star, dec=dec_star)
+            sky_coord_star = SkyCoord(ra = ra_star, dec = dec_star)
 
-            overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name=tum_tf.tu_star_index))
+            overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name = tum_tf.tu_star_index))
 
             ra_gal = overlapping_galaxy_catalog[tum_tf.tu_ra]
             dec_gal = overlapping_galaxy_catalog[tum_tf.tu_dec]
-            sky_coord_gal = SkyCoord(ra=ra_gal, dec=dec_gal)
+            sky_coord_gal = SkyCoord(ra = ra_gal, dec = dec_gal)
 
-            overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name=tum_tf.tu_gal_index))
+            overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name = tum_tf.tu_gal_index))
 
             # Perform match to SIM's tables for each method
 
@@ -339,7 +344,8 @@ def match_to_tu_from_args(args):
 
                 ra_se = shear_table[sem_tf.ra]
                 dec_se = shear_table[sem_tf.dec]
-                sky_coord_se = SkyCoord(ra=ra_se * units.degree, dec=dec_se * units.degree)
+                # noinspection PyUnresolvedReferences
+                sky_coord_se = SkyCoord(ra = ra_se * units.degree, dec = dec_se * units.degree)
 
                 if len(sky_coord_star) > 0:
 
@@ -392,7 +398,7 @@ def match_to_tu_from_args(args):
                     # Mask out with -99 if we don't have a symmetric match
                     best_star_id = np.where(symmetric_star_match, best_star_id, -99)
                 else:
-                    best_star_id = np.zeros(len(in_range), dtype=int)
+                    best_star_id = np.zeros(len(in_range), dtype = int)
 
                 if len(sky_coord_gal) > 0:
                     best_gal_id = np.where(in_range, np.where(best_distance < args.match_threshold,
@@ -404,33 +410,33 @@ def match_to_tu_from_args(args):
                     # Mask out with -99 if we don't have a symmetric match
                     best_gal_id = np.where(symmetric_gal_match, best_gal_id, -99)
                 else:
-                    best_gal_id = np.zeros(len(in_range), dtype=int)
+                    best_gal_id = np.zeros(len(in_range), dtype = int)
 
                 # Add columns to the shear estimates table so we can match to it
                 if tum_tf.tu_star_index in shear_table.colnames:
                     if len(best_star_id) > 0:
                         shear_table[tum_tf.tu_star_index] = best_star_id
                 else:
-                    shear_table.add_column(Column(best_star_id, name=tum_tf.tu_star_index))
+                    shear_table.add_column(Column(best_star_id, name = tum_tf.tu_star_index))
                 if tum_tf.tu_gal_index in shear_table.colnames:
                     if len(best_gal_id) > 0:
                         shear_table[tum_tf.tu_gal_index] = best_gal_id
                 else:
-                    shear_table.add_column(Column(best_gal_id, name=tum_tf.tu_gal_index))
+                    shear_table.add_column(Column(best_gal_id, name = tum_tf.tu_gal_index))
 
                 # Match to the star and galaxy tables
 
                 if len(sky_coord_star) > 0:
-                    star_matched_table = join(shear_table, overlapping_star_catalog, keys=tum_tf.tu_star_index)
+                    star_matched_table = join(shear_table, overlapping_star_catalog, keys = tum_tf.tu_star_index)
                     logger.info("Matched " + str(len(star_matched_table)) + " objects to stars.")
                 else:
-                    star_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
+                    star_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
 
                 if len(sky_coord_gal) > 0:
-                    gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys=tum_tf.tu_gal_index)
+                    gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys = tum_tf.tu_gal_index)
                     logger.info("Matched " + str(len(gal_matched_table)) + " objects to galaxies.")
                 else:
-                    gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
+                    gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
 
                 # Remove matched rows from the shear table
                 matched_rows = np.logical_or(best_star_id > 0, best_gal_id > 0)
@@ -454,11 +460,12 @@ def match_to_tu_from_args(args):
                 # Details about estimated shear
 
                 gal_matched_table.add_column(
-                    Column(np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
-                           name=sem_tf.tu_g_beta))
+                    Column(
+                        np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
+                        name = sem_tf.tu_g_beta))
 
                 g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
-                gal_matched_table.add_column(Column(g_mag, name=sem_tf.tu_g_mag))
+                gal_matched_table.add_column(Column(g_mag, name = sem_tf.tu_g_mag))
 
                 # Details about the input shear
 
@@ -466,10 +473,10 @@ def match_to_tu_from_args(args):
                 g2_in = gal_matched_table[sem_tf.tu_gamma2] / (1 - gal_matched_table[sem_tf.tu_kappa])
 
                 gal_matched_table.add_column(
-                    Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name=sem_tf.g_beta))
+                    Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name = sem_tf.g_beta))
 
                 gal_matched_table.add_column(
-                    Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name=sem_tf.g_mag))
+                    Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name = sem_tf.g_mag))
 
                 # Details about the input bulge shape
 
@@ -477,7 +484,7 @@ def match_to_tu_from_args(args):
                 regularized_bulge_angle = np.where(bulge_angle < -90, bulge_angle + 180,
                                                    np.where(bulge_angle > 90, bulge_angle - 180, bulge_angle))
                 gal_matched_table.add_column(Column(regularized_bulge_angle,
-                                                    name=sem_tf.tu_bulge_beta))
+                                                    name = sem_tf.tu_bulge_beta))
 
                 # Details about the input disk shape
 
@@ -485,7 +492,7 @@ def match_to_tu_from_args(args):
                 regularized_disk_angle = np.where(disk_angle < -90, disk_angle + 180,
                                                   np.where(disk_angle > 90, disk_angle - 180, disk_angle))
                 gal_matched_table.add_column(Column(regularized_disk_angle,
-                                                    name=sem_tf.tu_disk_beta))
+                                                    name = sem_tf.tu_disk_beta))
 
     # Create output data product
     matched_catalog_product = products.she_measurements.create_dpd_she_measurements()
@@ -505,8 +512,10 @@ def match_to_tu_from_args(args):
         unmatched_table = shear_tables[method]
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
-                                                       instance_id=method.name + "-" + str(os.getpid()),
-                                                       extension=".fits", version=SHE_Validation.__version__, subdir="data",)
+                                                       instance_id = method.name + "-" + str(os.getpid()),
+                                                       extension = ".fits",
+                                                       version = SHE_Validation.__version__,
+                                                       subdir = "data", )
         matched_catalog_product.set_method_filename(method, method_filename)
 
         # Turn each table into an HDU and add it to an HDU list
@@ -520,10 +529,10 @@ def match_to_tu_from_args(args):
 
         # Write out the HDU list to a file
         logger.info(
-            f"Writing output matched catalogs for method {method} to {os.path.join(args.workdir,method_filename)}")
-        hdulist.writeto(os.path.join(args.workdir, method_filename), overwrite=True)
+            f"Writing output matched catalogs for method {method} to {os.path.join(args.workdir, method_filename)}")
+        hdulist.writeto(os.path.join(args.workdir, method_filename), overwrite = True)
 
     # Write the data product
-    logger.info(f"Writing output matched catalog data product to {os.path.join(args.workdir,args.matched_catalog)}")
+    logger.info(f"Writing output matched catalog data product to {os.path.join(args.workdir, args.matched_catalog)}")
     file_io.write_xml_product(matched_catalog_product, args.matched_catalog,
-                              workdir=args.workdir)
+                              workdir = args.workdir)

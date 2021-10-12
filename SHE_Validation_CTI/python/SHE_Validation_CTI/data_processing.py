@@ -22,15 +22,14 @@ __updated__ = "2021-08-26"
 
 from typing import Sequence
 
+import numpy as np
+from astropy import table
+
 from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
-from astropy import table
-
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
-import numpy as np
-
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
 
@@ -54,11 +53,11 @@ def add_readout_register_distance(object_data_table: table.Table):
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
+    readout_distance_column = table.Column(name = CGOD_TF.readout_dist, data = readout_distance_data)
     object_data_table.add_column(readout_distance_column)
 
 
-def _set_row_empty(rr_row: table.Row,):
+def _set_row_empty(rr_row: table.Row, ):
     rr_row[RR_TF.weight] = 0.
     rr_row[RR_TF.slope] = np.NaN
     rr_row[RR_TF.intercept] = np.NaN
@@ -71,7 +70,7 @@ def calculate_regression_results(object_data_table: table.Table,
                                  l_ids_in_bin: Sequence[int],
                                  method: ShearEstimationMethods,
                                  index: int = 0,
-                                 product_type: str = "UNKNOWN",) -> table.Row:
+                                 product_type: str = "UNKNOWN", ) -> table.Row:
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
@@ -80,7 +79,7 @@ def calculate_regression_results(object_data_table: table.Table,
     method_name = method.value
 
     # Initialize a table for the output data
-    regression_results_table = RR_TF.init_table(product_type=product_type, size=1)
+    regression_results_table = RR_TF.init_table(product_type = product_type, size = 1)
 
     rr_row = regression_results_table[0]
 
@@ -88,7 +87,7 @@ def calculate_regression_results(object_data_table: table.Table,
     rr_row[RR_TF.index] = index
 
     # Add index to the table if needed
-    if not CGOD_TF.ID in object_data_table.indices:
+    if CGOD_TF.ID not in object_data_table.indices:
         object_data_table.add_index(CGOD_TF.ID)
 
     # Get required data
@@ -108,9 +107,9 @@ def calculate_regression_results(object_data_table: table.Table,
     # Get a mask for the data where the weight is > 0 and not NaN
     bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
 
-    masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
-    masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
-    masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
+    masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask = bad_data_mask)
+    masked_g1_data = np.ma.masked_array(g1_data, mask = bad_data_mask)
+    masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask = bad_data_mask))
 
     # Perform the regression
 

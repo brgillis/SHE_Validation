@@ -104,9 +104,9 @@ def find_test_case_info(l_test_case_info: List[TestCaseInfo],
 
     for test_case_info in l_test_case_info:
         # Check both methods and bin_parameters, and continue if we don't have a match
-        if l_methods and not test_case_info.method in l_methods:
+        if l_methods and test_case_info.method not in l_methods:
             continue
-        if l_bin_parameters and not test_case_info.bins in l_bin_parameters:
+        if l_bin_parameters and test_case_info.bins not in l_bin_parameters:
             continue
         l_matching_test_case_info.append(test_case_info)
 

@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # Boston, MA 02110-1301 USA
 
 import glob
-from os.path import dirname, basename, isfile
+from os.path import basename, dirname, isfile
 
 modules = glob.glob(dirname(__file__) + "/*.py")
 __all__ = [basename(f)[:-3]

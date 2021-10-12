@@ -95,7 +95,7 @@ class TestCase:
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
         ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_bin_limits = self.d_bin_limits)
+                                                       d_l_bin_limits = self.d_bin_limits)
 
         for test_case in L_CTI_GAL_TEST_CASE_INFO:
             assert np.isclose(ns_fail_sigma_calculator.d_scaled_local_sigma[test_case.name], base_local_fail_sigma)
@@ -106,15 +106,15 @@ class TestCase:
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.BINS
         bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
                                                         l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits = self.d_bin_limits)
+                                                        d_l_bin_limits = self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASES
         tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_bin_limits = self.d_bin_limits)
+                                                       d_l_bin_limits = self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_BINS
         tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
                                                         l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits = self.d_bin_limits)
+                                                        d_l_bin_limits = self.d_bin_limits)
 
         first_tc_global_fail_sigma = None
         first_tc_local_fail_sigma = None

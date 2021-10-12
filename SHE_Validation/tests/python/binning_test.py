@@ -335,6 +335,12 @@ class TestBinData:
     """ Class to perform tests on bin data tables and adding columns.
     """
 
+    workdir: str
+    logdir: str
+    data_stack: SHEFrameStack
+    mfc_t: Table
+    lmc_t: Table
+
     # Set up some expected values
     EX_BG_LEVEL = 45.71
 

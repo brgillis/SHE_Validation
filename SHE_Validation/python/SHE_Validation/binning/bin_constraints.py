@@ -59,7 +59,7 @@ class BinConstraint(abc.ABC):
 
     @abc.abstractmethod
     def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
+                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Method to return whether or not a row is in a bin. Should ideally be able to take either a row or table
             as input, but must at least be able to take a row as input.
 
@@ -70,7 +70,7 @@ class BinConstraint(abc.ABC):
 
             Return
             ------
-            is_in_bin : Union[bool,Sequence[bool]]
+            is_in_bin : Union[bool,np.ndarray]
                 Whether or not the row is in the bin, or whether each row is in the bin.
         """
         pass
@@ -88,11 +88,11 @@ class BinConstraint(abc.ABC):
 
             Return
             ------
-            l_is_row_in_bin : Sequence[bool]
+            l_is_row_in_bin : np.ndarray
                 Sequence of bools for whether or not a row is in the bin or not.
         """
 
-        l_is_row_in_bin: Sequence[bool] = self._is_in_bin(table, *args, **kwargs)
+        l_is_row_in_bin: np.ndarray = self._is_in_bin(table, *args, **kwargs)
 
         return l_is_row_in_bin
 
@@ -111,7 +111,7 @@ class BinConstraint(abc.ABC):
                 Table of only the rows in the bin.
         """
 
-        l_is_row_in_bin: Sequence[bool] = self.get_l_is_row_in_bin(table, *args, **kwargs)
+        l_is_row_in_bin: np.ndarray = self.get_l_is_row_in_bin(table, *args, **kwargs)
         binned_table: Table = table[l_is_row_in_bin]
 
         return binned_table
@@ -180,7 +180,7 @@ class RangeBinConstraint(BinConstraint):
     # Protected methods
 
     def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
+                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data is within the bin limits.
         """
         # If the column is None, everything passes as no constraint is applied
@@ -241,7 +241,7 @@ class ValueBinConstraint(BinConstraint):
     # Protected methods
 
     def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
+                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data (does not) matches the desired value.
         """
         matches_value: bool = data[self.bin_colname] == self.value
@@ -290,7 +290,7 @@ class BitFlagsBinConstraint(BinConstraint):
     # Protected methods
 
     def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
+                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data (does not) match the flags.
         """
         # Perform a bitwise and to check against the flags
@@ -326,12 +326,12 @@ class MultiBinConstraint(BinConstraint):
     # Protected methods
 
     def _is_in_bin(self, data: Union[Row, Table],
-                   *args, **kwargs) -> Union[bool, Sequence[bool]]:
+                   *args, **kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data is in all bin constraints.
         """
 
-        l_l_is_in_bin: List[Sequence[bool]] = [bin_constraint._is_in_bin(data, *args, **kwargs)
-                                               for bin_constraint in self.l_bin_constraints]
+        l_l_is_in_bin: List[np.ndarray] = [bin_constraint._is_in_bin(data, *args, **kwargs)
+                                           for bin_constraint in self.l_bin_constraints]
         return np.logical_and.reduce(l_l_is_in_bin)
 
 
@@ -422,7 +422,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
     def _is_in_bin(self,
                    data: Union[Row, Table],
                    data_stack: Optional[SHEFrameStack] = None,
-                   *_args, **_kwargs) -> Union[bool, Sequence[bool]]:
+                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Need to check what implementation we need based on the bin parameter.
         """
 
@@ -432,7 +432,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
         # For other cases, we need to make sure we have the needed data and add it if not
         new_bin_colname = getattr(BIN_TF, self.bin_parameter.value)
-        if not new_bin_colname in data.colnames:
+        if new_bin_colname not in data.colnames:
             D_COLUMN_ADDING_METHODS[self.bin_parameter](data, data_stack)
 
         self.bin_colname = new_bin_colname
@@ -725,6 +725,7 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
 
             # Special processing if we have a HeteroBinConstraint
             if issubclass(bin_constraint_type, HeteroBinConstraint):
+                measurements_table: Optional[Table] = None
                 if d_measurements_tables:
                     measurements_table = d_measurements_tables[test_case_info.method]
                 if measurements_table is None:
@@ -761,7 +762,7 @@ def get_table_of_ids(table: Table,
     """
 
     # Make sure the ID column name is set as an index for the table
-    if not id_colname in table.indices:
+    if id_colname not in table.indices:
         table.add_index(id_colname)
 
     # Make sure the IDs list is the proper type

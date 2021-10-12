@@ -205,17 +205,17 @@ class ShearBiasRequirementWriter(RequirementWriter):
                                                     f" {bin_max}:")
 
                 d_messages[component_index] += (
-                        f"{self.prop}{component_index} = {val:.{REPORT_DIGITS}f}\n" +
-                        f"{self.prop}{component_index}_err = {val_err:.{REPORT_DIGITS}f}\n" +
-                        f"{self.prop}{component_index}_z = {val_z:.{REPORT_DIGITS}f}\n" +
-                        f"Maximum allowed {self.prop}_z = {self.fail_sigma:.{REPORT_DIGITS}f}\n" +
+                        f"{self._prop}{component_index} = {val:.{REPORT_DIGITS}f}\n" +
+                        f"{self._prop}{component_index}_err = {val_err:.{REPORT_DIGITS}f}\n" +
+                        f"{self._prop}{component_index}_z = {val_z:.{REPORT_DIGITS}f}\n" +
+                        f"Maximum allowed {self._prop}_z = {self.fail_sigma:.{REPORT_DIGITS}f}\n" +
                         f"Result: {result}\n\n")
 
         l_supplementary_info = (SupplementaryInfo(key = KEY_G1_INFO,
-                                                  description = D_DESC_INFO[f"{self.prop}1"],
+                                                  description = D_DESC_INFO[f"{self._prop}1"],
                                                   message = d_messages[1]),
                                 SupplementaryInfo(key = KEY_G2_INFO,
-                                                  description = D_DESC_INFO[f"{self.prop}2"],
+                                                  description = D_DESC_INFO[f"{self._prop}2"],
                                                   message = d_messages[2]))
 
         return l_supplementary_info
@@ -283,7 +283,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
               report_kwargs: Optional[Dict[str, Any]] = None) -> str:
 
         # Set attributes from input kwargs
-        self.prop = prop
+        self._prop = prop
         self.l_d_val = l_d_val
         self.l_d_val_err = l_d_val_err
         self.l_d_val_target = l_d_val_target
@@ -534,7 +534,7 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
                                                 l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO,
-                                                d_bin_limits = d_l_bin_limits,
+                                                d_l_bin_limits = d_l_bin_limits,
                                                 mode = mode)
 
     # Initialize a test results writer

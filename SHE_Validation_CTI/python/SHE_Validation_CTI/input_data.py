@@ -41,7 +41,6 @@ from SHE_PPT.she_image_stack import SHEImageStack
 from SHE_PPT.shear_utility import ShearEstimate
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
-from SHE_PPT.table_utility import SheTableFormat
 from .data_processing import add_readout_register_distance
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
@@ -68,7 +67,7 @@ class PositionInfo:
 
     def __init__(self,
                  stamp: Optional[SHEImage] = None,
-                 world_shear_info: Optional[ShearEstimate] = None,
+                 world_shear_info: Optional[Dict[ShearEstimationMethods, ShearEstimate]] = None,
                  ra: Optional[float] = None,
                  dec: Optional[float] = None):
 
@@ -217,7 +216,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
             continue
 
         # Get the table format for this method
-        sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        sem_tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
         # Update the set with the Object ID column from the table
         s_object_ids.update(shear_estimate_table[sem_tf.ID])
@@ -250,6 +249,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
     finally:
         # Make sure to remove the indices from the tables
         for method in ShearEstimationMethods:
+            sem_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
             shear_estimate_table = d_shear_estimate_tables[method]
             if shear_estimate_table is None:
                 continue

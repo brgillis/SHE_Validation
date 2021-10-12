@@ -22,8 +22,7 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
-from io import IOBase
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Union
 
 import numpy as np
 import scipy.stats
@@ -41,9 +40,7 @@ from .constants.default_config import FailSigmaScaling
 from .constants.test_info import RequirementInfo, TestCaseInfo
 
 # Set up a custom type definition for when either a dict or list is accepted
-K = TypeVar('K')
-V = TypeVar('V')
-DictOrList = Union[Dict[K, V], List[V]]
+StrDictOrList = Union[Dict[str, str], List[str]]
 
 logger = getLogger(__name__)
 
@@ -141,7 +138,7 @@ class FailSigmaCalculator:
     def __init__(self,
                  pipeline_config: Dict[ConfigKeys, Any],
                  l_test_case_info: List[TestCaseInfo],
-                 d_bin_limits: Dict[BinParameters, np.ndarray] = None,
+                 d_l_bin_limits: Dict[BinParameters, np.ndarray] = None,
                  mode: ExecutionMode = ExecutionMode.LOCAL, ):
 
         # Set attributes directly from args
@@ -157,9 +154,10 @@ class FailSigmaCalculator:
             s_bin_parameters.add(test_case_info.bins)
 
         # Create a default list of bin limits if necessary
-        if d_bin_limits is None:
+        if d_l_bin_limits is None:
+            d_l_bin_limits = {}
             for bin_parameter in s_bin_parameters:
-                d_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
+                d_l_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
 
         # Calculate the number of bins for each test case, and in total
 
@@ -167,7 +165,7 @@ class FailSigmaCalculator:
 
         bin_parameter: BinParameters
         for bin_parameter in s_bin_parameters:
-            self.d_num_bins[bin_parameter] = len(d_bin_limits[bin_parameter]) - 1
+            self.d_num_bins[bin_parameter] = len(d_l_bin_limits[bin_parameter]) - 1
 
         self.num_test_cases = len(self.s_test_case_info)
         self.num_test_case_bins = 0
@@ -407,8 +405,8 @@ class AnalysisWriter:
     # Attributes set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
     _product_type: str = "UNKNOWN-TYPE"
-    _dl_l_textfiles: Optional[DictOrList[str, str]] = None
-    _dl_l_figures: Optional[DictOrList[str, str]] = None
+    _dl_l_textfiles: Optional[StrDictOrList] = None
+    _dl_l_figures: Optional[StrDictOrList] = None
 
     # Attributes determined at init
     _workdir: str
@@ -427,8 +425,8 @@ class AnalysisWriter:
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type: str = "UNKNOWN-TYPE",
-                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
-                 dl_l_figures: Optional[DictOrList[str, str]] = None):
+                 dl_l_textfiles: Optional[StrDictOrList] = None,
+                 dl_l_figures: Optional[StrDictOrList] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
@@ -574,8 +572,8 @@ class AnalysisWriter:
         return DEFAULT_DIRECTORY_HEADER
 
     @staticmethod
-    def _write_filenames_to_directory(fo: IOBase,
-                                      filenames: Optional[DictOrList[str, str]]) -> None:
+    def _write_filenames_to_directory(fo: TextIO,
+                                      filenames: Optional[StrDictOrList]) -> None:
         """ Write a dict or list of filenames to an open, writable directory file,
             with different functionality depending on if a list or dict is passed.
         """
@@ -590,8 +588,8 @@ class AnalysisWriter:
                 fo.write(f"{filename}\n")
 
     def _write_directory(self,
-                         dl_l_textfiles: Optional[DictOrList[str, str]],
-                         dl_l_figures: Optional[DictOrList[str, str]]) -> None:
+                         dl_l_textfiles: Optional[StrDictOrList],
+                         dl_l_figures: Optional[StrDictOrList]) -> None:
 
         # Generate a filename for the directory if needed
         if self._directory_filename is None:
@@ -611,7 +609,7 @@ class AnalysisWriter:
             fo.write(f"{FIGURES_SECTION_HEADER}\n")
             self._write_filenames_to_directory(fo, dl_l_figures)
 
-    def _add_directory_to_textfiles(self, dl_l_textfiles: Optional[DictOrList[str, str]]) -> None:
+    def _add_directory_to_textfiles(self, dl_l_textfiles: Optional[StrDictOrList]) -> None:
         """ Adds the directory filename to a dict or list of textfiles.
         """
 
@@ -629,7 +627,7 @@ class AnalysisWriter:
 
     def _tar_files(self,
                    tarball_filename: str,
-                   filenames: Optional[DictOrList[str, str]],
+                   filenames: Optional[StrDictOrList],
                    delete_files: bool = False) -> None:
         """ Tar the set of files in {files} into the tarball {qualified_filename}. Optionally delete these files
             afterwards.
@@ -654,7 +652,7 @@ class AnalysisWriter:
                           delete_files = delete_files)
 
     def _write_files(self,
-                     files: Optional[DictOrList[str, str]],
+                     files: Optional[StrDictOrList],
                      tarball_filename: str,
                      data_container_attr: str,
                      write_dummy_files: bool = False,
@@ -717,7 +715,7 @@ class TestCaseWriter:
     _parent_val_results_writer: Optional["ValidationResultsWriter"] = None
     _test_case_object: Optional[Any] = None
     _test_case_info: Optional[TestCaseInfo] = None
-    _l_requirement_writers: Optional[List[RequirementWriter]] = None
+    _l_requirement_writers: Optional[List[Optional[RequirementWriter]]] = None
     _l_requirement_objects: Optional[List[Any]] = None
 
     # Attributes determined at init
@@ -746,8 +744,8 @@ class TestCaseWriter:
                  test_case_info: TestCaseInfo = None,
                  num_requirements: int = None,
                  l_requirement_info: Union[None, RequirementInfo, List[RequirementInfo]] = None,
-                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
-                 dl_l_figures: Optional[DictOrList[str, str]] = None):
+                 dl_l_textfiles: Optional[StrDictOrList] = None,
+                 dl_l_figures: Optional[StrDictOrList] = None):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
@@ -916,25 +914,25 @@ class ValidationResultsWriter:
     # Attributes set at init from arguments
     _test_object: dpdSheValidationTestResults
     _workdir: str
-    dl_l_textfiles: Optional[DictOrList[str, str]] = None
-    dl_l_figures: Optional[DictOrList[str, str]] = None
+    dl_l_textfiles: Optional[StrDictOrList] = None
+    dl_l_figures: Optional[StrDictOrList] = None
     num_test_cases: Optional[int] = None
-    l_test_case_info: Optional[List[TestCaseInfo]] = None
+    l_test_case_info: Optional[List[Optional[TestCaseInfo]]] = None
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
     dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
-    _dl_l_textfiles: Optional[DictOrList[str, str]] = None
-    _dl_l_figures: Optional[DictOrList[str, str]] = None
+    _dl_l_textfiles: Optional[StrDictOrList] = None
+    _dl_l_figures: Optional[StrDictOrList] = None
 
     # Attributes determined at init
-    _l_test_case_writers: List[TestCaseWriter]
+    _l_test_case_writers: List[Optional[TestCaseWriter]]
     _l_test_case_objects: List[Any]
     test_case_keys: List[str]
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
-                 dl_l_textfiles: Optional[DictOrList[str, str]] = None,
-                 dl_l_figures: Optional[DictOrList[str, str]] = None,
+                 dl_l_textfiles: Optional[StrDictOrList] = None,
+                 dl_l_figures: Optional[StrDictOrList] = None,
                  num_test_cases: Optional[int] = None,
                  l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
                  dl_num_requirements: Union[None, Dict[str, int], List[int]] = None,
@@ -1037,11 +1035,11 @@ class ValidationResultsWriter:
             self.l_test_case_info = [None] * self.num_test_cases
             self.test_case_keys = list(range(self.num_test_cases))
 
-    def _init_like(self, a: DictOrList[Any, Any]) -> DictOrList[Any, Any]:
+    def _init_like(self, a: Union[Dict[Any, Any], List[Any]]) -> Union[Dict[Any, Any], List[Any]]:
         """ Creates a dict or list like the passed dict or list, ready to assign elements by key/index.
         """
 
-        b: DictOrList[Any, Any]
+        b: Union[Dict[Any, Any], List[Any]]
         if isinstance(a, list):
             b = [None] * self.num_test_cases
         else:
@@ -1068,7 +1066,7 @@ class ValidationResultsWriter:
             self.dl_l_requirement_info = self._init_like(self.dl_num_requirements)
 
     @staticmethod
-    def _get_item_from_dl(dl: Optional[DictOrList[Any, Any]],
+    def _get_item_from_dl(dl: Optional[StrDictOrList],
                           key: Union[Any, int]) -> Any:
         """ Get an item out of a list or dictionary depending on the type. If not found, returns None instead of
             raising an exception

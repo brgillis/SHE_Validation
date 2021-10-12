@@ -27,6 +27,7 @@ from astropy import table
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
+from SHE_PPT.utility import coerce_to_list
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
@@ -74,7 +75,7 @@ class CtiGalRequirementWriter(RequirementWriter):
     intercept_pass: bool
     intercept_result: str
 
-    l_bin_limits: Optional[Sequence[float]]
+    l_bin_limits: Optional[Sequence[Sequence[float]]]
     num_bins: int
 
     fail_sigma: float
@@ -119,11 +120,15 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         return slope_supplementary_info, intercept_supplementary_info
 
-    def report_bad_data(self):
+    def report_bad_data(self,
+                        l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
+                        ) -> None:
+
+        l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_NAN_SLOPE)
-        super().report_bad_data(l_supplementary_info)
+        extra_l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_NAN_SLOPE)
+        super().report_bad_data([*l_supplementary_info, *extra_l_supplementary_info])
 
     def report_zero_slope_err(self):
 
@@ -137,19 +142,25 @@ class CtiGalRequirementWriter(RequirementWriter):
         self.add_supplementary_info(l_supplementary_info)
 
     def report_good_data(self,
-                         measured_value: float):
+                         measured_value: float = -99.,
+                         warning: Optional[bool] = None,
+                         l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
+                         ) -> None:
+
+        l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
-        if self.slope_pass and not self.intercept_pass:
-            warning = True
-        else:
-            warning = False
+        if warning is None:
+            if self.slope_pass and not self.intercept_pass:
+                warning = True
+            else:
+                warning = False
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_slope_intercept_info()
+        extra_l_supplementary_info = self._get_slope_intercept_info()
         super().report_good_data(measured_value = measured_value,
                                  warning = warning,
-                                 l_supplementary_info = l_supplementary_info)
+                                 l_supplementary_info = [*l_supplementary_info, *extra_l_supplementary_info])
 
     def _calc_test_results(self,
                            prop: str):
@@ -402,7 +413,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                        List[Union[Dict[str, str], List[str]]],] = None,
+                                                        List[Union[Dict[str, str], List[str]]]] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -411,7 +422,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
                                                 l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                d_bin_limits = d_bin_limits,
+                                                d_l_bin_limits = d_bin_limits,
                                                 mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer

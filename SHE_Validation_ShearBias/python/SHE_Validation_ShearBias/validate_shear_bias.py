@@ -22,7 +22,7 @@ __updated__ = "2021-08-31"
 
 import os
 from argparse import Namespace
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -71,6 +71,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
         d_method_l_table_filenames[method] = []
 
     # Read in the table filenames from each product, for each method
+    matched_catalog_product: Any = None
     for matched_catalog_product_filename in l_matched_catalog_product_filenames:
 
         qualified_matched_catalog_product_filename: str = os.path.join(args.workdir, matched_catalog_product_filename)
@@ -104,7 +105,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
-        
+
         # Skip this section in a dry run
         if args.dry_run:
             break

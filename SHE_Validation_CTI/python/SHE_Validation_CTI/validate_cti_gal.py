@@ -21,10 +21,10 @@ __updated__ = "2021-08-30"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from os.path import join
-from typing import Dict
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from astropy.table import Table, vstack as table_vstack
+from astropy.table import Row, Table, vstack as table_vstack
 
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb, products
@@ -129,6 +129,10 @@ def run_validate_cti_gal_from_args(args):
                                             shear_estimate_tables = d_shear_estimate_tables,
                                             d_bin_limits = d_bin_limits,
                                             workdir = args.workdir)
+    else:
+        d_exposure_regression_results_tables = None
+        d_observation_regression_results_tables = None
+        plot_filenames = None
 
     # Set up output product
 
@@ -138,6 +142,8 @@ def run_validate_cti_gal_from_args(args):
     l_exp_test_result_filename = []
 
     obs_id_check = -1
+
+    vis_calibrated_frame_product: Any = None
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product = create_validation_test_results_product(
@@ -225,7 +231,9 @@ def run_validate_cti_gal_from_args(args):
 def validate_cti_gal(data_stack: SHEFrameStack,
                      shear_estimate_tables: Dict[ShearEstimationMethods, Table],
                      d_bin_limits: Dict[BinParameters, np.ndarray],
-                     workdir: str):
+                     workdir: str) -> Tuple[Dict[str, List[Union[Table, Row]]],
+                                            Dict[str, List[Union[Table, Row]]],
+                                            Dict[str, Dict[str, str]]]:
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
@@ -240,9 +248,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data = l_raw_object_data)
 
     # Loop over each test case, filling in results tables for each and adding them to the results dict
-    d_exposure_regression_results_tables = {}
-    d_observation_regression_results_tables = {}
-    plot_filenames = {}
+    d_l_exposure_regression_results_tables: Dict[str, List[Table]] = {}
+    d_l_observation_regression_results_tables: Dict[str, List[Table]] = {}
+    plot_filenames: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
@@ -263,8 +271,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
         # Double check we have at least one bin
         assert num_bins >= 1
 
-        l_test_case_exposure_regression_results_tables = [None] * num_bins
-        l_test_case_observation_regression_results_tables = [None] * num_bins
+        l_exposure_regression_results_tables: List[Optional[Union[Table, Row]]] = [None] * num_bins
+        l_observation_regression_results_tables: List[Optional[Union[Table, Row]]] = [None] * num_bins
 
         for bin_index in range(num_bins):
 
@@ -308,12 +316,13 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                 method = method,
                                                                                 product_type = "OBS", )
 
-            l_test_case_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
-            l_test_case_observation_regression_results_tables[bin_index] = observation_regression_results_table
+            l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
+            l_observation_regression_results_tables[bin_index] = observation_regression_results_table
 
         # Fill in the results of this test case in the output dict
-        d_exposure_regression_results_tables[test_case_info.name] = l_test_case_exposure_regression_results_tables
-        d_observation_regression_results_tables[test_case_info.name] = l_test_case_observation_regression_results_tables
+        d_l_exposure_regression_results_tables[test_case_info.name] = l_exposure_regression_results_tables
+        d_l_observation_regression_results_tables[
+            test_case_info.name] = l_observation_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return d_exposure_regression_results_tables, d_observation_regression_results_tables, plot_filenames
+    return d_l_exposure_regression_results_tables, d_l_observation_regression_results_tables, plot_filenames

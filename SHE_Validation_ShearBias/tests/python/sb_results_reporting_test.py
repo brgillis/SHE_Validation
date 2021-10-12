@@ -121,7 +121,7 @@ class TestCase:
                                                                      return_one = True)
                 c_name = c_test_case_info.name
 
-                if not bin_parameter in INPUT_BIAS[method]:
+                if bin_parameter not in INPUT_BIAS[method]:
                     continue
                 l_d_input_bias = INPUT_BIAS[method][bin_parameter]
                 num_bins = len(l_d_input_bias)
