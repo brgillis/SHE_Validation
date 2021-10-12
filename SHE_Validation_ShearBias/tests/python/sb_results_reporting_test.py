@@ -59,16 +59,16 @@ class TestCase:
 
     # Class constants, for expected results
     d_l_d_ex_result = {ShearEstimationMethods.LENSMC: [{"m1": RESULT_PASS,
-                                                        "m2": RESULT_FAIL,
-                                                        "c1": RESULT_FAIL,
+                                                        "m2": RESULT_PASS,
+                                                        "c1": RESULT_PASS,
                                                         "c2": RESULT_PASS, }],
-                       ShearEstimationMethods.KSB   : [{"m1": RESULT_PASS,
+                       ShearEstimationMethods.KSB   : [{"m1": RESULT_FAIL,
                                                         "m2": RESULT_PASS,
-                                                        "c1": RESULT_PASS,
+                                                        "c1": RESULT_FAIL,
                                                         "c2": RESULT_PASS, },
-                                                       {"m1": RESULT_PASS,
+                                                       {"m1": RESULT_FAIL,
                                                         "m2": RESULT_PASS,
-                                                        "c1": RESULT_PASS,
+                                                        "c1": RESULT_FAIL,
                                                         "c2": RESULT_PASS, }
                                                        ],
 
@@ -190,19 +190,27 @@ class TestCase:
         assert lensmc_global_c_test_case_index >= 0
         assert ksb_snr_m_test_case_index >= 0
         assert ksb_snr_c_test_case_index >= 0
+
+        # Do detailed checks on the m and c test results
+
+        method = LMC
+        bins = GBL
+
+        lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
         lmc_sb_c_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_c_test_case_index]
         ksb_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[ksb_snr_m_test_case_index]
         ksb_sb_c_test_result = sb_test_results_product.Data.ValidationTestList[ksb_snr_c_test_case_index]
 
-        # Do detailed checks on the m and c test results
-
-        lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
-        method = LMC
-        bins = GBL
-
-        for comp, test_result, ex_global_result, target in (("m", lmc_sb_m_test_result, RESULT_FAIL, DEFAULT_M_TARGET),
-                                                            ("c", lmc_sb_c_test_result, RESULT_FAIL, DEFAULT_C_TARGET),
-                                                            ):
+        for (method, bins, comp, test_result,
+             ex_global_result, target) in ((LMC, GBL, "m", lmc_sb_m_test_result,
+                                            RESULT_PASS, DEFAULT_M_TARGET),
+                                           (LMC, GBL, "c", lmc_sb_c_test_result,
+                                            RESULT_PASS, DEFAULT_C_TARGET),
+                                           (KSB, SNR, "m", ksb_sb_m_test_result,
+                                            RESULT_FAIL, DEFAULT_M_TARGET),
+                                           (KSB, SNR, "c", ksb_sb_c_test_result,
+                                            RESULT_FAIL, DEFAULT_C_TARGET),
+                                           ):
             self._check_results_string(method = method,
                                        bins = bins,
                                        comp = comp,
@@ -220,21 +228,32 @@ class TestCase:
 
         assert test_result_object.GlobalResult == ex_global_result
 
+        requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
+
         l_d_input_bias = INPUT_BIAS[method][bins]
         num_bins = len(l_d_input_bias)
         d_bias = {}
 
+        l_max_z = []
+
         for bin_index in range(num_bins):
             for index in (1, 2):
+
+                # Simple variable for the component we're testing, e.g. "m1"
                 ci = f'{comp}{index}'
+
                 d_bias[ci] = INPUT_BIAS[method][bins][bin_index][ci]
                 d_bias[f'{ci}_err'] = INPUT_BIAS[method][bins][bin_index][f"{ci}_err"]
-                d_bias[f'{ci}_z'] = ((abs(d_bias[ci]) - target_val) / d_bias[f'{ci}_err'])
 
-                requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
+                # Calculate z value, relative to the target. If inside the target, z is zero
+                if abs(d_bias[ci]) > target_val:
+                    d_bias[f'{ci}_z'] = ((abs(d_bias[ci]) - target_val) / d_bias[f'{ci}_err'])
+                else:
+                    d_bias[f'{ci}_z'] = 0.
+
                 assert requirement_object.Comment == INFO_MULTIPLE
                 assert requirement_object.MeasuredValue[0].Parameter == D_REQUIREMENT_INFO[comp].parameter
-                assert requirement_object.ValidationResult == RESULT_FAIL
+                assert requirement_object.ValidationResult == ex_global_result
 
                 sb_info = requirement_object.SupplementaryInformation
 
@@ -250,5 +269,7 @@ class TestCase:
                         in info_string)
                 assert f"Result: {self.d_l_d_ex_result[method][bin_index][ci]}\n" in info_string
 
-            assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue,
-                              max(d_bias[f'{comp}1_z'], d_bias[f'{comp}2_z']))
+            l_max_z.append(max(d_bias[f'{comp}1_z'], d_bias[f'{comp}2_z']))
+
+        assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue,
+                          max(l_max_z))
