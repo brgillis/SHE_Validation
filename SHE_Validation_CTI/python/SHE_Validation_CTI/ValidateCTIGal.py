@@ -26,6 +26,7 @@ __updated__ = "2021-08-20"
 #
 
 import os
+from argparse import ArgumentParser
 
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
@@ -39,7 +40,8 @@ from .validate_cti_gal import run_validate_cti_gal_from_args
 logger = log.getLogger(__name__)
 
 
-def defineSpecificProgramOptions():
+# noinspection PyPep8Naming
+def defineSpecificProgramOptions() -> ArgumentParser:
     """
     @brief Allows to define the (command line and configuration file) options
     specific to this program
@@ -75,6 +77,7 @@ def defineSpecificProgramOptions():
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args):
     """
     @brief The "main" method.
@@ -94,6 +97,7 @@ def mainMethod(args):
     logger.info(exec_cmd)
 
     # load the pipeline config in
+    # noinspection PyTypeChecker
     args.pipeline_config = read_config(args.pipeline_config,
                                        workdir = args.workdir,
                                        defaults = D_CTI_GAL_CONFIG_DEFAULTS,

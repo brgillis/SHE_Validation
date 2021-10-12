@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Callable, Dict, List, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from astropy import table
@@ -64,13 +64,17 @@ class CtiGalRequirementWriter(RequirementWriter):
     l_slope_err: Sequence[float]
     l_slope_z: Sequence[float]
     l_slope_result: Sequence[str]
+    slope_pass: bool
+    slope_result: str
 
     l_intercept: Sequence[float]
     l_intercept_err: Sequence[float]
     l_intercept_z: Sequence[float]
     l_intercept_result: Sequence[str]
+    intercept_pass: bool
+    intercept_result: str
 
-    l_bin_limits: Sequence[float]
+    l_bin_limits: Optional[Sequence[float]]
     num_bins: int
 
     fail_sigma: float
@@ -181,7 +185,7 @@ class CtiGalRequirementWriter(RequirementWriter):
                 l_prop_result[bin_index] = RESULT_FAIL
 
         # Pass if there's at least some good data, and all good data passes
-        if (np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data)):
+        if np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data):
             setattr(self, f"{prop}_pass", True)
             setattr(self, f"{prop}_result", RESULT_PASS)
         else:
@@ -319,11 +323,11 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
 
         num_bins = len(l_test_case_bins) - 1
 
-        l_slope = [None] * num_bins
-        l_slope_err = [None] * num_bins
-        l_intercept = [None] * num_bins
-        l_intercept_err = [None] * num_bins
-        l_bin_limits = [None] * num_bins
+        l_slope = [0.] * num_bins
+        l_slope_err = [0.] * num_bins
+        l_intercept = [0.] * num_bins
+        l_intercept_err = [0.] * num_bins
+        l_bin_limits = [[0.]] * num_bins
 
         for bin_index, bin_test_case_regression_results_table in enumerate(l_test_case_regression_results_tables):
             if isinstance(bin_test_case_regression_results_table, table.Table):

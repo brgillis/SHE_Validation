@@ -26,8 +26,6 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
 
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
-
 FITS_VERSION = "8.0"
 FITS_DEF = "she.ctiGalObjectData"
 

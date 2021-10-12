@@ -153,8 +153,9 @@ def add_bg_column(t: Table,
 
         # Calculate the mean background level of all valid exposures
         bg_array: np.ndarray = np.array(l_background_level)
-        # noinspection PyPep8
+        # noinspection PyPep8,PyComparisonWithNone
         valid_bg: np.ndarray = bg_array != None
+        # noinspection PyUnresolvedReferences
         if valid_bg.sum() > 0:
             bg_data[object_index] = bg_array[valid_bg].mean()
         else:

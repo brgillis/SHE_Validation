@@ -22,14 +22,13 @@ __updated__ = "2021-08-12"
 
 import argparse
 
+import SHE_Validation
 from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT.logging import getLogger
-
-import SHE_Validation
-
 from .match_to_tu import match_to_tu_from_args
 
 
+# noinspection PyPep8Naming
 def defineSpecificProgramOptions():
     """
     @brief
@@ -48,42 +47,43 @@ def defineSpecificProgramOptions():
     parser = argparse.ArgumentParser()
 
     # Input filenames
-    parser.add_argument('--she_measurements_product', type=str,
-                        help='Filename for shear estimates data product (XML data product)')
-    parser.add_argument('--tu_galaxy_catalog_list', type=str, default=None,
-                        help='Filename for True Universe Galaxy Catalog listfile (.json).')
-    parser.add_argument('--tu_star_catalog_list', type=str, default=None,
-                        help='Filename for True Universe Star Catalog listfile (.json).')
-    parser.add_argument('--tu_galaxy_catalog', type=str, default=None,
-                        help='Filename for True Universe Galaxy Catalog data product (XML data product)')
-    parser.add_argument('--tu_star_catalog', type=str, default=None,
-                        help='Filename for True Universe Star Catalog data product (XML data product)')
-    parser.add_argument('--tu_output_product', type=str, default=None,
-                        help='Filename for True Universe Output Product data product (XML data product)')
-    parser.add_argument('--pipeline_config', type=str, default=None,
-                        help='Pipeline configuration file.')
+    parser.add_argument('--she_measurements_product', type = str,
+                        help = 'Filename for shear estimates data product (XML data product)')
+    parser.add_argument('--tu_galaxy_catalog_list', type = str, default = None,
+                        help = 'Filename for True Universe Galaxy Catalog listfile (.json).')
+    parser.add_argument('--tu_star_catalog_list', type = str, default = None,
+                        help = 'Filename for True Universe Star Catalog listfile (.json).')
+    parser.add_argument('--tu_galaxy_catalog', type = str, default = None,
+                        help = 'Filename for True Universe Galaxy Catalog data product (XML data product)')
+    parser.add_argument('--tu_star_catalog', type = str, default = None,
+                        help = 'Filename for True Universe Star Catalog data product (XML data product)')
+    parser.add_argument('--tu_output_product', type = str, default = None,
+                        help = 'Filename for True Universe Output Product data product (XML data product)')
+    parser.add_argument('--pipeline_config', type = str, default = None,
+                        help = 'Pipeline configuration file.')
 
     # Output filenames
-    parser.add_argument('--matched_catalog', type=str,
-                        help='Desired filename for output matched catalog data product (XML data product).')
+    parser.add_argument('--matched_catalog', type = str,
+                        help = 'Desired filename for output matched catalog data product (XML data product).')
 
     # Arguments needed by the pipeline runner
-    parser.add_argument('--workdir', type=str, default=".")
-    parser.add_argument('--logdir', type=str, default=".")
+    parser.add_argument('--workdir', type = str, default = ".")
+    parser.add_argument('--logdir', type = str, default = ".")
 
     # Optional arguments (can't be used with pipeline runner)
-    parser.add_argument('--profile', action='store_true',
-                        help='Store profiling data for execution.')
-    parser.add_argument('--sim_path', type=str, default="/mnt/cephfs/share/SC8/SIM",
-                        help="Path to where the SIM data is stored")
-    parser.add_argument('--match_threshold', type=float, default=0.3,
-                        help="Maximum distance allowed for a match in units of arcsec.")
+    parser.add_argument('--profile', action = 'store_true',
+                        help = 'Store profiling data for execution.')
+    parser.add_argument('--sim_path', type = str, default = "/mnt/cephfs/share/SC8/SIM",
+                        help = "Path to where the SIM data is stored")
+    parser.add_argument('--match_threshold', type = float, default = 0.3,
+                        help = "Maximum distance allowed for a match in units of arcsec.")
 
     logger.debug('Exiting SHE_Validation_MatchToTU defineSpecificProgramOptions()')
 
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args):
     """
     @brief
@@ -100,8 +100,9 @@ def mainMethod(args):
     logger.debug('# Entering SHE_Validation_MatchToTU mainMethod()')
     logger.debug('#')
 
-    exec_cmd = get_arguments_string(args, cmd=f"E-Run SHE_Validation {SHE_Validation.__version__} SHE_Validation_MatchToTU",
-                                    store_true=["profile"])
+    exec_cmd = get_arguments_string(args,
+                                    cmd = f"E-Run SHE_Validation {SHE_Validation.__version__} SHE_Validation_MatchToTU",
+                                    store_true = ["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)
 
@@ -109,8 +110,8 @@ def mainMethod(args):
         import cProfile
         cProfile.runctx("match_to_tu_from_args(args,dry_run=dry_run)", {},
                         {"match_to_tu_from_args": match_to_tu_from_args,
-                         "args": args, },
-                        filename="match_to_tu_from_args.prof")
+                         "args"                 : args, },
+                        filename = "match_to_tu_from_args.prof")
     else:
         match_to_tu_from_args(args)
 

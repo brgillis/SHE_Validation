@@ -31,7 +31,7 @@ from astropy.table import Table
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, _make_config_from_defaults
+from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR, FailSigmaScaling
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MSG_NOT_IMPLEMENTED,
@@ -62,9 +62,11 @@ class TestCase:
         os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        self.pipeline_config = _make_config_from_defaults(config_keys = (GlobalConfigKeys, ValidationConfigKeys,),
-                                                          defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                          d_types = D_CTI_GAL_CONFIG_TYPES)
+        self.pipeline_config = read_config(config_filename = None,
+                                           config_keys = (GlobalConfigKeys,
+                                                          ValidationConfigKeys,),
+                                           defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                           d_types = D_CTI_GAL_CONFIG_TYPES)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
 
         # Make a dictionary of bin limits

@@ -8,6 +8,7 @@
 
 __updated__ = "2021-08-20"
 
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -22,7 +23,7 @@ __updated__ = "2021-08-20"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-class TestImports():
+class TestImports:
 
     def test_import(self):
         """ Dummy test - the actual testing is done in the wildcard imports above, which can only be done at the

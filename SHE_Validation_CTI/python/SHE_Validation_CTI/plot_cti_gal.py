@@ -20,7 +20,7 @@ __updated__ = "2021-08-30"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional, Sequence, Union
 
 import numpy as np
 from astropy.table import Row, Table
@@ -54,7 +54,7 @@ class CtiGalPlotter(ValidationPlotter):
     method_name: str
     bin_limits: np.ndarray
     l_ids_in_bin: Sequence[int]
-    _t_good: Sequence[Row]
+    _t_good: Union[Sequence[Row], Table]
     _g1_colname: str
     _weight_colname: str
 
@@ -93,7 +93,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._object_table = object_table
 
     @property
-    def t_good(self) -> Sequence[Row]:
+    def t_good(self) -> Union[Sequence[Row], Table]:
         return self._t_good
 
     @property

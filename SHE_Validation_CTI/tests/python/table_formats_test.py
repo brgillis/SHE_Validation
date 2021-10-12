@@ -24,6 +24,7 @@ import os
 from typing import List
 
 from SHE_PPT.table_utility import SheTableFormat
+# noinspection PyProtectedMember
 from SHE_PPT.testing.tables import _test_is_in_format
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF

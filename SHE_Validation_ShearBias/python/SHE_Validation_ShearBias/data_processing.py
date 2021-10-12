@@ -398,9 +398,9 @@ class ShearBiasTestCaseDataProcessor:
             return
 
         # Init empty lists for output data
-        self._l_d_bias_measurements = [None] * self.num_bins
-        self._l_d_linregress_results = [None] * self.num_bins
-        self._l_d_bias_strings = [None] * self.num_bins
+        self._l_d_bias_measurements = [{}] * self.num_bins
+        self._l_d_linregress_results = [{}] * self.num_bins
+        self._l_d_bias_strings = [{}] * self.num_bins
 
         for bin_index in range(self.num_bins):
 

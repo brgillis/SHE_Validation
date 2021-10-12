@@ -40,6 +40,7 @@ from SHE_PPT.she_image import SHEImage
 from SHE_PPT.she_image_stack import SHEImageStack
 from SHE_PPT.shear_utility import ShearEstimate
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
 from SHE_PPT.table_utility import SheTableFormat
 from .data_processing import add_readout_register_distance
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
@@ -49,7 +50,7 @@ BG_STAMP_SIZE = 1
 logger = getLogger(__name__)
 
 
-class PositionInfo():
+class PositionInfo:
     """ Class to store all data related to the position of an object across multiple exposures.
     """
 
@@ -118,7 +119,7 @@ class PositionInfo():
             self.exposure_shear_info[method] = shear_estimate
 
 
-class SingleObjectData():
+class SingleObjectData:
     """ Class to store the required information for a single object in the catalogue.
     """
 
@@ -128,7 +129,7 @@ class SingleObjectData():
     data_stack: Optional[SHEFrameStack] = None
 
     # Attributes set up to be able to store data, but not calculated at init
-    position_info: List[PositionInfo]
+    position_info: List[Optional[PositionInfo]]
 
     def __init__(self,
                  object_id: Optional[int] = None,
@@ -144,7 +145,7 @@ class SingleObjectData():
 
 
 def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
-                                d_shear_estimate_tables: Dict[str, Table],
+                                d_shear_estimate_tables: Dict[ShearEstimationMethods, Table],
                                 object_id: int,
                                 wcs_stack: SHEImageStack) -> SingleObjectData:
     """ Get raw data for a single object.
@@ -162,7 +163,7 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
             object_data.world_shear_info[method] = ShearEstimate(weight = 0)
             continue
 
-        sem_tf: SheTableFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        sem_tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         object_row: Row = shear_estimate_table.loc[object_id]
 
         # Check the object isn't flagged as a failure
@@ -230,7 +231,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
     try:
 
         # Create a SingleObjectData for each object_id and store them in a list to output
-        l_object_data: List[SingleObjectData] = [None] * len(s_object_ids)
+        l_object_data: List[Optional[SingleObjectData]] = [None] * len(s_object_ids)
 
         for oid_index, object_id in enumerate(s_object_ids):
 
@@ -269,7 +270,7 @@ def sort_raw_object_data_into_table(l_raw_object_data: List[SingleObjectData]) -
         num_exposures = len(l_raw_object_data[0].position_info)
 
     # Create a table for each exposure
-    l_object_data_tables: List[Table] = [None] * num_exposures
+    l_object_data_tables: List[Optional[Table]] = [None] * num_exposures
 
     for exp_index in range(num_exposures):
 

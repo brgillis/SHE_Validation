@@ -21,7 +21,7 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pytest
@@ -105,13 +105,6 @@ class TestCase:
         GBL = BinParameters.GLOBAL
         SNR = BinParameters.SNR
 
-        class RegResults(NamedTuple):
-            slope: float
-            slope_err: float
-            intercept: float
-            intercept_err: float
-            slope_intercept_covar: float
-
         # Fill the bias measurements with mock data
         d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {}
 
@@ -173,12 +166,12 @@ class TestCase:
         ksb_snr_m_test_case_index = -1
         ksb_snr_c_test_case_index = -1
         for test_case_info in L_SHEAR_BIAS_TEST_CASE_INFO:
-            if (test_case_info.method == LMC and test_case_info.bins == GBL):
+            if test_case_info.method == LMC and test_case_info.bins == GBL:
                 if get_prop_from_id(test_case_info.id) == ShearBiasTestCases.M:
                     lensmc_global_m_test_case_index = test_case_index
                 elif get_prop_from_id(test_case_info.id) == ShearBiasTestCases.C:
                     lensmc_global_c_test_case_index = test_case_index
-            elif (test_case_info.method == KSB and test_case_info.bins == SNR):
+            elif test_case_info.method == KSB and test_case_info.bins == SNR:
                 if get_prop_from_id(test_case_info.id) == ShearBiasTestCases.M:
                     ksb_snr_m_test_case_index = test_case_index
                 elif get_prop_from_id(test_case_info.id) == ShearBiasTestCases.C:
@@ -192,9 +185,6 @@ class TestCase:
         assert ksb_snr_c_test_case_index >= 0
 
         # Do detailed checks on the m and c test results
-
-        method = LMC
-        bins = GBL
 
         lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
         lmc_sb_c_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_c_test_case_index]

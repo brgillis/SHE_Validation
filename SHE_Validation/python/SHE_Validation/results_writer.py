@@ -116,7 +116,7 @@ def get_result_string(test_pass: bool):
 
 # Classes
 
-class FailSigmaCalculator():
+class FailSigmaCalculator:
     """Class to calculate the fail sigma, scaling properly for number of bins and/or/nor test cases.
     """
 
@@ -125,7 +125,7 @@ class FailSigmaCalculator():
     local_fail_sigma = float
     fail_sigma_scaling: FailSigmaScaling
     mode: ExecutionMode = ExecutionMode.LOCAL
-    l_test_case_info: Set[TestCaseInfo]
+    s_test_case_info: Set[TestCaseInfo]
 
     # Attributes determined at init
     bin_parameters: List[BinParameters]
@@ -135,8 +135,8 @@ class FailSigmaCalculator():
     num_test_case_bin_parameters_bins: int
 
     # Attributes determined on demand
-    _d_scaled_global_sigma: Optional[Dict[BinParameters, float]] = None
-    _d_scaled_local_sigma: Optional[Dict[BinParameters, float]] = None
+    _d_scaled_global_sigma: Optional[Dict[str, float]] = None
+    _d_scaled_local_sigma: Optional[Dict[str, float]] = None
 
     def __init__(self,
                  pipeline_config: Dict[ConfigKeys, Any],
@@ -149,11 +149,11 @@ class FailSigmaCalculator():
         self.local_fail_sigma = pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
         self.fail_sigma_scaling = pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING]
         self.mode = mode
-        self.l_test_case_info = l_test_case_info
+        self.s_test_case_info = set(l_test_case_info)
 
         # Get a set of all bin parameters in the test cases
         s_bin_parameters: Set[BinParameters] = set()
-        for test_case_info in self.l_test_case_info:
+        for test_case_info in self.s_test_case_info:
             s_bin_parameters.add(test_case_info.bins)
 
         # Create a default list of bin limits if necessary
@@ -169,39 +169,39 @@ class FailSigmaCalculator():
         for bin_parameter in s_bin_parameters:
             self.d_num_bins[bin_parameter] = len(d_bin_limits[bin_parameter]) - 1
 
-        self.num_test_cases = len(self.l_test_case_info)
+        self.num_test_cases = len(self.s_test_case_info)
         self.num_test_case_bins = 0
 
         test_case_info: TestCaseInfo
-        for test_case_info in self.l_test_case_info:
+        for test_case_info in self.s_test_case_info:
             bin_parameter: BinParameters = test_case_info.bins
             self.num_test_case_bins += self.d_num_bins[bin_parameter]
 
     @property
-    def d_scaled_global_sigma(self) -> Dict[TestCaseInfo, float]:
+    def d_scaled_global_sigma(self) -> Dict[str, float]:
         if self._d_scaled_global_sigma is None:
             self._d_scaled_global_sigma = self._calc_d_scaled_sigma(self.global_fail_sigma)
         return self._d_scaled_global_sigma
 
     @property
-    def d_scaled_local_sigma(self) -> Dict[TestCaseInfo, float]:
+    def d_scaled_local_sigma(self) -> Dict[str, float]:
         if self._d_scaled_local_sigma is None:
             self._d_scaled_local_sigma = self._calc_d_scaled_sigma(self.local_fail_sigma)
         return self._d_scaled_local_sigma
 
     @property
-    def d_scaled_sigma(self) -> Dict[TestCaseInfo, float]:
+    def d_scaled_sigma(self) -> Dict[str, float]:
         if self.mode == ExecutionMode.LOCAL:
             return self.d_scaled_local_sigma
         else:
             return self.d_scaled_global_sigma
 
-    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[TestCaseInfo, float]:
+    def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
 
-        d_scaled_sigma: Dict[TestCaseInfo, float] = {}
+        d_scaled_sigma: Dict[str, float] = {}
 
         test_case_info: TestCaseInfo
-        for test_case_info in self.l_test_case_info:
+        for test_case_info in self.s_test_case_info:
 
             # Get the number of tries depending on scaling type
             num_tries: int
@@ -214,7 +214,7 @@ class FailSigmaCalculator():
             elif self.fail_sigma_scaling == FailSigmaScaling.TEST_CASE_BINS:
                 num_tries = self.num_test_case_bins
             else:
-                raise ValueError("Unexpected fail sigma scaling: " + self.fail_sigma_scaling)
+                raise ValueError(f"Unexpected fail sigma scaling: {self.fail_sigma_scaling}")
 
             d_scaled_sigma[test_case_info.name] = self._calc_scaled_sigma_from_tries(base_sigma = base_sigma,
                                                                                      num_tries = num_tries)
@@ -233,7 +233,7 @@ class FailSigmaCalculator():
         return -scipy.stats.norm.ppf((1 - p_good ** (1 / num_tries)) / 2)
 
 
-class SupplementaryInfo():
+class SupplementaryInfo:
     """ Data class for supplementary info for a test case.
     """
 
@@ -264,7 +264,7 @@ class SupplementaryInfo():
         return self._message
 
 
-class RequirementWriter():
+class RequirementWriter:
     """ Class for managing reporting of results for a single test case.
     """
 
@@ -400,7 +400,7 @@ class RequirementWriter():
         return result
 
 
-class AnalysisWriter():
+class AnalysisWriter:
     """ Class for managing writing of analysis data for a single test case
     """
 
@@ -422,7 +422,7 @@ class AnalysisWriter():
 
     # Attributes set when write is called
     _directory_filename: Optional[str] = None
-    _qualified__directory_filename: Optional[str] = None
+    _qualified_directory_filename: Optional[str] = None
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
@@ -573,8 +573,8 @@ class AnalysisWriter():
         """
         return DEFAULT_DIRECTORY_HEADER
 
-    def _write_filenames_to_directory(self,
-                                      fo: IOBase,
+    @staticmethod
+    def _write_filenames_to_directory(fo: IOBase,
                                       filenames: Optional[DictOrList[str, str]]) -> None:
         """ Write a dict or list of filenames to an open, writable directory file,
             with different functionality depending on if a list or dict is passed.
@@ -705,7 +705,7 @@ class AnalysisWriter():
                           delete_files = delete_files)
 
 
-class TestCaseWriter():
+class TestCaseWriter:
     """ Base class to handle the writing out of validation test results for an individual test case.
     """
 
@@ -906,7 +906,7 @@ class TestCaseWriter():
         self.write_analysis_files(**analysis_kwargs)
 
 
-class ValidationResultsWriter():
+class ValidationResultsWriter:
     """ Base class to handle the writing out of validation test results.
     """
 

@@ -25,8 +25,7 @@ import abc
 from typing import Any, Dict, List, Optional, Sequence, Set, Type, Union
 
 import numpy as np
-from astropy import table
-from astropy.table import Column, Row, Table
+from astropy.table import Column, Row, Table, vstack as table_vstack
 
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods
 from SHE_PPT.file_io import MultiTableLoader, TableLoader
@@ -79,7 +78,7 @@ class BinConstraint(abc.ABC):
     # Public methods
 
     def get_l_is_row_in_bin(self, table: Table,
-                            *args, **kwargs) -> Sequence[bool]:
+                            *args, **kwargs) -> np.ndarray:
         """ Method to return a sequence of bools for whether or not a row satisfies a bin constraint.
 
             Parameters
@@ -295,7 +294,7 @@ class BitFlagsBinConstraint(BinConstraint):
         """ Checks if the data (does not) match the flags.
         """
         # Perform a bitwise and to check against the flags
-        flag_match: int = np.bitwise_and(data[self.bin_colname], self.bit_flags)
+        flag_match: Union[int, np.ndarray] = np.bitwise_and(data[self.bin_colname], self.bit_flags)
 
         # Convert to bool or array of bools
         if isinstance(flag_match, np.ndarray):
@@ -331,12 +330,12 @@ class MultiBinConstraint(BinConstraint):
         """ Checks if the data is in all bin constraints.
         """
 
-        l_l_is_in_bin: List[List[bool]] = [bin_constraint._is_in_bin(data, *args, **kwargs)
-                                           for bin_constraint in self.l_bin_constraints]
+        l_l_is_in_bin: List[Sequence[bool]] = [bin_constraint._is_in_bin(data, *args, **kwargs)
+                                               for bin_constraint in self.l_bin_constraints]
         return np.logical_and.reduce(l_l_is_in_bin)
 
 
-class HeteroBinConstraint():
+class HeteroBinConstraint:
     """ Class for constraining on the intersection of multiple bins on multiple tables.
     """
 
@@ -389,6 +388,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
     test_case_info: Optional[TestCaseInfo] = None
     bin_parameter: BinParameters
+    bin_colname: Optional[str]
 
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
@@ -669,7 +669,7 @@ def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
         assert num_bins >= 1
 
         # Start a list of the ID lists for this test case
-        l_l_binned_ids: List[Sequence[int]] = [None] * num_bins
+        l_l_binned_ids: List[Sequence[int]] = [[]] * num_bins
 
         # Loop over bins, getting IDs for each and adding them to the list
         for bin_index in range(num_bins):
@@ -718,7 +718,7 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
         assert num_bins >= 1
 
         # Start a list of the ID lists for this test case
-        l_l_binned_ids: List[Sequence[int]] = [None] * num_bins
+        l_l_binned_ids: List[Sequence[int]] = [[]] * num_bins
 
         # Loop over bins, getting IDs for each and adding them to the list
         for bin_index in range(num_bins):
@@ -866,7 +866,7 @@ class BinnedMultiTableLoader(MultiTableLoader):
         """ Get a table with only objects with IDs in the list.
         """
 
-        l_binned_tables: List[Table] = [None] * len(self.l_file_loaders)
+        l_binned_tables: List[Optional[Table]] = [None] * len(self.l_file_loaders)
 
         # Get a binned table from each file loader
         i: int
@@ -883,11 +883,11 @@ class BinnedMultiTableLoader(MultiTableLoader):
         if len(l_binned_tables) == 0:
             return None
 
-        return table.vstack(tables = l_binned_tables)
+        return table_vstack(tables = l_binned_tables)
 
     def get_table_for_all(self,
                           keep_open: bool = True,
-                          *args, **kwargs) -> Table:
+                          *args, **kwargs) -> Optional[Table]:
         """ Get a combined table of all objects.
         """
 
@@ -900,18 +900,18 @@ class BinnedMultiTableLoader(MultiTableLoader):
         if len(l_binned_tables) == 0:
             return None
 
-        return table.vstack(tables = l_binned_tables)
+        return table_vstack(tables = l_binned_tables)
 
     def get_table_for_bin_constraint(self,
                                      bin_constraint: BinConstraint,
                                      keep_open: bool = True,
-                                     *args, **kwargs) -> Table:
+                                     *args, **kwargs) -> Optional[Table]:
         """ Get a combined table of all objects which pass quality checks on shear estimates.
 
             Requires the table format to properly check estimates tables.
         """
 
-        l_binned_tables: List[Table] = [None] * len(self.l_file_loaders)
+        l_binned_tables: List[Optional[Table]] = [None] * len(self.l_file_loaders)
 
         # Get a binned table from each file loader
         i: int
@@ -927,4 +927,4 @@ class BinnedMultiTableLoader(MultiTableLoader):
         if len(l_binned_tables) == 0:
             return None
 
-        return table.vstack(tables = l_binned_tables)
+        return table_vstack(tables = l_binned_tables)

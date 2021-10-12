@@ -49,7 +49,7 @@ NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_paramete
                                                   if bin_parameter != BinParameters.GLOBAL]
 
 
-class BinParameterMeta():
+class BinParameterMeta:
     """ Data class to store metadata about a bin parameter.
     """
 
@@ -217,14 +217,14 @@ D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum =
 D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum = BinParameters.EPOCH)
 
 # Set up the dict relating cline-args to config keys
-D_BIN_LIMITS_CLINE_ARGS: Dict[BinParameters, str] = {}
+D_BIN_LIMITS_CLINE_ARGS: Dict[ConfigKeys, str] = {}
 
 for bin_parameter in BinParameters:
     bin_parameter_meta = D_BIN_PARAMETER_META[bin_parameter]
     D_BIN_LIMITS_CLINE_ARGS[bin_parameter_meta.config_key] = bin_parameter_meta.cline_arg
 
 
-class RequirementInfo():
+class RequirementInfo:
     """ Common class for info about a requirement.
     """
 
@@ -258,7 +258,7 @@ class RequirementInfo():
         return self._parameter
 
 
-class TestInfo():
+class TestInfo:
     """ Common class for info about a test.
     """
 
@@ -285,7 +285,7 @@ class TestInfo():
         return self._description
 
 
-class TestCaseInfo():
+class TestCaseInfo:
     """ Common class for info about a test case.
     """
 

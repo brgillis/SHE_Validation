@@ -38,6 +38,7 @@ from .validate_shear_bias import validate_shear_bias_from_args
 logger = log.getLogger(__name__)
 
 
+# noinspection PyPep8Naming
 def defineSpecificProgramOptions() -> ArgumentParser:
     """
     @brief
@@ -58,6 +59,7 @@ def defineSpecificProgramOptions() -> ArgumentParser:
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args) -> None:
     """
     @brief
@@ -80,6 +82,7 @@ def mainMethod(args) -> None:
     logger.info(exec_cmd)
 
     # load the pipeline config in
+    # noinspection PyTypeChecker
     pipeline_config: Dict[ConfigKeys, Any] = read_config(args.pipeline_config,
                                                          workdir = args.workdir,
                                                          defaults = D_SHEAR_BIAS_CONFIG_DEFAULTS,

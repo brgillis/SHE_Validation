@@ -50,10 +50,10 @@ KEY_G2_INFO = "G2_INFO"
 DESC_INFO_BASE = "Information about the test on REPLACEME_PROP bias in component REPLACEME_COMPONENT."
 
 D_DESC_INFO = {}
-for prop, name in ("m", "multiplicative"), ("c", "additive"):
-    for i in (1, 2):
-        D_DESC_INFO[f"{prop}{i}"] = DESC_INFO_BASE.replace(
-            "REPLACEME_PROP", name).replace("REPLACEME_COMPONENT", f"{i}")
+for _prop, _name in ("m", "multiplicative"), ("c", "additive"):
+    for _comp in (1, 2):
+        D_DESC_INFO[f"{_prop}{_comp}"] = DESC_INFO_BASE.replace(
+            "REPLACEME_PROP", _name).replace("REPLACEME_COMPONENT", f"{_comp}")
 
 MSG_NAN_VAL = "Test failed due to NaN regression results."
 MSG_ZERO_ERR = "Test failed due to zero error."
@@ -127,7 +127,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
     """
 
     # Attributes set and used while writing
-    prop: Optional[ShearBiasTestCases] = None
+    _prop: Optional[ShearBiasTestCases] = None
 
     l_d_val: Optional[Sequence[Dict[int, float]]] = None
     l_d_val_err: Optional[Sequence[Dict[int, float]]] = None
