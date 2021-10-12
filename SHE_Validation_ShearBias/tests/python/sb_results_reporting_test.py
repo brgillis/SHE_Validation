@@ -57,6 +57,28 @@ class TestCase:
     """
     """
 
+    # Class constants, for expected results
+    d_l_d_ex_result = {ShearEstimationMethods.LENSMC: [{"m1": RESULT_PASS,
+                                                        "m2": RESULT_FAIL,
+                                                        "c1": RESULT_FAIL,
+                                                        "c2": RESULT_PASS, }],
+                       ShearEstimationMethods.KSB   : [{"m1": RESULT_PASS,
+                                                        "m2": RESULT_PASS,
+                                                        "c1": RESULT_PASS,
+                                                        "c2": RESULT_PASS, },
+                                                       {"m1": RESULT_PASS,
+                                                        "m2": RESULT_PASS,
+                                                        "c1": RESULT_PASS,
+                                                        "c2": RESULT_PASS, }
+                                                       ],
+
+                       }
+
+    d_ex_info_keys = {"m1": KEY_G1_INFO,
+                      "m2": KEY_G2_INFO,
+                      "c1": KEY_G1_INFO,
+                      "c2": KEY_G2_INFO, }
+
     @pytest.fixture(autouse = True)
     def setup(self, tmpdir):
 
@@ -174,18 +196,7 @@ class TestCase:
 
         # Do detailed checks on the m and c test results
 
-        # M
-
         lmc_sb_m_test_result = sb_test_results_product.Data.ValidationTestList[lensmc_global_m_test_case_index]
-
-        d_ex_result = {"m1": RESULT_PASS,
-                       "m2": RESULT_FAIL,
-                       "c1": RESULT_FAIL,
-                       "c2": RESULT_PASS, }
-        d_info_keys = {"m1": KEY_G1_INFO,
-                       "m2": KEY_G2_INFO,
-                       "c1": KEY_G1_INFO,
-                       "c2": KEY_G2_INFO, }
         method = LMC
         bins = GBL
 
@@ -197,9 +208,7 @@ class TestCase:
                                        comp = comp,
                                        target_val = target,
                                        test_result_object = test_result,
-                                       ex_global_result = ex_global_result,
-                                       d_ex_results = d_ex_result,
-                                       d_ex_info_keys = d_info_keys, )
+                                       ex_global_result = ex_global_result, )
 
     def _check_results_string(self,
                               method: ShearEstimationMethods,
@@ -207,38 +216,39 @@ class TestCase:
                               comp: str,
                               target_val: float,
                               test_result_object: Any,
-                              ex_global_result: str,
-                              d_ex_results: Dict[str, str],
-                              d_ex_info_keys: Dict[str, str]):
+                              ex_global_result: str, ):
 
         assert test_result_object.GlobalResult == ex_global_result
 
+        l_d_input_bias = INPUT_BIAS[method][bins]
+        num_bins = len(l_d_input_bias)
         d_bias = {}
 
-        for index in (1, 2):
-            d_bias[f'{comp}{index}'] = INPUT_BIAS[method][bins][0][f"{comp}{index}"]
-            d_bias[f'{comp}{index}_err'] = INPUT_BIAS[method][bins][0][f"{comp}{index}_err"]
-            d_bias[f'{comp}{index}_z'] = ((abs(d_bias[f'{comp}{index}']) - target_val) /
-                                          d_bias[f'{comp}{index}_err'])
+        for bin_index in range(num_bins):
+            for index in (1, 2):
+                ci = f'{comp}{index}'
+                d_bias[ci] = INPUT_BIAS[method][bins][bin_index][ci]
+                d_bias[f'{ci}_err'] = INPUT_BIAS[method][bins][bin_index][f"{ci}_err"]
+                d_bias[f'{ci}_z'] = ((abs(d_bias[ci]) - target_val) / d_bias[f'{ci}_err'])
 
-            requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
-            assert requirement_object.Comment == INFO_MULTIPLE
-            assert requirement_object.MeasuredValue[0].Parameter == D_REQUIREMENT_INFO[comp].parameter
-            assert requirement_object.ValidationResult == RESULT_FAIL
+                requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
+                assert requirement_object.Comment == INFO_MULTIPLE
+                assert requirement_object.MeasuredValue[0].Parameter == D_REQUIREMENT_INFO[comp].parameter
+                assert requirement_object.ValidationResult == RESULT_FAIL
 
-            sb_info = requirement_object.SupplementaryInformation
+                sb_info = requirement_object.SupplementaryInformation
 
-            assert sb_info.Parameter[index - 1].Key == d_ex_info_keys[f"{comp}{index}"]
-            assert sb_info.Parameter[index - 1].Description == D_DESC_INFO[f"{comp}{index}"]
-            info_string = sb_info.Parameter[index - 1].StringValue
+                assert sb_info.Parameter[index - 1].Key == self.d_ex_info_keys[ci]
+                assert sb_info.Parameter[index - 1].Description == D_DESC_INFO[ci]
+                info_string = sb_info.Parameter[index - 1].StringValue
 
-            assert f"{comp}{index} = {d_bias[f'{comp}{index}']:.{REPORT_DIGITS}f}\n" in info_string
-            assert f"{comp}{index}_err = {d_bias[f'{comp}{index}_err']:.{REPORT_DIGITS}f}\n" in info_string
-            assert f"{comp}{index}_z = {d_bias[f'{comp}{index}_z']:.{REPORT_DIGITS}f}\n" in info_string
-            assert (f"Maximum allowed {comp}_z = " +
-                    f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
-                    in info_string)
-            assert f"Result: {d_ex_results[f'{comp}{index}']}\n" in info_string
+                assert f"{ci} = {d_bias[ci]:.{REPORT_DIGITS}f}\n" in info_string
+                assert f"{ci}_err = {d_bias[f'{ci}_err']:.{REPORT_DIGITS}f}\n" in info_string
+                assert f"{ci}_z = {d_bias[f'{ci}_z']:.{REPORT_DIGITS}f}\n" in info_string
+                assert (f"Maximum allowed {comp}_z = " +
+                        f"{self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:.{REPORT_DIGITS}f}\n"
+                        in info_string)
+                assert f"Result: {self.d_l_d_ex_result[method][bin_index][ci]}\n" in info_string
 
-        assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue,
-                          max(d_bias[f'{comp}1_z'], d_bias[f'{comp}2_z']))
+            assert np.isclose(requirement_object.MeasuredValue[0].Value.FloatValue,
+                              max(d_bias[f'{comp}1_z'], d_bias[f'{comp}2_z']))
