@@ -152,7 +152,7 @@ class CtiGalRequirementWriter(RequirementWriter):
         """ Calculate the test results for either the slope or intercept.
         """
 
-        # Init each z, pass, and result as empy lists
+        # Init each z, pass, and result as empty lists
         l_prop_z = np.empty(self.num_bins, dtype = float)
         setattr(self, f"l_{prop}_z", l_prop_z)
         l_prop_pass = np.empty(self.num_bins, dtype = bool)

@@ -31,7 +31,8 @@ from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, MER_FINAL_CATALOG
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
 from SHE_PPT.file_io import read_xml_product
-from SHE_PPT.pipeline_utility import ValidationConfigKeys, read_config, write_config
+from SHE_PPT.pipeline_utility import ValidationConfigKeys, read_config
+from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
                                                                  D_CTI_GAL_CONFIG_TYPES, )
@@ -82,6 +83,7 @@ class TestCase:
     workdir: str
     logdir: str
     args: Args
+    mock_pipeline_config_factory: MockPipelineConfigFactory
 
     @classmethod
     def setup_class(cls):
@@ -107,25 +109,23 @@ class TestCase:
         cls.args.workdir = cls.workdir
         cls.args.logdir = cls.logdir
 
-        # Write the pipeline config we'll be using
-        write_config(config_dict = {ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA : 4.,
-                                    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: 10.},
-                     config_filename = PIPELINE_CONFIG_FILENAME,
-                     workdir = cls.args.workdir,
-                     config_keys = ValidationConfigKeys)
+        # Write the pipeline config we'll be using and note its filename
+        cls.mock_pipeline_config_factory = MockPipelineConfigFactory(workdir = cls.workdir)
+        cls.mock_pipeline_config_factory.write(cls.workdir)
+        cls.args.pipeline_config = cls.mock_pipeline_config_factory.file_namer.filename
 
     @classmethod
     def teardown_class(cls):
 
         # Delete the pipeline config file
-        os.remove(os.path.join(cls.args.workdir, PIPELINE_CONFIG_FILENAME))
+        cls.mock_pipeline_config_factory.cleanup()
 
     @pytest.mark.skip()
     def test_cti_gal_dry_run(self):
 
         # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
-        self.args.pipeline_config = read_config(None,
+        self.args.pipeline_config = read_config(self.args.pipeline_config,
                                                 workdir = self.args.workdir,
                                                 defaults = D_CTI_GAL_CONFIG_DEFAULTS,
                                                 d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
@@ -143,7 +143,7 @@ class TestCase:
 
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
-        self.args.pipeline_config = read_config(PIPELINE_CONFIG_FILENAME,
+        self.args.pipeline_config = read_config(self.args.pipeline_config,
                                                 workdir = self.args.workdir,
                                                 defaults = D_CTI_GAL_CONFIG_DEFAULTS,
                                                 d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,

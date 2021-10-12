@@ -30,8 +30,10 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_errors)
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_PPT.table_utility import SheTableFormat
-from SHE_Validation.binning.bin_constraints import BinConstraint, BinParameterBinConstraint, BinnedMultiTableLoader
+from SHE_Validation.binning.bin_constraints import (BinConstraint, BinnedMultiTableLoader,
+                                                    GoodBinnedMeasurementBinConstraint, )
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 
 logger = getLogger(__name__)
@@ -56,7 +58,7 @@ class ShearBiasDataLoader:
 
     # Attributes determined at init
     _table_loader: BinnedMultiTableLoader
-    _sem_tf: SheTableFormat
+    _sem_tf: SheTUMatchedFormat
 
     # Attributes set when loaded
     table: Optional[Table] = None
@@ -151,6 +153,7 @@ class ShearBiasDataLoader:
             return
 
         # Get the data we need out of the table
+        # noinspection PyTypeChecker
         l_g1_in: Column = -(self.table[self._sem_tf.tu_gamma1] / (1 - self.table[self._sem_tf.tu_kappa]))
         l_g2_in: Column = (self.table[self._sem_tf.tu_gamma2] / (1 - self.table[self._sem_tf.tu_kappa]))
         l_g1_out: Column = self.table[self._sem_tf.g1]
@@ -226,6 +229,9 @@ class ShearBiasTestCaseDataProcessor:
     method: ShearEstimationMethods
     bin_parameter: BinParameters
     num_bins: int
+
+    # Flag for whether or not we've calculated data
+    _calculated: bool = False
 
     # Intermediate attributes set when loading data
     _bin_index: Optional[int] = None
@@ -319,14 +325,15 @@ class ShearBiasTestCaseDataProcessor:
         """ Calculate shear bias for an individual component.
         """
 
+        # Limit the data to that in the current bin
+        bin_constraint = GoodBinnedMeasurementBinConstraint(test_case_info = self.test_case_info,
+                                                            bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
+        self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+
         # Get data limited to the rows where g_in is less than the allowed max
+        # noinspection PyTypeChecker
         g = np.sqrt(self.d_g_in[1] ** 2 + self.d_g_in[2] ** 2)
         good_g_in_rows = g < self.max_g_in
-
-        # Limit the data to that in the current bin
-        bin_constraint = BinParameterBinConstraint(test_case_info = self.test_case_info,
-                                                   bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
-        self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
 
         g_in = self.d_g_in[component_index][good_g_in_rows]
         g_out = self.d_g_out[component_index][good_g_in_rows]
@@ -387,6 +394,9 @@ class ShearBiasTestCaseDataProcessor:
         """ Performs data processing, calculating bias measurements and other output data.
         """
 
+        if self._calculated:
+            return
+
         # Init empty lists for output data
         self._l_d_bias_measurements = [None] * self.num_bins
         self._l_d_linregress_results = [None] * self.num_bins
@@ -403,3 +413,5 @@ class ShearBiasTestCaseDataProcessor:
 
                 self._calc_component_shear_bias(bin_index = bin_index,
                                                 component_index = component_index, )
+
+        self._calculated = True
