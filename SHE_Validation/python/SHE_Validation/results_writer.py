@@ -22,7 +22,7 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Union
+from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Union
 
 import numpy as np
 import scipy.stats
@@ -572,7 +572,7 @@ class AnalysisWriter:
         return DEFAULT_DIRECTORY_HEADER
 
     @staticmethod
-    def _write_filenames_to_directory(fo: TextIO,
+    def _write_filenames_to_directory(fo: IO,
                                       filenames: Optional[StrDictOrList]) -> None:
         """ Write a dict or list of filenames to an open, writable directory file,
             with different functionality depending on if a list or dict is passed.

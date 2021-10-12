@@ -23,12 +23,14 @@ __updated__ = "2021-08-19"
 __all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__version__", "__maintainer__", "__email__",
            "__status__", "__url__"]
 
-__authors__ = ["Rob Blake", "Bryan Gillis"]
+BG = "Bryan Gillis"
+
+__authors__ = ["Rob Blake", BG]
 __copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
-__credits__ = ["Rob Blake", "Bryan Gillis"]
+__credits__ = ["Rob Blake", BG]
 __license__ = "GNU LGPL 3.0"
 __version__ = "8.2"
-__maintainer__ = "Bryan Gillis"
+__maintainer__ = BG
 __email__ = "b.gillis@roe.ac.uk"
 __status__ = 'Development'
 

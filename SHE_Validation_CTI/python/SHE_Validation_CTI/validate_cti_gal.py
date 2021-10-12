@@ -47,6 +47,8 @@ from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_t
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
 
+MSG_COMPLETE = "Complete!"
+
 logger = getLogger(__name__)
 
 
@@ -62,7 +64,7 @@ def run_validate_cti_gal_from_args(args):
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
     mdb.init(qualified_mdb_filename)
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
-    logger.info("Complete!")
+    logger.info(MSG_COMPLETE)
 
     # Convert values in the config to the proper type
     d_bin_limits = get_d_bin_limits(args.pipeline_config)
@@ -76,7 +78,7 @@ def run_validate_cti_gal_from_args(args):
                                     load_images = True,
                                     prune_images = False,
                                     mode = 'denywrite')
-    logger.info("Complete!")
+    logger.info(MSG_COMPLETE)
 
     # Load the exposure products, to get needed metadata for output
     l_vis_calibrated_frame_filename = read_listfile(join(args.workdir, args.vis_calibrated_frame_listfile))
@@ -119,7 +121,7 @@ def run_validate_cti_gal_from_args(args):
     else:
         method_data_exists = True
 
-    logger.info("Complete!")
+    logger.info(MSG_COMPLETE)
 
     # Run the validation
     if not args.dry_run:
