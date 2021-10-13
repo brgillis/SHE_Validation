@@ -21,7 +21,7 @@ __updated__ = "2021-08-30"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from os.path import join
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from astropy.table import Row, Table, vstack as table_vstack
@@ -57,10 +57,13 @@ def run_validate_cti_gal_from_args(args):
         Main function for CTI-Gal validation
     """
 
+    # Get commonly-used variables from the args
+    workdir = args.workdir
+
     # Load in the files in turn to make sure there aren't any issues with them.
 
     # Load the MDB
-    qualified_mdb_filename = join(args.workdir, args.mdb)
+    qualified_mdb_filename = join(workdir, args.mdb)
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
     mdb.init(qualified_mdb_filename)
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
@@ -73,7 +76,7 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
     data_stack = SHEFrameStack.read(exposure_listfile_filename = args.vis_calibrated_frame_listfile,
                                     detections_listfile_filename = args.mer_final_catalog_listfile,
-                                    workdir = args.workdir,
+                                    workdir = workdir,
                                     memmap = True,
                                     load_images = True,
                                     prune_images = False,
@@ -81,38 +84,33 @@ def run_validate_cti_gal_from_args(args):
     logger.info(MSG_COMPLETE)
 
     # Load the exposure products, to get needed metadata for output
-    l_vis_calibrated_frame_filename = read_listfile(join(args.workdir, args.vis_calibrated_frame_listfile))
+    l_vis_calibrated_frame_filename = read_listfile(join(workdir, args.vis_calibrated_frame_listfile),
+                                                    log_info = True)
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
-        vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename, workdir = args.workdir)
-        if isinstance(vis_calibrated_frame_prod, products.vis_calibrated_frame.dpdVisCalibratedFrame):
-            l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
-        else:
+        vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename,
+                                                     workdir = workdir,
+                                                     log_info = True)
+        if not isinstance(vis_calibrated_frame_prod, products.vis_calibrated_frame.dpdVisCalibratedFrame):
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
                              + " is invalid type.")
+        l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
 
     # Load the shear measurements
 
     logger.info("Loading validated shear measurements.")
 
-    qualified_she_validated_measurements_product_filename = join(args.workdir, args.she_validated_measurements_product)
-    shear_estimates_prod = read_xml_product(qualified_she_validated_measurements_product_filename)
+    qualified_she_validated_measurements_product_filename = join(workdir, args.she_validated_measurements_product)
+    shear_estimates_prod = read_xml_product(qualified_she_validated_measurements_product_filename,
+                                            log_info = True)
 
     if not isinstance(shear_estimates_prod, products.she_validated_measurements.dpdSheValidatedMeasurements):
         raise ValueError("Shear estimates product from " + qualified_she_validated_measurements_product_filename
                          + " is invalid type.")
 
     # Load the table for each method
-    d_shear_estimate_tables = {}
-    for method in ShearEstimationMethods:
-
-        filename = shear_estimates_prod.get_method_filename(method)
-
-        if filename_exists(filename):
-            shear_measurements_table = Table.read(join(args.workdir, filename), format = 'fits')
-            d_shear_estimate_tables[method] = shear_measurements_table
-        else:
-            d_shear_estimate_tables[method] = None
+    d_shear_estimate_tables = get_d_shear_estimate_tables(shear_estimates_prod = shear_estimates_prod,
+                                                          workdir = workdir)
 
     # Log a warning if no data from any method and set a flag for later code to refer to
     if all(value is None for value in d_shear_estimate_tables.values()):
@@ -130,25 +128,79 @@ def run_validate_cti_gal_from_args(args):
          plot_filenames) = validate_cti_gal(data_stack = data_stack,
                                             shear_estimate_tables = d_shear_estimate_tables,
                                             d_bin_limits = d_bin_limits,
-                                            workdir = args.workdir)
+                                            workdir = workdir)
     else:
         d_exposure_regression_results_tables = None
         d_observation_regression_results_tables = None
         plot_filenames = None
 
-    # Set up output product
-
     logger.info("Creating and outputting validation test result data products.")
 
-    l_exp_test_result_product = []
-    l_exp_test_result_filename = []
+    # Set up output product, using the VIS Calibrated Frame product as a reference
+    (l_exp_test_result_filename,
+     l_exp_test_result_product,
+     obs_test_result_product,
+     vis_calibrated_frame_product) = load_from_vis_calibrated_frame(l_vis_calibrated_frame_product)
+
+    # Fill in the products with the results
+    if not args.dry_run:
+
+        # Get the regression results tables for this test case
+
+        # Fill in each exposure product in turn with results
+        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
+            fill_cti_gal_validation_results(test_result_product = exp_test_result_product,
+                                            workdir = workdir,
+                                            regression_results_row_index = product_index,
+                                            d_regression_results_tables = d_exposure_regression_results_tables,
+                                            pipeline_config = args.pipeline_config,
+                                            d_bin_limits = d_bin_limits,
+                                            method_data_exists = method_data_exists)
+
+        # And fill in the observation product
+        fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
+                                        workdir = workdir,
+                                        regression_results_row_index = 0,
+                                        d_regression_results_tables = d_observation_regression_results_tables,
+                                        pipeline_config = args.pipeline_config,
+                                        d_bin_limits = d_bin_limits,
+                                        dl_l_figures = plot_filenames,
+                                        method_data_exists = method_data_exists)
+
+    # Write out the exposure test results products and listfile
+    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
+                                                                 l_exp_test_result_filename):
+        write_xml_product(exp_test_result_product, exp_test_result_filename, workdir = workdir)
+    qualified_exp_test_results_filename = join(workdir, args.she_exposure_validation_test_results_listfile)
+    write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
+
+    logger.info("Output exposure validation test results to: " +
+                qualified_exp_test_results_filename)
+
+    # Write out observation test results product
+    write_xml_product(product = obs_test_result_product,
+                      xml_filename = args.she_observation_validation_test_results_product,
+                      workdir = workdir)
+
+    logger.info("Output observation validation test results to: " +
+                join(workdir, args.she_observation_validation_test_results_product))
+
+    logger.info("Execution complete.")
+
+
+def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]) -> Tuple[List[Any],
+                                                                                           List[str],
+                                                                                           Any,
+                                                                                           Optional[Any]]:
+    l_exp_test_result_product: List[Any] = []
+    l_exp_test_result_filename: List[str] = []
 
     obs_id_check = -1
 
-    vis_calibrated_frame_product: Any = None
+    vis_calibrated_frame_product: Optional[Any] = None
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
-        exp_test_result_product = create_validation_test_results_product(
+        exp_test_result_product: Any = create_validation_test_results_product(
             reference_product = vis_calibrated_frame_product,
             num_tests = NUM_CTI_GAL_TEST_CASES)
 
@@ -182,52 +234,35 @@ def run_validate_cti_gal_from_args(args):
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
-    # Use the last observation ID, having checked they're all the same above
-    obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
+    if vis_calibrated_frame_product is not None:
+        # Use the last observation ID, having checked they're all the same above
+        obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
 
-    # Fill in the products with the results
-    if not args.dry_run:
+    return (l_exp_test_result_filename,
+            l_exp_test_result_product,
+            obs_test_result_product,
+            vis_calibrated_frame_product)
 
-        # Get the regression results tables for this test case
 
-        # Fill in each exposure product in turn with results
-        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
-            fill_cti_gal_validation_results(test_result_product = exp_test_result_product,
-                                            workdir = args.workdir,
-                                            regression_results_row_index = product_index,
-                                            d_regression_results_tables = d_exposure_regression_results_tables,
-                                            pipeline_config = args.pipeline_config,
-                                            d_bin_limits = d_bin_limits,
-                                            method_data_exists = method_data_exists)
+def get_d_shear_estimate_tables(shear_estimates_prod: Any,
+                                workdir: str) -> Dict[ShearEstimationMethods, Table]:
+    """ Get a dict of loaded shear estimates tables from a shear estimates data product object.
+    """
 
-        # And fill in the observation product
-        fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
-                                        workdir = args.workdir,
-                                        regression_results_row_index = 0,
-                                        d_regression_results_tables = d_observation_regression_results_tables,
-                                        pipeline_config = args.pipeline_config,
-                                        d_bin_limits = d_bin_limits,
-                                        dl_l_figures = plot_filenames,
-                                        method_data_exists = method_data_exists)
+    # TODO: Move this to SHE_PPT common code
 
-    # Write out the exposure test results products and listfile
-    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
-                                                                 l_exp_test_result_filename):
-        write_xml_product(exp_test_result_product, exp_test_result_filename, workdir = args.workdir)
-    qualified_exp_test_results_filename = join(args.workdir, args.she_exposure_validation_test_results_listfile)
-    write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
+    d_shear_estimate_tables = {}
+    for method in ShearEstimationMethods:
 
-    logger.info("Output exposure validation test results to: " +
-                qualified_exp_test_results_filename)
+        filename = shear_estimates_prod.get_method_filename(method)
 
-    # Write out observation test results product
-    write_xml_product(obs_test_result_product,
-                      args.she_observation_validation_test_results_product, workdir = args.workdir)
+        if filename_exists(filename):
+            shear_measurements_table = Table.read(join(workdir, filename), format = 'fits')
+            d_shear_estimate_tables[method] = shear_measurements_table
+        else:
+            d_shear_estimate_tables[method] = None
 
-    logger.info("Output observation validation test results to: " +
-                join(args.workdir, args.she_observation_validation_test_results_product))
-
-    logger.info("Execution complete.")
+    return d_shear_estimate_tables
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,
