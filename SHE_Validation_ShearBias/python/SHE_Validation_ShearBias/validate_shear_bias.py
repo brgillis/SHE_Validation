@@ -22,16 +22,15 @@ __updated__ = "2021-08-31"
 
 import os
 from argparse import Namespace
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 
 from SHE_PPT import file_io, products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.file_io import get_qualified_filename
+from SHE_PPT.file_io import read_d_l_method_table_filenames
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
-from SHE_PPT.utility import is_any_type_of_none
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
@@ -55,8 +54,8 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(args, mode)
 
     (d_method_l_table_filenames,
-     matched_catalog_product) = read_method_table_filenames(l_matched_catalog_product_filenames,
-                                                            workdir = args.workdir)
+     matched_catalog_product) = read_d_l_method_table_filenames(l_matched_catalog_product_filenames,
+                                                                workdir = args.workdir)
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -189,29 +188,3 @@ def read_l_matched_catalog_filenames(args: Namespace,
         raise ValueError(f"Unrecognized operation mode: {mode}")
 
     return l_matched_catalog_product_filenames
-
-
-def read_method_table_filenames(l_matched_catalog_product_filenames: List[str],
-                                workdir: str) -> Tuple[Dict[ShearEstimationMethods, List[str]], Any]:
-    # Init lists of filenames for each method
-    d_method_l_table_filenames: Dict[ShearEstimationMethods, List[str]] = {}
-    for method in ShearEstimationMethods:
-        d_method_l_table_filenames[method] = []
-
-    # Read in the table filenames from each product, for each method
-    matched_catalog_product: Any = None
-    for matched_catalog_product_filename in l_matched_catalog_product_filenames:
-
-        qualified_matched_catalog_product_filename: str = get_qualified_filename(matched_catalog_product_filename,
-                                                                                 workdir = workdir)
-
-        matched_catalog_product = file_io.read_xml_product(qualified_matched_catalog_product_filename,
-                                                           log_info = True)
-
-        # Get the list of table filenames for each method and store it if it exists
-        for method in ShearEstimationMethods:
-            method_matched_catalog_filename = matched_catalog_product.get_method_filename(method)
-            if not is_any_type_of_none(method_matched_catalog_filename):
-                d_method_l_table_filenames[method].append(method_matched_catalog_filename)
-
-    return d_method_l_table_filenames, matched_catalog_product
