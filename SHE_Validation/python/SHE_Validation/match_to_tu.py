@@ -34,7 +34,7 @@ import SHE_Validation
 from SHE_PPT import file_io, products
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
-from SHE_PPT.file_io import read_listfile
+from SHE_PPT.file_io import read_listfile, read_table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
 from SHE_PPT.utility import is_any_type_of_none
@@ -64,14 +64,7 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
 
         # Load the catalog table
 
-        try:
-            catalog = Table.read(qualified_filename, format = "fits")
-        except OSError:
-            logger.error(filename + " is corrupt or missing")
-            raise
-        except Exception:
-            logger.error("Error reading in catalog " + filename)
-            raise
+        catalog = read_table(qualified_filename)
 
         # Get the (RA, Dec) columns
         ra = catalog["RA_MAG"] if "RA_MAG" in catalog.colnames else catalog["RA"]
@@ -82,12 +75,15 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
         cond_dec = np.logical_and(dec > dec_range[0], dec < dec_range[1])
         cond = np.logical_and(cond_ra, cond_dec)
 
-        if np.any(cond):
-            # Add the selected sources to the merged catalog
-            if merged_catalog is None:
-                merged_catalog = catalog[cond]
-            else:
-                merged_catalog = vstack([merged_catalog, catalog[cond]])
+        # Skip this catalog if no values in it are valid
+        if not np.any(cond):
+            continue
+
+        # Add the selected sources to the merged catalog
+        if merged_catalog is None:
+            merged_catalog = catalog[cond]
+        else:
+            merged_catalog = vstack([merged_catalog, catalog[cond]])
 
     if merged_catalog is None:
 
