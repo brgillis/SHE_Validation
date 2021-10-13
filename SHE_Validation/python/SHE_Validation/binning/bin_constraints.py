@@ -28,7 +28,7 @@ import numpy as np
 from astropy.table import Column, Row, Table, vstack as table_vstack
 
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods
-from SHE_PPT.file_io import TableLoader
+from SHE_PPT.file_io import MultiTableLoader, TableLoader
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF

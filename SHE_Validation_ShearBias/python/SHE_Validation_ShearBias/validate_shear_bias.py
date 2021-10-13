@@ -54,8 +54,8 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(args, mode)
 
     (d_method_l_table_filenames,
-     matched_catalog_product) = read_d_l_method_table_filenames(l_matched_catalog_product_filenames,
-                                                                workdir = args.workdir)
+     l_matched_catalog_products) = read_d_l_method_table_filenames(l_matched_catalog_product_filenames,
+                                                                   workdir = args.workdir)
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -144,7 +144,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     test_result_product.Data.PointingId = None
     test_result_product.Data.ExposureProductId = None
     # Use the last observation ID, having checked they're all the same above
-    test_result_product.Data.ObservationId = matched_catalog_product.Data.ObservationId
+    test_result_product.Data.ObservationId = l_matched_catalog_products[-1].Data.ObservationId
 
     # Fill in the products with the results
     if not args.dry_run:

@@ -189,8 +189,8 @@ def run_validate_cti_gal_from_args(args):
     logger.info("Execution complete.")
 
 
-def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]) -> Tuple[List[Any],
-                                                                                           List[str],
+def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]) -> Tuple[List[str],
+                                                                                           List[Any],
                                                                                            Any,
                                                                                            Optional[Any]]:
     l_exp_test_result_product: List[Any] = []
