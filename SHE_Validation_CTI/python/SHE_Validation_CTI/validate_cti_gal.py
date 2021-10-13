@@ -170,20 +170,21 @@ def run_validate_cti_gal_from_args(args):
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
                                                                  l_exp_test_result_filename):
-        write_xml_product(exp_test_result_product, exp_test_result_filename, workdir = workdir)
-    qualified_exp_test_results_filename = join(workdir, args.she_exposure_validation_test_results_listfile)
-    write_listfile(qualified_exp_test_results_filename, l_exp_test_result_filename)
+        write_xml_product(exp_test_result_product,
+                          exp_test_result_filename,
+                          workdir = workdir,
+                          log_info = True)
 
-    logger.info("Output exposure validation test results to: " +
-                qualified_exp_test_results_filename)
+    qualified_exp_test_results_filename = join(workdir, args.she_exposure_validation_test_results_listfile)
+    write_listfile(qualified_exp_test_results_filename,
+                   l_exp_test_result_filename,
+                   log_info = True)
 
     # Write out observation test results product
     write_xml_product(product = obs_test_result_product,
                       xml_filename = args.she_observation_validation_test_results_product,
-                      workdir = workdir)
-
-    logger.info("Output observation validation test results to: " +
-                join(workdir, args.she_observation_validation_test_results_product))
+                      workdir = workdir,
+                      log_info = True)
 
     logger.info("Execution complete.")
 
