@@ -35,7 +35,7 @@ from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
+from ..constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 
 logger = getLogger(__name__)
 
@@ -211,12 +211,16 @@ def write_mock_matched_tables(workdir: str) -> str:
 
 
 def cleanup_mock_matched_tables(workdir: str):
+    """TODO: Add a docstring to this class."""
+
     os.remove(os.path.join(workdir, LENSMC_MATCHED_CATALOG_FILENAME))
     os.remove(os.path.join(workdir, KSB_MATCHED_CATALOG_FILENAME))
     os.remove(os.path.join(workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
+    """TODO: Add a docstring to this class."""
+
     d_l_bin_limits: Dict[BinParameters, np.ndarray] = {}
     for bin_parameter in BinParameters:
         if bin_parameter == BinParameters.SNR:
@@ -232,8 +236,9 @@ class MockShearBiasArgs(Namespace):
     """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
     """
 
-    workdir: str  # Needs to be set in setup_class
-    logdir: str  # Needs to be set in setup_class
+    # Workdir and logdir need to be set in setup_class
+    workdir: str
+    logdir: str
 
     bootstrap_errors: Optional[bool] = None
     max_g_in: Optional[float] = None

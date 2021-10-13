@@ -29,8 +29,8 @@ from SHE_PPT import logging as log
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
 from SHE_Validation.constants.default_config import ExecutionMode
-from SHE_Validation_ShearBias.argument_parser import ShearValidationArgumentParser
 from . import __version__
+from .argument_parser import ShearValidationArgumentParser
 from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS, D_SHEAR_BIAS_CONFIG_DEFAULTS,
                                                   D_SHEAR_BIAS_CONFIG_TYPES, GLOBAL_PROFILING_FILENAME, )
 from .validate_shear_bias import validate_shear_bias_from_args

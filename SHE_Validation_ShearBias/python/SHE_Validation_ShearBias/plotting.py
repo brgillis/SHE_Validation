@@ -42,6 +42,8 @@ PLOT_FORMAT: str = "png"
 
 
 class ShearBiasPlotter(ValidationPlotter):
+    """TODO: Add a docstring to this class."""
+
     # Attributes set directly at init
     data_processor: ShearBiasTestCaseDataProcessor
     bin_index: int

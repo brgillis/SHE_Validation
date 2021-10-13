@@ -26,8 +26,8 @@ from typing import Optional
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import SheFileNamer, instance_id_maxlen
 from SHE_PPT.utility import join_without_none
-from SHE_Validation.constants.test_info import BinParameters
 from . import __version__
+from .constants.test_info import BinParameters
 
 
 class SheValFileNamer(SheFileNamer):

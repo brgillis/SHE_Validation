@@ -34,12 +34,14 @@ from scipy.interpolate import interpn
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
-from SHE_Validation.file_io import SheValFileNamer
+from .file_io import SheValFileNamer
 
 logger = getLogger(__name__)
 
 
 class ValidationPlotter(abc.ABC):
+    """TODO: Add a docstring for this class."""
+
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
 

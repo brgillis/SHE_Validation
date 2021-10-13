@@ -151,10 +151,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if warning is None:
-            if self.slope_pass and not self.intercept_pass:
-                warning = True
-            else:
-                warning = False
+            warning = self.slope_pass and not self.intercept_pass
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         extra_l_supplementary_info = self._get_slope_intercept_info()
@@ -289,12 +286,16 @@ class CtiGalAnalysisWriter(AnalysisWriter):
 
 
 class CtiGalTestCaseWriter(TestCaseWriter):
+    """TODO: Add a docstring to this class."""
+
     # Types of child objects, overriding those in base class
     requirement_writer_type = CtiGalRequirementWriter
     analysis_writer_type = CtiGalAnalysisWriter
 
 
 class CtiGalValidationResultsWriter(ValidationResultsWriter):
+    """TODO: Add a docstring to this class."""
+
     # Types of child classes
     test_case_writer_type = CtiGalTestCaseWriter
 

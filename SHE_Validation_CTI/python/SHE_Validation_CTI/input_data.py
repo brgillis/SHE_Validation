@@ -28,6 +28,7 @@ from typing import Dict, List, Optional, Set
 import numpy as np
 from astropy import table
 from astropy.table import Row, Table
+from dataclasses import dataclass
 
 from SHE_PPT import shear_utility
 from SHE_PPT.constants.fits import CCDID_LABEL
@@ -49,6 +50,7 @@ BG_STAMP_SIZE = 1
 logger = getLogger(__name__)
 
 
+@dataclass
 class PositionInfo:
     """ Class to store all data related to the position of an object across multiple exposures.
     """
@@ -58,7 +60,7 @@ class PositionInfo:
     det_ix: int = 0
     det_iy: int = 0
     quadrant: str = "X"
-    exposure_shear_info: Dict[ShearEstimationMethods, ShearEstimate]
+    exposure_shear_info: Optional[Dict[ShearEstimationMethods, ShearEstimate]] = None
 
     def _init_default_exp_shear_info(self):
         self.exposure_shear_info = {}
@@ -118,6 +120,7 @@ class PositionInfo:
             self.exposure_shear_info[method] = shear_estimate
 
 
+@dataclass
 class SingleObjectData:
     """ Class to store the required information for a single object in the catalogue.
     """
@@ -128,7 +131,7 @@ class SingleObjectData:
     data_stack: Optional[SHEFrameStack] = None
 
     # Attributes set up to be able to store data, but not calculated at init
-    position_info: List[Optional[PositionInfo]]
+    position_info: Optional[List[Optional[PositionInfo]]] = None
 
     def __init__(self,
                  object_id: Optional[int] = None,

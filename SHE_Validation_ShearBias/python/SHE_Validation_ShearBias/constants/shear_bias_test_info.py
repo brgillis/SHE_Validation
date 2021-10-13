@@ -77,8 +77,7 @@ def get_prop_from_id(test_case_id: str):
         return ShearBiasTestCases.M
     elif C_TEST_CASE_ID in test_case_id:
         return ShearBiasTestCases.C
-    else:
-        raise ValueError(f"Unrecognized test case ID: {test_case_id}")
+    raise ValueError(f"Unrecognized test case ID: {test_case_id}")
 
 
 # Create a dict of the requirement info

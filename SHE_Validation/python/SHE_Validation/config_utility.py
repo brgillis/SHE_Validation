@@ -27,8 +27,7 @@ import numpy as np
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
-from .constants.default_config import FailSigmaScaling
+from .constants.default_config import DEFAULT_BIN_LIMITS, FailSigmaScaling
 from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)

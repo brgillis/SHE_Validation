@@ -58,8 +58,8 @@ class BinConstraint(abc.ABC):
     # Protected methods
 
     @abc.abstractmethod
-    def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self, data: Union[Row, Table],
+                  *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Method to return whether or not a row is in a bin. Should ideally be able to take either a row or table
             as input, but must at least be able to take a row as input.
 
@@ -77,13 +77,13 @@ class BinConstraint(abc.ABC):
 
     # Public methods
 
-    def get_l_is_row_in_bin(self, table: Table,
+    def get_l_is_row_in_bin(self, t: Table,
                             *args, **kwargs) -> np.ndarray:
         """ Method to return a sequence of bools for whether or not a row satisfies a bin constraint.
 
             Parameters
             ----------
-            table : astropy.table.Table
+            t : astropy.table.Table
                 The table to assess the data of
 
             Return
@@ -92,17 +92,17 @@ class BinConstraint(abc.ABC):
                 Sequence of bools for whether or not a row is in the bin or not.
         """
 
-        l_is_row_in_bin: np.ndarray = self._is_in_bin(table, *args, **kwargs)
+        l_is_row_in_bin: np.ndarray = self.is_in_bin(t, *args, **kwargs)
 
         return l_is_row_in_bin
 
-    def get_rows_in_bin(self, table: Table,
+    def get_rows_in_bin(self, t: Table,
                         *args, **kwargs) -> Table:
         """ Method to return a table with only rows satisfying a bin constraint.
 
             Parameters
             ----------
-            table : astropy.table.Table
+            t : astropy.table.Table
                 The table to assess the data of
 
             Return
@@ -111,18 +111,18 @@ class BinConstraint(abc.ABC):
                 Table of only the rows in the bin.
         """
 
-        l_is_row_in_bin: np.ndarray = self.get_l_is_row_in_bin(table, *args, **kwargs)
-        binned_table: Table = table[l_is_row_in_bin]
+        l_is_row_in_bin: np.ndarray = self.get_l_is_row_in_bin(t, *args, **kwargs)
+        binned_table: Table = t[l_is_row_in_bin]
 
         return binned_table
 
-    def get_ids_in_bin(self, table: Table,
+    def get_ids_in_bin(self, t: Table,
                        *args, **kwargs) -> Column:
         """ Method to return a table with only rows satisfying a bin constraint.
 
             Parameters
             ----------
-            table : astropy.table.Table
+            t : astropy.table.Table
                 The table to assess the data of
 
             Return
@@ -131,7 +131,7 @@ class BinConstraint(abc.ABC):
                 Column of the object IDs which are in this bin
         """
 
-        binned_table: Table = self.get_rows_in_bin(table, *args, **kwargs)
+        binned_table: Table = self.get_rows_in_bin(t, *args, **kwargs)
         binned_ids: Column = binned_table[MFC_TF.ID]
 
         return binned_ids
@@ -179,16 +179,15 @@ class RangeBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self, data: Union[Row, Table],
+                  *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data is within the bin limits.
         """
         # If the column is None, everything passes as no constraint is applied
         if self.bin_colname is None:
             if isinstance(data, Row):
                 return True
-            else:
-                return True * np.ones(len(data), dtype = bool)
+            return True * np.ones(len(data), dtype = bool)
 
         # Check against min and max, based on whether they're included in the bin or not
         if self.include_min:
@@ -240,16 +239,15 @@ class ValueBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self, data: Union[Row, Table],
+                  *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data (does not) matches the desired value.
         """
         matches_value: bool = data[self.bin_colname] == self.value
 
         if not self.invert:
             return matches_value
-        else:
-            return np.logical_not(matches_value)
+        return np.logical_not(matches_value)
 
 
 class BitFlagsBinConstraint(BinConstraint):
@@ -289,8 +287,8 @@ class BitFlagsBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table],
-                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self, data: Union[Row, Table],
+                  *_args, **_kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data (does not) match the flags.
         """
         # Perform a bitwise and to check against the flags
@@ -305,8 +303,7 @@ class BitFlagsBinConstraint(BinConstraint):
         # Invert if desired and return
         if not self.invert:
             return bool_flag_match
-        else:
-            return np.logical_not(bool_flag_match)
+        return np.logical_not(bool_flag_match)
 
 
 class MultiBinConstraint(BinConstraint):
@@ -325,12 +322,12 @@ class MultiBinConstraint(BinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self, data: Union[Row, Table],
-                   *args, **kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self, data: Union[Row, Table],
+                  *args, **kwargs) -> Union[bool, np.ndarray]:
         """ Checks if the data is in all bin constraints.
         """
 
-        l_l_is_in_bin: List[np.ndarray] = [bin_constraint._is_in_bin(data, *args, **kwargs)
+        l_l_is_in_bin: List[np.ndarray] = [bin_constraint.is_in_bin(data, *args, **kwargs)
                                            for bin_constraint in self.l_bin_constraints]
         return np.logical_and.reduce(l_l_is_in_bin)
 
@@ -419,16 +416,16 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
     # Protected methods
 
-    def _is_in_bin(self,
-                   data: Union[Row, Table],
-                   data_stack: Optional[SHEFrameStack] = None,
-                   *_args, **_kwargs) -> Union[bool, np.ndarray]:
+    def is_in_bin(self,
+                  data: Union[Row, Table], *_args,
+                  data_stack: Optional[SHEFrameStack] = None,
+                  **_kwargs) -> Union[bool, np.ndarray]:
         """ Need to check what implementation we need based on the bin parameter.
         """
 
         # For GLOBAL case, we don't need any special setup
         if self.bin_parameter == BinParameters.GLOBAL:
-            return super()._is_in_bin(data)
+            return super().is_in_bin(data)
 
         # For other cases, we need to make sure we have the needed data and add it if not
         new_bin_colname = getattr(BIN_TF, self.bin_parameter.value)
@@ -437,7 +434,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
 
         self.bin_colname = new_bin_colname
 
-        return super()._is_in_bin(data)
+        return super().is_in_bin(data)
 
 
 class FitclassZeroBinConstraint(ValueBinConstraint):
@@ -613,12 +610,13 @@ def _get_ids_in_bin(bin_parameter: BinParameters,
                     detections_table: Table,
                     data_stack: Optional[SHEFrameStack] = None,
                     ) -> Sequence[int]:
+    """TODO: Add docstring for this function"""
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
     bin_constraint: BinConstraint = bin_constraint_type(bin_parameter = bin_parameter, bin_limits = bin_limits)
 
     # Get IDs for this bin, and add it to the list
-    l_binned_ids = bin_constraint.get_ids_in_bin(table = detections_table, data_stack = data_stack)
+    l_binned_ids = bin_constraint.get_ids_in_bin(t = detections_table, data_stack = data_stack)
 
     return l_binned_ids
 
@@ -632,6 +630,8 @@ def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
                            measurements_table: Table,
                            data_stack: Optional[SHEFrameStack] = None,
                            ) -> Sequence[int]:
+    """TODO: Add docstring for this function"""
+
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
     bin_constraint: HeteroBinConstraint = bin_constraint_type(method = method,
@@ -771,15 +771,15 @@ def _get_l_binned_ids(test_case_info: TestCaseInfo,
     return l_binned_ids
 
 
-def get_table_of_ids(table: Table,
+def get_table_of_ids(t: Table,
                      l_ids: Sequence[int],
                      id_colname: str = MFC_TF.ID) -> Table:
     """ Gets a version of a table with just the objects with IDs in the provided list, with handling for empty lists.
     """
 
     # Make sure the ID column name is set as an index for the table
-    if id_colname not in table.indices:
-        table.add_index(id_colname)
+    if id_colname not in t.indices:
+        t.add_index(id_colname)
 
     # Make sure the IDs list is the proper type
     if not isinstance(l_ids, np.ndarray):
@@ -787,14 +787,14 @@ def get_table_of_ids(table: Table,
 
     # Return an empty table if the ID list is empty
     if len(l_ids) == 0:
-        return table[np.zeros_like(table[id_colname], dtype = bool)]
+        return t[np.zeros_like(t[id_colname], dtype = bool)]
 
     try:
-        table_in_bin: Table = table.loc[l_ids]
+        table_in_bin: Table = t.loc[l_ids]
     except KeyError:
         # If we get here, at least one ID in the list isn't in the table, so we'll have to prune the list
-        l_ids_in_table = [object_id for object_id in l_ids if object_id in table[id_colname]]
-        table_in_bin: Table = table.loc[l_ids_in_table]
+        l_ids_in_table = [object_id for object_id in l_ids if object_id in t[id_colname]]
+        table_in_bin: Table = t.loc[l_ids_in_table]
 
     return table_in_bin
 
@@ -822,11 +822,11 @@ class BinnedTableLoader(TableLoader):
         # Load the table, keeping it open if desired
         if keep_open:
             self.load()
-            table = self.obj
+            t = self.obj
         else:
-            table = self.get()
+            t = self.get()
 
-        return get_table_of_ids(table = table,
+        return get_table_of_ids(t = t,
                                 l_ids = l_ids,
                                 id_colname = self.id_colname)
 
@@ -839,11 +839,11 @@ class BinnedTableLoader(TableLoader):
         # Load the table, keeping it open if desired
         if keep_open:
             self.load(*args, **kwargs)
-            table = self.obj
+            t = self.obj
         else:
-            table = self.get(*args, **kwargs)
+            t = self.get(*args, **kwargs)
 
-        return table
+        return t
 
 
 class BinnedMultiTableLoader(MultiTableLoader):
@@ -892,7 +892,7 @@ class BinnedMultiTableLoader(MultiTableLoader):
 
             t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
 
-            l_binned_tables[i] = get_table_of_ids(table = t,
+            l_binned_tables[i] = get_table_of_ids(t = t,
                                                   l_ids = l_ids,
                                                   id_colname = self.id_colname)
 
@@ -938,7 +938,7 @@ class BinnedMultiTableLoader(MultiTableLoader):
             t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
 
             # Get a list of IDs for this bin constraint
-            l_binned_tables[i] = bin_constraint.get_rows_in_bin(table = t)
+            l_binned_tables[i] = bin_constraint.get_rows_in_bin(t = t)
 
         # Check that we have at least one table
         if len(l_binned_tables) == 0:

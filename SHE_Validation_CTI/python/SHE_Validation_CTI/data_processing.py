@@ -58,6 +58,7 @@ def add_readout_register_distance(object_data_table: table.Table):
 
 
 def _set_row_empty(rr_row: table.Row, ):
+    """TODO: Add docstring for this function."""
     rr_row[RR_TF.weight] = 0.
     rr_row[RR_TF.slope] = np.NaN
     rr_row[RR_TF.intercept] = np.NaN

@@ -37,13 +37,13 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation_CTI.constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
-                                                            NUM_CTI_GAL_TEST_CASES, )
-from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
 from . import __version__
+from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
+                                          NUM_CTI_GAL_TEST_CASES, )
 from .data_processing import calculate_regression_results
 from .file_io import CtiGalPlotFileNamer
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
+from .plot_cti_gal import CtiGalPlotter
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
 
@@ -193,6 +193,8 @@ def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]
                                                                                            List[Any],
                                                                                            Any,
                                                                                            Optional[Any]]:
+    """TODO: Add a docstring to this function."""
+
     l_exp_test_result_product: List[Any] = []
     l_exp_test_result_filename: List[str] = []
 

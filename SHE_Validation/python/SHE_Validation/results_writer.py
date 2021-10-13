@@ -31,13 +31,11 @@ from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
-from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
-from .constants.default_config import FailSigmaScaling
-from .constants.test_info import RequirementInfo, TestCaseInfo
+from .constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode, FailSigmaScaling
+from .constants.test_info import BinParameters, RequirementInfo, TestCaseInfo
 
 # Set up a custom type definition for when either a dict or list is accepted
 StrDictOrList = Union[Dict[str, str], List[str]]
@@ -85,11 +83,9 @@ MSG_NO_INFO: str = "No supplementary information available."
 def check_test_pass(val: float, val_err: float, val_z: float, val_target: float) -> bool:
     """ Check if a given test has good data and passes.
     """
-    if val_err == 0.:
-        return False
-    if any_is_inf_or_nan([val, val_err]):
-        return False
-    if val_z > val_target:
+    if ((val_err == 0.) or
+            (any_is_inf_or_nan([val, val_err])) or
+            (val_z > val_target)):
         return False
     return True
 
@@ -191,8 +187,7 @@ class FailSigmaCalculator:
     def d_scaled_sigma(self) -> Dict[str, float]:
         if self.mode == ExecutionMode.LOCAL:
             return self.d_scaled_local_sigma
-        else:
-            return self.d_scaled_global_sigma
+        return self.d_scaled_global_sigma
 
     def _calc_d_scaled_sigma(self, base_sigma: float) -> Dict[str, float]:
 
@@ -722,6 +717,9 @@ class TestCaseWriter:
     _analysis_writer: Optional[AnalysisWriter] = None
     _analysis_object: Optional[Any] = None
     _workdir: Optional[str] = None
+
+    # Attributes set when writing
+    global_result: Optional[str] = None
 
     def _init_analysis_object(self,
                               analysis_object: Any,

@@ -101,7 +101,8 @@ def mainMethod(args):
     logger.debug('#')
 
     exec_cmd = get_arguments_string(args,
-                                    cmd = f"E-Run SHE_Validation {SHE_Validation.__version__} SHE_Validation_MatchToTU",
+                                    cmd = f"E-Run SHE_Validation {SHE_Validation.__version__} "
+                                          f"SHE_Validation_MatchToTU",
                                     store_true = ["profile"])
     logger.info('Execution command for this step:')
     logger.info(exec_cmd)

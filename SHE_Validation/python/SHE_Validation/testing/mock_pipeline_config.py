@@ -28,9 +28,9 @@ import numpy as np
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
-                                                     ValidationConfigKeys, )
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from ..constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
+                                        ValidationConfigKeys, )
+from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)
 
@@ -43,6 +43,8 @@ DEFAULT_GLOBAL_FAIL_SIGMA = 10
 
 
 class MockValPipelineConfigFactory(MockPipelineConfigFactory):
+    """TODO: Add docstring for this class."""
+
     # Attributes to override from parent class
     _config_keys = ValidationConfigKeys
     _config_defaults = D_VALIDATION_CONFIG_DEFAULTS

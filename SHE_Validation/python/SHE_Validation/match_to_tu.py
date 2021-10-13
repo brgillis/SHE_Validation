@@ -156,10 +156,10 @@ def match_to_tu_from_args(args):
 
         gal_matched_table = vstack(gal_matched_tables[method])
         if len(gal_matched_table) == 0:
-            logger.warn(f"No measurements with method {method.value} were matched to galaxies.")
+            logger.warning(f"No measurements with method {method.value} were matched to galaxies.")
         star_matched_table = vstack(star_matched_tables[method])
         if len(star_matched_table) == 0:
-            logger.warn(f"No measurements with method {method.value} were matched to stars.")
+            logger.warning(f"No measurements with method {method.value} were matched to stars.")
 
         unmatched_table = shear_tables[method]
 
@@ -230,9 +230,8 @@ def determine_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
         logger.warning("Invalid range or no valid data for any method.")
         if not (full_ra_range[1] > full_ra_range[0] and full_dec_range[1] > full_dec_range[0]):
             raise ValueError("No valid position data for any method.")
-        else:
-            ra_range = full_ra_range
-            dec_range = full_dec_range
+        ra_range = full_ra_range
+        dec_range = full_dec_range
     else:
         ra_range = good_ra_range
         dec_range = good_dec_range
@@ -317,6 +316,7 @@ def match_within_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
                              local_dec_range: np.ndarray,
                              match_threshold: float,
                              search_path: str) -> None:
+    """TODO: Add a docstring for this function."""
     # Read in the star and galaxy catalogs from the overlapping area
     overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
                                                             ra_range = local_ra_range,
@@ -403,6 +403,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
                                     overlapping_galaxy_catalog: Table,
                                     overlapping_star_catalog: Table,
                                     match_threshold: float):
+    """TODO: Add a docstring for this function."""
     unpruned_shear_table = shear_tables[method]
     if unpruned_shear_table is None:
         logger.info(f"No catalog provided for method {method.value}.")
@@ -535,6 +536,7 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
                             in_range: np.ndarray,
                             match_threshold: float,
                             prioritize: bool):
+    """TODO: Add a docstring for this function."""
     if len(best_obj_id_from_tu) > 0:
 
         if prioritize:
@@ -558,6 +560,7 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
 
 def add_galaxy_analysis_columns(gal_matched_table: Table,
                                 sem_tf: SheTUMatchedFormat):
+    """TODO: Add a docstring for this function."""
     # Details about estimated shear
     gal_matched_table.add_column(
         Column(

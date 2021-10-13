@@ -35,10 +35,9 @@ from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, 
                                            RequirementWriter, SupplementaryInfo, TestCaseWriter,
                                            ValidationResultsWriter, WARNING_MULTIPLE, check_test_pass,
                                            check_test_pass_if_data, get_result_string, )
-from SHE_Validation_ShearBias.constants.shear_bias_test_info import get_prop_from_id
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from .constants.shear_bias_test_info import (D_L_SHEAR_BIAS_REQUIREMENT_INFO, L_SHEAR_BIAS_TEST_CASE_INFO,
-                                             ShearBiasTestCases, )
+                                             ShearBiasTestCases, get_prop_from_id, )
 
 logger = getLogger(__name__)
 
@@ -73,11 +72,15 @@ ComponentDict = Dict[int, Number]
 
 
 def get_l_of_component(l_d_x: Sequence[Dict[TK, TV]], i: TK) -> List[TV]:
+    """TODO: Add a docstring to this function."""
+
     l_xi: List[TV] = [d_x[i] for d_x in l_d_x]
     return l_xi
 
 
 def get_t_l_of_components_1_2(l_d_x: Sequence[Dict[int, TV]]) -> Tuple[List[TV], List[TV]]:
+    """TODO: Add a docstring to this function."""
+
     l_x1: List[TV] = get_l_of_component(l_d_x, 1)
     l_x2: List[TV] = get_l_of_component(l_d_x, 2)
     return l_x1, l_x2
@@ -100,16 +103,22 @@ def map_for_1_2(f: Callable[[TIn], TOut], *l_l_d_x: Sequence[Dict[int, TIn]]) ->
 
 # Utility function to simplify tests on values that have components 1 and 2
 def f_for_1_or_2(f: Callable[[Number], bool], d_x: ComponentDict):
+    """TODO: Add a docstring to this function."""
+
     return f(d_x[1]) or f(d_x[2])
 
 
 # Utility function to simplify tests on values that have components 1 and 2
 def f_for_1_and_2(f: Callable[[Number], bool], d_x: ComponentDict):
+    """TODO: Add a docstring to this function."""
+
     return f(d_x[1]) and f(d_x[2])
 
 
 # Utility function to simplify tests on values that have components 1 and 2
 def l_f_for_1_or_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
+    """TODO: Add a docstring to this function."""
+
     l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
     l_b1, l_b2 = list(map(f, l_x1)), list(map(f, l_x2))
     return np.array(np.logical_or(l_b1, l_b2))
@@ -117,6 +126,8 @@ def l_f_for_1_or_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) 
 
 # Utility function to simplify tests on values that have components 1 and 2
 def l_f_for_1_and_2(f: Callable[[Number], bool], l_d_x: Sequence[ComponentDict]) -> np.ndarray:
+    """TODO: Add a docstring to this function."""
+
     l_x1, l_x2 = get_t_l_of_components_1_2(l_d_x)
     l_b1, l_b2 = list(map(f, l_x1)), list(map(f, l_x2))
     return np.array(np.logical_and(l_b1, l_b2))
@@ -158,8 +169,10 @@ class ShearBiasRequirementWriter(RequirementWriter):
     l_d_test_pass: Optional[Sequence[Dict[int, bool]]] = None
     l_d_result: Optional[Sequence[Dict[int, str]]] = None
 
-    # Is there any good data?
+    # Overall data
     good_data: Optional[bool] = None
+    test_pass: Optional[bool] = None
+    result: Optional[str] = None
 
     def _get_supplementary_info(self,
                                 extra_g1_message: str = "",
@@ -294,7 +307,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.l_bin_limits = l_bin_limits
         if self.l_bin_limits is not None:
             self.num_bins = len(self.l_bin_limits) - 1
-            if not self.num_bins >= 1:
+            if self.num_bins < 1:
                 raise ValueError(f"Too few bins in bin limits: {self.l_bin_limits}.")
         else:
             self.num_bins = 1
@@ -422,6 +435,8 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
 
 
 class ShearBiasTestCaseWriter(TestCaseWriter):
+    """TODO: Add a docstring to this class."""
+
     # Class members
 
     # Types of child objects, overriding those in base class
@@ -430,6 +445,8 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
+    """TODO: Add a docstring to this class."""
+
     # Types of child classes
     test_case_writer_type = ShearBiasTestCaseWriter
 

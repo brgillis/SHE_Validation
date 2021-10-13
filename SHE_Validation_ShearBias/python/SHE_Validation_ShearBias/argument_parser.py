@@ -22,7 +22,7 @@ __updated__ = "2021-08-27"
 
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser
-from SHE_Validation_ShearBias.constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_CLINE_ARGS
+from .constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_CLINE_ARGS
 
 
 class ShearValidationArgumentParser(ValidationArgumentParser):

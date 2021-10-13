@@ -47,6 +47,8 @@ SIGMA_DIGITS = 1
 
 
 class CtiGalPlotter(ValidationPlotter):
+    """TODO: Add a docstring to this class."""
+
     # Attributes set directly at init
     _object_table: Table
 
@@ -79,7 +81,7 @@ class CtiGalPlotter(ValidationPlotter):
         self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
         self._weight_colname = getattr(CGOD_TF, f"weight_{self.method_name}")
 
-        self._t_good = get_table_of_ids(table = self.object_table,
+        self._t_good = get_table_of_ids(t = self.object_table,
                                         l_ids = self.l_ids_in_bin, )
 
     # Property getters and setters

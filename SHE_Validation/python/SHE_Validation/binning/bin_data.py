@@ -30,7 +30,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
-from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
+from ..constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS
 
 logger = getLogger(__name__)
 

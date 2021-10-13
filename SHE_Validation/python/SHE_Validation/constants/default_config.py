@@ -27,7 +27,7 @@ import numpy as np
 
 from SHE_PPT.constants.classes import AllowedEnum
 from SHE_PPT.pipeline_utility import ConfigKeys, GlobalConfigKeys, ValidationConfigKeys
-from SHE_Validation.constants.test_info import BinParameters, D_BIN_PARAMETER_META
+from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
 class ExecutionMode(AllowedEnum):

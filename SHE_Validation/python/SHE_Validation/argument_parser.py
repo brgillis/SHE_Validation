@@ -28,9 +28,6 @@ class ValidationArgumentParser(SheArgumentParser):
     """ Argument parser specialized for SHE Validation executables.
     """
 
-    def __init__(self):
-        super().__init__()
-
     def add_bin_parameter_args(self):
         for bin_parameter in BinParameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]

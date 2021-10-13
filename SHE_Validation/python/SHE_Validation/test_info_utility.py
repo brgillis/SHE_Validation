@@ -28,14 +28,14 @@ from SHE_PPT.utility import coerce_to_list
 from .constants.test_info import BinParameters, TestCaseInfo
 
 
-def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
+def make_test_case_info_for_bins(l_test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
                                  l_bin_parameters: Iterable[BinParameters] = BinParameters) -> List[TestCaseInfo]:
     """ Takes as input a test case or list of test cases, then creates versions of it for each bin parameter in the
         provided list.
     """
 
     # Silently coerce test_case_info into a list
-    l_test_case_info: List[TestCaseInfo] = coerce_to_list(test_case_info)
+    l_test_case_info: List[TestCaseInfo] = coerce_to_list(l_test_case_info)
 
     l_bin_test_case_info: List[TestCaseInfo] = []
 
@@ -51,14 +51,14 @@ def make_test_case_info_for_bins(test_case_info: Union[TestCaseInfo, List[TestCa
     return l_bin_test_case_info
 
 
-def make_test_case_info_for_methods(test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
+def make_test_case_info_for_methods(l_test_case_info: Union[TestCaseInfo, List[TestCaseInfo]],
                                     l_methods: Iterable[ShearEstimationMethods] = ShearEstimationMethods):
     """ Takes as input a test case or list of test cases, then creates versions of it for each shear estimation method
         in the provided list.
     """
 
     # Silently coerce test_case_info into a list
-    l_test_case_info: List[TestCaseInfo] = coerce_to_list(test_case_info)
+    l_test_case_info: List[TestCaseInfo] = coerce_to_list(l_test_case_info)
 
     l_method_test_case_info: List[TestCaseInfo] = []
 
