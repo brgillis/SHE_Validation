@@ -37,7 +37,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
 from SHE_PPT.logging import getLogger
-from SHE_PPT.table_formats.she_tu_matched import tf as tum_tf
+from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
 
 logger = getLogger(__name__)
 
@@ -191,247 +191,6 @@ def match_to_tu_from_args(args):
                               log_info = True)
 
 
-def match_within_coord_range(shear_tables: List[Table],
-                             gal_matched_tables: List[Table],
-                             star_matched_tables: List[Table],
-                             galaxy_catalog_filenames: Sequence[str],
-                             star_catalog_filenames: Sequence[str],
-                             local_ra_range: np.ndarray,
-                             local_dec_range: np.ndarray,
-                             match_threshold: float,
-                             search_path: str) -> None:
-    # Read in the star and galaxy catalogs from the overlapping area
-    overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
-                                                            ra_range = local_ra_range,
-                                                            dec_range = local_dec_range,
-                                                            path = search_path)
-    logger.info("Found " + str(len(overlapping_star_catalog)) + " stars in overlapping region.")
-
-    overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames = galaxy_catalog_filenames,
-                                                              ra_range = local_ra_range,
-                                                              dec_range = local_dec_range,
-                                                              path = search_path)
-    logger.info("Found " + str(len(overlapping_galaxy_catalog)) + " galaxies in overlapping region.")
-
-    # Remove unused columns in the star table
-    overlapping_star_catalog.remove_columns(['DIST', 'TU_MAG_H_2MASS', 'SED_TEMPLATE',
-                                             'AV', 'TU_FNU_VIS', 'TU_FNU_Y_NISP', 'TU_FNU_J_NISP',
-                                             'TU_FNU_H_NISP', 'TU_FNU_G_DECAM', 'TU_FNU_R_DECAM',
-                                             'TU_FNU_I_DECAM', 'TU_FNU_Z_DECAM', 'TU_FNU_U_MEGACAM',
-                                             'TU_FNU_R_MEGACAM', 'TU_FNU_G_JPCAM', 'TU_FNU_I_PANSTARRS',
-                                             'TU_FNU_Z_PANSTARRS', 'TU_FNU_Z_HSC', 'TU_FNU_G_GAIA',
-                                             'TU_FNU_BP_GAIA', 'TU_FNU_RP_GAIA', 'TU_FNU_U_LSST',
-                                             'TU_FNU_G_LSST', 'TU_FNU_R_LSST', 'TU_FNU_I_LSST',
-                                             'TU_FNU_Z_LSST', 'TU_FNU_Y_LSST', 'TU_FNU_U_KIDS',
-                                             'TU_FNU_G_KIDS', 'TU_FNU_R_KIDS', 'TU_FNU_I_KIDS',
-                                             'TU_FNU_J_2MASS', 'TU_FNU_H_2MASS', 'TU_FNU_KS_2MASS',
-                                             'GAIA_RA', 'GAIA_RA_ERROR', 'GAIA_DEC', 'GAIA_DEC_ERROR',
-                                             'GAIA_PHOT_G_MEAN_FLUX', 'GAIA_PHOT_G_MEAN_FLUX_ERROR',
-                                             'GAIA_PHOT_BP_MEAN_FLUX', 'GAIA_PHOT_BP_MEAN_FLUX_ERROR',
-                                             'GAIA_PHOT_RP_MEAN_FLUX', 'GAIA_PHOT_RP_MEAN_FLUX_ERROR'])
-
-    # Remove unused columns in the galaxy table
-    overlapping_galaxy_catalog.remove_columns(['SOURCE_ID', 'HALO_ID', 'RA', 'DEC',
-                                               'EXT_LAW', 'EBV', 'HALPHA_LOGFLAM_EXT_MAG',
-                                               'HBETA_LOGFLAM_EXT_MAG', 'O2_LOGFLAM_EXT_MAG',
-                                               'O3_LOGFLAM_EXT_MAG', 'N2_LOGFLAM_EXT_MAG',
-                                               'S2_LOGFLAM_EXT_MAG', 'AV', 'TU_FNU_VIS_MAG',
-                                               'TU_FNU_Y_NISP_MAG', 'TU_FNU_J_NISP_MAG', 'TU_FNU_H_NISP_MAG',
-                                               'TU_FNU_G_DECAM_MAG', 'TU_FNU_R_DECAM_MAG',
-                                               'TU_FNU_I_DECAM_MAG', 'TU_FNU_Z_DECAM_MAG',
-                                               'TU_FNU_U_MEGACAM_MAG', 'TU_FNU_R_MEGACAM_MAG',
-                                               'TU_FNU_G_JPCAM_MAG', 'TU_FNU_I_PANSTARRS_MAG',
-                                               'TU_FNU_Z_PANSTARRS_MAG', 'TU_FNU_Z_HSC_MAG',
-                                               'TU_FNU_G_GAIA_MAG', 'TU_FNU_BP_GAIA_MAG', 'TU_FNU_RP_GAIA_MAG',
-                                               'TU_FNU_U_LSST_MAG', 'TU_FNU_G_LSST_MAG', 'TU_FNU_R_LSST_MAG',
-                                               'TU_FNU_I_LSST_MAG', 'TU_FNU_Z_LSST_MAG', 'TU_FNU_Y_LSST_MAG',
-                                               'TU_FNU_U_KIDS_MAG', 'TU_FNU_G_KIDS_MAG', 'TU_FNU_R_KIDS_MAG',
-                                               'TU_FNU_I_KIDS_MAG', 'TU_FNU_J_2MASS_MAG',
-                                               'TU_FNU_H_2MASS_MAG', 'TU_FNU_KS_2MASS_MAG'])
-
-    # Set up star and galaxy tables for matching
-    ra_star = overlapping_star_catalog["RA"]
-    dec_star = overlapping_star_catalog["DEC"]
-    sky_coord_star = SkyCoord(ra = ra_star, dec = dec_star)
-    overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name = tum_tf.tu_star_index))
-
-    ra_gal = overlapping_galaxy_catalog[tum_tf.tu_ra]
-    dec_gal = overlapping_galaxy_catalog[tum_tf.tu_dec]
-    sky_coord_gal = SkyCoord(ra = ra_gal, dec = dec_gal)
-    overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name = tum_tf.tu_gal_index))
-
-    # Perform match to SIM's tables for each method
-    for method in ShearEstimationMethods:
-
-        unpruned_shear_table = shear_tables[method]
-        if unpruned_shear_table is None:
-            logger.info(f"No catalog provided for method {method.value}.")
-            continue
-
-        sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
-
-        # Prune any rows with NaN for R.A. or Dec. from the shear table
-        good_rows = ~np.logical_or(np.isnan(unpruned_shear_table[sem_tf.ra]),
-                                   np.isnan(unpruned_shear_table[sem_tf.dec]))
-        shear_table = unpruned_shear_table[good_rows]
-
-        if len(shear_table) == 0:
-            logger.info(f"No valid rows in catalog for method {method.value}.")
-            continue
-
-        ra_se = shear_table[sem_tf.ra]
-        dec_se = shear_table[sem_tf.dec]
-        # noinspection PyUnresolvedReferences
-        sky_coord_se = SkyCoord(ra = ra_se * units.degree, dec = dec_se * units.degree)
-
-        if len(sky_coord_star) > 0:
-
-            # Match to star table
-            best_star_id, best_star_distance, _ = sky_coord_se.match_to_catalog_sky(sky_coord_star)
-
-            # Perform the reverse match as well, and only use a symmetric best-match table
-            best_obj_id_from_star, _best_distance_from_star, _ = sky_coord_star.match_to_catalog_sky(
-                sky_coord_se)
-
-        else:
-            best_star_id, best_star_distance = [], []
-            best_obj_id_from_star, _best_distance_from_star = [], []
-
-        if len(sky_coord_gal) > 0:
-
-            # Match to galaxy table
-            best_gal_id, best_gal_distance, _ = sky_coord_se.match_to_catalog_sky(sky_coord_gal)
-
-            # Perform the reverse match as well, and only use a symmetric best-match table
-            best_obj_id_from_gal, _best_distance_from_gal, _ = sky_coord_gal.match_to_catalog_sky(sky_coord_se)
-
-        else:
-            best_gal_id, best_gal_distance = [], []
-            best_obj_id_from_gal, _best_distance_from_gal = [], []
-
-        # Check that the overall best distance is less than the threshold
-        best_distance = np.where(best_gal_distance <= best_star_distance,
-                                 best_gal_distance, best_star_distance)
-
-        # Mask rows where the match isn't close enough, or to the other type of object, with -99
-
-        in_ra_range = np.logical_and(
-            shear_table[sem_tf.ra] >= local_ra_range[0], shear_table[sem_tf.ra] < local_ra_range[1])
-        in_dec_range = np.logical_and(
-            shear_table[sem_tf.dec] >= local_dec_range[0], shear_table[sem_tf.dec] < local_dec_range[1])
-
-        in_range = np.logical_and(in_ra_range, in_dec_range)
-
-        # Mask out with -99 if the distance is outside the threshold or it better matches to the
-        # other type of object
-
-        if len(sky_coord_star) > 0:
-            best_star_id = np.where(in_range, np.where(best_distance < match_threshold,
-                                                       np.where(best_star_distance <
-                                                                best_gal_distance, best_star_id, -99),
-                                                       -99), -99)
-            symmetric_star_match = best_obj_id_from_star[best_star_id] == np.arange(len(best_star_id))
-
-            # Mask out with -99 if we don't have a symmetric match
-            best_star_id = np.where(symmetric_star_match, best_star_id, -99)
-        else:
-            best_star_id = np.zeros(len(in_range), dtype = int)
-
-        if len(sky_coord_gal) > 0:
-            best_gal_id = np.where(in_range, np.where(best_distance < match_threshold,
-                                                      np.where(best_gal_distance <=
-                                                               best_star_distance, best_gal_id, -99),
-                                                      -99), -99)
-            symmetric_gal_match = best_obj_id_from_gal[best_gal_id] == np.arange(len(best_gal_id))
-
-            # Mask out with -99 if we don't have a symmetric match
-            best_gal_id = np.where(symmetric_gal_match, best_gal_id, -99)
-        else:
-            best_gal_id = np.zeros(len(in_range), dtype = int)
-
-        # Add columns to the shear estimates table so we can match to it
-        if tum_tf.tu_star_index in shear_table.colnames:
-            if len(best_star_id) > 0:
-                shear_table[tum_tf.tu_star_index] = best_star_id
-        else:
-            shear_table.add_column(Column(best_star_id, name = tum_tf.tu_star_index))
-        if tum_tf.tu_gal_index in shear_table.colnames:
-            if len(best_gal_id) > 0:
-                shear_table[tum_tf.tu_gal_index] = best_gal_id
-        else:
-            shear_table.add_column(Column(best_gal_id, name = tum_tf.tu_gal_index))
-
-        # Match to the star and galaxy tables
-
-        if len(sky_coord_star) > 0:
-            star_matched_table = join(shear_table, overlapping_star_catalog, keys = tum_tf.tu_star_index)
-            logger.info("Matched " + str(len(star_matched_table)) + " objects to stars.")
-        else:
-            star_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
-
-        if len(sky_coord_gal) > 0:
-            gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys = tum_tf.tu_gal_index)
-            logger.info("Matched " + str(len(gal_matched_table)) + " objects to galaxies.")
-        else:
-            gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
-
-        # Remove matched rows from the shear table
-        matched_rows = np.logical_or(best_star_id > 0, best_gal_id > 0)
-        matched_indices = (matched_rows * np.arange(len(matched_rows)))[matched_rows]
-        shear_table.remove_rows(matched_indices)
-
-        # Remove extra columns we no longer need
-        star_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
-        gal_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
-
-        # Add these tables to the dictionaries of tables
-        star_matched_tables[method].append(star_matched_table)
-        gal_matched_tables[method].append(gal_matched_table)
-
-        # Skip to next batch if we didn't match any galaxies
-        if len(gal_matched_table) == 0:
-            continue
-
-        # Add extra useful columns to the galaxy-matched table for analysis
-
-        # Details about estimated shear
-
-        gal_matched_table.add_column(
-            Column(
-                np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
-                name = sem_tf.tu_g_beta))
-
-        g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
-        gal_matched_table.add_column(Column(g_mag, name = sem_tf.tu_g_mag))
-
-        # Details about the input shear
-
-        g1_in = -gal_matched_table[sem_tf.tu_gamma1] / (1 - gal_matched_table[sem_tf.tu_kappa])
-        g2_in = gal_matched_table[sem_tf.tu_gamma2] / (1 - gal_matched_table[sem_tf.tu_kappa])
-
-        gal_matched_table.add_column(
-            Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name = sem_tf.g_beta))
-
-        gal_matched_table.add_column(
-            Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name = sem_tf.g_mag))
-
-        # Details about the input bulge shape
-
-        bulge_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
-        regularized_bulge_angle = np.where(bulge_angle < -90, bulge_angle + 180,
-                                           np.where(bulge_angle > 90, bulge_angle - 180, bulge_angle))
-        gal_matched_table.add_column(Column(regularized_bulge_angle,
-                                            name = sem_tf.tu_bulge_beta))
-
-        # Details about the input disk shape
-
-        disk_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
-        regularized_disk_angle = np.where(disk_angle < -90, disk_angle + 180,
-                                          np.where(disk_angle > 90, disk_angle - 180, disk_angle))
-        gal_matched_table.add_column(Column(regularized_disk_angle,
-                                            name = sem_tf.tu_disk_beta))
-
-
 def determine_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
                           match_threshold: float) -> Tuple[np.ndarray,
                                                            np.ndarray]:
@@ -547,3 +306,284 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
             galaxy_catalog_filenames.append(galaxy_catalog_product.get_data_filename())
 
     return galaxy_catalog_filenames, star_catalog_filenames
+
+
+def match_within_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
+                             gal_matched_tables: Dict[ShearEstimationMethods, List[Table]],
+                             star_matched_tables: Dict[ShearEstimationMethods, List[Table]],
+                             galaxy_catalog_filenames: Sequence[str],
+                             star_catalog_filenames: Sequence[str],
+                             local_ra_range: np.ndarray,
+                             local_dec_range: np.ndarray,
+                             match_threshold: float,
+                             search_path: str) -> None:
+    # Read in the star and galaxy catalogs from the overlapping area
+    overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
+                                                            ra_range = local_ra_range,
+                                                            dec_range = local_dec_range,
+                                                            path = search_path)
+    logger.info("Found " + str(len(overlapping_star_catalog)) + " stars in overlapping region.")
+
+    overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames = galaxy_catalog_filenames,
+                                                              ra_range = local_ra_range,
+                                                              dec_range = local_dec_range,
+                                                              path = search_path)
+    logger.info("Found " + str(len(overlapping_galaxy_catalog)) + " galaxies in overlapping region.")
+
+    # Remove unused columns in the star table
+    overlapping_star_catalog.remove_columns(['DIST', 'TU_MAG_H_2MASS', 'SED_TEMPLATE',
+                                             'AV', 'TU_FNU_VIS', 'TU_FNU_Y_NISP', 'TU_FNU_J_NISP',
+                                             'TU_FNU_H_NISP', 'TU_FNU_G_DECAM', 'TU_FNU_R_DECAM',
+                                             'TU_FNU_I_DECAM', 'TU_FNU_Z_DECAM', 'TU_FNU_U_MEGACAM',
+                                             'TU_FNU_R_MEGACAM', 'TU_FNU_G_JPCAM', 'TU_FNU_I_PANSTARRS',
+                                             'TU_FNU_Z_PANSTARRS', 'TU_FNU_Z_HSC', 'TU_FNU_G_GAIA',
+                                             'TU_FNU_BP_GAIA', 'TU_FNU_RP_GAIA', 'TU_FNU_U_LSST',
+                                             'TU_FNU_G_LSST', 'TU_FNU_R_LSST', 'TU_FNU_I_LSST',
+                                             'TU_FNU_Z_LSST', 'TU_FNU_Y_LSST', 'TU_FNU_U_KIDS',
+                                             'TU_FNU_G_KIDS', 'TU_FNU_R_KIDS', 'TU_FNU_I_KIDS',
+                                             'TU_FNU_J_2MASS', 'TU_FNU_H_2MASS', 'TU_FNU_KS_2MASS',
+                                             'GAIA_RA', 'GAIA_RA_ERROR', 'GAIA_DEC', 'GAIA_DEC_ERROR',
+                                             'GAIA_PHOT_G_MEAN_FLUX', 'GAIA_PHOT_G_MEAN_FLUX_ERROR',
+                                             'GAIA_PHOT_BP_MEAN_FLUX', 'GAIA_PHOT_BP_MEAN_FLUX_ERROR',
+                                             'GAIA_PHOT_RP_MEAN_FLUX', 'GAIA_PHOT_RP_MEAN_FLUX_ERROR'])
+
+    # Remove unused columns in the galaxy table
+    overlapping_galaxy_catalog.remove_columns(['SOURCE_ID', 'HALO_ID', 'RA', 'DEC',
+                                               'EXT_LAW', 'EBV', 'HALPHA_LOGFLAM_EXT_MAG',
+                                               'HBETA_LOGFLAM_EXT_MAG', 'O2_LOGFLAM_EXT_MAG',
+                                               'O3_LOGFLAM_EXT_MAG', 'N2_LOGFLAM_EXT_MAG',
+                                               'S2_LOGFLAM_EXT_MAG', 'AV', 'TU_FNU_VIS_MAG',
+                                               'TU_FNU_Y_NISP_MAG', 'TU_FNU_J_NISP_MAG', 'TU_FNU_H_NISP_MAG',
+                                               'TU_FNU_G_DECAM_MAG', 'TU_FNU_R_DECAM_MAG',
+                                               'TU_FNU_I_DECAM_MAG', 'TU_FNU_Z_DECAM_MAG',
+                                               'TU_FNU_U_MEGACAM_MAG', 'TU_FNU_R_MEGACAM_MAG',
+                                               'TU_FNU_G_JPCAM_MAG', 'TU_FNU_I_PANSTARRS_MAG',
+                                               'TU_FNU_Z_PANSTARRS_MAG', 'TU_FNU_Z_HSC_MAG',
+                                               'TU_FNU_G_GAIA_MAG', 'TU_FNU_BP_GAIA_MAG', 'TU_FNU_RP_GAIA_MAG',
+                                               'TU_FNU_U_LSST_MAG', 'TU_FNU_G_LSST_MAG', 'TU_FNU_R_LSST_MAG',
+                                               'TU_FNU_I_LSST_MAG', 'TU_FNU_Z_LSST_MAG', 'TU_FNU_Y_LSST_MAG',
+                                               'TU_FNU_U_KIDS_MAG', 'TU_FNU_G_KIDS_MAG', 'TU_FNU_R_KIDS_MAG',
+                                               'TU_FNU_I_KIDS_MAG', 'TU_FNU_J_2MASS_MAG',
+                                               'TU_FNU_H_2MASS_MAG', 'TU_FNU_KS_2MASS_MAG'])
+
+    # Set up star and galaxy tables for matching
+    ra_star = overlapping_star_catalog["RA"]
+    dec_star = overlapping_star_catalog["DEC"]
+    sky_coord_star = SkyCoord(ra = ra_star, dec = dec_star)
+    overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name = tum_tf.tu_star_index))
+
+    ra_gal = overlapping_galaxy_catalog[tum_tf.tu_ra]
+    dec_gal = overlapping_galaxy_catalog[tum_tf.tu_dec]
+    sky_coord_gal = SkyCoord(ra = ra_gal, dec = dec_gal)
+    overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name = tum_tf.tu_gal_index))
+
+    # Perform match to SIM's tables for each method
+    for method in ShearEstimationMethods:
+        match_for_method_in_coord_range(method = method,
+                                        shear_tables = shear_tables,
+                                        gal_matched_tables = gal_matched_tables,
+                                        star_matched_tables = star_matched_tables,
+                                        sky_coord_gal = sky_coord_gal,
+                                        sky_coord_star = sky_coord_star,
+                                        local_ra_range = local_ra_range,
+                                        local_dec_range = local_dec_range,
+                                        overlapping_galaxy_catalog = overlapping_galaxy_catalog,
+                                        overlapping_star_catalog = overlapping_star_catalog,
+                                        match_threshold = match_threshold)
+
+
+def match_for_method_in_coord_range(method: ShearEstimationMethods,
+                                    shear_tables: Dict[ShearEstimationMethods, Table],
+                                    gal_matched_tables: Dict[ShearEstimationMethods, List[Table]],
+                                    star_matched_tables: Dict[ShearEstimationMethods, List[Table]],
+                                    sky_coord_gal,
+                                    sky_coord_star,
+                                    local_ra_range: np.ndarray,
+                                    local_dec_range: np.ndarray,
+                                    overlapping_galaxy_catalog: Table,
+                                    overlapping_star_catalog: Table,
+                                    match_threshold: float):
+    unpruned_shear_table = shear_tables[method]
+    if unpruned_shear_table is None:
+        logger.info(f"No catalog provided for method {method.value}.")
+        return
+
+    sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
+
+    # Prune any rows with NaN for R.A. or Dec. from the shear table
+    good_rows = ~np.logical_or(np.isnan(unpruned_shear_table[sem_tf.ra]),
+                               np.isnan(unpruned_shear_table[sem_tf.dec]))
+    shear_table = unpruned_shear_table[good_rows]
+
+    if len(shear_table) == 0:
+        logger.info(f"No valid rows in catalog for method {method.value}.")
+        return
+
+    ra_se = shear_table[sem_tf.ra]
+    dec_se = shear_table[sem_tf.dec]
+    # noinspection PyUnresolvedReferences
+    sky_coord_se = SkyCoord(ra = ra_se * units.degree, dec = dec_se * units.degree)
+
+    (best_obj_id_from_star,
+     best_star_distance,
+     best_star_id) = find_best_match(sky_coord_se, sky_coord_star)
+
+    (best_obj_id_from_gal,
+     best_gal_distance,
+     best_gal_id) = find_best_match(sky_coord_se, sky_coord_gal)
+
+    # Check that the overall best distance is less than the threshold
+    best_distance = np.where(best_gal_distance <= best_star_distance,
+                             best_gal_distance, best_star_distance)
+
+    # Mask rows where the match isn't close enough, or to the other type of object, with -99
+    in_ra_range = np.logical_and(
+        shear_table[sem_tf.ra] >= local_ra_range[0], shear_table[sem_tf.ra] < local_ra_range[1])
+    in_dec_range = np.logical_and(
+        shear_table[sem_tf.dec] >= local_dec_range[0], shear_table[sem_tf.dec] < local_dec_range[1])
+    in_range = np.logical_and(in_ra_range, in_dec_range)
+
+    # Mask out with -99 if the distance is outside the threshold or it better matches to the
+    # other type of object
+    best_star_id = get_filtered_best_match(best_tu_distance = best_star_distance,
+                                           best_distance = best_distance,
+                                           best_tu_id = best_star_id,
+                                           best_obj_id_from_tu = best_obj_id_from_star,
+                                           in_range = in_range,
+                                           match_threshold = match_threshold,
+                                           prioritize = False)
+
+    best_gal_id = get_filtered_best_match(best_tu_distance = best_gal_distance,
+                                          best_distance = best_distance,
+                                          best_tu_id = best_gal_id,
+                                          best_obj_id_from_tu = best_obj_id_from_gal,
+                                          in_range = in_range,
+                                          match_threshold = match_threshold,
+                                          prioritize = False)
+
+    # Add columns to the shear estimates table so we can match to it
+    if tum_tf.tu_star_index in shear_table.colnames and len(best_star_id) > 0:
+        shear_table[tum_tf.tu_star_index] = best_star_id
+    else:
+        shear_table.add_column(Column(best_star_id, name = tum_tf.tu_star_index))
+
+    if tum_tf.tu_gal_index in shear_table.colnames and len(best_gal_id) > 0:
+        shear_table[tum_tf.tu_gal_index] = best_gal_id
+    else:
+        shear_table.add_column(Column(best_gal_id, name = tum_tf.tu_gal_index))
+
+    # Match to the star and galaxy tables
+    if len(sky_coord_star) > 0:
+        star_matched_table = join(shear_table, overlapping_star_catalog, keys = tum_tf.tu_star_index)
+        logger.info("Matched " + str(len(star_matched_table)) + " objects to stars.")
+    else:
+        star_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
+
+    if len(sky_coord_gal) > 0:
+        gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys = tum_tf.tu_gal_index)
+        logger.info("Matched " + str(len(gal_matched_table)) + " objects to galaxies.")
+    else:
+        gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
+
+    # Remove matched rows from the shear table
+    matched_rows = np.logical_or(best_star_id > 0, best_gal_id > 0)
+    matched_indices = (matched_rows * np.arange(len(matched_rows)))[matched_rows]
+    shear_table.remove_rows(matched_indices)
+
+    # Remove extra columns we no longer need
+    star_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
+    gal_matched_table.remove_columns([tum_tf.tu_star_index, tum_tf.tu_gal_index])
+
+    # Add these tables to the dictionaries of tables
+    star_matched_tables[method].append(star_matched_table)
+    gal_matched_tables[method].append(gal_matched_table)
+
+    # Skip to next batch if we didn't match any galaxies
+    if len(gal_matched_table) == 0:
+        return
+
+    # Add extra useful columns to the galaxy-matched table for analysis
+
+    add_galaxy_analysis_columns(gal_matched_table = gal_matched_table,
+                                sem_tf = sem_tf)
+
+
+def find_best_match(sky_coord_se,
+                    sky_coord_tu):
+    """ Finds the best match for each object in a catalog
+    """
+    if len(sky_coord_tu) > 0:
+
+        # Match to tu table
+        best_tu_id, best_tu_distance, _ = sky_coord_se.match_to_catalog_sky(sky_coord_tu)
+
+        # Perform the reverse match as well, and only use a symmetric best-match table
+        best_obj_id_from_tu, _best_distance_from_tu, _ = sky_coord_tu.match_to_catalog_sky(
+            sky_coord_se)
+
+    else:
+        best_tu_id, best_tu_distance = [], []
+        best_obj_id_from_tu, _best_distance_from_tu = [], []
+
+    return best_obj_id_from_tu, best_tu_distance, best_tu_id
+
+
+def get_filtered_best_match(best_tu_distance: np.ndarray,
+                            best_distance: np.ndarray,
+                            best_tu_id: np.ndarray,
+                            best_obj_id_from_tu: np.ndarray,
+                            in_range: np.ndarray,
+                            match_threshold: float,
+                            prioritize: bool):
+    if len(best_obj_id_from_tu) > 0:
+
+        if prioritize:
+            is_better_match: np.ndarray = best_distance <= best_tu_distance
+        else:
+            is_better_match: np.ndarray = best_distance < best_tu_distance
+
+        best_tu_id = np.where(in_range, np.where(best_distance < match_threshold,
+                                                 np.where(is_better_match, best_tu_id, -99),
+                                                 -99), -99)
+        symmetric_star_match = best_obj_id_from_tu[best_tu_id] == np.arange(len(best_tu_id))
+
+        # Mask out with -99 if we don't have a symmetric match
+        best_tu_id = np.where(symmetric_star_match, best_tu_id, -99)
+
+    else:
+        best_tu_id = np.zeros(len(in_range), dtype = int)
+
+    return best_tu_id
+
+
+def add_galaxy_analysis_columns(gal_matched_table: Table,
+                                sem_tf: SheTUMatchedFormat):
+    # Details about estimated shear
+    gal_matched_table.add_column(
+        Column(
+            np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
+            name = sem_tf.tu_g_beta))
+    g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
+    gal_matched_table.add_column(Column(g_mag, name = sem_tf.tu_g_mag))
+
+    # Details about the input shear
+    g1_in = -gal_matched_table[sem_tf.tu_gamma1] / (1 - gal_matched_table[sem_tf.tu_kappa])
+    g2_in = gal_matched_table[sem_tf.tu_gamma2] / (1 - gal_matched_table[sem_tf.tu_kappa])
+    gal_matched_table.add_column(
+        Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name = sem_tf.g_beta))
+    gal_matched_table.add_column(
+        Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name = sem_tf.g_mag))
+
+    # Details about the input bulge shape
+    bulge_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
+    regularized_bulge_angle = np.where(bulge_angle < -90, bulge_angle + 180,
+                                       np.where(bulge_angle > 90, bulge_angle - 180, bulge_angle))
+    gal_matched_table.add_column(Column(regularized_bulge_angle,
+                                        name = sem_tf.tu_bulge_beta))
+
+    # Details about the input disk shape
+    disk_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
+    regularized_disk_angle = np.where(disk_angle < -90, disk_angle + 180,
+                                      np.where(disk_angle > 90, disk_angle - 180, disk_angle))
+    gal_matched_table.add_column(Column(regularized_disk_angle,
+                                        name = sem_tf.tu_disk_beta))
