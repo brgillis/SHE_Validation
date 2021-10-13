@@ -28,7 +28,7 @@ import numpy as np
 from astropy.table import Column, Row, Table, vstack as table_vstack
 
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods
-from SHE_PPT.file_io import MultiTableLoader, TableLoader
+from SHE_PPT.file_io import TableLoader
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
@@ -723,36 +723,52 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
         # Loop over bins, getting IDs for each and adding them to the list
         for bin_index in range(num_bins):
 
-            # Special processing if we have a HeteroBinConstraint
-            if issubclass(bin_constraint_type, HeteroBinConstraint):
-                measurements_table: Optional[Table] = None
-                if d_measurements_tables:
-                    measurements_table = d_measurements_tables[test_case_info.method]
-                if measurements_table is None:
-                    # If we don't have data for a given method, return no IDs for it
-                    l_binned_ids: Sequence[int] = []
-                else:
-                    l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter = bin_parameter,
-                                                                         method = test_case_info.method,
-                                                                         bin_constraint_type = bin_constraint_type,
-                                                                         full_bin_limits = full_bin_limits,
-                                                                         bin_index = bin_index,
-                                                                         detections_table = detections_table,
-                                                                         measurements_table = measurements_table,
-                                                                         data_stack = data_stack)
-            else:
-                l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter = bin_parameter,
-                                                              bin_constraint_type = bin_constraint_type,
-                                                              full_bin_limits = full_bin_limits,
-                                                              bin_index = bin_index,
-                                                              detections_table = detections_table,
-                                                              data_stack = data_stack)
-            l_l_binned_ids[bin_index] = l_binned_ids
+            l_l_binned_ids[bin_index] = _get_l_binned_ids(test_case_info = test_case_info,
+                                                          bin_constraint_type = bin_constraint_type,
+                                                          full_bin_limits = full_bin_limits,
+                                                          bin_index = bin_index,
+                                                          detections_table = detections_table,
+                                                          d_measurements_tables = d_measurements_tables,
+                                                          data_stack = data_stack)
 
         # Add the list to the output dictionary
         d_l_l_binned_ids[test_case_info.name] = l_l_binned_ids
 
     return d_l_l_binned_ids
+
+
+def _get_l_binned_ids(test_case_info: TestCaseInfo,
+                      bin_constraint_type: Type,
+                      full_bin_limits: np.ndarray,
+                      bin_index: int,
+                      detections_table: Table,
+                      d_measurements_tables: Dict[ShearEstimationMethods, Table],
+                      data_stack: SHEFrameStack):
+    # Special processing if we have a HeteroBinConstraint
+    if issubclass(bin_constraint_type, HeteroBinConstraint):
+        measurements_table: Optional[Table] = None
+        if d_measurements_tables:
+            measurements_table = d_measurements_tables[test_case_info.method]
+        if measurements_table is None:
+            # If we don't have data for a given method, return no IDs for it
+            l_binned_ids: Sequence[int] = []
+        else:
+            l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter = test_case_info.bin_parameter,
+                                                                 method = test_case_info.method,
+                                                                 bin_constraint_type = bin_constraint_type,
+                                                                 full_bin_limits = full_bin_limits,
+                                                                 bin_index = bin_index,
+                                                                 detections_table = detections_table,
+                                                                 measurements_table = measurements_table,
+                                                                 data_stack = data_stack)
+    else:
+        l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter = test_case_info.bin_parameter,
+                                                      bin_constraint_type = bin_constraint_type,
+                                                      full_bin_limits = full_bin_limits,
+                                                      bin_index = bin_index,
+                                                      detections_table = detections_table,
+                                                      data_stack = data_stack)
+    return l_binned_ids
 
 
 def get_table_of_ids(table: Table,
