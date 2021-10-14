@@ -237,8 +237,8 @@ class MockShearBiasArgs(Namespace):
     """
 
     # Workdir and logdir need to be set in setup_class
-    workdir: str
-    logdir: str
+    workdir: Optional[str] = None
+    logdir: Optional[str] = None
 
     bootstrap_errors: Optional[bool] = None
     max_g_in: Optional[float] = None
@@ -251,8 +251,7 @@ class MockShearBiasArgs(Namespace):
     profile: bool = False
     dry_run: bool = True
 
-    def __init__(self):
-        super().__init__()
+    def __post_init__(self):
 
         for test_case_info in FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO:
             bin_limits_cline_arg = test_case_info.bins_cline_arg

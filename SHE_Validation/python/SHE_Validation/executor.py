@@ -22,6 +22,8 @@ __updated__ = "2021-10-14"
 
 from typing import Type
 
+from dataclasses import dataclass
+
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.executor import LogOptions, ReadConfigArgs, SheExecutor
 from SHE_PPT.utility import default_value_if_none
@@ -30,6 +32,7 @@ from .constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDAT
                                        D_VALIDATION_CONFIG_TYPES, )
 
 
+@dataclass
 class ValLogOptions(LogOptions):
     """ Subclass of LogOptions which overrides defaults for project_name and project_version.
     """
