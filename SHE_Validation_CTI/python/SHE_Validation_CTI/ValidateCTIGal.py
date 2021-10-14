@@ -25,16 +25,15 @@ __updated__ = "2021-08-20"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-import os
 from argparse import ArgumentParser
 
-from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys, GlobalConfigKeys, ValidationConfigKeys, read_config
+from SHE_PPT.pipeline_utility import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser
-from . import __version__
+from SHE_Validation.executor import ValLogOptions, ValReadConfigArgs
+from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
 from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
-                                               D_CTI_GAL_CONFIG_TYPES, PROFILING_FILENAME, )
+                                               D_CTI_GAL_CONFIG_TYPES, )
 from .validate_cti_gal import run_validate_cti_gal_from_args
 
 logger = log.getLogger(__name__)
@@ -79,51 +78,32 @@ def defineSpecificProgramOptions() -> ArgumentParser:
 
 # noinspection PyPep8Naming
 def mainMethod(args):
-    """
-    @brief The "main" method.
-    @details
-        This method is the entry point to the program. In this sense, it is
-        similar to a main (and it is why it is called mainMethod()).
+    """ Main entry point method
     """
 
-    logger.info('#')
-    logger.info('# Entering ValidateCTIGal mainMethod()')
-    logger.info('#')
+    executor = ShearBiasValExecutor(run_from_args_function = run_validate_cti_gal_from_args,
+                                    config_args = ValReadConfigArgs(d_config_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                                    d_config_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                                    d_config_types = D_CTI_GAL_CONFIG_TYPES,
+                                                                    s_config_keys_types = {ValidationConfigKeys,
+                                                                                           AnalysisConfigKeys}),
+                                    log_options = ValLogOptions(executable_name = "SHE_Validation_ValidateCTIGal"), )
 
-    exec_cmd = get_arguments_string(args,
-                                    cmd = "E-Run SHE_Validation " + __version__ + " SHE_Validation_ValidateCTIGal",
-                                    store_true = ["profile", "dry_run"])
-    logger.info('Execution command for this step:')
-    logger.info(exec_cmd)
+    executor.run(args, logger = logger)
 
-    # load the pipeline config in
-    # noinspection PyTypeChecker
-    args.pipeline_config = read_config(args.pipeline_config,
-                                       workdir = args.workdir,
-                                       defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                       d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                       parsed_args = args,
-                                       config_keys = (ValidationConfigKeys, AnalysisConfigKeys),
-                                       d_types = D_CTI_GAL_CONFIG_TYPES)
 
-    # check if profiling is to be enabled from the pipeline config
-    profiling = args.pipeline_config[GlobalConfigKeys.PIP_PROFILE]
+def main():
+    """
+    @brief
+        Alternate entry point for non-Elements execution.
+    """
 
-    if args.profile or profiling:
-        import cProfile
+    parser = defineSpecificProgramOptions()
 
-        logger.info("Profiling enabled")
-        filename = os.path.join(args.workdir, args.logdir, PROFILING_FILENAME)
-        logger.info("Writing profiling data to %s", filename)
+    args = parser.parse_args()
 
-        cProfile.runctx("run_validate_cti_gal_from_args(args)", {},
-                        {"run_validate_cti_gal_from_args": run_validate_cti_gal_from_args,
-                         "args"                          : args},
-                        filename = filename)
-    else:
-        logger.info("Profiling disabled")
-        run_validate_cti_gal_from_args(args)
+    mainMethod(args)
 
-    logger.info('#')
-    logger.info('# Exiting ValidateCTIGal mainMethod()')
-    logger.info('#')
+
+if __name__ == "__main__":
+    main()

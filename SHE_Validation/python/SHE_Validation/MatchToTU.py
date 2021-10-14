@@ -22,10 +22,12 @@ __updated__ = "2021-08-12"
 
 import argparse
 
-import SHE_Validation
-from EL_PythonUtils.utilities import get_arguments_string
 from SHE_PPT.logging import getLogger
-from .match_to_tu import match_to_tu_from_args
+from SHE_Validation.executor import ValLogOptions
+from SHE_Validation.match_to_tu import match_to_tu_from_args
+from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
+
+logger = getLogger(__name__)
 
 
 # noinspection PyPep8Naming
@@ -37,8 +39,6 @@ def defineSpecificProgramOptions():
     @return
         An  ArgumentParser.
     """
-
-    logger = getLogger(__name__)
 
     logger.debug('#')
     logger.debug('# Entering SHE_Validation_MatchToTU defineSpecificProgramOptions()')
@@ -85,38 +85,13 @@ def defineSpecificProgramOptions():
 
 # noinspection PyPep8Naming
 def mainMethod(args):
-    """
-    @brief
-        The "main" method for this program, to generate galaxy images.
-
-    @details
-        This method is the entry point to the program. In this sense, it is
-        similar to a main (and it is why it is called mainMethod()).
+    """ Main entry point method
     """
 
-    logger = getLogger(__name__)
+    executor = ShearBiasValExecutor(run_from_args_function = match_to_tu_from_args,
+                                    log_options = ValLogOptions(executable_name = "SHE_Validation_MatchToTU"), )
 
-    logger.debug('#')
-    logger.debug('# Entering SHE_Validation_MatchToTU mainMethod()')
-    logger.debug('#')
-
-    exec_cmd = get_arguments_string(args,
-                                    cmd = f"E-Run SHE_Validation {SHE_Validation.__version__} "
-                                          f"SHE_Validation_MatchToTU",
-                                    store_true = ["profile"])
-    logger.info('Execution command for this step:')
-    logger.info(exec_cmd)
-
-    if args.profile:
-        import cProfile
-        cProfile.runctx("match_to_tu_from_args(args,dry_run=dry_run)", {},
-                        {"match_to_tu_from_args": match_to_tu_from_args,
-                         "args"                 : args, },
-                        filename = "match_to_tu_from_args.prof")
-    else:
-        match_to_tu_from_args(args)
-
-    logger.debug('Exiting SHE_Validation_MatchToTU mainMethod()')
+    executor.run(args, logger = logger)
 
 
 def main():
