@@ -31,7 +31,7 @@ from dataclasses import dataclass
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
-from SHE_PPT.file_io import write_xml_product
+from SHE_PPT.file_io import try_remove_file, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
 from SHE_Validation.constants.test_info import BinParameters
@@ -211,11 +211,12 @@ def write_mock_matched_tables(workdir: str) -> str:
 
 
 def cleanup_mock_matched_tables(workdir: str):
-    """TODO: Add a docstring to this class."""
+    """ To be called in cleanup, deletes matched tables which have been written out.
+    """
 
-    os.remove(os.path.join(workdir, LENSMC_MATCHED_CATALOG_FILENAME))
-    os.remove(os.path.join(workdir, KSB_MATCHED_CATALOG_FILENAME))
-    os.remove(os.path.join(workdir, MATCHED_CATALOG_PRODUCT_FILENAME))
+    try_remove_file(LENSMC_MATCHED_CATALOG_FILENAME, workdir = workdir)
+    try_remove_file(KSB_MATCHED_CATALOG_FILENAME, workdir = workdir)
+    try_remove_file(MATCHED_CATALOG_PRODUCT_FILENAME, workdir = workdir)
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
