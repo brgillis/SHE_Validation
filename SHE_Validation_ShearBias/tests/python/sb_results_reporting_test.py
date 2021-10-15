@@ -36,6 +36,7 @@ from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, )
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.mock_shear_bias_data import INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,
@@ -45,7 +46,6 @@ from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIA
                                                                      get_prop_from_id, )
 from SHE_Validation_ShearBias.results_reporting import (D_DESC_INFO, KEY_G1_INFO, KEY_G2_INFO,
                                                         REPORT_DIGITS, fill_shear_bias_test_results, )
-from SHE_Validation_ShearBias.testing.mock_shear_bias_data import INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
 
 logger = getLogger(__name__)
 

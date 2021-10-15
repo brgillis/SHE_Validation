@@ -34,17 +34,17 @@ from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConst
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
+from SHE_Validation.testing.mock_shear_bias_data import (EST_SEED, NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS,
+                                                         NUM_TEST_POINTS,
+                                                         NUM_ZERO_WEIGHT_TEST_POINTS, TEST_BIN_PARAMETERS,
+                                                         TEST_METHODS,
+                                                         cleanup_mock_matched_tables,
+                                                         make_mock_bin_limits, make_mock_matched_table, )
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      )
 from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
                                                       ShearBiasTestCaseDataProcessor, )
 from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
-from SHE_Validation_ShearBias.testing.mock_shear_bias_data import (EST_SEED, NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS,
-                                                                   NUM_TEST_POINTS,
-                                                                   NUM_ZERO_WEIGHT_TEST_POINTS, TEST_BIN_PARAMETERS,
-                                                                   TEST_METHODS,
-                                                                   cleanup_mock_matched_tables,
-                                                                   make_mock_bin_limits, make_mock_matched_table, )
 
 
 class MockDataLoader(NamedTuple):

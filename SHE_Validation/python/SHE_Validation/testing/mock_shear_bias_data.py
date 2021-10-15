@@ -35,7 +35,7 @@ from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
 from SHE_Validation.constants.test_info import BinParameters
-from ..constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 
 logger = getLogger(__name__)
 
