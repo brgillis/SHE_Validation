@@ -20,9 +20,8 @@ __updated__ = "2021-08-12"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import argparse
-
 from SHE_PPT.logging import getLogger
+from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import ValLogOptions
 from SHE_Validation.match_to_tu import match_to_tu_from_args
 from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
@@ -44,39 +43,31 @@ def defineSpecificProgramOptions():
     logger.debug('# Entering SHE_Validation_MatchToTU defineSpecificProgramOptions()')
     logger.debug('#')
 
-    parser = argparse.ArgumentParser()
+    parser = ValidationArgumentParser()
 
     # Input filenames
     parser.add_argument('--she_measurements_product', type = str,
-                        help = 'Filename for shear estimates data product (XML data product)')
+                        help = 'INPUT: Filename for shear estimates data product (XML data product)')
     parser.add_argument('--tu_galaxy_catalog_list', type = str, default = None,
-                        help = 'Filename for True Universe Galaxy Catalog listfile (.json).')
+                        help = 'INPUT: Filename for True Universe Galaxy Catalog listfile (.json).')
     parser.add_argument('--tu_star_catalog_list', type = str, default = None,
-                        help = 'Filename for True Universe Star Catalog listfile (.json).')
+                        help = 'INPUT: Filename for True Universe Star Catalog listfile (.json).')
     parser.add_argument('--tu_galaxy_catalog', type = str, default = None,
-                        help = 'Filename for True Universe Galaxy Catalog data product (XML data product)')
+                        help = 'INPUT: Filename for True Universe Galaxy Catalog data product (XML data product)')
     parser.add_argument('--tu_star_catalog', type = str, default = None,
-                        help = 'Filename for True Universe Star Catalog data product (XML data product)')
+                        help = 'INPUT: Filename for True Universe Star Catalog data product (XML data product)')
     parser.add_argument('--tu_output_product', type = str, default = None,
-                        help = 'Filename for True Universe Output Product data product (XML data product)')
-    parser.add_argument('--pipeline_config', type = str, default = None,
-                        help = 'Pipeline configuration file.')
+                        help = 'INPUT: Filename for True Universe Output Product data product (XML data product)')
 
     # Output filenames
     parser.add_argument('--matched_catalog', type = str,
-                        help = 'Desired filename for output matched catalog data product (XML data product).')
-
-    # Arguments needed by the pipeline runner
-    parser.add_argument('--workdir', type = str, default = ".")
-    parser.add_argument('--logdir', type = str, default = ".")
+                        help = 'OUTPUT: Desired filename for output matched catalog data product (XML data product).')
 
     # Optional arguments (can't be used with pipeline runner)
-    parser.add_argument('--profile', action = 'store_true',
-                        help = 'Store profiling data for execution.')
     parser.add_argument('--sim_path', type = str, default = "/mnt/cephfs/share/SC8/SIM",
-                        help = "Path to where the SIM data is stored")
+                        help = "OPTION: Path to where the SIM data is stored")
     parser.add_argument('--match_threshold', type = float, default = 0.3,
-                        help = "Maximum distance allowed for a match in units of arcsec.")
+                        help = "OPTION: Maximum distance allowed for a match in units of arcsec.")
 
     logger.debug('Exiting SHE_Validation_MatchToTU defineSpecificProgramOptions()')
 
