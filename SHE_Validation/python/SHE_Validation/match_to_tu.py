@@ -22,7 +22,7 @@ __updated__ = "2021-08-18"
 
 import os
 from argparse import Namespace
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 import numpy as np
 from astropy import units
@@ -33,11 +33,15 @@ from astropy.table import Column, Table, join, vstack
 
 import SHE_Validation
 from SHE_PPT import file_io, products
-from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
 from SHE_PPT.logging import getLogger
+from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
+from SHE_Validation.binning.bin_data import (add_bg_column, add_colour_column, add_epoch_column, add_size_column,
+                                             add_snr_column, )
 
 logger = getLogger(__name__)
 
@@ -109,23 +113,23 @@ def match_to_tu_from_args(args):
      star_catalog_filenames) = get_catalog_filenames(args, search_path)
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
-    shear_tables, _ = read_d_method_tables(args.she_measurements_product,
-                                           workdir = workdir,
-                                           log_info = True)
+    d_shear_tables, _ = read_d_method_tables(args.she_measurements_product,
+                                             workdir = workdir,
+                                             log_info = True)
 
     # Determine the ra/dec range covered by the shear estimates file
 
     match_threshold = args.match_threshold
     (ra_range,
-     dec_range) = determine_coord_range(shear_tables, match_threshold)
+     dec_range) = determine_coord_range(d_shear_tables, match_threshold)
 
     ra_limits = np.linspace(ra_range[0], ra_range[1], num = int(
         (ra_range[1] - ra_range[0]) / max_coverage) + 2, endpoint = True)
     dec_limits = np.linspace(dec_range[0], dec_range[1], num = int(
         (dec_range[1] - dec_range[0]) / max_coverage) + 2, endpoint = True)
 
-    star_matched_tables = {}
-    gal_matched_tables = {}
+    star_matched_tables: Dict[ShearEstimationMethods, List[Table]] = {}
+    gal_matched_tables: Dict[ShearEstimationMethods, List[Table]] = {}
 
     for method in ShearEstimationMethods:
         star_matched_tables[method] = []
@@ -142,9 +146,16 @@ def match_to_tu_from_args(args):
             logger.info("Processing ra range: " + str(local_ra_range))
             logger.info("      and dec range: " + str(local_dec_range))
 
-            match_within_coord_range(shear_tables, gal_matched_tables, star_matched_tables, galaxy_catalog_filenames,
+            match_within_coord_range(d_shear_tables, gal_matched_tables, star_matched_tables, galaxy_catalog_filenames,
                                      star_catalog_filenames, local_ra_range, local_dec_range, match_threshold,
                                      search_path)
+
+    # Read in the data stack
+    s_object_ids: Set[int] = get_object_id_list(d_shear_tables)
+    data_stack: SHEFrameStack = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
+                                                   detections_listfile_filename = args.detections_tables,
+                                                   object_id_list = s_object_ids,
+                                                   workdir = workdir)
 
     # Create output data product
     matched_catalog_product = products.she_measurements.create_dpd_she_measurements()
@@ -161,7 +172,11 @@ def match_to_tu_from_args(args):
         if len(star_matched_table) == 0:
             logger.warning(f"No measurements with method {method.value} were matched to stars.")
 
-        unmatched_table = shear_tables[method]
+        # Update each galaxy table with data necessary for binning
+        add_binning_data(gal_matched_table = gal_matched_table,
+                         data_stack = data_stack)
+
+        unmatched_table = d_shear_tables[method]
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
                                                        instance_id = method.name + "-" + str(os.getpid()),
@@ -404,7 +419,8 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
                                     overlapping_galaxy_catalog: Table,
                                     overlapping_star_catalog: Table,
                                     match_threshold: float):
-    """TODO: Add a docstring for this function."""
+    """ Matches the shear estimation table for a given method to the TU galaxy and star tables.
+    """
     unpruned_shear_table = shear_tables[method]
     if unpruned_shear_table is None:
         logger.info(f"No catalog provided for method {method.value}.")
@@ -559,6 +575,31 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
         best_tu_id = np.zeros(len(in_range), dtype = int)
 
     return best_tu_id
+
+
+def get_object_id_list(d_shear_tables: Dict[ShearEstimationMethods, Table]) -> Set[int]:
+    """ Gets a set of object IDs from across all shear tables.
+    """
+
+    s_object_ids = set()
+    for method in d_shear_tables:
+        t = d_shear_tables[method]
+        tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        s_object_ids.update(t[tf.ID])
+
+    return s_object_ids
+
+
+def add_binning_data(gal_matched_table: Table,
+                     data_stack: SHEFrameStack):
+    """ Adds columns with bin data to a table.
+    """
+
+    add_snr_column(gal_matched_table, data_stack)
+    add_colour_column(gal_matched_table, data_stack)
+    add_size_column(gal_matched_table, data_stack)
+    add_bg_column(gal_matched_table, data_stack)
+    add_epoch_column(gal_matched_table, data_stack)
 
 
 def add_galaxy_analysis_columns(gal_matched_table: Table,
