@@ -21,6 +21,7 @@ __updated__ = "2021-10-05"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from abc import ABC, abstractmethod
 from argparse import Namespace
 from typing import Dict, List, Optional
 
@@ -29,10 +30,15 @@ from astropy.table import Table
 from dataclasses import dataclass
 
 from SHE_PPT import products
-from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import try_remove_file, write_xml_product
 from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
+from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
+from SHE_PPT.table_utility import SheTableFormat
+from SHE_PPT.utility import default_init_if_none, default_value_if_none
 from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
@@ -79,7 +85,7 @@ EXTRA_EST_G_ERR_ERR = 0.005
 LOCAL_FAIL_SIGMA = 4
 GLOBAL_FAIL_SIGMA = 10
 
-INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, float]]]] = {
+D_D_L_D_INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, float]]]] = {
     ShearEstimationMethods.LENSMC: {BinParameters.GLOBAL: [{"m1"    : 0.05,
                                                             "m1_err": 0.015,
                                                             "c1"    : -0.2,
@@ -107,13 +113,241 @@ INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, floa
                                                          }]}}
 
 
+class MockDataGenerator(ABC):
+    """ A class to handle the generation of mock data for testing.
+    """
+
+    # Attributes optionally set at init or with defaults
+    tf: Optional[SheTableFormat] = None
+    num_test_points: int = NUM_TEST_POINTS
+    seed: int = 0
+
+    # Attributes set when data is generated
+    data: Optional[Dict[str, np.ndarray]] = None
+
+    def __init__(self,
+                 tf: Optional[SheTableFormat] = None,
+                 num_test_points: Optional[int] = None,
+                 seed: Optional[int] = None) -> None:
+        """ Initializes the class.
+        """
+        self.tf = default_value_if_none(x = tf,
+                                        default_x = self.tf)
+        self.num_test_points = default_value_if_none(x = num_test_points,
+                                                     default_x = self.num_test_points)
+        self.seed = default_value_if_none(x = seed,
+                                          default_x = self.seed)
+
+    def _generate_base_data(self):
+        """ Set up base data which is commonly used.
+        """
+        self._indices = np.indices((NUM_TEST_POINTS,), dtype = int, )[0]
+        self._zeros = np.zeros(NUM_TEST_POINTS, dtype = '>f4')
+        self._ones = np.ones(NUM_TEST_POINTS, dtype = '>f4')
+
+    def _seed_rng(self):
+        """Seed the random number generator
+        """
+        self._rng = np.random.default_rng(self.seed)
+
+    def get_data(self):
+        """ Get the data, generating if needed.
+        """
+        if self.data is None:
+            self.generate_data()
+        return self.data
+
+    def generate_data(self):
+        """ Generates data based on input parameters.
+        """
+
+        # Generate generic data first
+        self._seed_rng()
+        self._generate_base_data()
+
+        # Call the abstract method to generate unique data for each type
+        self._generate_unique_data()
+
+    @abstractmethod
+    def _generate_unique_data(self):
+        """ Generates data unique to this type.
+        """
+
+
+class MockTUGalaxyDataGenerator(MockDataGenerator):
+    """ A class to handle the generation of mock galaxy catalog data.
+    """
+
+    # Overring base class default values
+    tf: SheTUMatchedFormat = she_tu_matched_table_format
+    seed: int = 3513
+
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate galaxy data.
+        """
+
+        self.data[self.tf.ID] = self._indices
+
+        # Fill in input data
+        self.data[self.tf.tu_gamma1] = -np.linspace(INPUT_G_MIN, INPUT_G_MAX, self.num_test_points)
+        self.data[self.tf.tu_gamma2] = np.linspace(INPUT_G_MAX, INPUT_G_MIN, self.num_test_points)
+        self.data[self.tf.tu_kappa] = np.zeros_like(self.data[self.tf.tu_gamma1])
+
+        # Fill in data for bin parameter info, with different bins for each parameter
+
+        i: int
+        bin_parameter: BinParameters
+        for i, bin_parameter in enumerate(BinParameters):
+            if bin_parameter == BinParameters.GLOBAL:
+                continue
+            factor = 2 ** i
+            self.data[bin_parameter.name] = np.where(self._indices % factor < factor / 2, self._ones, self._zeros)
+
+
+class MockShearEstimateDataGenerator(MockDataGenerator):
+    """ A class to handle the generation of mock shear estimates data.
+    """
+
+    # Overring base class default values
+    tf: SheMeasurementsFormat
+    seed: int = 75275
+
+    # New attributes for this subclass
+    mock_tu_galaxy_data_generator: MockTUGalaxyDataGenerator
+    method: ShearEstimationMethods
+
+    # Attributes used while generating data
+    _tu_data: Optional[Dict[str, np.ndarray]] = None
+    _tu_tf: Optional[SheTUMatchedFormat] = None
+
+    def __init__(self,
+                 method: ShearEstimationMethods,
+                 mock_tu_galaxy_data_generator: Optional[MockTUGalaxyDataGenerator] = None,
+                 *args, **kwargs):
+        """ Override init so we can add an input argument for mock tu galaxy data generator.
+        """
+        super().__init__(*args, **kwargs)
+
+        # Init the method and its table format
+        self.method = method
+        self.tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+
+        # Init the data generator
+        self.mock_tu_galaxy_data_generator = default_init_if_none(mock_tu_galaxy_data_generator,
+                                                                  type = MockTUGalaxyDataGenerator)
+
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate galaxy data.
+        """
+
+        # Get the TU data generator and table format
+        self._tu_data = self.mock_tu_galaxy_data_generator.get_data()
+        self._tu_tf = self.mock_tu_galaxy_data_generator.tf
+
+        self.data[self.tf.ID] = self._indices
+
+        # Generate random noise for output data
+        l_extra_g_err = EXTRA_EST_G_ERR + EXTRA_EST_G_ERR_ERR * self._rng.standard_normal(NUM_TEST_POINTS)
+        l_g_err = np.sqrt(EST_G_ERR ** 2 + l_extra_g_err ** 2)
+        l_g1_deviates = l_g_err * self._rng.standard_normal(NUM_TEST_POINTS)
+        l_g2_deviates = l_g_err * self._rng.standard_normal(NUM_TEST_POINTS)
+
+        # Save the error in the table
+        self.data[self.tf.g1_err] = l_g_err
+        self.data[self.tf.g2_err] = l_g_err
+        self.data[self.tf.weight] = 0.5 * l_g_err ** -2
+
+        # Fill in rows with mock output data - this bit depends on which method we're using
+        d_l_d_method_input_bias = D_D_L_D_INPUT_BIAS[self.method]
+        if self.method == ShearEstimationMethods.LENSMC:
+            d_bias_0m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
+            d_bias_1m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
+        else:
+            d_bias_0m2 = d_l_d_method_input_bias[BinParameters.SNR][0]
+            d_bias_1m2 = d_l_d_method_input_bias[BinParameters.SNR][1]
+
+        g1_0m2 = d_bias_0m2["c1"] + (1 + d_bias_0m2["m1"]) * -self._tu_data[self._tu_tf.tu_gamma1] + l_g1_deviates
+        g1_1m2 = d_bias_1m2["c1"] + (1 + d_bias_1m2["m1"]) * -self._tu_data[self._tu_tf.tu_gamma1] + l_g1_deviates
+
+        g2_0m2 = d_bias_0m2["c2"] + (1 + d_bias_0m2["m2"]) * self._tu_data[self._tu_tf.tu_gamma2] + l_g2_deviates
+        g2_1m2 = d_bias_1m2["c2"] + (1 + d_bias_1m2["m2"]) * self._tu_data[self._tu_tf.tu_gamma2] + l_g2_deviates
+
+        # Add to table, flipping g1 due to SIM's format
+        self.data[self.tf.g1] = np.where(self._indices % 2 < 1, g1_0m2, g1_1m2)
+        self.data[self.tf.g2] = np.where(self._indices % 2 < 1, g2_0m2, g2_1m2)
+
+        # TODO: Set numbers of good, nan, and inf test points as fields
+
+        # Flag the last bit of data as bad or zero weight
+        self.data[self.tf.g1][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:-NUM_ZERO_WEIGHT_TEST_POINTS] = np.NaN
+        self.data[self.tf.g1_err][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:] = np.NaN
+        self.data[self.tf.g2][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:-NUM_ZERO_WEIGHT_TEST_POINTS] = np.NaN
+        self.data[self.tf.g2_err][-NUM_NAN_TEST_POINTS - NUM_ZERO_WEIGHT_TEST_POINTS:] = np.NaN
+
+        self.data[self.tf.g1_err][-NUM_ZERO_WEIGHT_TEST_POINTS:] = np.inf
+        self.data[self.tf.g2_err][-NUM_ZERO_WEIGHT_TEST_POINTS:] = np.inf
+        self.data[self.tf.weight][-NUM_ZERO_WEIGHT_TEST_POINTS:] = 0
+
+        # Set the fit flags
+        self.data[self.tf.fit_flags] = np.where(self._indices < NUM_GOOD_TEST_POINTS, 0,
+                                                np.where(self._indices < NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS, 1,
+                                                         0))
+
+
+class MockCatalogGenerator(ABC):
+    """ A class to handle the generation of a mock catalog from mock data.
+    """
+
+    # Attributes set at init
+    mock_data_generator: MockDataGenerator
+
+    # Attributes optionally set at init or with defaults
+    tf: Optional[SheTableFormat] = None
+
+    # Attributes set when catalog is generated.
+    _mock_catalog: Optional[Table] = None
+
+    def __init__(self,
+                 mock_data_generator: MockDataGenerator,
+                 tf: Optional[SheTableFormat] = None) -> None:
+        """ Initializes the class.
+        """
+        self.mock_data_generator = mock_data_generator
+        self.tf = default_value_if_none(x = tf, default_x = self.tf)
+
+    @abstractmethod
+    def _make_mock_catalog(self) -> None:
+        """ Abstract method to generate the mock catalog, filling in self._mock_catalog with a Table.
+        """
+        pass
+
+    def get_mock_catalog(self) -> Table:
+        """ Gets the generated mock catalog.
+        """
+        if self._mock_catalog is None:
+            self.mock_data_generator.generate_data()
+            self._make_mock_catalog()
+        return self._mock_catalog
+
+
+class MockGalaxyCatalogGenerator(MockCatalogGenerator):
+    """ A class to handle the generation of mock galaxy catalogs.
+    """
+
+    # Attributes with overriding types
+    mock_data_generator: MockTUGalaxyDataGenerator
+    tf: Optional[SheTableFormat] = she_tu_matched_table_format
+
+
 def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
                             seed: int = EST_SEED, ) -> Table:
     """ Function to generate a mock matched catalog table.
     """
 
     tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
-    d_l_input_bias = INPUT_BIAS[method]
+    d_l_d_method_input_bias = D_D_L_D_INPUT_BIAS[method]
 
     # Seed the random number generator
     rng = np.random.default_rng(seed)
@@ -155,17 +389,17 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
 
     # Fill in rows with mock output data - this bit depends on which method we're using
     if method == ShearEstimationMethods.LENSMC:
-        bias_0m2 = d_l_input_bias[BinParameters.GLOBAL][0]
-        bias_1m2 = d_l_input_bias[BinParameters.GLOBAL][0]
+        d_bias_0m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
+        d_bias_1m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
     else:
-        bias_0m2 = d_l_input_bias[BinParameters.SNR][0]
-        bias_1m2 = d_l_input_bias[BinParameters.SNR][1]
+        d_bias_0m2 = d_l_d_method_input_bias[BinParameters.SNR][0]
+        d_bias_1m2 = d_l_d_method_input_bias[BinParameters.SNR][1]
 
-    g1_0m2 = bias_0m2["c1"] + (1 + bias_0m2["m1"]) * -matched_table[tf.tu_gamma1] + l_g1_deviates
-    g1_1m2 = bias_1m2["c1"] + (1 + bias_1m2["m1"]) * -matched_table[tf.tu_gamma1] + l_g1_deviates
+    g1_0m2 = d_bias_0m2["c1"] + (1 + d_bias_0m2["m1"]) * -matched_table[tf.tu_gamma1] + l_g1_deviates
+    g1_1m2 = d_bias_1m2["c1"] + (1 + d_bias_1m2["m1"]) * -matched_table[tf.tu_gamma1] + l_g1_deviates
 
-    g2_0m2 = bias_0m2["c2"] + (1 + bias_0m2["m2"]) * matched_table[tf.tu_gamma1] + l_g2_deviates
-    g2_1m2 = bias_1m2["c2"] + (1 + bias_1m2["m2"]) * matched_table[tf.tu_gamma1] + l_g2_deviates
+    g2_0m2 = d_bias_0m2["c2"] + (1 + d_bias_0m2["m2"]) * matched_table[tf.tu_gamma1] + l_g2_deviates
+    g2_1m2 = d_bias_1m2["c2"] + (1 + d_bias_1m2["m2"]) * matched_table[tf.tu_gamma1] + l_g2_deviates
 
     # Add to table, flipping g1 due to SIM's format
     matched_table[tf.g1] = np.where(indices % 2 < 1, g1_0m2, g1_1m2)
@@ -220,7 +454,8 @@ def cleanup_mock_matched_tables(workdir: str):
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
-    """TODO: Add a docstring to this class."""
+    """ Generate a mock dictionary of bin limits for testing.
+    """
 
     d_l_bin_limits: Dict[BinParameters, np.ndarray] = {}
     for bin_parameter in BinParameters:

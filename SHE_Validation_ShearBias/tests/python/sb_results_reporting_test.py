@@ -36,7 +36,7 @@ from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, )
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_shear_bias_data import INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
+from SHE_Validation.testing.mock_shear_bias_data import D_D_L_D_INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,
@@ -121,9 +121,9 @@ class TestCase:
                                                                      return_one = True)
                 c_name = c_test_case_info.name
 
-                if bin_parameter not in INPUT_BIAS[method]:
+                if bin_parameter not in D_D_L_D_INPUT_BIAS[method]:
                     continue
-                l_d_input_bias = INPUT_BIAS[method][bin_parameter]
+                l_d_input_bias = D_D_L_D_INPUT_BIAS[method][bin_parameter]
                 num_bins = len(l_d_input_bias)
 
                 l_d_bias_measurements: List[Optional[Dict[int, BiasMeasurements]]] = [None] * num_bins
@@ -220,7 +220,7 @@ class TestCase:
 
         requirement_object = test_result_object.ValidatedRequirements.Requirement[0]
 
-        l_d_input_bias = INPUT_BIAS[method][bins]
+        l_d_input_bias = D_D_L_D_INPUT_BIAS[method][bins]
         num_bins = len(l_d_input_bias)
         d_bias = {}
 
@@ -232,8 +232,8 @@ class TestCase:
                 # Simple variable for the component we're testing, e.g. "m1"
                 ci = f'{comp}{index}'
 
-                d_bias[ci] = INPUT_BIAS[method][bins][bin_index][ci]
-                d_bias[f'{ci}_err'] = INPUT_BIAS[method][bins][bin_index][f"{ci}_err"]
+                d_bias[ci] = D_D_L_D_INPUT_BIAS[method][bins][bin_index][ci]
+                d_bias[f'{ci}_err'] = D_D_L_D_INPUT_BIAS[method][bins][bin_index][f"{ci}_err"]
 
                 # Calculate z value, relative to the target. If inside the target, z is zero
                 if abs(d_bias[ci]) > target_val:
