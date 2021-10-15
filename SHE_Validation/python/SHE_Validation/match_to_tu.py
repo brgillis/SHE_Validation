@@ -316,7 +316,8 @@ def match_within_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
                              local_dec_range: np.ndarray,
                              match_threshold: float,
                              search_path: str) -> None:
-    """TODO: Add a docstring for this function."""
+    """ Performs a catalog match to galaxy and star catalogs within a limited range of ra/dec coordinates.
+    """
     # Read in the star and galaxy catalogs from the overlapping area
     overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
                                                             ra_range = local_ra_range,
@@ -536,7 +537,9 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
                             in_range: np.ndarray,
                             match_threshold: float,
                             prioritize: bool):
-    """TODO: Add a docstring for this function."""
+    """ Filters the best match for a set of objects, to exclude matches outside the threshold or when it better
+        mathces to another type of object.
+    """
     if len(best_obj_id_from_tu) > 0:
 
         if prioritize:
@@ -560,7 +563,8 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
 
 def add_galaxy_analysis_columns(gal_matched_table: Table,
                                 sem_tf: SheTUMatchedFormat):
-    """TODO: Add a docstring for this function."""
+    """ Adds columns to the TU Matched table representing useful values for scientific analysis.
+    """
     # Details about estimated shear
     gal_matched_table.add_column(
         Column(
