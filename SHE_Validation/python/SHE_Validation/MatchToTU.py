@@ -46,8 +46,12 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input filenames
-    parser.add_argument('--she_measurements_product', type = str,
-                        help = 'INPUT: Filename for shear estimates data product (XML data product)')
+    parser.add_measurements_arg()
+    parser.add_argument('--data_images', type = str, default = None,
+                        help = 'INPUT (optional): .json listfile containing filenames of data image products.')
+    parser.add_argument('--detections_tables', type = str, default = None,
+                        help = 'INPUT (optional): .json listfile containing filenames of detections table products.')
+
     parser.add_argument('--tu_galaxy_catalog_list', type = str, default = None,
                         help = 'INPUT: Filename for True Universe Galaxy Catalog listfile (.json).')
     parser.add_argument('--tu_star_catalog_list', type = str, default = None,
