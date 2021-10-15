@@ -40,9 +40,6 @@ from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_I
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 
-# Pipeline config filename
-PIPELINE_CONFIG_FILENAME = "cti_gal_pipeline_config.xml"
-
 # Output data filenames
 
 SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"

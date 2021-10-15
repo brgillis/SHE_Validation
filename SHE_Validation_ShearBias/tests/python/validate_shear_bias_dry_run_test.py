@@ -22,21 +22,53 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
+from argparse import Namespace
 from typing import Optional
 
 import pytest
+from dataclasses import dataclass
 
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
+from SHE_Validation.testing.constants import PIPELINE_CONFIG_FILENAME, SHE_BIAS_TEST_RESULT_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_shear_bias_data import (MockShearBiasArgs, cleanup_mock_matched_tables,
-                                                         write_mock_matched_tables, )
 # noinspection PyPep8Naming
+from SHE_Validation.testing.mock_tables import (MATCHED_TABLE_PRODUCT_FILENAME, cleanup_mock_matched_tables,
+                                                write_mock_matched_tables, )
 from SHE_Validation_ShearBias.ValidateShearBias import mainMethod as validate_shear_bias_main
+from SHE_Validation_ShearBias.constants.shear_bias_test_info import FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 
 logger = getLogger(__name__)
+
+
+@dataclass
+class MockShearBiasArgs(Namespace):
+    """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
+    """
+
+    # Workdir and logdir need to be set in setup_class
+    workdir: Optional[str] = None
+    logdir: Optional[str] = None
+
+    bootstrap_errors: Optional[bool] = None
+    max_g_in: Optional[float] = None
+    require_fitclass_zero: Optional[bool] = None
+
+    matched_catalog: str = MATCHED_TABLE_PRODUCT_FILENAME
+    pipeline_config: str = PIPELINE_CONFIG_FILENAME
+    shear_bias_validation_test_results_product: str = SHE_BIAS_TEST_RESULT_FILENAME
+
+    profile: bool = False
+    dry_run: bool = True
+
+    def __post_init__(self):
+
+        for test_case_info in FULL_L_SHEAR_BIAS_TEST_CASE_M_INFO:
+            bin_limits_cline_arg = test_case_info.bins_cline_arg
+            if bin_limits_cline_arg is not None:
+                setattr(self, bin_limits_cline_arg, None)
 
 
 class TestCase:

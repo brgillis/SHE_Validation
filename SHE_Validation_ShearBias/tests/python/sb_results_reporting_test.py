@@ -35,8 +35,9 @@ from SHE_Validation.constants.default_config import ExecutionMode, FailSigmaScal
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, )
 from SHE_Validation.test_info_utility import find_test_case_info
+from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
+from SHE_Validation.testing.mock_data import D_D_L_D_INPUT_BIAS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_shear_bias_data import D_D_L_D_INPUT_BIAS, TEST_BIN_PARAMETERS, TEST_METHODS
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,

@@ -28,18 +28,12 @@ import numpy as np
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
+from .constants import DEFAULT_GLOBAL_FAIL_SIGMA, DEFAULT_LOCAL_FAIL_SIGMA, DEFAULT_MOCK_BIN_LIMITS
 from ..constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
                                         ValidationConfigKeys, )
 from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)
-
-# Default values for the factory class
-DEFAULT_MOCK_BIN_LIMITS = [-0.5, 0.5, 1.5]
-DEFAULT_TEST_BIN_PARAMETER = BinParameters.SNR
-
-DEFAULT_LOCAL_FAIL_SIGMA = 4
-DEFAULT_GLOBAL_FAIL_SIGMA = 10
 
 
 class MockValPipelineConfigFactory(MockPipelineConfigFactory):
