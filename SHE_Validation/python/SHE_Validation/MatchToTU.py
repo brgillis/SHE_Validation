@@ -19,7 +19,7 @@ __updated__ = "2021-08-12"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from SHE_PPT.constants.config import ValidationConfigKeys
+from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_PPT.logging import getLogger
 from SHE_Validation.argument_parser import ValidationArgumentParser
@@ -102,7 +102,8 @@ def mainMethod(args):
                                     config_args = ReadConfigArgs(d_config_defaults = D_TUM_CONFIG_DEFAULTS,
                                                                  d_config_types = D_TUM_CONFIG_TYPES,
                                                                  d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
-                                                                 s_config_keys_types = {ValidationConfigKeys},
+                                                                 s_config_keys_types = {AnalysisConfigKeys,
+                                                                                        ValidationConfigKeys},
                                                                  ))
 
     executor.run(args, logger = logger)
