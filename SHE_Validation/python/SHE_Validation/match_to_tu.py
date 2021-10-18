@@ -114,7 +114,7 @@ def match_to_tu_from_args(args):
      star_catalog_filenames) = get_catalog_filenames(args, search_path)
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
-    d_shear_tables, _ = read_d_method_tables(args.she_measurements_product,
+    d_shear_tables, _ = read_d_method_tables(args.she_validated_measurements_product,
                                              workdir = workdir,
                                              log_info = True)
 
