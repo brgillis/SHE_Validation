@@ -205,7 +205,13 @@ def _determine_data_table(t: Table,
         if not MFC_TF.ID in full_data_table.indices:
             full_data_table.add_index(MFC_TF.ID)
 
-        data_table = Table(full_data_table.loc[t[MFC_TF.ID]])
+        l_ids = t[MFC_TF.ID]
+
+        # Special handling for zero-length data
+        if len(l_ids) == 0:
+            data_table = t[np.zeros_like(t[MFC_TF.ID], dtype = bool)]
+        else:
+            data_table = Table(full_data_table.loc[l_ids])
 
     else:
         raise ValueError("Cannot find necessary data to calculate bin data in either target table or data stack.")
