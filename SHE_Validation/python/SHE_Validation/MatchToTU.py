@@ -83,7 +83,7 @@ def defineSpecificProgramOptions():
                         help = "OPTION: Path to where the SIM data is stored")
     parser.add_argument('--match_threshold', type = float, default = 0.3,
                         help = "OPTION: Maximum distance allowed for a match in units of arcsec.")
-    parser.add_argument('--add_bin_columns', type = bool, action = "store_true", default = False,
+    parser.add_argument('--add_bin_columns', action = "store_true", default = False,
                         help = "OPTION: If set, will add columns to the output catalog with data used for binning.")
 
     logger.debug('Exiting SHE_Validation_MatchToTU defineSpecificProgramOptions()')
