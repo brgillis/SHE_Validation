@@ -571,10 +571,10 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
         best_tu_id = np.where(in_range, np.where(best_distance < match_threshold,
                                                  np.where(is_better_match, best_tu_id, -99),
                                                  -99), -99)
-        symmetric_star_match = best_obj_id_from_tu[best_tu_id] == np.arange(len(best_tu_id))
+        symmetric_tu_match = best_obj_id_from_tu[best_tu_id] == np.arange(len(best_tu_id))
 
         # Mask out with -99 if we don't have a symmetric match
-        best_tu_id = np.where(symmetric_star_match, best_tu_id, -99)
+        best_tu_id = np.where(symmetric_tu_match, best_tu_id, -99)
 
     else:
         best_tu_id = np.zeros(len(in_range), dtype = int)
