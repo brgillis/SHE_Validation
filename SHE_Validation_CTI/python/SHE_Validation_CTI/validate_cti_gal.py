@@ -21,7 +21,7 @@ __updated__ = "2021-08-30"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from os.path import join
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import numpy as np
 from astropy.table import Row, Table, vstack as table_vstack
@@ -29,7 +29,8 @@ from astropy.table import Row, Table, vstack as table_vstack
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb, products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.file_io import (filename_exists, get_allowed_filename, read_listfile, read_xml_product, write_listfile,
+from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_listfile,
+                             read_xml_product, write_listfile,
                              write_xml_product, )
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
@@ -37,6 +38,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.utility import get_object_id_list_from_se_tables
 from . import __version__
 from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
                                           NUM_CTI_GAL_TEST_CASES, )
@@ -69,13 +71,24 @@ def run_validate_cti_gal_from_args(args):
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
     logger.info(MSG_COMPLETE)
 
-    # Convert values in the config to the proper type
+    # Get the bin limits dictionary from the config
     d_bin_limits = get_d_bin_limits(args.pipeline_config)
 
-    # Load the image data as a SHEFrameStack
+    # Load the shear measurements
+
+    logger.info("Loading validated shear measurements.")
+
+    # Read in the shear estimates data product, and get the filenames of the tables for each method from it
+    d_shear_estimate_tables, _ = read_d_method_tables(args.she_validated_measurements_product,
+                                                      workdir = workdir,
+                                                      log_info = True)
+
+    # Load the image data as a SHEFrameStack. Limit to object IDs we have shear estimates for
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
+    s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_estimate_tables)
     data_stack = SHEFrameStack.read(exposure_listfile_filename = args.vis_calibrated_frame_listfile,
                                     detections_listfile_filename = args.mer_final_catalog_listfile,
+                                    object_id_list = s_object_ids,
                                     workdir = workdir,
                                     memmap = True,
                                     load_images = True,
@@ -83,6 +96,7 @@ def run_validate_cti_gal_from_args(args):
                                     mode = 'denywrite')
     logger.info(MSG_COMPLETE)
 
+    # TODO: Use products from the frame stack
     # Load the exposure products, to get needed metadata for output
     l_vis_calibrated_frame_filename = read_listfile(join(workdir, args.vis_calibrated_frame_listfile),
                                                     log_info = True)
@@ -95,22 +109,6 @@ def run_validate_cti_gal_from_args(args):
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
                              + " is invalid type.")
         l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
-
-    # Load the shear measurements
-
-    logger.info("Loading validated shear measurements.")
-
-    qualified_she_validated_measurements_product_filename = join(workdir, args.she_validated_measurements_product)
-    shear_estimates_prod = read_xml_product(qualified_she_validated_measurements_product_filename,
-                                            log_info = True)
-
-    if not isinstance(shear_estimates_prod, products.she_validated_measurements.dpdSheValidatedMeasurements):
-        raise ValueError("Shear estimates product from " + qualified_she_validated_measurements_product_filename
-                         + " is invalid type.")
-
-    # Load the table for each method
-    d_shear_estimate_tables = get_d_shear_estimate_tables(shear_estimates_prod = shear_estimates_prod,
-                                                          workdir = workdir)
 
     # Log a warning if no data from any method and set a flag for later code to refer to
     if all(value is None for value in d_shear_estimate_tables.values()):
@@ -193,7 +191,8 @@ def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]
                                                                                            List[Any],
                                                                                            Any,
                                                                                            Optional[Any]]:
-    """TODO: Add a docstring to this function."""
+    """ Load in the image data and create validation test result products based off of it.
+    """
 
     l_exp_test_result_product: List[Any] = []
     l_exp_test_result_filename: List[str] = []
@@ -245,27 +244,6 @@ def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]
             l_exp_test_result_product,
             obs_test_result_product,
             vis_calibrated_frame_product)
-
-
-def get_d_shear_estimate_tables(shear_estimates_prod: Any,
-                                workdir: str) -> Dict[ShearEstimationMethods, Table]:
-    """ Get a dict of loaded shear estimates tables from a shear estimates data product object.
-    """
-
-    # TODO: Move this to SHE_PPT common code
-
-    d_shear_estimate_tables = {}
-    for method in ShearEstimationMethods:
-
-        filename = shear_estimates_prod.get_method_filename(method)
-
-        if filename_exists(filename):
-            shear_measurements_table = Table.read(join(workdir, filename), format = 'fits')
-            d_shear_estimate_tables[method] = shear_measurements_table
-        else:
-            d_shear_estimate_tables[method] = None
-
-    return d_shear_estimate_tables
 
 
 def validate_cti_gal(data_stack: SHEFrameStack,

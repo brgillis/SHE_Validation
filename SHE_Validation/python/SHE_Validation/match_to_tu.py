@@ -33,8 +33,7 @@ from astropy.table import Column, Table, join, vstack
 
 import SHE_Validation
 from SHE_PPT import file_io, products
-from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
-                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
 from SHE_PPT.logging import getLogger
@@ -42,6 +41,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
 from SHE_Validation.binning.bin_data import (add_bg_column, add_colour_column, add_epoch_column, add_size_column,
                                              add_snr_column, )
+from SHE_Validation.utility import get_object_id_list_from_se_tables
 
 logger = getLogger(__name__)
 
@@ -151,7 +151,7 @@ def match_to_tu_from_args(args):
                                      search_path)
 
     # Read in the data stack
-    s_object_ids: Set[int] = get_object_id_list(d_shear_tables)
+    s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
     data_stack: SHEFrameStack = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
                                                    detections_listfile_filename = args.detections_tables,
                                                    object_id_list = s_object_ids,
@@ -575,19 +575,6 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
         best_tu_id = np.zeros(len(in_range), dtype = int)
 
     return best_tu_id
-
-
-def get_object_id_list(d_shear_tables: Dict[ShearEstimationMethods, Table]) -> Set[int]:
-    """ Gets a set of object IDs from across all shear tables.
-    """
-
-    s_object_ids = set()
-    for method in d_shear_tables:
-        t = d_shear_tables[method]
-        tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        s_object_ids.update(t[tf.ID])
-
-    return s_object_ids
 
 
 def add_binning_data(gal_matched_table: Table,
