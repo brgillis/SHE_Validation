@@ -101,7 +101,9 @@ def mainMethod(args):
                                                                 s_store_true = {"add_bin_columns"}),
                                     config_args = ReadConfigArgs(d_config_defaults = D_TUM_CONFIG_DEFAULTS,
                                                                  d_config_types = D_TUM_CONFIG_TYPES,
-                                                                 d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS))
+                                                                 d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
+                                                                 s_config_keys_types = {ValidationConfigKeys},
+                                                                 ))
 
     executor.run(args, logger = logger)
 
