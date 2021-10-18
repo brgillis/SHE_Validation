@@ -34,6 +34,8 @@ def get_object_id_list_from_se_tables(d_shear_tables: Dict[ShearEstimationMethod
     s_object_ids = set()
     for method in d_shear_tables:
         t = d_shear_tables[method]
+        if t is None:
+            continue
         tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         s_object_ids.update(t[tf.ID])
 
