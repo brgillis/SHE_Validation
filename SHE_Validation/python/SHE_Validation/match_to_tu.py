@@ -561,7 +561,7 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
     """ Filters the best match for a set of objects, to exclude matches outside the threshold or when it better
         mathces to another type of object.
     """
-    if len(best_obj_id_from_tu) > 0:
+    if len(best_obj_id_from_tu) > 0 and len(best_tu_id) > 0:
 
         if prioritize:
             is_better_match: np.ndarray = best_distance <= best_tu_distance
