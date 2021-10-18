@@ -209,7 +209,7 @@ def _determine_data_table(t: Table,
 
         # Special handling for zero-length data
         if len(l_ids) == 0:
-            data_table = t[np.zeros_like(t[MFC_TF.ID], dtype = bool)]
+            data_table = full_data_table[np.zeros_like(t[MFC_TF.ID], dtype = bool)]
         else:
             data_table = Table(full_data_table.loc[l_ids])
 
