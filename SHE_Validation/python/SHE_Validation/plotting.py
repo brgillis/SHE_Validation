@@ -146,6 +146,10 @@ class ValidationPlotter(abc.ABC):
             Credit: Guillaume on StackOverflow
         """
 
+        # Prune any NaN values from l_x and l_y
+        l_x = l_x[~np.isnan(l_x)]
+        l_y = l_y[~np.isnan(l_y)]
+
         data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins = bins, density = True)
         l_z: np.ndarray = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
                                   np.vstack([l_x, l_y]).T, method = "splinef2d", bounds_error = False)
