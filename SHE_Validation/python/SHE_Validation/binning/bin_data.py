@@ -197,7 +197,7 @@ def _determine_data_table(t: Table, data_stack: SHEFrameStack, data_colname: str
     if data_colname in t.colnames:
         data_table = t
     elif data_colname in data_stack.detections_catalogue.colnames:
-        data_table = data_stack.detections_catalogue.colnames
+        data_table = data_stack.detections_catalogue
     else:
         raise ValueError("Cannot find necessary data to calculate bin data in either target table or data stack.")
     return data_table
