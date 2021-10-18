@@ -21,10 +21,10 @@ __updated__ = "2021-08-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-from typing import Sequence
+from typing import Sequence, Union
 
 import numpy as np
-from astropy.table import Column, Table
+from astropy.table import Column, Row, Table
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -192,12 +192,21 @@ def add_epoch_column(t: Table,
     t.add_column(epoch_column)
 
 
-def _determine_data_table(t: Table, data_stack: SHEFrameStack, data_colname: str) -> Table:
+def _determine_data_table(t: Table,
+                          data_stack: SHEFrameStack,
+                          data_colname: str) -> Union[Table, Row]:
     data_table: Table
     if data_colname in t.colnames:
         data_table = t
     elif data_colname in data_stack.detections_catalogue.colnames:
-        data_table = data_stack.detections_catalogue
+        full_data_table: Table = data_stack.detections_catalogue
+
+        # We need to make sure IDs align, so here we select on IDs in t
+        if not MFC_TF.ID in full_data_table.indices:
+            full_data_table.add_index(MFC_TF.ID)
+
+        data_table = full_data_table.loc[t[MFC_TF.ID]]
+
     else:
         raise ValueError("Cannot find necessary data to calculate bin data in either target table or data stack.")
     return data_table
