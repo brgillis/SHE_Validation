@@ -92,12 +92,15 @@ def add_global_column(_t: Table,
 
 
 def add_snr_column(t: Table,
-                   _data_stack: SHEFrameStack) -> None:
+                   data_stack: SHEFrameStack) -> None:
     """ Calculates SNR data and adds a column for it to the table.
     """
 
-    snr_data: Sequence[float] = np.where(t[MFC_TF.FLUXERR_VIS_APER] != 0.,
-                                         t[MFC_TF.FLUX_VIS_APER] / t[MFC_TF.FLUXERR_VIS_APER],
+    # Check first if necessary data is in the target table
+    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)
+
+    snr_data: Sequence[float] = np.where(data_table[MFC_TF.FLUXERR_VIS_APER] != 0.,
+                                         data_table[MFC_TF.FLUX_VIS_APER] / data_table[MFC_TF.FLUXERR_VIS_APER],
                                          np.NaN)
 
     snr_column: Column = Column(data = snr_data, name = TF.snr, dtype = TF.dtypes[TF.snr])
@@ -106,13 +109,16 @@ def add_snr_column(t: Table,
 
 
 def add_colour_column(t: Table,
-                      _data_stack: SHEFrameStack) -> None:
+                      data_stack: SHEFrameStack) -> None:
     """ Calculates colour data and adds a column for it to the table.
     """
 
-    colour_data: Sequence[float] = np.where(t[MFC_TF.FLUX_NIR_STACK_APER] != 0.,
-                                            2.5 * np.log10(t[MFC_TF.FLUX_VIS_APER] /
-                                                           t[MFC_TF.FLUX_NIR_STACK_APER]),
+    # Check first if necessary data is in the target table
+    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUX_NIR_STACK_APER)
+
+    colour_data: Sequence[float] = np.where(data_table[MFC_TF.FLUX_NIR_STACK_APER] != 0.,
+                                            2.5 * np.log10(data_table[MFC_TF.FLUX_VIS_APER] /
+                                                           data_table[MFC_TF.FLUX_NIR_STACK_APER]),
                                             np.NaN)
 
     colour_column: Column = Column(data = colour_data, name = TF.colour, dtype = TF.dtypes[TF.colour])
@@ -121,11 +127,14 @@ def add_colour_column(t: Table,
 
 
 def add_size_column(t: Table,
-                    _data_stack: SHEFrameStack) -> None:
+                    data_stack: SHEFrameStack) -> None:
     """ Calculates size data and adds a column for it to the table.
     """
 
-    size_data: Sequence[float] = t[MFC_TF.SEGMENTATION_AREA].data
+    # Check first if necessary data is in the target table
+    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.SEGMENTATION_AREA)
+
+    size_data: Sequence[float] = data_table[MFC_TF.SEGMENTATION_AREA].data
 
     size_column: Column = Column(data = size_data, name = TF.size, dtype = TF.dtypes[TF.size])
 
@@ -168,16 +177,30 @@ def add_bg_column(t: Table,
 
 
 def add_epoch_column(t: Table,
-                     _data_stack: SHEFrameStack) -> None:
+                     data_stack: SHEFrameStack) -> None:
     """ Calculates epoch data and adds a column for it to the table.
     """
 
+    # Check first if necessary data is in the target table
+    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)
+
     # TODO: Fill in with proper calculation
-    epoch_data: Sequence[float] = np.zeros_like(t[MFC_TF.FLUXERR_VIS_APER].data)
+    epoch_data: Sequence[float] = np.zeros_like(data_table[MFC_TF.FLUXERR_VIS_APER].data)
 
     epoch_column: Column = Column(data = epoch_data, name = TF.epoch, dtype = TF.dtypes[TF.epoch])
 
     t.add_column(epoch_column)
+
+
+def _determine_data_table(t: Table, data_stack: SHEFrameStack, data_colname: str) -> Table:
+    data_table: Table
+    if data_colname in t.colnames:
+        data_table = t
+    elif data_colname in data_stack.detections_catalogue.colnames:
+        data_table = data_stack.detections_catalogue.colnames
+    else:
+        raise ValueError("Cannot find necessary data to calculate bin data in either target table or data stack.")
+    return data_table
 
 
 D_COLUMN_ADDING_METHODS = {
