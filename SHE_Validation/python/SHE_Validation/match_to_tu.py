@@ -548,7 +548,7 @@ def find_best_match(sky_coord_se,
         best_tu_id, best_tu_distance = [], []
         best_obj_id_from_tu, _best_distance_from_tu = [], []
 
-    return best_obj_id_from_tu, best_tu_distance, best_tu_id
+    return np.array(best_obj_id_from_tu), np.array(best_tu_distance), np.array(best_tu_id)
 
 
 def get_filtered_best_match(best_tu_distance: np.ndarray,
