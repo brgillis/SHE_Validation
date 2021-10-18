@@ -33,6 +33,7 @@ from astropy.table import Column, Table, join, vstack
 
 import SHE_Validation
 from SHE_PPT import file_io, products
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
@@ -151,11 +152,14 @@ def match_to_tu_from_args(args):
                                      search_path)
 
     # Read in the data stack
-    s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-    data_stack: SHEFrameStack = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
-                                                   detections_listfile_filename = args.detections_tables,
-                                                   object_id_list = s_object_ids,
-                                                   workdir = workdir)
+    if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
+        s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
+        data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
+                                                                 detections_listfile_filename = args.detections_tables,
+                                                                 object_id_list = s_object_ids,
+                                                                 workdir = workdir)
+    else:
+        data_stack: Optional[SHEFrameStack] = None
 
     # Create output data product
     matched_catalog_product = products.she_measurements.create_dpd_she_measurements()
@@ -172,9 +176,10 @@ def match_to_tu_from_args(args):
         if len(star_matched_table) == 0:
             logger.warning(f"No measurements with method {method.value} were matched to stars.")
 
-        # Update each galaxy table with data necessary for binning
-        add_binning_data(gal_matched_table = gal_matched_table,
-                         data_stack = data_stack)
+        # Update each galaxy table with data necessary for binning if desired
+        if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
+            add_binning_data(gal_matched_table = gal_matched_table,
+                             data_stack = data_stack)
 
         unmatched_table = d_shear_tables[method]
 
