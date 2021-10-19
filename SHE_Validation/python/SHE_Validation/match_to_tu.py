@@ -482,7 +482,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
                                           best_obj_id_from_tu = best_obj_id_from_gal,
                                           in_range = in_range,
                                           match_threshold = match_threshold,
-                                          prioritize = False)
+                                          prioritize = True)
 
     # Add columns to the shear estimates table so we can match to it
     if tum_tf.tu_star_index in shear_table.colnames and len(best_star_id) > 0:
