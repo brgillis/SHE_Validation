@@ -60,10 +60,10 @@ D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : 2.,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : 5.,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling.TEST_CASE_BINS,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : "0 5 10 30 100 1e99",
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : "0 30 35 40 45 50 55 60 65 100 150 200 400 1e99",
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : "-1e99 -4 -3 -2 -1 0 1 2 3 4 1e99",
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : "0 10 30 100 300 1000 1e99",
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : "0 3.5 5 7 10 15 30 1e99",
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : "0 30 35 35.25 36 50 1e99",
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : "-1e99 -2.5 -2 -1.5 -1 -0.6 1e99",
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : "0 30 45 75 140 300 1e99",
     GlobalConfigKeys.PIP_PROFILE               : "False",
     }
 
