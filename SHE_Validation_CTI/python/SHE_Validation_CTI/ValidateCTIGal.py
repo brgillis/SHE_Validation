@@ -25,7 +25,7 @@ __updated__ = "2021-08-20"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 
 from SHE_PPT import logging as log
 from SHE_PPT.pipeline_utility import AnalysisConfigKeys, ValidationConfigKeys
@@ -35,6 +35,8 @@ from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
 from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
                                                D_CTI_GAL_CONFIG_TYPES, )
 from .validate_cti_gal import run_validate_cti_gal_from_args
+
+EXEC_NAME = "SHE_Validation_ValidateCTIGal"
 
 logger = log.getLogger(__name__)
 
@@ -51,7 +53,7 @@ def defineSpecificProgramOptions() -> ArgumentParser:
         An  ArgumentParser.
     """
 
-    logger.debug('# Entering SHE_Validation_ValidateCTIGal defineSpecificProgramOptions()')
+    logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
 
     # Set up the argument parser, using built-in methods where possible
     parser = ValidationArgumentParser()
@@ -71,13 +73,13 @@ def defineSpecificProgramOptions() -> ArgumentParser:
     parser.add_argument('--she_exposure_validation_test_results_listfile', type = str,
                         help = 'OUTPUT: Desired filename of output .json listfile for exposure validation test results')
 
-    logger.debug('# Exiting SHE_Validation_ValidateCTIGal defineSpecificProgramOptions()')
+    logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
     return parser
 
 
 # noinspection PyPep8Naming
-def mainMethod(args):
+def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
@@ -87,12 +89,12 @@ def mainMethod(args):
                                                                     d_config_types = D_CTI_GAL_CONFIG_TYPES,
                                                                     s_config_keys_types = {ValidationConfigKeys,
                                                                                            AnalysisConfigKeys}),
-                                    log_options = ValLogOptions(executable_name = "SHE_Validation_ValidateCTIGal"), )
+                                    log_options = ValLogOptions(executable_name = EXEC_NAME), )
 
     executor.run(args, logger = logger)
 
 
-def main():
+def main() -> None:
     """
     @brief
         Alternate entry point for non-Elements execution.

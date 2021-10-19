@@ -30,6 +30,8 @@ from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
 from SHE_Validation_ShearBias.validate_shear_bias import validate_shear_bias_from_args
 from .argument_parser import ShearValidationArgumentParser
 
+EXEC_NAME = "SHE_Validation_ValidateShearBias"
+
 logger = log.getLogger(__name__)
 
 
@@ -44,23 +46,23 @@ def defineSpecificProgramOptions() -> ArgumentParser:
     """
 
     logger.debug("#")
-    logger.debug("# Entering SHE_Validation_ValidateShearBias defineSpecificProgramOptions()")
+    logger.debug(f"# Entering {EXEC_NAME} defineSpecificProgramOptions()")
     logger.debug("#")
 
     parser: ShearValidationArgumentParser = ShearValidationArgumentParser()
 
-    logger.debug("# Exiting SHE_Validation_ValidateShearBias defineSpecificProgramOptions()")
+    logger.debug(f"# Exiting {EXEC_NAME} defineSpecificProgramOptions()")
 
     return parser
 
 
 # noinspection PyPep8Naming
-def mainMethod(args) -> None:
+def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
     executor = ShearBiasValExecutor(run_from_args_function = validate_shear_bias_from_args,
-                                    log_options = ValLogOptions(executable_name = "SHE_Validation_ValidateShearBias"),
+                                    log_options = ValLogOptions(executable_name = EXEC_NAME),
                                     run_args = RunArgs(d_run_kwargs = {"mode": ExecutionMode.LOCAL}))
 
     executor.run(args, logger = logger)

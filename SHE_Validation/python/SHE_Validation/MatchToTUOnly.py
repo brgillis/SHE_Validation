@@ -20,6 +20,7 @@ __updated__ = "2021-08-12"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from argparse import ArgumentParser, Namespace
 from copy import deepcopy
 
 from SHE_PPT.constants.config import ValidationConfigKeys
@@ -37,7 +38,7 @@ EXEC_NAME = "SHE_Validation_MatchToTUOnly"
 
 
 # noinspection PyPep8Naming
-def defineSpecificProgramOptions():
+def defineSpecificProgramOptions() -> ArgumentParser:
     """
     @brief
         Defines options for this program, using all possible configurations.
@@ -50,11 +51,15 @@ def defineSpecificProgramOptions():
     logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
     logger.debug('#')
 
-    return TUMatchArgumentParser()
+    parser = TUMatchArgumentParser()
+
+    logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
+
+    return parser
 
 
 # noinspection PyPep8Naming
-def mainMethod(args):
+def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
@@ -74,7 +79,7 @@ def mainMethod(args):
     executor.run(args, logger = logger)
 
 
-def main():
+def main() -> None:
     """
     @brief
         Alternate entry point for non-Elements execution.
