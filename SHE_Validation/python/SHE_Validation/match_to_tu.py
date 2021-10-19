@@ -470,6 +470,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
     # other type of object
     best_star_id = get_filtered_best_match(best_tu_distance = best_star_distance,
                                            best_distance = best_distance,
+                                           other_distance = best_gal_distance,
                                            best_tu_id = best_star_id,
                                            best_obj_id_from_tu = best_obj_id_from_star,
                                            in_range = in_range,
@@ -478,6 +479,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
 
     best_gal_id = get_filtered_best_match(best_tu_distance = best_gal_distance,
                                           best_distance = best_distance,
+                                          other_distance = best_star_distance,
                                           best_tu_id = best_gal_id,
                                           best_obj_id_from_tu = best_obj_id_from_gal,
                                           in_range = in_range,
@@ -553,6 +555,7 @@ def find_best_match(sky_coord_se,
 
 def get_filtered_best_match(best_tu_distance: np.ndarray,
                             best_distance: np.ndarray,
+                            other_distance: np.ndarray,
                             best_tu_id: np.ndarray,
                             best_obj_id_from_tu: np.ndarray,
                             in_range: np.ndarray,
@@ -564,9 +567,9 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
     if len(best_obj_id_from_tu) > 0 and len(best_tu_id) > 0:
 
         if prioritize:
-            is_better_match: np.ndarray = best_distance <= best_tu_distance
+            is_better_match: np.ndarray = best_tu_distance <= other_distance
         else:
-            is_better_match: np.ndarray = best_distance < best_tu_distance
+            is_better_match: np.ndarray = best_tu_distance < other_distance
 
         best_tu_id = np.where(in_range, np.where(best_distance < match_threshold,
                                                  np.where(is_better_match, best_tu_id, -99),
