@@ -49,6 +49,8 @@ logger = getLogger(__name__)
 class TUMatchArgumentParser(ValidationArgumentParser):
 
     def __init__(self):
+        super().__init__()
+
         # Input filenames
         self.add_measurements_arg()
 
