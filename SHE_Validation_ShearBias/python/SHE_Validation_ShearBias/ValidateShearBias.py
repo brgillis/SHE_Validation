@@ -51,6 +51,8 @@ def defineSpecificProgramOptions() -> ArgumentParser:
 
     parser: ShearValidationArgumentParser = ShearValidationArgumentParser()
 
+    parser.add_matched_catalog_arg()
+
     logger.debug(f"# Exiting {EXEC_NAME} defineSpecificProgramOptions()")
 
     return parser

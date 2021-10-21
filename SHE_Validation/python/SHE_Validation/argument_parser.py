@@ -51,5 +51,9 @@ class ValidationArgumentParser(SheArgumentParser):
                           help = 'INPUT: .json listfile containing filenames of exposure image products.')
 
     def add_matched_catalog_arg(self) -> None:
+        self.add_argument('--matched_catalog', type = str,
+                          help = 'INPUT: .xml data product for Shear Estimates catalog matched to TU catalog.')
+
+    def add_matched_catalog_listfile_arg(self) -> None:
         self.add_argument('--matched_catalog_listfile', type = str,
-                          help = 'INPUT: Filename of .json listfile pointing to matched catalog products.')
+                          help = 'INPUT: .json listfile containing filenames of matched catalog products.')

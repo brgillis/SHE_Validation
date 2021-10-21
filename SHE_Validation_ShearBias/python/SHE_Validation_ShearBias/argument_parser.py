@@ -33,7 +33,6 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
         super().__init__()
 
         self.add_bin_parameter_args()
-        self.add_matched_catalog_arg()
 
         # Output filenames
         self.add_argument('--shear_bias_validation_test_results_product', type = str,
