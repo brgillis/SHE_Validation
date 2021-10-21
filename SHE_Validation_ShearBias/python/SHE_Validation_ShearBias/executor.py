@@ -22,7 +22,7 @@ __updated__ = "2021-10-14"
 
 from typing import Type
 
-from SHE_PPT.constants.config import ValidationConfigKeys
+from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_PPT.utility import default_value_if_none
 from SHE_Validation.executor import SheValExecutor, ValReadConfigArgs
 from .constants.shear_bias_default_config import (D_SHEAR_BIAS_CONFIG_CLINE_ARGS, D_SHEAR_BIAS_CONFIG_DEFAULTS,
@@ -44,7 +44,8 @@ class ShearBiasReadConfigArgs(ValReadConfigArgs):
         self.d_config_cline_args = default_value_if_none(self.d_config_cline_args,
                                                          D_SHEAR_BIAS_CONFIG_CLINE_ARGS)
         self.s_config_keys_types = default_value_if_none(self.s_config_keys_types,
-                                                         {ValidationConfigKeys})
+                                                         {ValidationConfigKeys,
+                                                          AnalysisConfigKeys})
 
 
 class ShearBiasValExecutor(SheValExecutor):
