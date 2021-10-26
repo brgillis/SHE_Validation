@@ -62,11 +62,9 @@ class TestCase:
         os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        self.pipeline_config = read_config(config_filename = None,
-                                           config_keys = (GlobalConfigKeys,
-                                                          ValidationConfigKeys,),
-                                           defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                           d_types = D_CTI_GAL_CONFIG_TYPES)
+        self.pipeline_config = read_config(config_filename = None, config_keys = (GlobalConfigKeys,
+                                                                                  ValidationConfigKeys,),
+                                           d_defaults = D_CTI_GAL_CONFIG_DEFAULTS, d_types = D_CTI_GAL_CONFIG_TYPES)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
 
         # Make a dictionary of bin limits

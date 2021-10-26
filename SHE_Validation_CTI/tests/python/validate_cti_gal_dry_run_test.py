@@ -122,13 +122,11 @@ class TestCase:
 
         # Ensure this is a dry run and set up the pipeline config with defaults
         self.args.dry_run = True
-        self.args.pipeline_config = read_config(self.args.pipeline_config,
-                                                workdir = self.args.workdir,
-                                                defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                parsed_args = self.args,
+        self.args.pipeline_config = read_config(self.args.pipeline_config, workdir = self.args.workdir,
                                                 config_keys = ValidationConfigKeys,
-                                                d_types = D_CTI_GAL_CONFIG_TYPES)
+                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                d_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_types = D_CTI_GAL_CONFIG_TYPES, parsed_args = self.args)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
@@ -140,13 +138,11 @@ class TestCase:
 
         # Ensure this is not a dry run, and use the pipeline config
         self.args.dry_run = False
-        self.args.pipeline_config = read_config(self.args.pipeline_config,
-                                                workdir = self.args.workdir,
-                                                defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                parsed_args = self.args,
+        self.args.pipeline_config = read_config(self.args.pipeline_config, workdir = self.args.workdir,
                                                 config_keys = ValidationConfigKeys,
-                                                d_types = D_CTI_GAL_CONFIG_TYPES)
+                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
+                                                d_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
+                                                d_types = D_CTI_GAL_CONFIG_TYPES, parsed_args = self.args)
 
         # Call to validation function
         run_validate_cti_gal_from_args(self.args)
