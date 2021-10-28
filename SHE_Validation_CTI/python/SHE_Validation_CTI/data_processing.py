@@ -36,20 +36,22 @@ from .table_formats.regression_results import TF as RR_TF
 logger = getLogger(__name__)
 
 
-def add_readout_register_distance(object_data_table: table.Table):
+def add_readout_register_distance(object_data_table: table.Table,
+                                  y_colname: str = CGOD_TF.y,
+                                  rr_dist_colname: str = CGOD_TF.readout_dist):
     """ Calculates the distance of each object from the readout register and adds a column of these distances to
         the table.
     """
 
     # If we already have the data calculated and in the table, return
-    if CGOD_TF.readout_dist in object_data_table.colnames:
+    if rr_dist_colname in object_data_table.colnames:
         return
 
     # Get the y-dimension size of the detector from the mdb, and split by half of it
     det_size_y = mdb.get_mdb_value(mdb.mdb_keys.vis_detector_pixel_long_dimension_format)
     det_split_y = det_size_y / 2
 
-    y_pos = object_data_table[CGOD_TF.y]
+    y_pos = object_data_table[y_colname]
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
