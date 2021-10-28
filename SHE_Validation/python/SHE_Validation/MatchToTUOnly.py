@@ -28,9 +28,8 @@ from SHE_PPT.executor import ReadConfigArgs
 from SHE_PPT.logging import getLogger
 from SHE_Validation.MatchToTU import (D_TUM_CONFIG_CLINE_ARGS, D_TUM_CONFIG_DEFAULTS, D_TUM_CONFIG_TYPES,
                                       S_TUM_CONFIG_KEYS, S_TUM_STORE_TRUE, TUMatchArgumentParser, )
-from SHE_Validation.executor import ValLogOptions
+from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation.match_to_tu import match_to_tu_from_args
-from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
 
 logger = getLogger(__name__)
 
@@ -67,14 +66,14 @@ def mainMethod(args: Namespace) -> None:
     d_tum_only_config_defaults = deepcopy(D_TUM_CONFIG_DEFAULTS)
     d_tum_only_config_defaults[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS] = False
 
-    executor = ShearBiasValExecutor(run_from_args_function = match_to_tu_from_args,
-                                    log_options = ValLogOptions(executable_name = EXEC_NAME,
-                                                                s_store_true = S_TUM_STORE_TRUE),
-                                    config_args = ReadConfigArgs(d_config_defaults = d_tum_only_config_defaults,
-                                                                 d_config_types = D_TUM_CONFIG_TYPES,
-                                                                 d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
-                                                                 s_config_keys_types = S_TUM_CONFIG_KEYS,
-                                                                 ))
+    executor = SheValExecutor(run_from_args_function = match_to_tu_from_args,
+                              log_options = ValLogOptions(executable_name = EXEC_NAME,
+                                                          s_store_true = S_TUM_STORE_TRUE),
+                              config_args = ReadConfigArgs(d_config_defaults = d_tum_only_config_defaults,
+                                                           d_config_types = D_TUM_CONFIG_TYPES,
+                                                           d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
+                                                           s_config_keys_types = S_TUM_CONFIG_KEYS,
+                                                           ))
 
     executor.run(args, logger = logger)
 
