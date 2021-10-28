@@ -30,15 +30,14 @@ class ValidationArgumentParser(SheArgumentParser):
 
     # Convenience functions to add input filename cline-args
 
-    def add_bin_parameter_args(self):
-        for bin_parameter in BinParameters:
-            bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
-            self.add_argument('--' + bin_parameter_meta.cline_arg, type = str, default = None,
-                              help = bin_parameter_meta.help_text)
-
     def add_mdb_arg(self):
         self.add_argument('--mdb', type = str, default = None,
                           help = 'INPUT: Mission Database .xml file')
+
+    def add_data_images_arg(self):
+        self.add_argument('--data_images', type = str, default = None,
+                          help = 'INPUT (optional): .json listfile containing filenames of data image products. Only'
+                                 ' needs to be set if adding bin columns.')
 
     def add_measurements_arg(self):
         self.add_argument('--she_validated_measurements_product', type = str,
@@ -78,3 +77,11 @@ class ValidationArgumentParser(SheArgumentParser):
                           default = "she_exposure_validation_test_results_listfile.xml",
                           help = 'OUTPUT: Desired filename of output .json listfile for exposure validation test '
                                  'results.')
+
+    # Convenience functions to add options cline-args
+
+    def add_bin_parameter_args(self):
+        for bin_parameter in BinParameters:
+            bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
+            self.add_argument('--' + bin_parameter_meta.cline_arg, type = str, default = None,
+                              help = bin_parameter_meta.help_text)

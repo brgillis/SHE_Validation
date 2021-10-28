@@ -53,10 +53,8 @@ class TUMatchArgumentParser(ValidationArgumentParser):
 
         # Input filenames
         self.add_measurements_arg()
+        self.add_data_images_arg()
 
-        self.add_argument('--data_images', type = str, default = None,
-                          help = 'INPUT (optional): .json listfile containing filenames of data image products. Only'
-                                 ' needs to be set if adding bin columns.')
         self.add_argument('--detections_tables', type = str, default = None,
                           help = 'INPUT (optional): .json listfile containing filenames of detections table products. '
                                  'Only needs to be set if adding bin columns.')
