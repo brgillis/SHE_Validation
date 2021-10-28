@@ -28,6 +28,8 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
 from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.mer_final_catalog import (MerFinalCatalogFormat, filter_list, filter_list_ext,
+                                                     mer_final_catalog_format, )
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
 from SHE_PPT.testing.mock_data import MockDataGenerator, NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_POINTS
@@ -36,6 +38,9 @@ from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
 from SHE_Validation.constants.test_info import BinParameters
 
 logger = getLogger(__name__)
+
+# MFC info
+MFC_SEED = 57632
 
 # Input shear info
 INPUT_G_MIN = -0.7
@@ -73,6 +78,51 @@ D_D_L_D_INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[s
                                                          "c2"    : 0.,
                                                          "c2_err": 0.1,
                                                          }]}}
+
+
+class MockMFCDataGenerator(MockDataGenerator):
+    """ A class to handle the generation of mock MER Final Catalog data.
+    """
+
+    # Overring base class default values
+    tf: MerFinalCatalogFormat = mer_final_catalog_format
+    seed: int = MFC_SEED
+
+    FLUX_MIN: float = 100
+    FLUX_MAX: float = 10000
+
+    F_FLUX_ERR_MIN: float = 0.01
+    F_FLUX_ERR_MAX: float = 0.50
+
+    BG_MIN: float = 20
+    BG_MAX: float = 60
+
+    SIZE_MIN: float = 20
+    SIZE_MAX: float = 330
+
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate galaxy data.
+        """
+
+        # Deterministic data
+        self.data[self.tf.ID] = self._indices
+        self.data[self.tf.seg_ID] = self._indices
+        self.data[self.tf.vis_det] = np.ones(self.num_test_points)
+
+        # Randomly-generated data
+        self.data[self.tf.gal_x_world] = self._rng.uniform(0., 360., self.num_test_points)
+        self.data[self.tf.gal_y_world] = self._rng.uniform(-180., 180., self.num_test_points)
+
+        for f in filter_list_ext + filter_list + ["NIR_STACK"]:
+            flux = self._rng.uniform(self.FLUX_MIN, self.FLUX_MAX, self.num_test_points)
+            self.data["FLUX_%s_APER" % f] = flux
+            self.data["FLUXERR_%s_APER" % f] = flux * self._rng.uniform(self.F_FLUX_ERR_MIN,
+                                                                        self.F_FLUX_ERR_MAX,
+                                                                        self.num_test_points)
+
+        self.data[self.tf.SEGMENTATION_AREA] = self._rng.uniform(self.SIZE_MIN, self.SIZE_MAX, self.num_test_points)
+        self.data[self.tf.bg] = self._rng.uniform(self.BG_MIN, self.BG_MAX, self.num_test_points)
 
 
 class MockTUGalaxyDataGenerator(MockDataGenerator):

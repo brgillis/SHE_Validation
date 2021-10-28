@@ -25,7 +25,6 @@ from typing import Optional, Set
 from astropy.table import Table
 
 from SHE_PPT import file_io, products
-from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.file_io import read_d_method_tables
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -36,7 +35,7 @@ from SHE_Validation.utility import get_object_id_list_from_se_tables
 logger = getLogger(__name__)
 
 
-def match_to_tu_from_args(args):
+def calc_common_val_data_from_args(args):
     """ Main function for performing True Universe matching
     """
 
@@ -48,14 +47,12 @@ def match_to_tu_from_args(args):
                                              log_info = True)
 
     # Read in the data stack
-    if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
-        s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-        data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
-                                                                 detections_listfile_filename = args.detections_tables,
-                                                                 object_id_list = s_object_ids,
-                                                                 workdir = workdir)
-    else:
-        data_stack: Optional[SHEFrameStack] = None
+    s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
+    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
+                                                             detections_listfile_filename =
+                                                             args.mer_final_catalog_listfile,
+                                                             object_id_list = s_object_ids,
+                                                             workdir = workdir)
 
     # We'll modify the detections stack attribute within the data stack to create the extended table
     extended_catalog: Table = data_stack.detections_catalogue

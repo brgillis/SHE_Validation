@@ -36,9 +36,18 @@ DEFAULT_GLOBAL_FAIL_SIGMA = 10
 
 # Input data filenames
 PIPELINE_CONFIG_FILENAME = "shear_bias_pipeline_config.xml"
+
+MEASUREMENTS_TABLE_PRODUCT_FILENAME = "shear_bias_measurements_table.xml"
+LENSMC_MEASUREMENTS_TABLE_FILENAME = "data/lensmc_shear_bias_measurements_table.fits"
+KSB_MEASUREMENTS_TABLE_FILENAME = "data/ksb_bias_measurements_table.fits"
+
 MATCHED_TABLE_PRODUCT_FILENAME = "shear_bias_matched_table.xml"
 LENSMC_MATCHED_TABLE_FILENAME = "data/lensmc_shear_bias_matched_table.fits"
 KSB_MATCHED_TABLE_FILENAME = "data/ksb_bias_matched_table.fits"
+
+MFC_TABLE_LISTFILE_FILENAME = "mock_mer_final_catalog_listfile.json"
+MFC_TABLE_PRODUCT_FILENAME = "mock_mer_final_catalog_product.xml"
+MFC_TABLE_FILENAME = "data/mock_mer_final_catalog.fits"
 
 # Output data filename
 SHE_BIAS_TEST_RESULT_FILENAME = "she_observation_validation_test_results.xml"

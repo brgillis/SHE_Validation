@@ -96,6 +96,10 @@ def add_snr_column(t: Table,
     """ Calculates SNR data and adds a column for it to the table.
     """
 
+    # Return if column is already present
+    if TF.snr in t.colnames:
+        return
+
     # Check first if necessary data is in the target table
     data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)
 
@@ -112,6 +116,10 @@ def add_colour_column(t: Table,
                       data_stack: SHEFrameStack) -> None:
     """ Calculates colour data and adds a column for it to the table.
     """
+
+    # Return if column is already present
+    if TF.colour in t.colnames:
+        return
 
     # Check first if necessary data is in the target table
     data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUX_NIR_STACK_APER)
@@ -131,6 +139,10 @@ def add_size_column(t: Table,
     """ Calculates size data and adds a column for it to the table.
     """
 
+    # Return if column is already present
+    if TF.size in t.colnames:
+        return
+
     # Check first if necessary data is in the target table
     data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.SEGMENTATION_AREA)
 
@@ -145,6 +157,10 @@ def add_bg_column(t: Table,
                   data_stack: SHEFrameStack):
     """ Calculates background level data and adds a column for it to the table.
     """
+
+    # Return if column is already present
+    if TF.bg in t.colnames:
+        return
 
     l_object_ids: Sequence[int] = t[MFC_TF.ID]
 
@@ -180,6 +196,10 @@ def add_epoch_column(t: Table,
                      data_stack: SHEFrameStack) -> None:
     """ Calculates epoch data and adds a column for it to the table.
     """
+
+    # Return if column is already present
+    if TF.epoch in t.colnames:
+        return
 
     # Check first if necessary data is in the target table
     data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)

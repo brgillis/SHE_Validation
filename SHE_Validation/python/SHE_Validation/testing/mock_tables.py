@@ -25,22 +25,76 @@ from typing import Optional
 
 from astropy.table import Table
 
-from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
-from SHE_PPT.file_io import try_remove_file, write_xml_product
+from SHE_PPT.file_io import try_remove_file, write_listfile, write_xml_product
 from SHE_PPT.logging import getLogger
+from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
+from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
+from SHE_PPT.table_formats.mer_final_catalog import MerFinalCatalogFormat, mer_final_catalog_format
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat, she_measurements_table_format
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_PPT.testing.mock_tables import MockTableGenerator
-from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, LENSMC_MATCHED_TABLE_FILENAME,
-                                              MATCHED_TABLE_PRODUCT_FILENAME, )
-from SHE_Validation.testing.mock_data import (EST_SEED, MockShearEstimateDataGenerator,
+from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, KSB_MEASUREMENTS_TABLE_FILENAME,
+                                              LENSMC_MATCHED_TABLE_FILENAME,
+                                              LENSMC_MEASUREMENTS_TABLE_FILENAME, MATCHED_TABLE_PRODUCT_FILENAME,
+                                              MEASUREMENTS_TABLE_PRODUCT_FILENAME, MFC_TABLE_FILENAME,
+                                              MFC_TABLE_LISTFILE_FILENAME, MFC_TABLE_PRODUCT_FILENAME, )
+from SHE_Validation.testing.mock_data import (EST_SEED, MFC_SEED, MockMFCDataGenerator, MockShearEstimateDataGenerator,
                                               MockTUGalaxyDataGenerator, MockTUMatchedDataGenerator, )
 
 logger = getLogger(__name__)
+
+
+class MockMFCGalaxyTableGenerator(MockTableGenerator):
+    """ A class to handle the generation of mock galaxy tables.
+    """
+
+    # Attributes with overriding types
+    mock_data_generator: MockMFCDataGenerator
+    tf: Optional[MerFinalCatalogFormat] = mer_final_catalog_format
+
+
+def make_mock_mfc_table(seed: int = MFC_SEED, ) -> Table:
+    """ Function to generate a mock matched table table.
+    """
+
+    mock_mfc_data_generator = MockMFCDataGenerator(num_test_points = NUM_TEST_POINTS,
+                                                   seed = seed)
+
+    mock_mfc_table_generator = MockMFCGalaxyTableGenerator(mock_data_generator =
+                                                           mock_mfc_data_generator)
+
+    return mock_mfc_table_generator.get_mock_table()
+
+
+def write_mock_mfc_table(workdir: str) -> str:
+    """ Returns filename of the matched table product.
+    """
+
+    mfc_table = make_mock_mfc_table(seed = EST_SEED)
+
+    mfc_table.write(os.path.join(workdir, MFC_TABLE_FILENAME))
+
+    # Set up and write the data product
+    mfc_table_product = create_dpd_mer_final_catalog(MFC_TABLE_FILENAME)
+
+    write_xml_product(mfc_table_product, MFC_TABLE_PRODUCT_FILENAME, workdir = workdir)
+
+    # Write the listfile
+    write_listfile(os.path.join(workdir, MFC_TABLE_LISTFILE_FILENAME), [MFC_TABLE_PRODUCT_FILENAME])
+
+    return MFC_TABLE_LISTFILE_FILENAME
+
+
+def cleanup_mock_mfc_table(workdir: str):
+    """ To be called in cleanup, deletes matched tables which have been written out.
+    """
+
+    try_remove_file(MFC_TABLE_FILENAME, workdir = workdir)
+    try_remove_file(MFC_TABLE_PRODUCT_FILENAME, workdir = workdir)
 
 
 class MockTUGalaxyTableGenerator(MockTableGenerator):
@@ -75,8 +129,54 @@ class MockShearEstimateTableGenerator(MockTableGenerator):
         self.tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
 
+def make_mock_measurements_table(method = ShearEstimationMethods.LENSMC,
+                                 seed: int = EST_SEED, ) -> Table:
+    """ Function to generate a mock shear measurements table.
+    """
+
+    mock_measurements_data_generator = MockShearEstimateDataGenerator(method = method,
+                                                                      seed = seed)
+
+    mock_measurements_table_generator = MockShearEstimateTableGenerator(method = method,
+                                                                        mock_data_generator =
+                                                                        mock_measurements_data_generator)
+
+    return mock_measurements_table_generator.get_mock_table()
+
+
+def write_mock_measurements_tables(workdir: str) -> str:
+    """ Writes out and returns filename of the matched table product.
+    """
+
+    lensmc_measurements_table = make_mock_measurements_table(method = ShearEstimationMethods.LENSMC,
+                                                             seed = EST_SEED)
+    ksb_measurements_table = make_mock_measurements_table(method = ShearEstimationMethods.KSB,
+                                                          seed = EST_SEED + 1)
+
+    lensmc_measurements_table.write(os.path.join(workdir, LENSMC_MATCHED_TABLE_FILENAME))
+    ksb_measurements_table.write(os.path.join(workdir, KSB_MATCHED_TABLE_FILENAME))
+
+    # Set up and write the data product
+    measurements_table_product = create_dpd_she_validated_measurements()
+    measurements_table_product.set_LensMC_filename(LENSMC_MATCHED_TABLE_FILENAME)
+    measurements_table_product.set_KSB_filename(KSB_MATCHED_TABLE_FILENAME)
+
+    write_xml_product(measurements_table_product, MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir = workdir)
+
+    return MEASUREMENTS_TABLE_PRODUCT_FILENAME
+
+
+def cleanup_mock_measurements_tables(workdir: str):
+    """ To be called in cleanup, deletes matched tables which have been written out.
+    """
+
+    try_remove_file(LENSMC_MEASUREMENTS_TABLE_FILENAME, workdir = workdir)
+    try_remove_file(KSB_MEASUREMENTS_TABLE_FILENAME, workdir = workdir)
+    try_remove_file(MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir = workdir)
+
+
 class MockTUMatchedTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock galaxy tables.
+    """ A class to handle the generation of mock TUM galaxy tables.
     """
 
     # Attributes with overriding types
@@ -100,7 +200,7 @@ class MockTUMatchedTableGenerator(MockTableGenerator):
 
 def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
                             seed: int = EST_SEED, ) -> Table:
-    """ Function to generate a mock matched table table.
+    """ Function to generate a mock matched table.
     """
 
     mock_tu_galaxy_data_generator = MockTUGalaxyDataGenerator(num_test_points = NUM_TEST_POINTS,
@@ -118,7 +218,7 @@ def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
 
 
 def write_mock_matched_tables(workdir: str) -> str:
-    """ Returns filename of the matched table product.
+    """ Writes out and returns filename of the matched table product.
     """
 
     lensmc_matched_table = make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
@@ -130,7 +230,7 @@ def write_mock_matched_tables(workdir: str) -> str:
     ksb_matched_table.write(os.path.join(workdir, KSB_MATCHED_TABLE_FILENAME))
 
     # Set up and write the data product
-    matched_table_product = products.she_validated_measurements.create_dpd_she_validated_measurements()
+    matched_table_product = create_dpd_she_validated_measurements()
     matched_table_product.set_LensMC_filename(LENSMC_MATCHED_TABLE_FILENAME)
     matched_table_product.set_KSB_filename(KSB_MATCHED_TABLE_FILENAME)
 
