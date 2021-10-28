@@ -40,8 +40,7 @@ from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
-from SHE_Validation.binning.bin_data import (add_bg_column, add_colour_column, add_epoch_column, add_size_column,
-                                             add_snr_column, )
+from SHE_Validation.binning.bin_data import (add_binning_data, )
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 
 logger = getLogger(__name__)
@@ -178,7 +177,7 @@ def match_to_tu_from_args(args):
 
         # Update each galaxy table with data necessary for binning if desired
         if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
-            add_binning_data(gal_matched_table = gal_matched_table,
+            add_binning_data(t = gal_matched_table,
                              data_stack = data_stack)
 
         unmatched_table = d_shear_tables[method]
@@ -583,18 +582,6 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
         best_tu_id = np.zeros(len(in_range), dtype = int)
 
     return best_tu_id
-
-
-def add_binning_data(gal_matched_table: Table,
-                     data_stack: SHEFrameStack):
-    """ Adds columns with bin data to a table.
-    """
-
-    add_snr_column(gal_matched_table, data_stack)
-    add_colour_column(gal_matched_table, data_stack)
-    add_size_column(gal_matched_table, data_stack)
-    add_bg_column(gal_matched_table, data_stack)
-    add_epoch_column(gal_matched_table, data_stack)
 
 
 def add_galaxy_analysis_columns(gal_matched_table: Table,

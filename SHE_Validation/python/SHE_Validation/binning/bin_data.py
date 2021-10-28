@@ -225,3 +225,15 @@ D_COLUMN_ADDING_METHODS = {
     BinParameters.COLOUR: add_colour_column,
     BinParameters.SIZE  : add_size_column,
     BinParameters.EPOCH : add_epoch_column}
+
+
+def add_binning_data(t: Table,
+                     data_stack: SHEFrameStack):
+    """ Adds columns with bin data to a table.
+    """
+
+    add_snr_column(t, data_stack)
+    add_colour_column(t, data_stack)
+    add_size_column(t, data_stack)
+    add_bg_column(t, data_stack)
+    add_epoch_column(t, data_stack)
