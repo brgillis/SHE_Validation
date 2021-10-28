@@ -28,12 +28,9 @@ __updated__ = "2021-08-20"
 from argparse import ArgumentParser, Namespace
 
 from SHE_PPT import logging as log
-from SHE_PPT.pipeline_utility import AnalysisConfigKeys, ValidationConfigKeys
-from SHE_Validation.argument_parser import ValidationArgumentParser
-from SHE_Validation.executor import ValLogOptions, ValReadConfigArgs
-from SHE_Validation_ShearBias.executor import ShearBiasValExecutor
-from .constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
-                                               D_CTI_GAL_CONFIG_TYPES, )
+from SHE_Validation.executor import ValLogOptions
+from SHE_Validation_CTI.argument_parser import CtiGalArgumentParser
+from SHE_Validation_CTI.executor import CtiGalValExecutor
 from .validate_cti_gal import run_validate_cti_gal_from_args
 
 EXEC_NAME = "SHE_Validation_ValidateCTIGal"
@@ -56,22 +53,7 @@ def defineSpecificProgramOptions() -> ArgumentParser:
     logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
 
     # Set up the argument parser, using built-in methods where possible
-    parser = ValidationArgumentParser()
-
-    parser.add_calibrated_frame_arg()
-    parser.add_final_catalog_arg()
-    parser.add_measurements_arg()
-    parser.add_mdb_arg()
-    parser.add_bin_parameter_args()
-
-    # Output arguments
-
-    parser.add_argument('--she_observation_validation_test_results_product', type = str,
-                        help = 'OUTPUT: Desired filename of output .xml data product for observation validation test ' +
-                               'results')
-
-    parser.add_argument('--she_exposure_validation_test_results_listfile', type = str,
-                        help = 'OUTPUT: Desired filename of output .json listfile for exposure validation test results')
+    parser = CtiGalArgumentParser()
 
     logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
@@ -83,13 +65,8 @@ def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
-    executor = ShearBiasValExecutor(run_from_args_function = run_validate_cti_gal_from_args,
-                                    config_args = ValReadConfigArgs(d_config_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                                    d_config_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                                    d_config_types = D_CTI_GAL_CONFIG_TYPES,
-                                                                    s_config_keys_types = {ValidationConfigKeys,
-                                                                                           AnalysisConfigKeys}),
-                                    log_options = ValLogOptions(executable_name = EXEC_NAME), )
+    executor = CtiGalValExecutor(run_from_args_function = run_validate_cti_gal_from_args,
+                                 log_options = ValLogOptions(executable_name = EXEC_NAME), )
 
     executor.run(args, logger = logger)
 

@@ -28,6 +28,8 @@ class ValidationArgumentParser(SheArgumentParser):
     """ Argument parser specialized for SHE Validation executables.
     """
 
+    # Convenience functions to add input filename cline-args
+
     def add_bin_parameter_args(self):
         for bin_parameter in BinParameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
@@ -57,3 +59,22 @@ class ValidationArgumentParser(SheArgumentParser):
     def add_matched_catalog_listfile_arg(self) -> None:
         self.add_argument('--matched_catalog_listfile', type = str,
                           help = 'INPUT: .json listfile containing filenames of matched catalog products.')
+
+    # Convenience functions to add output filename cline-args
+
+    def add_test_result_arg(self) -> None:
+        self.add_argument('--she_validation_test_results_product', type = str,
+                          default = "she_validation_test_results_product.xml",
+                          help = 'OUTPUT: Desired filename of output .xml data product for validation test results.')
+
+    def add_obs_test_result_arg(self) -> None:
+        self.add_argument('--she_observation_validation_test_results_product', type = str,
+                          default = "she_observation_validation_test_results_product.xml",
+                          help = 'OUTPUT: Desired filename of output .xml data product for observation validation '
+                                 'test results.')
+
+    def add_exp_test_result_listfile_arg(self) -> None:
+        self.add_argument('--she_exposure_validation_test_results_listfile', type = str,
+                          default = "she_exposure_validation_test_results_listfile.xml",
+                          help = 'OUTPUT: Desired filename of output .json listfile for exposure validation test '
+                                 'results.')

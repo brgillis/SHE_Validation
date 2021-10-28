@@ -160,10 +160,10 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
     # Write out test results product
     file_io.write_xml_product(test_result_product,
-                              args.shear_bias_validation_test_results_product, workdir = args.workdir)
+                              args.she_validation_test_results_product, workdir = args.workdir)
 
     logger.info("Output shear bias validation test results to: " +
-                os.path.join(args.workdir, args.shear_bias_validation_test_results_product))
+                os.path.join(args.workdir, args.she_validation_test_results_product))
 
     logger.info("Execution complete.")
 

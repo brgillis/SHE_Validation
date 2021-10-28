@@ -32,13 +32,11 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
     def __init__(self):
         super().__init__()
 
+        # Input filenames
         self.add_bin_parameter_args()
 
         # Output filenames
-        self.add_argument('--shear_bias_validation_test_results_product', type = str,
-                          default = "shear_bias_validation_test_results_product.xml",
-                          help = 'OUTPUT: Desired filename for output shear bias validation test results (XML data '
-                                 'product).')
+        self.add_test_result_arg()
 
         # Options
         self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_MAX_G_IN]}',

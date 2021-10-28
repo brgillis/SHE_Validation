@@ -58,7 +58,7 @@ class MockShearBiasArgs(Namespace):
 
     matched_catalog: str = MATCHED_TABLE_PRODUCT_FILENAME
     pipeline_config: str = PIPELINE_CONFIG_FILENAME
-    shear_bias_validation_test_results_product: str = SHE_BIAS_TEST_RESULT_FILENAME
+    she_validation_test_results_product: str = SHE_BIAS_TEST_RESULT_FILENAME
 
     profile: bool = False
     dry_run: bool = True
@@ -133,7 +133,7 @@ class TestCase:
         # Check the resulting data product and plot exist
 
         workdir = self.workdir
-        output_filename = os.path.join(workdir, self.args.shear_bias_validation_test_results_product)
+        output_filename = os.path.join(workdir, self.args.she_validation_test_results_product)
 
         assert os.path.isfile(output_filename)
 

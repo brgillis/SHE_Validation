@@ -1,8 +1,8 @@
-""" @file cti_gal_test_info.py
+""" @file cti_psf_default_config.py
 
-    Created 15 Dec 2020
+    Created 28 Octo 2021
 
-    Constants relating to CTI-Gal configuration
+    Constants relating to CTI-PSF configuration
 """
 
 __updated__ = "2021-08-03"
@@ -24,6 +24,6 @@ from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_A
                                                      D_VALIDATION_CONFIG_TYPES, )
 
 # Create the default config dicts for this task by extending the global default config dicts
-D_CTI_GAL_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
-D_CTI_GAL_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
-D_CTI_GAL_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
+D_CTI_PSF_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
+D_CTI_PSF_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
+D_CTI_PSF_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
