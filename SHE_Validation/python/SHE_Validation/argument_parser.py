@@ -23,6 +23,19 @@ __updated__ = "2021-08-27"
 from SHE_PPT.argument_parser import SheArgumentParser
 from .constants.test_info import BinParameterMeta, BinParameters, D_BIN_PARAMETER_META
 
+# Constant strings for command-line arguments
+MDB_CLINE_ARG = "mdb"
+DATA_IMAGES_CLINE_ARG = "data_images"
+VIS_CAL_FRAME_CLINE_ARG = "vis_calibrated_frame_listfile"  # TODO: Fix duplication here
+SHE_MEAS_CLINE_ARG = "she_validated_measurements_product"
+MER_CAT_CLINE_ARG = "mer_final_catalog_listfile"
+SHE_EXT_CAT_CLINE_ARG = "extended_catalog"
+SHE_MATCHED_CAT_CLINE_ARG = "matched_catalog"
+SHE_MATCHED_CAT_LIST_CLINE_ARG = "matched_catalog_listfile"
+SHE_TEST_RESULTS_CLINE_ARG = "she_validation_test_results_product"
+SHE_OBS_TEST_RESULTS_CLINE_ARG = "she_observation_validation_test_results_product"
+SHE_EXP_TEST_RESULTS_LIST_CLINE_ARG = "she_exposure_validation_test_results_listfile"
+
 
 class ValidationArgumentParser(SheArgumentParser):
     """ Argument parser specialized for SHE Validation executables.
@@ -31,49 +44,53 @@ class ValidationArgumentParser(SheArgumentParser):
     # Convenience functions to add input filename cline-args
 
     def add_mdb_arg(self):
-        self.add_argument('--mdb', type = str, default = None,
+        self.add_argument(F'--{MDB_CLINE_ARG}', type = str, default = None,
                           help = 'INPUT: Mission Database .xml file')
 
     def add_data_images_arg(self):
-        self.add_argument('--data_images', type = str, default = None,
+        self.add_argument(f'--{DATA_IMAGES_CLINE_ARG}', type = str, default = None,
                           help = 'INPUT (optional): .json listfile containing filenames of data image products. Only'
                                  ' needs to be set if adding bin columns.')
 
     def add_measurements_arg(self):
-        self.add_argument('--she_validated_measurements_product', type = str,
+        self.add_argument(f'--{SHE_MEAS_CLINE_ARG}', type = str,
                           help = 'INPUT: Filename of the cross-validated shear measurements .xml data product.')
 
     def add_final_catalog_arg(self):
-        self.add_argument('--mer_final_catalog_listfile', type = str,
+        self.add_argument(f'--{MER_CAT_CLINE_ARG}', type = str,
                           help = 'INPUT: .json listfile containing filenames of mer final catalogs.')
 
+    def add_extended_catalog_arg(self):
+        self.add_argument(f'--{SHE_EXT_CAT_CLINE_ARG}', type = str,
+                          help = 'INPUT: .xml data product for extended MER Final Catalog, containing binning data.')
+
     def add_calibrated_frame_arg(self):
-        self.add_argument('--vis_calibrated_frame_listfile', type = str,
+        self.add_argument(f'--{VIS_CAL_FRAME_CLINE_ARG}', type = str,
                           help = 'INPUT: .json listfile containing filenames of exposure image products.')
 
     def add_matched_catalog_arg(self) -> None:
-        self.add_argument('--matched_catalog', type = str,
+        self.add_argument(f'--{SHE_MATCHED_CAT_CLINE_ARG}', type = str,
                           help = 'INPUT: .xml data product for Shear Estimates catalog matched to TU catalog.')
 
     def add_matched_catalog_listfile_arg(self) -> None:
-        self.add_argument('--matched_catalog_listfile', type = str,
+        self.add_argument(f'--{SHE_MATCHED_CAT_LIST_CLINE_ARG}', type = str,
                           help = 'INPUT: .json listfile containing filenames of matched catalog products.')
 
     # Convenience functions to add output filename cline-args
 
     def add_test_result_arg(self) -> None:
-        self.add_argument('--she_validation_test_results_product', type = str,
+        self.add_argument(f'--{SHE_TEST_RESULTS_CLINE_ARG}', type = str,
                           default = "she_validation_test_results_product.xml",
                           help = 'OUTPUT: Desired filename of output .xml data product for validation test results.')
 
     def add_obs_test_result_arg(self) -> None:
-        self.add_argument('--she_observation_validation_test_results_product', type = str,
+        self.add_argument(f'--{SHE_OBS_TEST_RESULTS_CLINE_ARG}', type = str,
                           default = "she_observation_validation_test_results_product.xml",
                           help = 'OUTPUT: Desired filename of output .xml data product for observation validation '
                                  'test results.')
 
     def add_exp_test_result_listfile_arg(self) -> None:
-        self.add_argument('--she_exposure_validation_test_results_listfile', type = str,
+        self.add_argument(f'--{SHE_EXP_TEST_RESULTS_LIST_CLINE_ARG}', type = str,
                           default = "she_exposure_validation_test_results_listfile.xml",
                           help = 'OUTPUT: Desired filename of output .json listfile for exposure validation test '
                                  'results.')
