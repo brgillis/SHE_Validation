@@ -22,10 +22,11 @@ __updated__ = "2021-08-12"
 
 from argparse import ArgumentParser, Namespace
 
+from SHE_PPT.argument_parser import ClineArgType
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_PPT.logging import getLogger
-from .argument_parser import CA_SHE_EXT_CAT, ValidationArgumentParser
+from .argument_parser import ValidationArgumentParser
 from .calc_common_val_data import calc_common_val_data_from_args
 from .constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
                                        D_VALIDATION_CONFIG_TYPES, )
@@ -54,8 +55,7 @@ class CCVDArgumentParser(ValidationArgumentParser):
         self.add_measurements_arg()
 
         # Output filenames
-        self.add_argument(f'--{CA_SHE_EXT_CAT}', type = str,
-                          help = 'OUTPUT: Desired filename for output extended MER Final Catalog (XML data product).')
+        self.add_extended_catalog_arg(arg_type = ClineArgType.OUTPUT)
 
 
 # noinspection PyPep8Naming
@@ -92,7 +92,7 @@ def mainMethod(args: Namespace) -> None:
                                                            s_config_keys_types = S_CCVD_CONFIG_KEYS,
                                                            ))
 
-    executor.run(args, logger = logger)
+    executor.run(args, logger = logger, pass_args_as_dict = True)
 
 
 def main() -> None:

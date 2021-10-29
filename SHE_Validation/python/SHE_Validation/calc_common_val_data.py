@@ -20,14 +20,17 @@ __updated__ = "2021-08-18"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Optional, Set
+from typing import Any, Dict, Optional, Set
 
 from astropy.table import Table
 
-from SHE_PPT import file_io, products
+from SHE_PPT import file_io
+from SHE_PPT.argument_parser import CA_DATA_IMAGES, CA_MER_CAT, CA_SHE_MEAS, CA_WORKDIR
 from SHE_PPT.file_io import read_d_method_tables
 from SHE_PPT.logging import getLogger
+from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.binning.bin_data import (add_binning_data, )
 from SHE_Validation.file_io import SheValFileNamer
 from SHE_Validation.utility import get_object_id_list_from_se_tables
@@ -35,22 +38,21 @@ from SHE_Validation.utility import get_object_id_list_from_se_tables
 logger = getLogger(__name__)
 
 
-def calc_common_val_data_from_args(args):
+def calc_common_val_data_from_args(d_args: Dict[str, Any]):
     """ Main function for performing True Universe matching
     """
 
-    workdir = args.workdir
+    workdir = d_args[CA_WORKDIR]
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
-    d_shear_tables, _ = read_d_method_tables(args.she_validated_measurements_product,
+    d_shear_tables, _ = read_d_method_tables(d_args[CA_SHE_MEAS],
                                              workdir = workdir,
                                              log_info = True)
 
     # Read in the data stack
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
-                                                             detections_listfile_filename =
-                                                             args.mer_final_catalog_listfile,
+    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_DATA_IMAGES],
+                                                             detections_listfile_filename = d_args[CA_MER_CAT],
                                                              object_id_list = s_object_ids,
                                                              workdir = workdir)
 
@@ -66,10 +68,10 @@ def calc_common_val_data_from_args(args):
     extended_catalog.write(extended_catalog_namer.qualified_filename)
 
     # Create output data product
-    extended_catalog_product = products.mer_final_catalog.create_dpd_mer_final_catalog(extended_catalog_namer.filename)
+    extended_catalog_product = create_dpd_mer_final_catalog(extended_catalog_namer.filename)
 
     # Write the data product
     file_io.write_xml_product(extended_catalog_product,
-                              args.extended_catalog,
+                              d_args[CA_SHE_EXT_CAT],
                               workdir = workdir,
                               log_info = True)
