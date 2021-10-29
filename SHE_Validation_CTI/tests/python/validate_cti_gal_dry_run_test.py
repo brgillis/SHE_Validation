@@ -44,8 +44,8 @@ SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
 
-class TestCase(SheTestCase):
-    """
+class CtiGalTestCase(SheTestCase):
+    """ Test case for CTI-Gal validation test code.
     """
 
     pipeline_config_factory_type = MockValPipelineConfigFactory

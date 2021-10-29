@@ -42,8 +42,8 @@ from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILE
 logger = getLogger(__name__)
 
 
-class TestCase(SheTestCase):
-    """
+class ShearBiasTestCase(SheTestCase):
+    """ Test case for Shear Bias validation test code
     """
 
     pipeline_config_factory_type = MockValPipelineConfigFactory

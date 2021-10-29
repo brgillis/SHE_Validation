@@ -41,7 +41,7 @@ from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
 
-class TestCase(SheTestCase):
+class CCVDTestCase(SheTestCase):
     """ Tests for calculating common validation data.
     """
 
