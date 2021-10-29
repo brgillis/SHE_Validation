@@ -31,14 +31,11 @@ from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, MER_FINAL_CATALOG
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
 from SHE_PPT.file_io import read_xml_product
-from SHE_PPT.pipeline_utility import ValidationConfigKeys, read_config
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
-from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_CLINE_ARGS, D_CTI_GAL_CONFIG_DEFAULTS,
-                                                                 D_CTI_GAL_CONFIG_TYPES, )
+from SHE_Validation_CTI.ValidateCTIGal import mainMethod as val_cti_gal_main
 from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
-from SHE_Validation_CTI.validate_cti_gal import run_validate_cti_gal_from_args
 
 # Output data filenames
 
@@ -120,32 +117,22 @@ class TestCase:
     @pytest.mark.skip()
     def test_cti_gal_dry_run(self):
 
-        # Ensure this is a dry run and set up the pipeline config with defaults
+        # Ensure this is a dry run
         self.args.dry_run = True
-        self.args.pipeline_config = read_config(self.args.pipeline_config, workdir = self.args.workdir,
-                                                config_keys = ValidationConfigKeys,
-                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                d_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_types = D_CTI_GAL_CONFIG_TYPES, parsed_args = self.args)
 
         # Call to validation function
-        run_validate_cti_gal_from_args(self.args)
+        val_cti_gal_main(self.args)
 
     def test_cti_gal_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
             this should be skipped.
         """
 
-        # Ensure this is not a dry run, and use the pipeline config
+        # Ensure this is not a dry run
         self.args.dry_run = False
-        self.args.pipeline_config = read_config(self.args.pipeline_config, workdir = self.args.workdir,
-                                                config_keys = ValidationConfigKeys,
-                                                d_cline_args = D_CTI_GAL_CONFIG_CLINE_ARGS,
-                                                d_defaults = D_CTI_GAL_CONFIG_DEFAULTS,
-                                                d_types = D_CTI_GAL_CONFIG_TYPES, parsed_args = self.args)
 
         # Call to validation function
-        run_validate_cti_gal_from_args(self.args)
+        val_cti_gal_main(self.args)
 
         # Check the resulting data product and plot exist
 
