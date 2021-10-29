@@ -2,7 +2,7 @@
 
     Created 28 Oct 2021
 
-    Base class for an argument parser for SHE CTI Validation executables.
+    Classes for argument parsers for SHE CTI Validation executables.
 """
 
 __updated__ = "2021-08-27"
@@ -56,10 +56,7 @@ class CtiPsfArgumentParser(ValidationArgumentParser):
 
         # Input filename arguments
 
-        self.add_argument("--star_catalog_listfile", type = str,
-                          help = "INPUT: .json listfile containing filenames of .xml data products for SHE star "
-                                 "catalogs for each exposure.")
-
+        self.add_star_catalog_arg()
         self.add_mdb_arg()
 
         # Output filename arguments

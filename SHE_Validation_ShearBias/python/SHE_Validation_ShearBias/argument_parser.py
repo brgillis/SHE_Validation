@@ -19,10 +19,14 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
+from SHE_PPT.argument_parser import ClineArgType
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from .constants.shear_bias_default_config import D_SHEAR_BIAS_CONFIG_CLINE_ARGS
+
+CA_MAX_G_IN = D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_MAX_G_IN]
+CA_BOOTSTRAP_ERRORS = D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]
+CA_REQ_FITCLASS_ZERO = D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]
 
 
 class ShearValidationArgumentParser(ValidationArgumentParser):
@@ -39,13 +43,10 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
         self.add_test_result_arg()
 
         # Options
-        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_MAX_G_IN]}',
-                          type = float, default = None,
-                          help = 'OPTION: Maximum value of input shear to allow.')
-        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS]}',
-                          type = bool, default = None,
-                          help = 'OPTION: If set to True, will use bootstrap calculation for errors.')
-        self.add_argument(f'--{D_SHEAR_BIAS_CONFIG_CLINE_ARGS[ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO]}',
-                          type = bool, default = None,
-                          help = 'OPTION: If set to true, will only include objects identified as galaxies ('
-                                 'FITCLASS==0) in analysis.')
+        self.add_arg_with_type(f'--{CA_MAX_G_IN}', type = float, default = None, arg_type = ClineArgType.OPTION,
+                               help = 'Maximum value of input shear to allow.')
+        self.add_arg_with_type(f'--{CA_BOOTSTRAP_ERRORS}', type = bool, default = None, arg_type = ClineArgType.OPTION,
+                               help = 'If set to True, will use bootstrap calculation for errors.')
+        self.add_arg_with_type(f'--{CA_REQ_FITCLASS_ZERO}', type = bool, default = None, arg_type = ClineArgType.OPTION,
+                               help = 'If set to true, will only include objects identified as galaxies ('
+                                      'FITCLASS==0) in analysis.')
