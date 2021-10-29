@@ -27,7 +27,9 @@ import numpy as np
 from astropy.table import Row, Table, vstack as table_vstack
 
 from EL_CoordsUtils import telescope_coords
-from SHE_PPT import mdb, products
+from SHE_PPT import mdb
+from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_MER_CAT, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_VIS_CAL_FRAME,
+                                     CA_WORKDIR, )
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_listfile,
                              read_xml_product, write_listfile,
@@ -35,10 +37,12 @@ from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_li
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.utility import get_object_id_list_from_se_tables
+from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
 from . import __version__
 from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
                                           NUM_CTI_GAL_TEST_CASES, )
@@ -54,40 +58,40 @@ MSG_COMPLETE = "Complete!"
 logger = getLogger(__name__)
 
 
-def run_validate_cti_gal_from_args(args):
+def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     """
         Main function for CTI-Gal validation
     """
 
     # Get commonly-used variables from the args
-    workdir = args.workdir
+    workdir = d_args[CA_WORKDIR]
 
     # Load in the files in turn to make sure there aren't any issues with them.
 
     # Load the MDB
-    qualified_mdb_filename = join(workdir, args.mdb)
+    qualified_mdb_filename = join(workdir, d_args[CA_MDB])
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
     mdb.init(qualified_mdb_filename)
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
     logger.info(MSG_COMPLETE)
 
     # Get the bin limits dictionary from the config
-    d_bin_limits = get_d_bin_limits(args.pipeline_config)
+    d_bin_limits = get_d_bin_limits(d_args[CA_PIPELINE_CONFIG])
 
     # Load the shear measurements
 
     logger.info("Loading validated shear measurements.")
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
-    d_shear_estimate_tables, _ = read_d_method_tables(args.she_validated_measurements_product,
+    d_shear_estimate_tables, _ = read_d_method_tables(d_args[CA_SHE_MEAS],
                                                       workdir = workdir,
                                                       log_info = True)
 
     # Load the image data as a SHEFrameStack. Limit to object IDs we have shear estimates for
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_estimate_tables)
-    data_stack = SHEFrameStack.read(exposure_listfile_filename = args.vis_calibrated_frame_listfile,
-                                    detections_listfile_filename = args.mer_final_catalog_listfile,
+    data_stack = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
+                                    detections_listfile_filename = d_args[CA_MER_CAT],
                                     object_id_list = s_object_ids,
                                     workdir = workdir,
                                     memmap = True,
@@ -98,14 +102,14 @@ def run_validate_cti_gal_from_args(args):
 
     # TODO: Use products from the frame stack
     # Load the exposure products, to get needed metadata for output
-    l_vis_calibrated_frame_filename = read_listfile(join(workdir, args.vis_calibrated_frame_listfile),
+    l_vis_calibrated_frame_filename = read_listfile(join(workdir, d_args[CA_VIS_CAL_FRAME]),
                                                     log_info = True)
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
         vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename,
                                                      workdir = workdir,
                                                      log_info = True)
-        if not isinstance(vis_calibrated_frame_prod, products.vis_calibrated_frame.dpdVisCalibratedFrame):
+        if not isinstance(vis_calibrated_frame_prod, dpdVisCalibratedFrame):
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
                              + " is invalid type.")
         l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
@@ -120,7 +124,7 @@ def run_validate_cti_gal_from_args(args):
     logger.info(MSG_COMPLETE)
 
     # Run the validation
-    if not args.dry_run:
+    if not d_args[CA_DRY_RUN]:
         (d_exposure_regression_results_tables,
          d_observation_regression_results_tables,
          plot_filenames) = validate_cti_gal(data_stack = data_stack,
@@ -141,7 +145,7 @@ def run_validate_cti_gal_from_args(args):
      vis_calibrated_frame_product) = load_from_vis_calibrated_frame(l_vis_calibrated_frame_product)
 
     # Fill in the products with the results
-    if not args.dry_run:
+    if not d_args[CA_DRY_RUN]:
 
         # Get the regression results tables for this test case
 
@@ -151,7 +155,7 @@ def run_validate_cti_gal_from_args(args):
                                             workdir = workdir,
                                             regression_results_row_index = product_index,
                                             d_regression_results_tables = d_exposure_regression_results_tables,
-                                            pipeline_config = args.pipeline_config,
+                                            pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                             d_bin_limits = d_bin_limits,
                                             method_data_exists = method_data_exists)
 
@@ -160,7 +164,7 @@ def run_validate_cti_gal_from_args(args):
                                         workdir = workdir,
                                         regression_results_row_index = 0,
                                         d_regression_results_tables = d_observation_regression_results_tables,
-                                        pipeline_config = args.pipeline_config,
+                                        pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                         d_bin_limits = d_bin_limits,
                                         dl_l_figures = plot_filenames,
                                         method_data_exists = method_data_exists)
@@ -173,14 +177,14 @@ def run_validate_cti_gal_from_args(args):
                           workdir = workdir,
                           log_info = True)
 
-    qualified_exp_test_results_filename = join(workdir, args.she_exposure_validation_test_results_listfile)
+    qualified_exp_test_results_filename = join(workdir, d_args[CA_SHE_EXP_TEST_RESULTS_LIST])
     write_listfile(qualified_exp_test_results_filename,
                    l_exp_test_result_filename,
                    log_info = True)
 
     # Write out observation test results product
     write_xml_product(product = obs_test_result_product,
-                      xml_filename = args.she_observation_validation_test_results_product,
+                      xml_filename = d_args[CA_SHE_OBS_TEST_RESULTS],
                       workdir = workdir,
                       log_info = True)
 
