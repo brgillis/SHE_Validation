@@ -27,14 +27,16 @@ from argparse import Namespace
 import pytest
 
 from ElementsServices.DataSync import DataSync
+from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_LOGDIR, CA_MDB, CA_MER_CAT, CA_PIPELINE_CONFIG, CA_SHE_MEAS,
+                                     CA_VIS_CAL_FRAME,
+                                     CA_WORKDIR, )
 from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME, TEST_DATA_LOCATION,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR
-from SHE_Validation_CTI.ValidateCTIGal import mainMethod as val_cti_gal_main
-from SHE_Validation_CTI.constants.cti_gal_test_info import L_CTI_GAL_TEST_CASE_INFO
+from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
+from SHE_Validation_CTI.ValidateCTIGal import defineSpecificProgramOptions, mainMethod
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
 
 # Output data filenames
@@ -43,31 +45,20 @@ SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
 
-class Args(Namespace):
-    """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
+def make_mock_args() -> Namespace:
+    """ Get a mock argument parser we can use.
     """
+    parser = defineSpecificProgramOptions()
+    args = parser.parse_args([])
 
-    def __init__(self):
-        super().__init__()
-        self.vis_calibrated_frame_listfile = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME
-        self.mer_final_catalog_listfile = MER_FINAL_CATALOG_LISTFILE_FILENAME
-        self.she_validated_measurements_product = SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
-        self.pipeline_config = None
-        self.mdb = MDB_PRODUCT_FILENAME
+    setattr(args, CA_VIS_CAL_FRAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME)
+    setattr(args, CA_MER_CAT, MER_FINAL_CATALOG_LISTFILE_FILENAME)
+    setattr(args, CA_SHE_MEAS, SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
+    setattr(args, CA_MDB, MDB_PRODUCT_FILENAME)
+    setattr(args, CA_SHE_OBS_TEST_RESULTS, SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME)
+    setattr(args, CA_SHE_EXP_TEST_RESULTS_LIST, SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME)
 
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            bin_limits_cline_arg = test_case_info.bins_cline_arg
-            if bin_limits_cline_arg is not None:
-                setattr(self, bin_limits_cline_arg, DEFAULT_BIN_LIMITS_STR)
-
-        self.she_observation_validation_test_results_product = SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME
-        self.she_exposure_validation_test_results_listfile = SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME
-
-        self.profile = False
-        self.dry_run = True
-
-        self.workdir = None  # Needs to be set in setup_class
-        self.logdir = None  # Needs to be set in setup_class
+    return args
 
 
 class TestCase:
@@ -76,7 +67,7 @@ class TestCase:
 
     workdir: str
     logdir: str
-    args: Args
+    args: Namespace
     mock_pipeline_config_factory: MockPipelineConfigFactory
 
     @classmethod
@@ -99,14 +90,14 @@ class TestCase:
         cls.logdir = os.path.join(cls.workdir, "logs")
 
         # Set up the args to pass to the task
-        cls.args = Args()
-        cls.args.workdir = cls.workdir
-        cls.args.logdir = cls.logdir
+        cls.args = make_mock_args()
+        setattr(cls.args, CA_WORKDIR, cls.workdir)
+        setattr(cls.args, CA_LOGDIR, cls.logdir)
 
         # Write the pipeline config we'll be using and note its filename
         cls.mock_pipeline_config_factory = MockPipelineConfigFactory(workdir = cls.workdir)
         cls.mock_pipeline_config_factory.write(cls.workdir)
-        cls.args.pipeline_config = cls.mock_pipeline_config_factory.file_namer.filename
+        setattr(cls.args, CA_PIPELINE_CONFIG, cls.mock_pipeline_config_factory.file_namer.filename)
 
     @classmethod
     def teardown_class(cls):
@@ -118,10 +109,10 @@ class TestCase:
     def test_cti_gal_dry_run(self):
 
         # Ensure this is a dry run
-        self.args.dry_run = True
+        setattr(self.args, CA_DRY_RUN, True)
 
         # Call to validation function
-        val_cti_gal_main(self.args)
+        mainMethod(self.args)
 
     def test_cti_gal_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
@@ -129,19 +120,20 @@ class TestCase:
         """
 
         # Ensure this is not a dry run
-        self.args.dry_run = False
+        setattr(self.args, CA_DRY_RUN, False)
 
         # Call to validation function
-        val_cti_gal_main(self.args)
+        mainMethod(self.args)
 
         # Check the resulting data product and plot exist
 
-        workdir = self.args.workdir
-        output_filename = os.path.join(workdir, self.args.she_observation_validation_test_results_product)
+        workdir = self.workdir
+        output_filename = getattr(self.args, CA_SHE_OBS_TEST_RESULTS)
+        qualified_output_filename = os.path.join(workdir, output_filename)
 
-        assert os.path.isfile(output_filename)
+        assert os.path.isfile(qualified_output_filename)
 
-        p = read_xml_product(xml_filename = output_filename)
+        p = read_xml_product(xml_filename = qualified_output_filename)
 
         # Find the index for the LensMC Global test case
 

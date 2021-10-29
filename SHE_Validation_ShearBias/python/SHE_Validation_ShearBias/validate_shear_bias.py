@@ -21,16 +21,18 @@ __updated__ = "2021-08-31"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from argparse import Namespace
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 
-from SHE_PPT import file_io, products
+from SHE_PPT import file_io
+from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG, CA_WORKDIR
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import read_d_l_method_table_filenames
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
+from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
+from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_MATCHED_CAT_LIST, CA_SHE_TEST_RESULTS
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
@@ -43,19 +45,21 @@ from .results_reporting import fill_shear_bias_test_results
 logger = getLogger(__name__)
 
 
-def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
+def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -> None:
     """ Main function for performing shear bias validation
     """
 
+    workdir = d_args[CA_WORKDIR]
+
     # Get the bin limits from the pipeline_config
-    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_bin_limits(args.pipeline_config)
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_bin_limits(d_args[CA_PIPELINE_CONFIG])
 
     # Get the list of matched catalog products to be read in, depending on mode
-    l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(args, mode)
+    l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(d_args, mode)
 
     (d_method_l_table_filenames,
      l_matched_catalog_products) = read_d_l_method_table_filenames(l_matched_catalog_product_filenames,
-                                                                   workdir = args.workdir)
+                                                                   workdir = workdir)
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -73,14 +77,14 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     d_data_loaders: Dict[ShearEstimationMethods, ShearBiasDataLoader] = {}
     for method in ShearEstimationMethods:
         d_data_loaders[method] = ShearBiasDataLoader(l_filenames = d_method_l_table_filenames[method],
-                                                     workdir = args.workdir,
+                                                     workdir = workdir,
                                                      method = method)
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
 
         # Skip this section in a dry run
-        if args.dry_run:
+        if d_args[CA_DRY_RUN]:
             break
 
         test_case_name: str = test_case_info.name
@@ -105,7 +109,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
             shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
                                                                        test_case_info = test_case_info,
                                                                        l_bin_limits = l_bin_limits,
-                                                                       pipeline_config = args.pipeline_config)
+                                                                       pipeline_config = d_args[CA_PIPELINE_CONFIG])
             shear_bias_data_processor.calc()
 
             # Plot for each bin index
@@ -138,7 +142,7 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
-    test_result_product = products.she_validation_test_results.create_validation_test_results_product(
+    test_result_product = create_validation_test_results_product(
         num_tests = NUM_SHEAR_BIAS_TEST_CASES)
     test_result_product.Data.TileId = None
     test_result_product.Data.PointingId = None
@@ -147,41 +151,44 @@ def validate_shear_bias_from_args(args: Namespace, mode: ExecutionMode) -> None:
     test_result_product.Data.ObservationId = l_matched_catalog_products[-1].Data.ObservationId
 
     # Fill in the products with the results
-    if not args.dry_run:
+    if not d_args[CA_DRY_RUN]:
         # And fill in the observation product
         fill_shear_bias_test_results(test_result_product = test_result_product,
                                      d_l_d_bias_measurements = d_l_d_bias_measurements,
-                                     pipeline_config = args.pipeline_config,
+                                     pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                      d_l_bin_limits = d_l_bin_limits,
-                                     workdir = args.workdir,
+                                     workdir = workdir,
                                      dl_dl_plot_filenames = d_d_plot_filenames,
                                      method_data_exists = data_exists,
                                      mode = mode)
 
     # Write out test results product
-    file_io.write_xml_product(test_result_product,
-                              args.she_validation_test_results_product, workdir = args.workdir)
+    test_results_filename = d_args[CA_SHE_TEST_RESULTS]
+    file_io.write_xml_product(test_result_product, test_results_filename, workdir = workdir)
 
     logger.info("Output shear bias validation test results to: " +
-                os.path.join(args.workdir, args.she_validation_test_results_product))
+                os.path.join(workdir, test_results_filename))
 
     logger.info("Execution complete.")
 
 
-def read_l_matched_catalog_filenames(args: Namespace,
+def read_l_matched_catalog_filenames(d_args: Dict[str, Any],
                                      mode: ExecutionMode) -> List[str]:
     """ Reads in a list of the matched catalog data product filenames, interpreting args differently depending on
         the execution mode.
     """
+
     if mode == ExecutionMode.LOCAL:
         # In local mode, read in the one product and put it in a list of one item
-        logger.info(f"Using matched data from product {args.matched_catalog}")
-        l_matched_catalog_product_filenames: List[str] = [args.matched_catalog]
+        matched_catalog = d_args[CA_SHE_MATCHED_CAT]
+        logger.info(f"Using matched data from product {matched_catalog}")
+        l_matched_catalog_product_filenames: List[str] = [matched_catalog]
     elif mode == ExecutionMode.GLOBAL:
         # In global mode, read in the listfile to get the list of filenames
-        logger.info(f"Using matched data from products in listfile {args.matched_catalog_listfile}")
-        qualified_matched_catalog_listfile_filename: str = file_io.find_file(args.matched_catalog_listfile,
-                                                                             path = args.workdir)
+        matched_catalog_listfile = d_args[CA_SHE_MATCHED_CAT_LIST]
+        logger.info(f"Using matched data from products in listfile {matched_catalog_listfile}")
+        qualified_matched_catalog_listfile_filename: str = file_io.find_file(matched_catalog_listfile,
+                                                                             path = d_args[CA_WORKDIR])
         l_matched_catalog_product_filenames: List[str] = file_io.read_listfile(
             qualified_matched_catalog_listfile_filename)
     else:

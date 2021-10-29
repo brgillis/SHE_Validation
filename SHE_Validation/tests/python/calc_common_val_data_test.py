@@ -27,12 +27,13 @@ from typing import Optional
 import numpy as np
 import pytest
 from astropy.table import Table
-from dataclasses import dataclass
 
+from SHE_PPT.argument_parser import CA_LOGDIR, CA_MER_CAT, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_WORKDIR
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
-from SHE_Validation.CalcCommonValData import mainMethod as calc_common_val_data_main
+from SHE_Validation.CalcCommonValData import (defineSpecificProgramOptions, mainMethod, )
+from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables, cleanup_mock_mfc_table,
                                                 write_mock_measurements_tables, write_mock_mfc_table, )
@@ -40,37 +41,29 @@ from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
 
-@dataclass
-class MockCCVDArgs(Namespace):
-    """ An object intended to mimic the parsed arguments for the CTI-gal validation test.
+def make_mock_args() -> Namespace:
+    """ Get a mock argument parser we can use.
     """
+    parser = defineSpecificProgramOptions()
+    args = parser.parse_args([])
 
-    # Workdir and logdir need to be set in setup_class
-    workdir: Optional[str] = None
-    logdir: Optional[str] = None
-    pipeline_config: Optional[str] = None
-    mer_final_catalog_listfile: Optional[str] = None
-    she_validated_measurements_product: Optional[str] = None
+    setattr(args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
 
-    data_images: str = None
-    extended_catalog: str = EXTENDED_CATALOG_PRODUCT_FILENAME
-
-    profile: bool = False
-    dry_run: bool = True
+    return args
 
 
 class TestCase:
     """ Tests for calculating common validation data.
     """
 
-    args: MockCCVDArgs
+    args: Namespace
     workdir: str = ""
     logdir: str = ""
     mock_pipeline_config_factory: Optional[MockValPipelineConfigFactory] = None
 
     @classmethod
     def setup_class(cls):
-        cls.args = MockCCVDArgs()
+        cls.args = make_mock_args()
 
     @classmethod
     def teardown_class(cls):
@@ -89,27 +82,31 @@ class TestCase:
         os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
 
         # Set up the args to pass to the task
-        self.args.workdir = self.workdir
-        self.args.logdir = self.logdir
+        setattr(self.args, CA_WORKDIR, self.workdir)
+        setattr(self.args, CA_LOGDIR, self.logdir)
 
         # Write the pipeline config we'll be using and note its filename
         self.mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir = self.workdir)
         self.mock_pipeline_config_factory.write(self.workdir)
-        self.args.pipeline_config = self.mock_pipeline_config_factory.file_namer.filename
+        setattr(self.args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.file_namer.filename)
 
-        # Write the mock input data
-        self.args.she_validated_measurements_product = write_mock_measurements_tables(self.workdir)
-        self.args.mer_final_catalog_listfile = write_mock_mfc_table(self.workdir)
+        # Write the mock input data and store filenames in the args
+        meas_filename = write_mock_measurements_tables(self.workdir)
+        setattr(self.args, CA_SHE_MEAS, meas_filename)
+
+        mer_cat_filename = write_mock_mfc_table(self.workdir)
+        setattr(self.args, CA_MER_CAT, mer_cat_filename)
 
     def test_run(self):
         """ Tests a complete run of calculating common validation data.
         """
 
         # Call to validation function
-        calc_common_val_data_main(self.args)
+        mainMethod(self.args)
 
         # Load in the output data
-        p = read_xml_product(self.args.extended_catalog, self.workdir)
+        ext_cat_filename = getattr(self.args, CA_SHE_EXT_CAT)
+        p = read_xml_product(ext_cat_filename, self.workdir)
         ext_cat_filename = p.get_data_filename()
         ext_cat = Table.read(os.path.join(self.workdir, ext_cat_filename))
 

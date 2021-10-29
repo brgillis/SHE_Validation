@@ -67,7 +67,7 @@ def mainMethod(args: Namespace) -> None:
                                     log_options = ValLogOptions(executable_name = EXEC_NAME),
                                     run_args = RunArgs(d_run_kwargs = {"mode": ExecutionMode.LOCAL}))
 
-    executor.run(args, logger = logger)
+    executor.run(args, logger = logger, pass_args_as_dict = True)
 
 
 def main() -> None:
