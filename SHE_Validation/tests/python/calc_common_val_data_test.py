@@ -70,7 +70,7 @@ class TestCase(SheTestCase):
     @pytest.fixture(autouse = True)
     def setup(self, tmpdir: LocalPath):
 
-        self._setup_with_tmpdir(tmpdir)
+        self._setup(tmpdir)
 
         # Write the mock input data and store filenames in the args
         meas_filename = write_mock_measurements_tables(self.workdir)
