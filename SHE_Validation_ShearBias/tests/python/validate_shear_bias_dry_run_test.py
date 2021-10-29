@@ -22,15 +22,14 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
-from argparse import Namespace
-from typing import Optional
 
 import pytest
+from py._path.local import LocalPath
 
-from SHE_PPT.argument_parser import CA_DRY_RUN, CA_LOGDIR, CA_PIPELINE_CONFIG, CA_WORKDIR
+from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
-from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.constants import PIPELINE_CONFIG_FILENAME, SHE_BIAS_TEST_RESULT_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -43,27 +42,21 @@ from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILE
 logger = getLogger(__name__)
 
 
-def make_mock_args() -> Namespace:
-    """ Get a mock argument parser we can use.
-    """
-    parser = defineSpecificProgramOptions()
-    args = parser.parse_args([])
-
-    setattr(args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
-    setattr(args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
-    setattr(args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
-
-    return args
-
-
-class TestCase:
+class TestCase(SheTestCase):
     """
     """
 
-    args: Namespace
-    workdir: str = ""
-    logdir: str = ""
-    mock_pipeline_config_factory: Optional[MockPipelineConfigFactory] = None
+    pipeline_config_factory_type = MockValPipelineConfigFactory
+
+    def _make_mock_args(self) -> None:
+        """ Get a mock argument parser we can use.
+        """
+        parser = defineSpecificProgramOptions()
+        self.args = parser.parse_args([])
+
+        setattr(self.args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
+        setattr(self.args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
+        setattr(self.args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
 
     @classmethod
     def setup_class(cls):
@@ -72,28 +65,14 @@ class TestCase:
     @classmethod
     def teardown_class(cls):
 
-        # Delete the created data
-        if cls.mock_pipeline_config_factory:
-            cls.mock_pipeline_config_factory.cleanup()
+        super().teardown_class()
         if cls.workdir:
             cleanup_mock_matched_tables(cls.workdir)
 
     @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
-        self.workdir = tmpdir.strpath
-        self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
+    def setup(self, tmpdir: LocalPath):
 
-        self.args = make_mock_args()
-
-        # Set up the args to pass to the task
-        setattr(self.args, CA_WORKDIR, self.workdir)
-        setattr(self.args, CA_LOGDIR, self.logdir)
-
-        # Write the pipeline config we'll be using and note its filename
-        self.mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir = self.workdir)
-        self.mock_pipeline_config_factory.write(self.workdir)
-        setattr(self.args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.file_namer.filename)
+        self._setup_with_tmpdir(tmpdir)
 
         # Write the matched catalog we'll be using and its data product
         write_mock_matched_tables(self.workdir)

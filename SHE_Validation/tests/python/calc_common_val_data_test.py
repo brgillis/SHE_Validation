@@ -21,17 +21,17 @@ __updated__ = "2021-08-26"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from argparse import Namespace
-from typing import Optional
 
 import numpy as np
 import pytest
 from astropy.table import Table
+from py._path.local import LocalPath
 
-from SHE_PPT.argument_parser import CA_LOGDIR, CA_MER_CAT, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_WORKDIR
+from SHE_PPT.argument_parser import CA_MER_CAT, CA_SHE_MEAS
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.CalcCommonValData import (defineSpecificProgramOptions, mainMethod, )
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -41,54 +41,36 @@ from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
 
-def make_mock_args() -> Namespace:
-    """ Get a mock argument parser we can use.
-    """
-    parser = defineSpecificProgramOptions()
-    args = parser.parse_args([])
-
-    setattr(args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
-
-    return args
-
-
-class TestCase:
+class TestCase(SheTestCase):
     """ Tests for calculating common validation data.
     """
 
-    args: Namespace
-    workdir: str = ""
-    logdir: str = ""
-    mock_pipeline_config_factory: Optional[MockValPipelineConfigFactory] = None
+    pipeline_config_factory_type = MockValPipelineConfigFactory
+
+    def _make_mock_args(self) -> None:
+        """ Get a mock argument parser we can use.
+        """
+        parser = defineSpecificProgramOptions()
+        self.args = parser.parse_args([])
+
+        setattr(self.args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
 
     @classmethod
     def setup_class(cls):
-        cls.args = make_mock_args()
+        pass
 
     @classmethod
     def teardown_class(cls):
 
-        # Delete the created data
-        if cls.mock_pipeline_config_factory:
-            cls.mock_pipeline_config_factory.cleanup()
+        super().teardown_class()
         if cls.workdir:
             cleanup_mock_measurements_tables(cls.workdir)
             cleanup_mock_mfc_table(cls.workdir)
 
     @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
-        self.workdir = tmpdir.strpath
-        self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
+    def setup(self, tmpdir: LocalPath):
 
-        # Set up the args to pass to the task
-        setattr(self.args, CA_WORKDIR, self.workdir)
-        setattr(self.args, CA_LOGDIR, self.logdir)
-
-        # Write the pipeline config we'll be using and note its filename
-        self.mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir = self.workdir)
-        self.mock_pipeline_config_factory.write(self.workdir)
-        setattr(self.args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.file_namer.filename)
+        self._setup_with_tmpdir(tmpdir)
 
         # Write the mock input data and store filenames in the args
         meas_filename = write_mock_measurements_tables(self.workdir)
