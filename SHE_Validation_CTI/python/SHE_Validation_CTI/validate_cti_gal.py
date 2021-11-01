@@ -28,7 +28,7 @@ from astropy.table import Row, Table, vstack as table_vstack
 
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
-from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_MER_CAT, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_VIS_CAL_FRAME,
+from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_VIS_CAL_FRAME,
                                      CA_WORKDIR, )
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_listfile,
@@ -37,7 +37,7 @@ from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_li
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
+from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
@@ -91,7 +91,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_estimate_tables)
     data_stack = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
-                                    detections_listfile_filename = d_args[CA_MER_CAT],
+                                    detections_listfile_filename = d_args[CA_SHE_EXT_CAT],
                                     object_id_list = s_object_ids,
                                     workdir = workdir,
                                     memmap = True,

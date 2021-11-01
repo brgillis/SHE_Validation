@@ -33,7 +33,7 @@ class CtiGalArgumentParser(ValidationArgumentParser):
         # Input filename arguments
 
         self.add_calibrated_frame_arg()
-        self.add_final_catalog_arg()
+        self.add_extended_catalog_arg()
         self.add_measurements_arg()
         self.add_mdb_arg()
 
