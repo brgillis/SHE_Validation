@@ -27,8 +27,8 @@ CA_SHE_EXT_CAT = "extended_catalog"
 CA_SHE_MATCHED_CAT = "matched_catalog"
 CA_SHE_MATCHED_CAT_LIST = "matched_catalog_listfile"
 CA_SHE_TEST_RESULTS = "she_validation_test_results_product"
-CA_SHE_OBS_TEST_RESULTS = "she_observation_validation_test_results_product"
-CA_SHE_EXP_TEST_RESULTS_LIST = "she_exposure_validation_test_results_listfile"
+CA_SHE_OBS_TEST_RESULTS = "she_observation_cti_gal_validation_test_results_product"
+CA_SHE_EXP_TEST_RESULTS_LIST = "she_exposure_cti_gal_validation_test_results_listfile"
 
 
 class ValidationArgumentParser(SheArgumentParser):
@@ -60,13 +60,13 @@ class ValidationArgumentParser(SheArgumentParser):
 
     def add_obs_test_result_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
         self.add_arg_with_type(f'--{CA_SHE_OBS_TEST_RESULTS}', type = str, arg_type = arg_type,
-                               default = "she_observation_validation_test_results_product.xml",
+                               default = "she_observation_cti_gal_validation_test_results_product.xml",
                                help = 'Desired filename of output .xml data product for observation validation '
                                       'test results.')
 
     def add_exp_test_result_listfile_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
         self.add_arg_with_type(f'--{CA_SHE_EXP_TEST_RESULTS_LIST}', type = str, arg_type = arg_type,
-                               default = "she_exposure_validation_test_results_listfile.xml",
+                               default = "she_exposure_cti_gal_validation_test_results_listfile.xml",
                                help = 'Desired filename of output .json listfile for exposure validation test '
                                       'results.')
 
