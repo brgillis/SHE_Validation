@@ -33,7 +33,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_MATCHED_CAT_LIST, CA_SHE_TEST_RESULTS
-from SHE_Validation.config_utility import get_d_bin_limits
+from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO, L_SHEAR_BIAS_TEST_CASE_M_INFO,
@@ -52,7 +52,7 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     workdir = d_args[CA_WORKDIR]
 
     # Get the bin limits from the pipeline_config
-    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_bin_limits(d_args[CA_PIPELINE_CONFIG])
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG])
 
     # Get the list of matched catalog products to be read in, depending on mode
     l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(d_args, mode)

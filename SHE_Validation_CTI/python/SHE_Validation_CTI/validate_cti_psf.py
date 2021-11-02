@@ -1,4 +1,4 @@
-""" @file validate_cti_gal.py
+""" @file validate_cti_psf.py
 
     Created 24 November 2020 by Bryan Gillis
 
@@ -19,29 +19,30 @@ __updated__ = "2021-08-30"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
+import os
 from os.path import join
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from astropy.table import Row, Table, vstack as table_vstack
 
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
-from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_MEAS, CA_VIS_CAL_FRAME,
+from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT,
+                                     CA_VIS_CAL_FRAME,
                                      CA_WORKDIR, )
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_listfile,
+from SHE_PPT.file_io import (get_allowed_filename, read_listfile,
                              read_xml_product, write_listfile,
                              write_xml_product, )
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
+from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.utility import get_object_id_list_from_se_tables
+from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
 from . import __version__
 from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
@@ -52,13 +53,12 @@ from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_t
 from .plot_cti_gal import CtiGalPlotter
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
-
-MSG_COMPLETE = "Complete!"
+from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
 
 
-def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
+def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
     """
         Main function for CTI-Gal validation
     """
@@ -76,28 +76,19 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     logger.info(MSG_COMPLETE)
 
     # Get the bin limits dictionary from the config
-    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG])
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG])
 
-    # Load the shear measurements
+    # Load the star catalogue
 
-    logger.info("Loading validated shear measurements.")
+    logger.info("Loading star catalog.")
 
-    # Read in the shear estimates data product, and get the filenames of the tables for each method from it
-    d_shear_estimate_tables, _ = read_d_method_tables(d_args[CA_SHE_MEAS],
-                                                      workdir = workdir,
-                                                      log_info = True)
+    star_catalog_product: dpdSheStarCatalog = read_xml_product(d_args[CA_SHE_STAR_CAT], workdir = workdir)
+    star_catalog_filename: str = star_catalog_product.get_data_filename()
+    star_catalog_table: Table = Table.read(os.path.join(workdir, star_catalog_filename))
 
-    # Load the image data as a SHEFrameStack. Limit to object IDs we have shear estimates for
-    logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
-    s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_estimate_tables)
-    data_stack = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
-                                    detections_listfile_filename = d_args[CA_SHE_EXT_CAT],
-                                    object_id_list = s_object_ids,
-                                    workdir = workdir,
-                                    load_images = False,
-                                    prune_images = False,
-                                    mode = 'denywrite')
     logger.info(MSG_COMPLETE)
+
+    # Load the extended detections catalog
 
     # TODO: Use products from the frame stack
     # Load the exposure products, to get needed metadata for output

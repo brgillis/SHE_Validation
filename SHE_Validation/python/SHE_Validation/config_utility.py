@@ -41,7 +41,7 @@ for _bin_parameter in BinParameters:
     COMMON_VAL_TYPES[_bin_limits_key] = np.ndarray
 
 
-def get_d_bin_limits(pipeline_config: Dict[ConfigKeys, Any]) -> Dict[BinParameters, np.ndarray]:
+def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any]) -> Dict[BinParameters, np.ndarray]:
     """ Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
     """
 
