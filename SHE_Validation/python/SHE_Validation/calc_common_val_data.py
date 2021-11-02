@@ -25,7 +25,7 @@ from typing import Any, Dict, Optional, Set
 from astropy.table import Table
 
 from SHE_PPT import file_io
-from SHE_PPT.argument_parser import CA_DATA_IMAGES, CA_MER_CAT, CA_SHE_MEAS, CA_WORKDIR
+from SHE_PPT.argument_parser import CA_MER_CAT, CA_SHE_MEAS, CA_VIS_CAL_FRAME, CA_WORKDIR
 from SHE_PPT.file_io import read_d_method_tables
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
@@ -51,7 +51,7 @@ def calc_common_val_data_from_args(d_args: Dict[str, Any]):
 
     # Read in the data stack
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_DATA_IMAGES],
+    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
                                                              detections_listfile_filename = d_args[CA_MER_CAT],
                                                              object_id_list = s_object_ids,
                                                              workdir = workdir)

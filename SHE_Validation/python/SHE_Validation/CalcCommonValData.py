@@ -50,7 +50,7 @@ class CCVDArgumentParser(ValidationArgumentParser):
         super().__init__()
 
         # Input filenames
-        self.add_data_images_arg()
+        self.add_calibrated_frame_arg()
         self.add_final_catalog_arg()
         self.add_measurements_arg()
 
