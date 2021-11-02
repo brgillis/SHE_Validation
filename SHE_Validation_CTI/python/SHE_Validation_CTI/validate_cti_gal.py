@@ -94,8 +94,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                     detections_listfile_filename = d_args[CA_SHE_EXT_CAT],
                                     object_id_list = s_object_ids,
                                     workdir = workdir,
-                                    memmap = True,
-                                    load_images = True,
+                                    load_images = False,
                                     prune_images = False,
                                     mode = 'denywrite')
     logger.info(MSG_COMPLETE)
