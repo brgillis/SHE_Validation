@@ -49,7 +49,7 @@ from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
 from .data_processing import calculate_regression_results
 from .file_io import CtiGalPlotFileNamer
 from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
-from .plot_cti_gal import CtiGalPlotter
+from .plot_cti import CtiPlotter
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
 
@@ -321,10 +321,10 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                  bin_parameter = test_case_info.bins,
                                                  bin_index = bin_index,
                                                  workdir = workdir)
-                plotter = CtiGalPlotter(file_namer = file_namer,
-                                        object_table = object_data_table,
-                                        bin_limits = bin_limits,
-                                        l_ids_in_bin = l_test_case_object_ids, )
+                plotter = CtiPlotter(file_namer = file_namer,
+                                     object_table = object_data_table,
+                                     bin_limits = bin_limits,
+                                     l_ids_in_bin = l_test_case_object_ids, )
                 plotter.plot()
                 plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
                 plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename

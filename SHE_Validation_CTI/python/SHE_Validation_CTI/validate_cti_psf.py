@@ -33,7 +33,7 @@ from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_
 from SHE_PPT.file_io import (read_product_and_table, read_table_from_product, write_xml_product, )
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
-from SHE_PPT.table_formats.she_star_catalog import tf as SC_TF
+from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits

@@ -2,7 +2,7 @@
 
     Created 12 July 2021
 
-    Unit tests of the plot_cti_gal.py module
+    Unit tests of the plot_cti.py module
 """
 
 __updated__ = "2021-08-30"
@@ -29,7 +29,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.file_io import CtiGalPlotFileNamer
-from SHE_Validation_CTI.plot_cti_gal import CtiGalPlotter
+from SHE_Validation_CTI.plot_cti import CtiPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
@@ -90,10 +90,10 @@ class TestCase:
                                          bin_parameter = BinParameters.GLOBAL,
                                          bin_index = 0,
                                          workdir = self.workdir)
-        plotter = CtiGalPlotter(file_namer = file_namer,
-                                object_table = object_data_table,
-                                bin_limits = DEFAULT_BIN_LIMITS,
-                                l_ids_in_bin = indices[:l_good], )
+        plotter = CtiPlotter(file_namer = file_namer,
+                             object_table = object_data_table,
+                             bin_limits = DEFAULT_BIN_LIMITS,
+                             l_ids_in_bin = indices[:l_good], )
         plotter.plot()
 
         # Check the results
