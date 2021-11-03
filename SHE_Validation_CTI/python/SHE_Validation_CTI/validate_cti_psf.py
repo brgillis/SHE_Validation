@@ -35,7 +35,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
-from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
@@ -135,7 +135,8 @@ def validate_cti_psf(star_catalog_table: Table,
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_PSF_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
                                                         detections_table = extended_catalog_table,
-                                                        object_table = star_catalog_table, )
+                                                        l_full_ids = star_catalog_table[SC_TF.id],
+                                                        bin_constraint_type = BinParameterBinConstraint)
 
     for test_case_info in L_CTI_PSF_TEST_CASE_INFO:
 

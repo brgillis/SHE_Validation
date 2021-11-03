@@ -96,7 +96,9 @@ class BinConstraint(abc.ABC):
 
         return l_is_row_in_bin
 
-    def get_rows_in_bin(self, t: Table,
+    def get_rows_in_bin(self,
+                        t: Table,
+                        l_full_ids: Optional[Sequence[int]] = None,
                         *args, **kwargs) -> Table:
         """ Method to return a table with only rows satisfying a bin constraint.
 
@@ -104,6 +106,8 @@ class BinConstraint(abc.ABC):
             ----------
             t : astropy.table.Table
                 The table to assess the data of
+            l_full_ids : Optional[Sequence[int]]
+                (Optional) A list of IDs to check. If not provided, will take IDs from the table.
 
             Return
             ------
@@ -112,11 +116,20 @@ class BinConstraint(abc.ABC):
         """
 
         l_is_row_in_bin: np.ndarray = self.get_l_is_row_in_bin(t, *args, **kwargs)
-        binned_table: Table = t[l_is_row_in_bin]
+
+        binned_table: Table
+        if l_full_ids is None:
+            binned_table = t[l_is_row_in_bin]
+        else:
+            l_is_id_in_full_ids: np.ndarray = np.isin(t[MFC_TF.ID], l_full_ids)
+            l_use_row: np.ndarray = np.logical_and(l_is_row_in_bin, l_is_id_in_full_ids)
+            binned_table = t[l_use_row]
 
         return binned_table
 
-    def get_ids_in_bin(self, t: Table,
+    def get_ids_in_bin(self,
+                       t: Table,
+                       l_full_ids: Optional[Sequence[int]] = None,
                        *args, **kwargs) -> Column:
         """ Method to return a table with only rows satisfying a bin constraint.
 
@@ -124,6 +137,8 @@ class BinConstraint(abc.ABC):
             ----------
             t : astropy.table.Table
                 The table to assess the data of
+            l_full_ids : Optional[Sequence[int]]
+                (Optional) A list of IDs to check. If not provided, will take IDs from the table.
 
             Return
             ------
@@ -131,7 +146,7 @@ class BinConstraint(abc.ABC):
                 Column of the object IDs which are in this bin
         """
 
-        binned_table: Table = self.get_rows_in_bin(t, *args, **kwargs)
+        binned_table: Table = self.get_rows_in_bin(t, l_full_ids, *args, **kwargs)
         binned_ids: Column = binned_table[MFC_TF.ID]
 
         return binned_ids
@@ -347,14 +362,17 @@ class HeteroBinConstraint:
 
     # Protected methods
 
-    def get_ids_in_bin(self, l_tables: Sequence[Table],
+    def get_ids_in_bin(self,
+                       l_tables: Sequence[Table],
+                       l_full_ids: Optional[Sequence[int]] = None,
                        *args, **kwargs) -> Sequence[int]:
         """ Checks if the data is in all bin constraints, where the list of tables
             is aligned with the list of bin constraints
         """
 
-        l_s_ids_in_bin: List[Set[int]] = [set(bin_constraint.get_ids_in_bin(table, *args, **kwargs))
-                                          for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
+        l_s_ids_in_bin: List[Set[int]] = [
+            set(bin_constraint.get_ids_in_bin(table, *args, l_full_ids = l_full_ids ** kwargs))
+            for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
         return np.array(list(set.intersection(*l_s_ids_in_bin)))
 
 
@@ -608,15 +626,17 @@ def _get_ids_in_bin(bin_parameter: BinParameters,
                     full_bin_limits: Sequence[float],
                     bin_index: int,
                     detections_table: Table,
+                    l_full_ids: Sequence[int],
                     data_stack: Optional[SHEFrameStack] = None,
                     ) -> Sequence[int]:
-    """TODO: Add docstring for this function"""
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
     bin_constraint: BinConstraint = bin_constraint_type(bin_parameter = bin_parameter, bin_limits = bin_limits)
 
     # Get IDs for this bin, and add it to the list
-    l_binned_ids = bin_constraint.get_ids_in_bin(t = detections_table, data_stack = data_stack)
+    l_binned_ids = bin_constraint.get_ids_in_bin(t = detections_table,
+                                                 l_full_ids = l_full_ids,
+                                                 data_stack = data_stack)
 
     return l_binned_ids
 
@@ -627,11 +647,10 @@ def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
                            full_bin_limits: Sequence[float],
                            bin_index: int,
                            detections_table: Table,
+                           l_full_ids: Sequence[int],
                            measurements_table: Table,
                            data_stack: Optional[SHEFrameStack] = None,
                            ) -> Sequence[int]:
-    """TODO: Add docstring for this function"""
-
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
     bin_constraint: HeteroBinConstraint = bin_constraint_type(method = method,
@@ -640,6 +659,7 @@ def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
 
     # Get IDs for this bin, and add it to the list
     l_binned_ids = bin_constraint.get_ids_in_bin(l_tables = [detections_table, measurements_table],
+                                                 l_full_ids = l_full_ids,
                                                  data_stack = data_stack)
 
     return l_binned_ids
@@ -647,6 +667,7 @@ def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
 
 def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
                      detections_table: Table,
+                     l_full_ids: Sequence[int],
                      l_bin_parameters: Sequence[BinParameters] = BinParameters,
                      data_stack: Optional[SHEFrameStack] = None,
                      bin_constraint_type: Type = VisDetBinParameterBinConstraint,
@@ -679,6 +700,7 @@ def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
                                                           full_bin_limits = full_bin_limits,
                                                           bin_index = bin_index,
                                                           detections_table = detections_table,
+                                                          l_full_ids = l_full_ids,
                                                           data_stack = data_stack)
             l_l_binned_ids[bin_index] = l_binned_ids
 
@@ -691,6 +713,7 @@ def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
 def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
                            d_bin_limits: Dict[BinParameters, Sequence[float]],
                            detections_table: Table,
+                           l_full_ids: Sequence[int],
                            d_measurements_tables: Optional[Dict[ShearEstimationMethods, Table]] = None,
                            data_stack: Optional[SHEFrameStack] = None,
                            bin_constraint_type: Type = GoodBinnedMeasurementHBC,
@@ -728,6 +751,7 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
                                                           full_bin_limits = full_bin_limits,
                                                           bin_index = bin_index,
                                                           detections_table = detections_table,
+                                                          l_full_ids = l_full_ids,
                                                           d_measurements_tables = d_measurements_tables,
                                                           data_stack = data_stack)
 
@@ -742,6 +766,7 @@ def _get_l_binned_ids(test_case_info: TestCaseInfo,
                       full_bin_limits: np.ndarray,
                       bin_index: int,
                       detections_table: Table,
+                      l_full_ids: Sequence[int],
                       d_measurements_tables: Dict[ShearEstimationMethods, Table],
                       data_stack: SHEFrameStack):
     # Special processing if we have a HeteroBinConstraint
@@ -759,6 +784,7 @@ def _get_l_binned_ids(test_case_info: TestCaseInfo,
                                                                  full_bin_limits = full_bin_limits,
                                                                  bin_index = bin_index,
                                                                  detections_table = detections_table,
+                                                                 l_full_ids = l_full_ids,
                                                                  measurements_table = measurements_table,
                                                                  data_stack = data_stack)
     else:
@@ -767,6 +793,7 @@ def _get_l_binned_ids(test_case_info: TestCaseInfo,
                                                       full_bin_limits = full_bin_limits,
                                                       bin_index = bin_index,
                                                       detections_table = detections_table,
+                                                      l_full_ids = l_full_ids,
                                                       data_stack = data_stack)
     return l_binned_ids
 
