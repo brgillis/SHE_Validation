@@ -23,10 +23,25 @@ __updated__ = "2021-08-30"
 from SHE_Validation.file_io import SheValFileNamer
 
 
-class CtiGalPlotFileNamer(SheValFileNamer):
+class CtiPlotFileNamer(SheValFileNamer):
+    """ SheFileNamer specialized for CTI plotting.
+    """
+
+    # Attributes from the base class we're overriding
+    _extension: str = "png"
+
+
+class CtiGalPlotFileNamer(CtiPlotFileNamer):
     """ SheFileNamer specialized for Shear Bias test cases.
     """
 
     # Attributes from the base class we're overriding
     _type_name_body: str = "CTI-GAL-PLOT"
-    _extension: str = "png"
+
+
+class CtiPsfPlotFileNamer(CtiPlotFileNamer):
+    """ SheFileNamer specialized for Shear Bias test cases.
+    """
+
+    # Attributes from the base class we're overriding
+    _type_name_body: str = "CTI-PSF-PLOT"

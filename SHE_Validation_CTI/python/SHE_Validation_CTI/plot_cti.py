@@ -33,6 +33,7 @@ from SHE_PPT.utility import coerce_to_list
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
+from .file_io import CtiPlotFileNamer
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 logger = getLogger(__name__)
