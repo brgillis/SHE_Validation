@@ -39,8 +39,7 @@ from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
-from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
-                                          )
+from .constants.cti_psf_test_info import L_CTI_PSF_TEST_CASE_INFO, NUM_CTI_PSF_TEST_CASES
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .validate_cti_gal import MSG_COMPLETE
 
