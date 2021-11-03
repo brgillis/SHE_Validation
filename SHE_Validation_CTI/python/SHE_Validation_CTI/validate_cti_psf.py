@@ -132,7 +132,7 @@ def validate_cti_psf(star_catalog_table: Table,
     plot_filenames: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
-    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_PSF_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
                                                         detections_table = extended_catalog_table,
                                                         object_table = star_catalog_table, )
