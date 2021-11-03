@@ -41,6 +41,8 @@ from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 from .constants.cti_psf_test_info import L_CTI_PSF_TEST_CASE_INFO, NUM_CTI_PSF_TEST_CASES
 from .data_processing import add_readout_register_distance, calculate_regression_results
+from .file_io import CtiPsfPlotFileNamer
+from .plot_cti import CtiPlotter
 from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
@@ -167,10 +169,10 @@ def validate_cti_psf(star_catalog_table: Table,
             file_namer = CtiPsfPlotFileNamer(bin_parameter = test_case_info.bins,
                                              bin_index = bin_index,
                                              workdir = workdir)
-            plotter = CtiPsfPlotter(file_namer = file_namer,
-                                    object_table = star_catalog_table,
-                                    bin_limits = bin_limits,
-                                    l_ids_in_bin = l_test_case_object_ids, )
+            plotter = CtiPlotter(file_namer = file_namer,
+                                 object_table = star_catalog_table,
+                                 bin_limits = bin_limits,
+                                 l_ids_in_bin = l_test_case_object_ids, )
             plotter.plot()
             plot_label = f"{test_case_info.bins.value}-{bin_index}"
             plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
