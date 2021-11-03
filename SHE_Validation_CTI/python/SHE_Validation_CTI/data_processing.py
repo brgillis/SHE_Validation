@@ -20,7 +20,7 @@ __updated__ = "2021-08-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Sequence
+from typing import Optional, Sequence
 
 import numpy as np
 from astropy import table
@@ -29,6 +29,7 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
+from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
@@ -71,15 +72,22 @@ def _set_row_empty(rr_row: table.Row, ):
 
 def calculate_regression_results(object_data_table: table.Table,
                                  l_ids_in_bin: Sequence[int],
-                                 method: ShearEstimationMethods,
+                                 method: Optional[ShearEstimationMethods] = None,
                                  index: int = 0,
                                  product_type: str = "UNKNOWN", ) -> table.Row:
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
 
-    # Get the shear estimation method name
-    method_name = method.value
+    # Figure out the type of input table based on whether or not a method is provided
+    if method is not None:
+        method_name = method.value
+        method_tail = f"_{method_name}"
+        odt_tf = CGOD_TF
+    else:
+        method_name = None
+        method_tail = ""
+        odt_tf = SC_TF
 
     # Initialize a table for the output data
     regression_results_table = RR_TF.init_table(product_type = product_type, size = 1)
@@ -97,8 +105,14 @@ def calculate_regression_results(object_data_table: table.Table,
     object_data_table_in_bin = get_table_of_ids(object_data_table, l_ids_in_bin)
 
     readout_dist_data = object_data_table_in_bin[CGOD_TF.readout_dist]
-    g1_data = object_data_table_in_bin[getattr(CGOD_TF, f"g1_image_{method_name}")]
-    weight_data = object_data_table_in_bin[getattr(CGOD_TF, f"weight_{method_name}")]
+
+    if method is not None:
+        g1_data = object_data_table_in_bin[getattr(odt_tf, f"g1_image{method_tail}")]
+        weight_data = object_data_table_in_bin[getattr(odt_tf, f"weight{method_tail}")]
+    else:
+        g1_data = object_data_table_in_bin[odt_tf.e1]
+        g1_err_data = object_data_table_in_bin[odt_tf.e1_err]
+        weight_data = np.power(g1_err_data, -2)
 
     tot_weight = np.nansum(weight_data)
 
