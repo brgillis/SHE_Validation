@@ -19,40 +19,29 @@ __updated__ = "2021-08-30"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-import os
+
 from os.path import join
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-from astropy.table import Row, Table, vstack as table_vstack
+from astropy.table import Row, Table
 
 from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT,
-                                     CA_VIS_CAL_FRAME,
                                      CA_WORKDIR, )
-from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.file_io import (get_allowed_filename, read_listfile,
-                             read_xml_product, write_listfile,
-                             write_xml_product, )
+from SHE_PPT.file_io import (read_product_and_table, read_table_from_product, write_xml_product, )
 from SHE_PPT.logging import getLogger
-from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
-from SHE_PPT.she_frame_stack import SHEFrameStack
-from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
+from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
+from SHE_PPT.table_formats.she_star_catalog import tf as SC_TF
+from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
-from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
-from . import __version__
 from .constants.cti_gal_test_info import (L_CTI_GAL_TEST_CASE_INFO,
-                                          NUM_CTI_GAL_TEST_CASES, )
-from .data_processing import calculate_regression_results
-from .file_io import CtiGalPlotFileNamer
-from .input_data import get_raw_cti_gal_object_data, sort_raw_object_data_into_table
-from .plot_cti_gal import CtiGalPlotter
-from .results_reporting import fill_cti_gal_validation_results
-from .table_formats.regression_results import TF as RR_TF
+                                          )
+from .data_processing import add_readout_register_distance, calculate_regression_results
 from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
@@ -71,8 +60,10 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
     # Load the MDB
     qualified_mdb_filename = join(workdir, d_args[CA_MDB])
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
+
     mdb.init(qualified_mdb_filename)
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
+
     logger.info(MSG_COMPLETE)
 
     # Get the bin limits dictionary from the config
@@ -82,259 +73,111 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
 
     logger.info("Loading star catalog.")
 
-    star_catalog_product: dpdSheStarCatalog = read_xml_product(d_args[CA_SHE_STAR_CAT], workdir = workdir)
-    star_catalog_filename: str = star_catalog_product.get_data_filename()
-    star_catalog_table: Table = Table.read(os.path.join(workdir, star_catalog_filename))
+    star_catalog_product: dpdSheStarCatalog
+    star_catalog_product, star_catalog_table = read_product_and_table(d_args[CA_SHE_STAR_CAT],
+                                                                      workdir = workdir,
+                                                                      log_info = True)
 
     logger.info(MSG_COMPLETE)
 
     # Load the extended detections catalog
-
-    # TODO: Use products from the frame stack
-    # Load the exposure products, to get needed metadata for output
-    l_vis_calibrated_frame_filename = read_listfile(join(workdir, d_args[CA_VIS_CAL_FRAME]),
-                                                    log_info = True)
-    l_vis_calibrated_frame_product = []
-    for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
-        vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename,
+    extended_catalog_table = read_table_from_product(d_args[CA_SHE_STAR_CAT],
                                                      workdir = workdir,
                                                      log_info = True)
-        if not isinstance(vis_calibrated_frame_prod, dpdVisCalibratedFrame):
-            raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
-                             + " is invalid type.")
-        l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
 
-    # Log a warning if no data from any method and set a flag for later code to refer to
-    if all(value is None for value in d_shear_estimate_tables.values()):
-        logger.warning("No method has any data associated with it.")
-        method_data_exists = False
-    else:
-        method_data_exists = True
+    # Calculate the data necessary for validation
 
-    logger.info(MSG_COMPLETE)
+    add_readout_register_distance(star_catalog_table, y_colname = SC_TF.y)
 
-    # Run the validation
-    if not d_args[CA_DRY_RUN]:
-        (d_exposure_regression_results_tables,
-         d_observation_regression_results_tables,
-         plot_filenames) = validate_cti_gal(data_stack = data_stack,
-                                            shear_estimate_tables = d_shear_estimate_tables,
-                                            d_bin_limits = d_l_bin_limits,
-                                            workdir = workdir)
-    else:
-        d_exposure_regression_results_tables = None
-        d_observation_regression_results_tables = None
-        plot_filenames = None
+    d_regression_results_tables = validate_cti_psf(star_catalog_table = star_catalog_table,
+                                                   extended_catalog_table = extended_catalog_table,
+                                                   d_l_bin_limits = d_l_bin_limits,
+                                                   workdir = workdir)
 
-    logger.info("Creating and outputting validation test result data products.")
+    # Set up output product, using the star catalog product as a reference
+    test_result_product = create_dpd_she_validation_test_results(reference_product = star_catalog_product,
+                                                                 num_tests = NUM_CTI_PSF_TEST_CASES)
 
-    # Set up output product, using the VIS Calibrated Frame product as a reference
-    (l_exp_test_result_filename,
-     l_exp_test_result_product,
-     obs_test_result_product,
-     vis_calibrated_frame_product) = load_from_vis_calibrated_frame(l_vis_calibrated_frame_product)
-
-    # Fill in the products with the results
+    # Fill in the product with the results
     if not d_args[CA_DRY_RUN]:
 
-        # Get the regression results tables for this test case
-
-        # Fill in each exposure product in turn with results
-        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
-            fill_cti_gal_validation_results(test_result_product = exp_test_result_product,
-                                            workdir = workdir,
-                                            regression_results_row_index = product_index,
-                                            d_regression_results_tables = d_exposure_regression_results_tables,
-                                            pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                            d_bin_limits = d_l_bin_limits,
-                                            method_data_exists = method_data_exists)
-
-        # And fill in the observation product
-        fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
+        # Fill in the product with results
+        fill_cti_psf_validation_results(test_result_product = test_result_product,
                                         workdir = workdir,
-                                        regression_results_row_index = 0,
-                                        d_regression_results_tables = d_observation_regression_results_tables,
+                                        d_regression_results_tables = d_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                        d_bin_limits = d_l_bin_limits,
-                                        dl_l_figures = plot_filenames,
-                                        method_data_exists = method_data_exists)
+                                        d_l_bin_limits = d_l_bin_limits, )
 
-    # Write out the exposure test results products and listfile
-    for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
-                                                                 l_exp_test_result_filename):
-        write_xml_product(exp_test_result_product,
-                          exp_test_result_filename,
-                          workdir = workdir,
-                          log_info = True)
-
-    qualified_exp_test_results_filename = join(workdir, d_args[CA_SHE_EXP_TEST_RESULTS_LIST])
-    write_listfile(qualified_exp_test_results_filename,
-                   l_exp_test_result_filename,
-                   log_info = True)
-
-    # Write out observation test results product
-    write_xml_product(product = obs_test_result_product,
-                      xml_filename = d_args[CA_SHE_OBS_TEST_RESULTS],
+    # Write out the test results product
+    write_xml_product(test_result_product,
+                      xml_filename = d_args[CA_SHE_TEST_RESULTS],
                       workdir = workdir,
                       log_info = True)
 
     logger.info("Execution complete.")
 
 
-def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]) -> Tuple[List[str],
-                                                                                           List[Any],
-                                                                                           Any,
-                                                                                           Optional[Any]]:
-    """ Load in the image data and create validation test result products based off of it.
-    """
-
-    l_exp_test_result_product: List[Any] = []
-    l_exp_test_result_filename: List[str] = []
-
-    obs_id_check = -1
-
-    vis_calibrated_frame_product: Optional[Any] = None
-    for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
-
-        exp_test_result_product: Any = create_validation_test_results_product(
-            reference_product = vis_calibrated_frame_product,
-            num_tests = NUM_CTI_GAL_TEST_CASES)
-
-        # Get the Observation ID and Pointing ID, and put them in the filename
-        obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
-        pnt_id = vis_calibrated_frame_product.Data.ObservationSequence.PointingId
-        exp_test_result_filename = get_allowed_filename(type_name = "EXP-CTI-GAL-VAL-TEST-RESULT",
-                                                        instance_id = f"{obs_id}-{pnt_id}",
-                                                        extension = ".xml",
-                                                        version = __version__,
-                                                        subdir = "data")
-
-        # Store the product and filename in lists
-        l_exp_test_result_product.append(exp_test_result_product)
-        l_exp_test_result_filename.append(exp_test_result_filename)
-
-        # Check the obs_ids are all the same (important below)
-        # First time
-        if obs_id_check == -1:
-            # Store the value in obs_id_check
-            obs_id_check = obs_id
-        else:
-            if obs_id_check != obs_id:
-                logger.warning("Inconsistent Observation IDs in VIS calibrated frame product.")
-
-    # Create the observation test results product. We don't have a reference product for this, so we have to
-    # fill it out manually
-    obs_test_result_product = create_validation_test_results_product(
-        num_exposures = len(l_vis_calibrated_frame_product),
-        num_tests = NUM_CTI_GAL_TEST_CASES)
-    obs_test_result_product.Data.TileId = None
-    obs_test_result_product.Data.PointingId = None
-    obs_test_result_product.Data.ExposureProductId = None
-    if vis_calibrated_frame_product is not None:
-        # Use the last observation ID, having checked they're all the same above
-        obs_test_result_product.Data.ObservationId = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
-
-    return (l_exp_test_result_filename,
-            l_exp_test_result_product,
-            obs_test_result_product,
-            vis_calibrated_frame_product)
-
-
-def validate_cti_gal(data_stack: SHEFrameStack,
-                     shear_estimate_tables: Dict[ShearEstimationMethods, Table],
-                     d_bin_limits: Dict[BinParameters, np.ndarray],
-                     workdir: str) -> Tuple[Dict[str, List[Union[Table, Row]]],
-                                            Dict[str, List[Union[Table, Row]]],
+def validate_cti_psf(star_catalog_table: Table,
+                     extended_catalog_table: Table,
+                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                     workdir: str) -> Tuple[Dict[str, List[Table]],
                                             Dict[str, Dict[str, str]]]:
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
 
-    # First, we'll need to get the pixel coords of each object in the table in each exposure, along with the detector
-    # and quadrant where it's found and e1/2 in world coords. We'll start by
-    # getting them in a raw format by looping over objects
-    l_raw_object_data = get_raw_cti_gal_object_data(data_stack = data_stack,
-                                                    d_shear_estimate_tables = shear_estimate_tables)
-
-    # Now sort the raw data into tables (one for each exposure)
-    l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data = l_raw_object_data)
-
     # Loop over each test case, filling in results tables for each and adding them to the results dict
-    d_l_exposure_regression_results_tables: Dict[str, List[Table]] = {}
-    d_l_observation_regression_results_tables: Dict[str, List[Table]] = {}
+    d_l_regression_results_tables: Dict[str, List[Table]] = {}
     plot_filenames: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits = d_bin_limits,
-                                                        detections_table = data_stack.detections_catalogue,
-                                                        d_measurements_tables = shear_estimate_tables,
-                                                        data_stack = data_stack)
+                                                        d_bin_limits = d_l_bin_limits,
+                                                        detections_table = extended_catalog_table,
+                                                        object_table = star_catalog_table, )
 
-    for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+    for test_case_info in L_CTI_PSF_TEST_CASE_INFO:
 
         # Initialise for this test case
-        method = test_case_info.method
         plot_filenames[test_case_info.name] = {}
-        test_case_bin_limits = d_bin_limits[test_case_info.bins]
-        num_bins = len(test_case_bin_limits) - 1
+        l_test_case_bin_limits = d_l_bin_limits[test_case_info.bins]
+        num_bins = len(l_test_case_bin_limits) - 1
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
 
         # Double check we have at least one bin
         assert num_bins >= 1
 
-        l_exposure_regression_results_tables: List[Optional[Union[Table, Row]]] = [None] * num_bins
-        l_observation_regression_results_tables: List[Optional[Union[Table, Row]]] = [None] * num_bins
+        l_regression_results_tables: List[Optional[Union[Table, Row]]] = [None] * num_bins
 
         for bin_index in range(num_bins):
 
             # Get info for this bin
             l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
-            bin_limits = test_case_bin_limits[bin_index:bin_index + 2]
+            bin_limits = l_test_case_bin_limits[bin_index:bin_index + 2]
 
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
 
-            exposure_regression_results_table = RR_TF.init_table(product_type = "EXP")
+            regression_results_table = calculate_regression_results(object_data_table = star_catalog_table,
+                                                                    l_ids_in_bin = l_test_case_object_ids,
+                                                                    product_type = "OBS", )
 
-            for exp_index, object_data_table in enumerate(l_object_data_table):
+            l_regression_results_tables[bin_index] = regression_results_table
 
-                # Calculate the results of the regression and add it to the results table
-                exposure_regression_results_row = calculate_regression_results(object_data_table = object_data_table,
-                                                                               l_ids_in_bin = l_test_case_object_ids,
-                                                                               method = method,
-                                                                               index = exp_index,
-                                                                               product_type = "EXP")
-                exposure_regression_results_table.add_row(exposure_regression_results_row)
-
-                # Make a plot
-                file_namer = CtiGalPlotFileNamer(method = method,
-                                                 bin_parameter = test_case_info.bins,
-                                                 bin_index = bin_index,
-                                                 workdir = workdir)
-                plotter = CtiGalPlotter(file_namer = file_namer,
-                                        object_table = object_data_table,
-                                        bin_limits = bin_limits,
-                                        l_ids_in_bin = l_test_case_object_ids, )
-                plotter.plot()
-                plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
-                plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
-
-            # With the exposures done, we'll now do a test for the observation as a whole on a merged table
-            merged_object_table = table_vstack(tables = l_object_data_table)
-
-            observation_regression_results_table = calculate_regression_results(object_data_table = merged_object_table,
-                                                                                l_ids_in_bin = l_test_case_object_ids,
-                                                                                method = method,
-                                                                                product_type = "OBS", )
-
-            l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
-            l_observation_regression_results_tables[bin_index] = observation_regression_results_table
+            # Make a plot
+            file_namer = CtiPsfPlotFileNamer(bin_parameter = test_case_info.bins,
+                                             bin_index = bin_index,
+                                             workdir = workdir)
+            plotter = CtiPsfPlotter(file_namer = file_namer,
+                                    object_table = star_catalog_table,
+                                    bin_limits = bin_limits,
+                                    l_ids_in_bin = l_test_case_object_ids, )
+            plotter.plot()
+            plot_label = f"{test_case_info.bins.value}-{bin_index}"
+            plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
 
         # Fill in the results of this test case in the output dict
-        d_l_exposure_regression_results_tables[test_case_info.name] = l_exposure_regression_results_tables
-        d_l_observation_regression_results_tables[
-            test_case_info.name] = l_observation_regression_results_tables
+        d_l_regression_results_tables[test_case_info.name] = l_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return d_l_exposure_regression_results_tables, d_l_observation_regression_results_tables, plot_filenames
+    return d_l_regression_results_tables, plot_filenames
