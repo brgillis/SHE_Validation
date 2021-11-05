@@ -26,47 +26,23 @@ from copy import deepcopy
 import numpy as np
 from astropy.table import Table
 
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods)
-from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         SYNC_CONF, TEST_DATA_LOCATION, TEST_FILES_DATA_STACK,
-                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, )
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation_CTI.input_data import (PositionInfo, ShearEstimate, SingleObjectData, get_raw_cti_gal_object_data,
                                            sort_raw_object_data_into_table, )
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
-class TestCase:
+class TestCtiGalInput(SheTestCase):
+    """ Unit tests for loading CTI validation input data.
     """
-    """
-
-    workdir: str
-    logdir: str
 
     @classmethod
     def setup_class(cls):
 
-        # Download the data stack files from WebDAV
-        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
-        sync_datastack.download()
-        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
-        assert os.path.isfile(
-            qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
-
-        # Get the workdir based on where the data images listfile is
-        cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
-        cls.logdir = os.path.join(cls.workdir, "logs")
-
-        # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                            detections_listfile_filename = MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                            workdir = cls.workdir,
-                                            clean_detections = False,
-                                            memmap = True,
-                                            mode = 'denywrite')
+        cls._download_datastack()
 
         # Set up some expected values
         cls.EX_BG_LEVEL = 45.71

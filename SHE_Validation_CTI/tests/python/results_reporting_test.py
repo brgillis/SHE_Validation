@@ -20,23 +20,25 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
 from copy import deepcopy
 from typing import Any, Dict, List, NamedTuple, Optional
 
 import numpy as np
 import pytest
 from astropy.table import Table
+from py._path.local import LocalPath
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR, FailSigmaScaling
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MSG_NOT_IMPLEMENTED,
                                            MSG_NO_DATA, RESULT_FAIL, RESULT_PASS, WARNING_BAD_DATA, WARNING_MULTIPLE,
                                            WARNING_TEST_NOT_RUN, )
+from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS,
                                                                  D_CTI_GAL_CONFIG_TYPES, )
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO, L_CTI_GAL_TEST_CASE_INFO,
@@ -49,17 +51,15 @@ from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 logger = getLogger(__name__)
 
 
-class TestCase:
+class TestCtiResultsReporting(SheTestCase):
+    """ Test case for CTI validation results reporting.
     """
 
-
-    """
+    pipeline_config_factory_type = MockValPipelineConfigFactory
 
     @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
-
-        self.workdir = tmpdir.strpath
-        os.makedirs(os.path.join(self.workdir, "data"))
+    def setup(self, tmpdir: LocalPath):
+        self._setup_workdir_from_tmpdir(tmpdir)
 
         # Make a pipeline_config using the default values
         self.pipeline_config = read_config(config_filename = None, config_keys = (GlobalConfigKeys,

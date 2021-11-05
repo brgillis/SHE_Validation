@@ -20,16 +20,13 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-
 import numpy as np
 
-from ElementsServices.DataSync import DataSync
 from SHE_PPT import mdb
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import MDB_PRODUCT_FILENAME, SYNC_CONF, TEST_DATA_LOCATION, TEST_FILES_MDB
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -39,29 +36,14 @@ from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 
-class TestCase:
+class TestCtiGalDataProcessing(SheTestCase):
+    """ Unit tests for CTI validation data processing.
     """
-    """
-
-    workdir: str
-    logdir: str
 
     @classmethod
     def setup_class(cls):
 
-        # Download the MDB from WebDAV
-        sync_mdb = DataSync(SYNC_CONF, TEST_FILES_MDB)
-        sync_mdb.download()
-        qualified_mdb_filename = sync_mdb.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, MDB_PRODUCT_FILENAME))
-        assert os.path.isfile(
-            qualified_mdb_filename), f"Cannot find file: {qualified_mdb_filename}"
-
-        mdb.init(mdb_files = qualified_mdb_filename)
-
-        # Get the workdir based on where the mdb file is
-        cls.workdir = os.path.split(qualified_mdb_filename)[0]
-        cls.logdir = os.path.join(cls.workdir, "logs")
+        cls._download_mdb()
 
     @classmethod
     def teardown_class(cls):

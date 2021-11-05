@@ -24,8 +24,10 @@ import os
 
 import numpy as np
 import pytest
+from py._path.local import LocalPath
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_CTI.file_io import CtiGalPlotFileNamer
@@ -33,10 +35,8 @@ from SHE_Validation_CTI.plot_cti import CtiPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
-class TestCase:
-    """
-
-
+class TestPlotCti(SheTestCase):
+    """ Test case for CTI validation test plotting.
     """
 
     @classmethod
@@ -48,10 +48,8 @@ class TestCase:
         return
 
     @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
-        self.workdir = tmpdir.strpath
-        self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
+    def setup(self, tmpdir: LocalPath):
+        self._setup_workdir_from_tmpdir(tmpdir)
 
     def test_plot_cti_gal(self):
         method = ShearEstimationMethods.LENSMC

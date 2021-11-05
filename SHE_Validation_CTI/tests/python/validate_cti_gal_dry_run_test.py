@@ -22,18 +22,19 @@ __updated__ = "2021-08-26"
 
 import os
 import subprocess
+from argparse import Namespace
 
 import pytest
 
-from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_MER_CAT, CA_SHE_MEAS,
+from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_SHE_MEAS,
                                      CA_VIS_CAL_FRAME,
                                      )
-from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
+from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_OBS_TEST_RESULTS
+from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_CTI.ValidateCTIGal import defineSpecificProgramOptions, mainMethod
 from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
@@ -44,30 +45,32 @@ SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
 
-class CtiGalTestCase(SheTestCase):
+class TestCtiGalRun(SheTestCase):
     """ Test case for CTI-Gal validation test code.
     """
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    def _make_mock_args(self) -> None:
+    def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.
         """
         parser = defineSpecificProgramOptions()
-        self.args = parser.parse_args([])
+        args = parser.parse_args([])
 
-        setattr(self.args, CA_VIS_CAL_FRAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME)
-        setattr(self.args, CA_MER_CAT, MER_FINAL_CATALOG_LISTFILE_FILENAME)
-        setattr(self.args, CA_SHE_MEAS, SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
-        setattr(self.args, CA_MDB, MDB_PRODUCT_FILENAME)
-        setattr(self.args, CA_SHE_OBS_TEST_RESULTS, SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME)
-        setattr(self.args, CA_SHE_EXP_TEST_RESULTS_LIST, SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME)
+        setattr(args, CA_VIS_CAL_FRAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME)
+        setattr(args, CA_SHE_EXT_CAT, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_MEAS, SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
+        setattr(args, CA_MDB, MDB_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_OBS_TEST_RESULTS, SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_EXP_TEST_RESULTS_LIST, SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME)
+
+        return args
 
     @classmethod
     def setup_class(cls):
 
         cls._download_mdb()
-        cls._download_datastack()
+        cls._download_datastack(read_in = False)
 
     @pytest.mark.skip()
     def test_cti_gal_dry_run(self):
