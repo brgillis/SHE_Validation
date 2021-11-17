@@ -3,7 +3,7 @@
 SHE_Validation_CalcCommonValData
 ================================
 
-    ``(Optional) a more careful description of what the program does``
+Multiple PF-SHE Validation tests rely on the same data, such as parameters used to bin objects: S/N, colour, size, sky background level, etc. It is most convenient and efficient to calculate these in a single executable tasked for that purpose, rather than in each test individually. This executable serves that purpose, calculating all data which is used by multiple tests and passing it on to them.
 
 
 Running the Program on EDEN/LODEEN
@@ -13,7 +13,7 @@ To run the ``SHE_Validation_CalcCommonValData`` program with Elements, use the f
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir <dir> --vis_calibrated_frame_listfile <filename> --mer_final_catalog_listfile <filename> --she_validated_measurements_product <filename> --extended_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
 
 with the following options:
 
@@ -58,14 +58,22 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--vis_calibrated_frame_listfile <filename>``
+     - ``.json`` listfile pointing to ``.xml`` data products of type DpdVisCalibratedFrame, containing VIS science images for each exposure in an observation
+     - yes
+     - N/A
+   * - ``--mer_final_catalog_listfile <filename>``
+     - ``.json`` listfile pointing to ``.xml`` data products of type DpdMerFinalCatalog, containing MER object catalogs for all tiles overlapping an observation
+     - yes
+     - N/A
+   * - ``--she_validated_measurements_product <filename>``
+     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all objects in an observation
+     - yes
+     - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
-   * -
-     -
-     -
-     -
 
 
 Output Arguments
@@ -79,10 +87,10 @@ Output Arguments
      - Description
      - Required
      - Default
-   * -
-     -
-     -
-     -
+   * - --extended_catalog
+     - Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data
+     - yes
+     - N/A
 
 Options
 ~~~~~~~
@@ -103,10 +111,6 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * -
-     -
-     -
-     -
 
 
 Inputs
@@ -193,10 +197,12 @@ this filename from the product with a command such as
 Example
 -------
 
-Download the required input data into the desired workdir, which we will call ``$WORKDIR``. The program can then be run with the following command in an EDEN 2.1 environment:
+Download the required input data into the desired workdir. The program can then be run with the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir $WORKDIR
+    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --mer_final_catalog_listfile $MFC_LISTFILE --she_validated_measurements_product $SVM_PRODUCT --extended_catalog extended_catalog.xml
 
-This command will...
+where the variable ``$$WORKDIR`` corresponds to the path to your workdir and the variables  ``$VCF_LISTFILE``, ``$$MFC_LISTFILE``, and ``$SVM_PRODUCT`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
+
+This command will generate a new data product with the filename ``extended_catalog.xml``. This will point to a fits data table, the name of which you can find in the product either by manual inspection or through a command such as ``grep \.fits extended_catalog.xml``. This table can be opened either through a utility such as TOPCAT or a package such as astropy. The final few columns of the table will contain the newly-added, calculated data.
