@@ -59,15 +59,15 @@ Input Arguments
      - Required
      - Default
    * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type DpdVisCalibratedFrame, containing VIS science images for each exposure in an observation
+     - ``.json`` listfile pointing to ``.xml`` data products of type DpdVisCalibratedFrame, containing VIS science images for each exposure in an observation.
      - yes
      - N/A
    * - ``--mer_final_catalog_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type DpdMerFinalCatalog, containing MER object catalogs for all tiles overlapping an observation
+     - ``.json`` listfile pointing to ``.xml`` data products of type DpdMerFinalCatalog, containing MER object catalogs for all tiles overlapping an observation.
      - yes
      - N/A
    * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all objects in an observation
+     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all objects in an observation.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -87,8 +87,8 @@ Output Arguments
      - Description
      - Required
      - Default
-   * - --extended_catalog
-     - Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data
+   * - ``--extended_catalog <filename>``
+     - Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
      - yes
      - N/A
 
@@ -153,10 +153,6 @@ optionally any of the following which apply to this executable:
    * - SHE_Pipeline_profile
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
-   * -
-     -
-     -
-
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
@@ -178,20 +174,27 @@ arguments will take precedence.
 Outputs
 -------
 
-``cat_pic``:
+``extended_catalog``:
 
-**Description:** The desired filename of the data product for the output
-cat image. The data product will be an ``.xml`` file, so this filename
-should end with ``.xml``.
+**Description:** Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
 
-**Details:** The generated data product will be of type DpdSheCatImage,
-which is detailed in full on the DPDD at
-https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she\_catimage.html.
-This product provides the filename of a generated ``.png`` cat image in
-the attribute Data.DataContainer.FileName. This filename is generated to
-be fully-compliant with Euclid file naming standards. You can easily get
-this filename from the product with a command such as
-``grep \.png cat_pic.xml``.
+**Details:** The generated data product will be of type DpdMerFinalCatalog (though see note in the paragraph below), which is detailed in full on the DPDD at https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer\_finalcatalog.html. This product provides the filename of a generated ``.fits`` data table in the attribute Data.DataContainer.FileName. This filename is generated to be fully-compliant with Euclid file naming standards. You can easily get this filename from the product with a command such as
+``grep \.fits cat_pic.xml``.
+
+The data table here will include extra columns which are not defined in the MER Final Catalog, containing the calculated data for each object (S/N, colour, etc.). As such, this table isn't fully-compliant with MER Final Catalog table format. This product is used only intermediately within SHE pipelines, and so this non-compliance does not pose any issues.
+
+The added columns are:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Column Name
+     - Data Type
+     - Description
+   * -
+     -
+     -
 
 
 Example
