@@ -5,24 +5,21 @@ SHE_Validation_MatchToTU
 
     ``(Optional) a more careful description of what the program does``
 
-    ``Describe how one can call the program with Elements, include any necessary options with optional ones in [square brackets]. These arguments are to later be described in detail in the applicable arguments section below``
 
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the SHE\_MyProject\_GenCatPic processing element on Elements use
-the following command:
+To run the ``SHE_Validation_...`` program with Elements, use the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
-    E-Run SHE_MyProject 0.1 SHE_MyProject_GenCatPic --workdir <dir> --psf_list <filename> --aux_data <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--aux_data <filename>] [--cat_pic <filename>] [--use_dog] [--set_tie <value>]
+    E-Run SHE_Validation 8.2 SHE_Validation_... --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
 
 with the following options:
 
+
 Common Elements Arguments
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-
->\ ``This boilerplate section describes the standard arguments which are common to all Elements executables. The table here is formatted as a "list table," which is more convenient to write out, as you don't have to worry about matching all cell sizes exactly within the source. The following sections use "grid table" formatting, which looks more like a table in the source, but requires exact cell and grid-line sizes. You can use whichever format you prefer, as the compiled result is identical.``
 
 .. list-table::
    :widths: 15 50 10 25
@@ -37,79 +34,83 @@ Common Elements Arguments
      - yes
      - N/A
    * - --log-file ``<filename>``
-     - Name of a filename to store logging data in, relative to the workdir. If not provided, logging data will only be output to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
+     - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
      - no
      - None
+   * - --logdir ``<path>``
+     - Path where logging data will be stored. This only has effect if some other option is enabled which produces logging data, such as ``--profile``.
+     - no
+     - ``"."``
    * - --log-level ``<level>``
      - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
+
 Input Arguments
 ~~~~~~~~~~~~~~~
 
->\ ``Describe each of the input arguments which can be used when running the code, specifying the filenames of input data relative to the workdir.``
+.. list-table::
+   :widths: 15 50 10 25
+   :header-rows: 1
 
-+-------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+----------------------------------------------------+
-| **Argument**                        | **Description**                                                                                                                                                    | **Required**   | **Default**                                        |
-+=====================================+====================================================================================================================================================================+================+====================================================+
-| --psf\_list ``<filename>``          | ``.json`` listfile (Cardinality 1-4) listing data products for PSF ``.fits`` files.                                                                                | yes            | N/A                                                |
-+-------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+----------------------------------------------------+
-| --pipeline\_config ``<filename>``   | ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.   | no             | None (equivalent to providing an empty listfile)   |
-+-------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+----------------------------------------------------+
-| --aux\_data ``<filename>``          | ``.xml`` data product describing the auxiliary information necessary for execution.                                                                                | yes            | N/A                                                |
-+-------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------+----------------------------------------------------+
+   * - Argument
+     - Description
+     - Required
+     - Default
+   * - ``--pipeline_config <filename>``
+     - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
+     - no
+     - None (equivalent to providing an empty listfile)
+   * -
+     -
+     -
+     -
+
 
 Output Arguments
 ~~~~~~~~~~~~~~~~
 
->\ ``Describe each of the output arguments which can be used when running the code, specifying the desired filenames of output data relative to the workdir, which will be created by the program upon successful execution.``
+.. list-table::
+   :widths: 15 50 10 25
+   :header-rows: 1
 
-+-----------------------------+---------------------------------------------------------------------------------------------------------+----------------+----------------+
-| **Argument**                | **Description**                                                                                         | **Required**   | **Default**    |
-+=============================+=========================================================================================================+================+================+
-| --cat\_pic ``<filename>``   | Desired filename for ``.xml`` data product pointing to a ``.png`` image of the generated cat picture.   | no             | cat\_pic.xml   |
-+-----------------------------+---------------------------------------------------------------------------------------------------------+----------------+----------------+
+   * - Argument
+     - Description
+     - Required
+     - Default
+   * -
+     -
+     -
+     -
 
 Options
 ~~~~~~~
 
->\ ``Describe any arguments which can be provided to the executable when run directly (not through the pipeline runner, which disallows such arguments).``
+.. list-table::
+   :widths: 15 50 10 25
+   :header-rows: 1
 
-+--------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+----------------+---------------+
-| **Options**                    | **Description**                                                                                                                                     | **Required**   | **Default**   |
-+================================+=====================================================================================================================================================+================+===============+
-| --use\_dog (``store true``)    | If set, will generate an image of a dog instead of a cat.                                                                                           | no             | false         |
-+--------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+----------------+---------------+
-| --set\_tie ``<regular/bow>``   | If given, user should specify which tie to use: ``regular`` or ``bow``. If not provided, neither a tie nor a bowtie will be added to the picture.   | no             | None          |
-+--------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------+----------------+---------------+
-
-    ``Any required files should be explicity explained in the Inputs section below``
+   * - Argument
+     - Description
+     - Required
+     - Default
+   * - ``--profile`` (``store_true``)
+     - If set, Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
+     - no
+     - False
+   * - ``--dry_run`` (``store_true``)
+     - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
+     - no
+     - False
+   * -
+     -
+     -
+     -
 
 
 Inputs
 ------
-
->\ ``Describe in detail what inputs are necessary for running this processing element as well as where they are expected to come from``
-
-``psf_list``:
-
-**Description:** The filename of a ``.json`` listfile in the workdir,
-listing the filenames of 1-4 ``.xml`` data products of format
-dpdPsfModelImage. Each of these data products will point to a ``.fits``
-file containing a binary data table containing necessary data on the
-ellipticity of a PSF for each star for each exposure. This data product
-and the format of the associated data table are described in detail in
-the Euclid DPDD at
-https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she\_psfmodelimage.html.
-
-**Source:** Generated by the
-``SHE_PSFToolkit_model_psfs`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`
-executable, most expediently through running the
-``SHE Analysis`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`
-pipeline, which calls that program and passes the generated PSFs to an
-execution of this program. As this is an intermediate product, it is not
-stored in the EAS.
 
 ``pipeline_config``:
 
@@ -138,13 +139,20 @@ The ``.txt`` pipeline configuration file may have any number of
 configuration arguments which apply to other executables, in addition to
 optionally any of the following which apply to this executable:
 
-+---------------------------------------------------------+-----------------------------------------------------------------------+------------------------------------------------------------------------------------------+
-| **Options**                                             | **Description**                                                       | **Default behaviour**                                                                    |
-+=========================================================+=======================================================================+==========================================================================================+
-| SHE\_MyProject\_GenCatPic\_use\_dog ``<True/False>``    | If set to "True", will generate an image of a dog instead of a cat.   | Will generate a cat picture (equivalent to supplying "False" to this argument).          |
-+---------------------------------------------------------+-----------------------------------------------------------------------+------------------------------------------------------------------------------------------+
-| SHE\_MyProject\_GenCatPic\_set\_tie ``<regular/bow>``   | Will add the selected tie (``regular`` or ``bow``) to the picture.    | No tie will be added to the picture (equivalent to supplying "None" to this argument).   |
-+---------------------------------------------------------+-----------------------------------------------------------------------+------------------------------------------------------------------------------------------+
+.. list-table::
+   :widths: 20 50 30
+   :header-rows: 1
+
+   * - Option
+     - Description
+     - Default Behaviour
+   * - SHE_Pipeline_profile
+     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
+     - Profiling will not be enabled
+   * -
+     -
+     -
+
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
@@ -166,8 +174,6 @@ arguments will take precedence.
 Outputs
 -------
 
->\ ``Describe in detail what output filenames are necessary for running this program, and what they should be expected to look like. The DPDD description of any data product should contain all information necessary to understand it. If anything is non-standard about the generated output, or you want to give some quick details, do so here.``
-
 ``cat_pic``:
 
 **Description:** The desired filename of the data product for the output
@@ -183,26 +189,14 @@ be fully-compliant with Euclid file naming standards. You can easily get
 this filename from the product with a command such as
 ``grep \.png cat_pic.xml``.
 
+
 Example
 -------
 
->\ ``Describe here an example that any user can run out of the box to try the code and what is the expected output, if it can be reasonably run alone.``
-
-The following example will generate picture of a cat with a bow tie in
-the ``aux/CAT/pictures/`` folder:
+Download the required input data into the desired workdir, which we will call ``$WORKDIR``. The program can then be run with the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
-    E-Run SHE_MyProject 0.1 SHE_MyProjectGenCatPic --workdir=AUX/SHE_MyProject/pictures/ --pipeline_config=AUX/SHE_MyProject/example_config.xml --psf_list=AUX/SHE_MyProject/example_psf.fits --use_tie=bow
+    E-Run SHE_Validation 8.2 SHE_Validation_... --workdir $WORKDIR
 
-    ``Or, in the case that it is over-onerous to run an example (e.g. due to the reliance on intermediate data generated by a pipeline run which is not normally available outside of such a run), instead point to an example of running a pipeline which will call this executable.``
-
-This program is designed to be run on intermediate data generated within
-an execution of the
-``SHE Analysis`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
-pipeline. Please see the documentation of that pipeline for an example
-run. After that pipeline has been run once, this program can be re-run
-on the generated intermediate data. The command used for the execution
-of this program will be stored near the top of the log file for its
-original execution, which can be found in the folder
-"she\_gen\_cat\_pic" within the workdir after execution.
+This command will...
