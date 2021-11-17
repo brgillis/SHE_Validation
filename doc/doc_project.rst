@@ -1,3 +1,6 @@
+SHE_Validation Documentation
+============================
+
 .. toctree::
     :maxdepth: 3
 
