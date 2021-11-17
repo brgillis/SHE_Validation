@@ -1,7 +1,7 @@
-.. _SHE_Validation_MatchToTU:
+.. _SHE_Validation_ValidateCTIPSF:
 
-SHE_Validation_MatchToTU
-========================
+SHE_Validation_ValidateCTIPSF
+==============================
 
     ``(Optional) a more careful description of what the program does``
 
@@ -9,11 +9,11 @@ SHE_Validation_MatchToTU
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_MatchToTU`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_ValidateCTIPSF`` program with Elements, use the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_MatchToTU --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIPSF --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
 
 with the following options:
 
@@ -197,6 +197,6 @@ Download the required input data into the desired workdir, which we will call ``
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_MatchToTU --workdir $WORKDIR
+    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIPSF --workdir $WORKDIR
 
 This command will...
