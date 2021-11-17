@@ -1,18 +1,13 @@
 Troubleshooting
 ===============
 
-    ``If any problems are anticipated, add a section here for them to help users resolve them on their own before they need to appeal to a developer for help.``
 
-The cat in the generated picture appears to be wearing both a standard tie and a bowtie
----------------------------------------------------------------------------------------
+General
+-------
 
-    ``For known problems which can occur if the user makes a common error, explain how it can be resolved.``
-
-This is a known bug which occurs if the user requests
-``--use_tie=bowtie``. The correct argument is ``--use_tie=bow``.
 
 A test failed when I ran "make test"
-------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Ensure you have the most up-to-date version of the project and all
 its dependencies**
@@ -40,10 +35,9 @@ run the desired code before the issue with the failing test has been
 fixed. There's a decent chance that the bug might only be in the test
 code, and the executable code will still function.
 
-An exception was raised, what do I do?
---------------------------------------
 
-    ``General instructions for how to figure out what to do when an exception is raised, which can be copied for all projects.``
+An exception was raised, what do I do?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Check for an issue with the input**
 
