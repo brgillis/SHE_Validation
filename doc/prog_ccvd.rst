@@ -178,10 +178,9 @@ Outputs
 
 **Description:** Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
 
-**Details:** The generated data product will be of type DpdMerFinalCatalog (though see note in the paragraph below), which is detailed in full on the DPDD at https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer\_finalcatalog.html. This product provides the filename of a generated ``.fits`` data table in the attribute Data.DataContainer.FileName. This filename is generated to be fully-compliant with Euclid file naming standards. You can easily get this filename from the product with a command such as
-``grep \.fits cat_pic.xml``.
+**Details:** The generated data product will be of type DpdMerFinalCatalog (though see note in the paragraph below), which is detailed in full on the DPDD at https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer\_finalcatalog.html. This product provides the filename of a generated ``.fits`` data table in the attribute Data.DataContainer.FileName. This filename is generated to be fully-compliant with Euclid file naming standards. You can easily get this filename from the product with a command such as ``grep \.fits extended_catalog.xml`` (assuming the output data product is named ``extended_catalog.xml``; substitute as necessary).
 
-The data table here will include extra columns which are not defined in the MER Final Catalog, containing the calculated data for each object (S/N, colour, etc.). As such, this table isn't fully-compliant with MER Final Catalog table format. This product is used only intermediately within SHE pipelines, and so this non-compliance does not pose any issues.
+The data table here will include extra columns which are not defined in the MER Final Catalog, containing the calculated data for each object (S/N, colour, etc.). As such, this table isn't fully-compliant with MER Final Catalog table format. This product is used only intermediately within SHE pipelines, and so this non-compliance is not expected to pose any issues.
 
 The added columns are:
 
@@ -192,9 +191,21 @@ The added columns are:
    * - Column Name
      - Data Type
      - Description
-   * -
-     -
-     -
+   * - SNR
+     - 32-bit float
+     - Signal-to-noise ratio of the object, using the flux and its error in the VIS filter as determined by PF-MER
+   * - BG
+     - 32-bit float
+     - Sky background level at the object position in ADU, from PF-VIS's background maps
+   * - COLOUR
+     - 32-bit float
+     - Colour of the object, defined as ``2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)``, using PF-MER's measured flux values
+   * - SIZE
+     - 32-bit float
+     - Size of the object, defined as the size in pixels of PF-MER's segmentation map for it
+   * - EPOCH
+     - 32-bit float
+     - Time at which the object was observed. Currently unused, and filled with dummy data
 
 
 Example
