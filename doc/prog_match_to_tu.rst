@@ -3,7 +3,11 @@
 SHE_Validation_MatchToTU
 ========================
 
-    ``(Optional) a more careful description of what the program does``
+Multiple PF-SHE Validation tests benefit from relating detected objects to the true source objects in PF-SIM's True Universe catalogs, and this is useful for manual analysis as well to assess the performance of shear estimation algorithms.
+
+The Euclid pipeline does not maintain a direct link between true source objects and detected objects, due to a couple of reasons: Firstly, in production, the former will not be available to PF-MER, and so runs on simulations also proceed without this information. Secondly: It is non-trivial to relate the two, given that some sources may be undetected, some sources may be fragmented into multiple detections, and some detections might be spurious and not relate to any source.
+
+This program implements a match between true sources and detected objects, attempting to optimally balance these issues to generate the best possible match. This is done through requiring that all matches are symmetric best matches (i.e. ``A[i]`` matches ``B[j]`` from the other catalog if and only if ``A[i]`` is the closest source to ``B[j]`` and ``B[j]`` is the closest source to ``A[i]``) and that the separation between the matches is below a given threshold.
 
 
 Running the Program on EDEN/LODEEN
@@ -13,9 +17,9 @@ To run the ``SHE_Validation_MatchToTU`` program with Elements, use the following
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_MatchToTU --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 8.2 SHE_Validation_MatchToTU --workdir <dir> --she_validated_measurements_product <filename> --tu_output_product <filename> --matched_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--match_threshold <value>]
 
-with the following options:
+with the arguments and options as defined in the following sections:
 
 
 Common Elements Arguments
@@ -58,14 +62,18 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--she_validated_measurements_product <filename>``
+     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all detected objects in an observation.
+     - yes
+     - N/A
+   * - ``--tu_output_product <filename>``
+     - ``.xml`` data product of type DpdTrueUniverseOutput, containing PF-SIM's True Universe galaxy and star catalogs for an observation.
+     - yes
+     - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
-   * -
-     -
-     -
-     -
 
 
 Output Arguments
@@ -79,10 +87,10 @@ Output Arguments
      - Description
      - Required
      - Default
-   * -
-     -
-     -
-     -
+   * - ``--matched_catalog <filename>``
+     - Desired filename of output ``.xml`` data product of type DpdSheValidatedMeasurements, containing matched catalogs with both shear estimate information and true universe input information.
+     - yes
+     - N/A
 
 Options
 ~~~~~~~
@@ -103,10 +111,10 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * -
-     -
-     -
-     -
+   * - ``--match_threshold <value>``
+     - Maximum distance in arcsec between a true universe source object and a detected object for an allowable match.
+     - no
+     - ``0.3`` arcsec
 
 
 Inputs
@@ -149,9 +157,6 @@ optionally any of the following which apply to this executable:
    * - SHE_Pipeline_profile
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
-   * -
-     -
-     -
 
 
 If both these arguments are supplied in the pipeline configuration file
