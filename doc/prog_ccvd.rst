@@ -59,15 +59,15 @@ Input Arguments
      - Required
      - Default
    * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type DpdVisCalibratedFrame, containing VIS science images for each exposure in an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type ``DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>``__, containing VIS science images for each exposure in an observation.
      - yes
      - N/A
    * - ``--mer_final_catalog_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type DpdMerFinalCatalog, containing MER object catalogs for all tiles overlapping an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type ``DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>``__, containing MER object catalogs for all tiles overlapping an observation.
      - yes
      - N/A
    * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type DpdSheMeasurements, containing shear estimates of all detected objects in an observation.
+     - ``.xml`` data product of type ``DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>``__, containing shear estimates of all detected objects in an observation.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
