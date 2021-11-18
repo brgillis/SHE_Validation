@@ -140,7 +140,7 @@ where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the de
 
 After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
 
-.. code-block:: json
+.. code-block:: text
 
    ["DpdCalibratedFrame1.xml","DpdCalibratedFrame2.xml","DpdCalibratedFrame3.xml","DpdCalibratedFrame4.xml"]
 
@@ -171,7 +171,7 @@ where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each over
 
 After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
 
-.. code-block:: json
+.. code-block:: text
 
    ["DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", "DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", ...]
 
