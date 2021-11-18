@@ -236,9 +236,9 @@ Outputs
 
 **Details:** The generated data product will be of type DpdSheValidatedMeasurements (though see note in the paragraph below), which is detailed in full on the DPDD at https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she\_measurements.html. This product provides the filenames of generated ``.fits`` data tables (one for each shear estimation algorithm) in the attributes Data.<Algorithm>ShearMeasurements.DataStorage.DataContainer.FileName. These filenames are generated to be fully-compliant with Euclid file naming standards. You can easily get these filenames from the product with a command such as ``grep \.fits matched_catalog.xml`` (assuming the output data product is named ``matched_catalog.xml``; substitute as necessary).
 
-The data tables here will include extra columns which are not defined in the Shear Measurements table formats, containing key information on the matched True Universe source and some calculated information. As such, this table isn't fully-compliant with table format. As it contains all expected data however, this non-compliance is not expected to pose any issues.
+The data tables here will include extra columns which are not defined in the Shear Measurements table formats, containing key information on the matched True Universe sources and some calculated information, and will be split into HDUs for tables of objects best matching to galaxies (index 1), objects best matching to stars (index 2), and all objects (index 3). As such, this file isn't fully-compliant with the table format, and should only be used intermediately within a pipeline or for manual analysis, and not ingested into the EAS.
 
-The added columns are:
+The table for objects best matched to galaxies includes useful additional data. The added columns are:
 
 .. list-table::
    :widths: 20 20 60
@@ -247,60 +247,60 @@ The added columns are:
    * - Column Name
      - Data Type
      - Description
-   * - RA_MAG
+   * - ``RA_MAG``
      - 32-bit float
      - From TU Galaxy Catalog: Right ascension (J2000) with lensing in degrees
-   * - DEC_MAG
+   * - ``DEC_MAG``
      - 32-bit float
      - From TU Galaxy Catalog: Declination (J2000) with in degrees
-   * - BULGE_FRACTION
+   * - ``BULGE_FRACTION``
      - 32-bit float
      - From TU Galaxy Catalog: Ratio of the ﬂux in the bulge component to the total ﬂux (often written B/T)
-   * - BULGE_R50
+   * - ``BULGE_R50``
      - 32-bit float
      - From TU Galaxy Catalog: Major-axis half-light radius in arcsec
-   * - DISK_R50
+   * - ``DISK_R50``
      - 32-bit float
      - From TU Galaxy Catalog: For disk-dominated galaxies, the disk_length is the major-axis exponential scalelength in arcsec (is 0 for bulge-dominated galaxies)
-   * - BULGE_NSERSIC
+   * - ``BULGE_NSERSIC``
      - 32-bit float
      - From TU Galaxy Catalog: Sersic index of the bulge component
-   * - BULGE_AXIS_RATIO
+   * - ``BULGE_AXIS_RATIO``
      - 32-bit float
      - From TU Galaxy Catalog: Bulge projected axis ratio (b/a)
-   * - INCLINATION_ANGLE
+   * - ``INCLINATION_ANGLE``
      - 32-bit float
      - From TU Galaxy Catalog: Galaxy inclination angle (where 0 degrees = face-on and 90 degrees = edge-on). Galaxy ellipticity for disk and bulge components are computed following the recipe in https://euclid.roe.ac.uk/projects/sgsshear/wiki/SHE-SIM
-   * - DISK_ANGLE
+   * - ``DISK_ANGLE``
      - 32-bit float
-     - From TU Galaxy Catalog: Position of the disk rotation axis (degrees) (assumption: bulge_angle = disk_angle) From North to East, with the major axis aligned in Declination
-   * - KAPPA
+     - From TU Galaxy Catalog: Position of the disk rotation axis (degrees) (assumption: bulge\_angle = disk_angle) From North to East, with the major axis aligned in Declination
+   * - ``KAPPA``
      - 32-bit float
      - From TU Galaxy Catalog: Lensing convergence
-   * - GAMMA1
+   * - ``GAMMA1``
      - 32-bit float
-     - From TU Galaxy Catalog: Lensing shear for axis 1 (using same convention as DISK_ANGLE)
-   * - GAMMA2
+     - From TU Galaxy Catalog: Lensing shear for axis 1 (using same convention as ``DISK_ANGLE``)
+   * - ``GAMMA2``
      - 32-bit float
-     - From TU Galaxy Catalog: Lensing shear for axis 2 (using same convention as DISK_ANGLE)
-   * - Beta_Input_Shear
+     - From TU Galaxy Catalog: Lensing shear for axis 2 (using same convention as ``DISK_ANGLE``)
+   * - ``Beta_Input_Shear``
      - 32-bit float
      - Calculated: Position angle of true shear value applied, using convention 0 degrees = West on the sky, 90 degrees = North on the sky
-   * - Mag_Input_Shear
+   * - ``Mag_Input_Shear``
      - 32-bit float
      - Calculated: Magnitude of true shear value applied
-   * - SHE_<ALGORITHM>_Beta_Est_Shear
+   * - ``SHE_<ALGORITHM>_Beta_Est_Shear``
      - 32-bit float
-     - Calculated: Position angle of estimated shear value, using same convention as Beta_Input_Shear
-   * - SHE_<ALGORITHM>_Mag_Est_Shear
+     - Calculated: Position angle of estimated shear value, using same convention as ``Beta_Input_Shear``
+   * - ``SHE_<ALGORITHM>_Mag_Est_Shear``
      - 32-bit float
      - Calculated: Magnitude of estimated shear value
-   * - Beta_Input_Bulge_Unsheared_Shape
+   * - ``Beta_Input_Bulge_Unsheared_Shape``
      - 32-bit float
-     - Calculated: Position angle of disk rotation axis, using same convention as Beta_Input_Shear
-   * - Beta_Input_Disk_Unsheared_Shape
+     - Calculated: Position angle of disk rotation axis, using same convention as ``Beta_Input_Shear``
+   * - ``Beta_Input_Disk_Unsheared_Shape``
      - 32-bit float
-     - Calculated: Position angle of bulge rotation axis, using same convention as Beta_Input_Shear
+     - Calculated: Position angle of bulge rotation axis, using same convention as ``Beta_Input_Shear``
 
 
 Example
