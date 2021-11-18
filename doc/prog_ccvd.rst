@@ -59,15 +59,15 @@ Input Arguments
      - Required
      - Default
    * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type ``DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>``__, containing VIS science images for each exposure in an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure in an observation.
      - yes
      - N/A
    * - ``--mer_final_catalog_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type ``DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>``__, containing MER object catalogs for all tiles overlapping an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing MER object catalogs for all tiles overlapping an observation.
      - yes
      - N/A
    * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type ``DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>``__, containing shear estimates of all detected objects in an observation.
+     - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -118,7 +118,7 @@ Inputs
 
 ``vis_calibrated_frame_listfile``:
 
-**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of type ``DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>``__ in the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science images made available by PF-VIS, containing the following data relevant to PF-SHE:
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__ in the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science images made available by PF-VIS, containing the following data relevant to PF-SHE:
 
 * Science images
 * Masks
@@ -150,7 +150,7 @@ except with the actual filenames of the downloaded data products. The filename o
 
 ``mer_final_catalog_listfile``:
 
-**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-12 ``.xml`` data products of type ``DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>``__  in the workdir, corresponding to catalogs for each tile which overlaps the observation being analysed. This data product contains the object detections catalogue provided by MER, containing the following information relevant to PF-SHE:
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-12 ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__  in the workdir, corresponding to catalogs for each tile which overlaps the observation being analysed. This data product contains the object detections catalogue provided by MER, containing the following information relevant to PF-SHE:
 
 * Object ID assignments
 * Object positions
@@ -183,7 +183,7 @@ except with the actual filenames of the downloaded data products. The filename o
 
 ``she_validated_measurements_product``:
 
-**Description:** The filename of a ``.xml`` data product of type ``DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>``__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
+**Description:** The filename of a ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
 
 * Object ID (which can be matched to the Object ID in MER Final Catalogs)
 * Flags indicating the status of the fit (bits indicating possible reasons for fitting failure or warnings)

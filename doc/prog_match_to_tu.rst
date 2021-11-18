@@ -63,11 +63,11 @@ Input Arguments
      - Required
      - Default
    * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all detected objects in an observation.
+     - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
      - yes
      - N/A
    * - ``--tu_output_product <filename>``
-     - ``.xml`` data product of type DpdTrueUniverseOutput, containing PF-SIM's True Universe galaxy and star catalogs for an observation.
+     - ``.xml`` data product of type `DpdTrueUniverseOutput <https://euclid.esac.esa.int/dm/dpdd/latest/simdpd/tu/dpcards/sim_trueuniverseoutput.html>`__, containing PF-SIM's True Universe galaxy and star catalogs for an observation.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -122,7 +122,7 @@ Inputs
 
 ``she_validated_measurements_product``:
 
-**Description:** The filename of a ``.xml`` data product of type ``DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>``__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
+**Description:** The filename of a ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
 
 * Object ID (which can be matched to the Object ID in MER Final Catalogs)
 * Flags indicating the status of the fit (bits indicating possible reasons for fitting failure or warnings)
@@ -148,7 +148,7 @@ After the data has been downloaded, sort the downloaded ``.fits`` data products 
 
 ``tu_output_product``:
 
-**Description:** The filename of a ``.xml`` data product of type ``DpdTrueUniverseOutput <https://euclid.esac.esa.int/dm/dpdd/latest/simdpd/tu/dpcards/sim_trueuniverseoutput.html>``__  in the workdir, containing catalogs of true input information for galaxies and stars. This includes the following information on galaxies relevant to PF-SHE:
+**Description:** The filename of a ``.xml`` data product of type `DpdTrueUniverseOutput <https://euclid.esac.esa.int/dm/dpdd/latest/simdpd/tu/dpcards/sim_trueuniverseoutput.html>`__  in the workdir, containing catalogs of true input information for galaxies and stars. This includes the following information on galaxies relevant to PF-SHE:
 
 * True apparent position on the sky (accounting for shift due to magnification)
 * Inclination angle relative to line-of-sight
