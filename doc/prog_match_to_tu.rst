@@ -221,7 +221,7 @@ arguments will take precedence.
 2. Retrieved from the EAS, querying for a desired product of type
    DpdSheAnalysisConfig.
 3. If run as part of a pipeline triggered by the
-   ``SHE_Pipeline_Run`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
+   `SHE_Pipeline_Run <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
    helper script, may be created automatically by providing the argument
    ``--config_args ...`` to it (see documentation of that executable for
    further information).

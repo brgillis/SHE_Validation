@@ -256,8 +256,8 @@ arguments will take precedence.
 2. Retrieved from the EAS, querying for a desired product of type
    DpdSheAnalysisConfig.
 3. If run as part of a pipeline triggered by the
-   ``SHE_Pipeline_Run`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
-   helper script, may be created automatically by providing the argument
+   `SHE_Pipeline_Run <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
+   helper program, may be created automatically by providing the argument
    ``--config_args ...`` to it (see documentation of that executable for
    further information).
 
@@ -274,6 +274,8 @@ Outputs
 The data table here will include extra columns which are not defined in the MER Final Catalog, containing the calculated data for each object (S/N, colour, etc.). As such, this table isn't fully-compliant with MER Final Catalog table format. This product is used only intermediately within SHE pipelines, and so this non-compliance is not expected to pose any issues.
 
 The added columns are:
+
+.. _bin_definitions:
 
 .. list-table::
    :widths: 20 20 60

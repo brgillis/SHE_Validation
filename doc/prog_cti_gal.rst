@@ -3,7 +3,7 @@
 SHE_Validation_ValidateCTIGal
 =============================
 
-    ``(Optional) a more careful description of what the program does``
+This program performs the CTI-Galaxy validation, T-SHE-000010-CTI-gal, which validates requirement R-SHE-CAL-F-140. This tests checks if there is any statistically-significant correlation between measured shear and distance of galaxy image from the detector's readout register. It checks this both for all objects, and for various bins of objects.
 
 
 Running the Program on EDEN/LODEEN
@@ -13,7 +13,7 @@ To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the foll
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
 
 with the following options:
 
@@ -58,14 +58,22 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--vis_calibrated_frame_listfile <filename>``
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure in an observation.
+     - yes
+     - N/A
+   * - ``--extended_catalog <filename>``
+     - ``.xml`` data product of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
+     - yes
+     - N/A
+   * - ``--she_validated_measurements_product <filename>``
+     - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
+     - yes
+     - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
-   * -
-     -
-     -
-     -
 
 
 Output Arguments
@@ -79,10 +87,14 @@ Output Arguments
      - Description
      - Required
      - Default
-   * -
-     -
-     -
-     -
+   * - ``--she_observation_cti_gal_validation_test_results_product``
+     - Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on the observation as a whole.
+     - yes
+     - N/A
+   * - ``--she_exposure_cti_gal_validation_test_results_listfile``
+     - Desired filename of output ``.json`` listfile which will contain the filenames of ``.xml`` data products of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on each observation.
+     - yes
+     - N/A
 
 Options
 ~~~~~~~
@@ -103,14 +115,125 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * -
-     -
-     -
-     -
+   * - ``--snr_bin_limits "<value> <value> ..."``
+     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+     - no
+     - ``0 3.5 5 7 10 15 30 1e99``
+   * - ``--bg_bin_limits "<value> <value> ..."``
+     - List of quoted, space-separated values listing the bin limits in ADU for when binning by sky background level.
+     - no
+     - ``0 30 35 35.25 36 50 1e99``
+   * - ``--colour_bin_limits "<value> <value> ..."``
+     - List of quoted, space-separated values listing the bin limits for when binning by colour.
+     - no
+     - ``-1e99 -2.5 -2 -1.5 -1 -0.6 1e99``
+   * - ``--size_bin_limits "<value> <value> ..."``
+     - List of quoted, space-separated values listing the bin limits in pixels for when binning by size.
+     - no
+     - ``0 30 45 75 140 300 1e99``
+   * - ``--epoch_bin_limits "<value> <value> ..."``
+     - List of quoted, space-separated values listing the bin limits for when binning by epoch.
+     - no
+     - N/A - Not yet implemented
+
+See `Bin Defininitions <bin_definitions>`_ for the spefic definitions of values used for binning.
 
 
 Inputs
 ------
+
+``vis_calibrated_frame_listfile``:
+
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__ in the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science images made available by PF-VIS, containing the following data relevant to PF-SHE:
+
+* Science images
+* Masks
+* Noise maps
+* Background maps
+* Weight maps
+* WCS solutions
+
+See the data product information linked above for a detailed description of the data product.
+
+This information is stored in multiple Multi-HDU ``.fits`` files associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** The DpdVisCalibratedFrame data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which ones. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_vis_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_vis_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdVisCalibratedFrame and DpdVisStackedFrame data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+
+.. code-block:: text
+
+   ["DpdCalibratedFrame1.xml","DpdCalibratedFrame2.xml","DpdCalibratedFrame3.xml","DpdCalibratedFrame4.xml"]
+
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``vis_calibrated_frame_listfile`` input argument.
+
+``extended_catalog``:
+
+**Description:** Desired filename of output ``.xml`` data product of type DpdMerFinalCatalog, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
+
+The generated data product will be of type DpdMerFinalCatalog (though see note in the paragraph below), which is detailed in full on the DPDD at https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer\_finalcatalog.html. This product provides the filename of a generated ``.fits`` data table in the attribute Data.DataContainer.FileName. This filename is generated to be fully-compliant with Euclid file naming standards. You can easily get this filename from the product with a command such as ``grep \.fits extended_catalog.xml`` (assuming the output data product is named ``extended_catalog.xml``; substitute as necessary).
+
+The data table here will include extra columns which are not defined in the MER Final Catalog, containing the calculated data for each object (S/N, colour, etc.). As such, this table isn't fully-compliant with MER Final Catalog table format. This product is used only intermediately within SHE pipelines, and so this non-compliance is not expected to pose any issues.
+
+The added columns are:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Column Name
+     - Data Type
+     - Description
+   * - SNR
+     - 32-bit float
+     - Signal-to-noise ratio of the object, using the flux and its error in the VIS filter as determined by PF-MER
+   * - BG
+     - 32-bit float
+     - Sky background level at the object position in ADU, from PF-VIS's background maps
+   * - COLOUR
+     - 32-bit float
+     - Colour of the object, defined as ``2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)``, using PF-MER's measured flux values
+   * - SIZE
+     - 32-bit float
+     - Size of the object, defined as the size in pixels of PF-MER's segmentation map for it
+   * - EPOCH
+     - 32-bit float
+     - Time at which the object was observed. Currently unused, and filled with dummy data
+
+**Source:** This is a product purely intermediate to pipelines, and as such is not stored in the EAS. It can be generated by running the ``SHE_Validation_CalcCommonValData`` task. See `that task's documentation <SHE_Validation_CalcCommonValData>`_ for details.
+
+``she_validated_measurements_product``:
+
+**Description:** The filename of a ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
+
+* Object ID (which can be matched to the Object ID in MER Final Catalogs)
+* Flags indicating the status of the fit (bits indicating possible reasons for fitting failure or warnings)
+* Best-fit object positions
+* Object shear estimates and errors
+* Object size estimates and errors
+* Object signal-to-noise estimates
+
+See the data product information linked above for a detailed description of the data product.
+
+This information is stored in multiple ``.fits`` files (one for each shear estimation algorithm) associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** A DpdSheMeasurements data product and its associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which one. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_she_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired product to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_she_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
 
 ``pipeline_config``:
 
@@ -149,10 +272,23 @@ optionally any of the following which apply to this executable:
    * - SHE_Pipeline_profile
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
-   * -
-     -
-     -
+   * - SHE_Validation_snr_bin_limits
+     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+     - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_bg_bin_limits
+     - List of quoted, space-separated values listing the bin limits in ADU for when binning by sky background level.
+     - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_colour_bin_limits
+     - List of quoted, space-separated values listing the bin limits for when binning by colour.
+     - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_size_bin_limits
+     - List of quoted, space-separated values listing the bin limits in pixels for when binning by size.
+     - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_epoch_bin_limits
+     - List of quoted, space-separated values listing the bin limits for when binning by epoch.
+     - Will use default bin limits, as listed above in the `Options`_ section above.
 
+See `Bin Defininitions <bin_definitions>`_ for the spefic definitions of values used for binning.
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
@@ -165,8 +301,8 @@ arguments will take precedence.
 2. Retrieved from the EAS, querying for a desired product of type
    DpdSheAnalysisConfig.
 3. If run as part of a pipeline triggered by the
-   ``SHE_Pipeline_Run`` <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
-   helper script, may be created automatically by providing the argument
+   `SHE_Pipeline_Run <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__
+   helper program, may be created automatically by providing the argument
    ``--config_args ...`` to it (see documentation of that executable for
    further information).
 
@@ -174,20 +310,11 @@ arguments will take precedence.
 Outputs
 -------
 
-``cat_pic``:
+``she_observation_cti_gal_validation_test_results_product``:
 
-**Description:** The desired filename of the data product for the output
-cat image. The data product will be an ``.xml`` file, so this filename
-should end with ``.xml``.
+**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on the observation as a whole.
 
-**Details:** The generated data product will be of type DpdSheCatImage,
-which is detailed in full on the DPDD at
-https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she\_catimage.html.
-This product provides the filename of a generated ``.png`` cat image in
-the attribute Data.DataContainer.FileName. This filename is generated to
-be fully-compliant with Euclid file naming standards. You can easily get
-this filename from the product with a command such as
-``grep \.png cat_pic.xml``.
+**Details:**
 
 
 Example
