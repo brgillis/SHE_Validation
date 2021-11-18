@@ -120,6 +120,57 @@ Options
 Inputs
 ------
 
+``she_validated_measurements_product``:
+
+**Description:** The filename of a ``.xml`` data product of type ``DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>``__  in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
+
+* Object ID (which can be matched to the Object ID in MER Final Catalogs)
+* Flags indicating the status of the fit (bits indicating possible reasons for fitting failure or warnings)
+* Best-fit object positions
+* Object shear estimates and errors
+* Object size estimates and errors
+* Object signal-to-noise estimates
+
+See the data product information linked above for a detailed description of the data product.
+
+This information is stored in multiple ``.fits`` files (one for each shear estimation algorithm) associated with the data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** A DpdSheMeasurements data product and its associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which one. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_she_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired product to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_she_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
+
+``tu_output_product``:
+
+**Description:** The filename of a ``.xml`` data product of type ``DpdTrueUniverseOutput <https://euclid.esac.esa.int/dm/dpdd/latest/simdpd/tu/dpcards/sim_trueuniverseoutput.html>``__  in the workdir, containing catalogs of true input information for galaxies and stars. This includes the following information on galaxies relevant to PF-SHE:
+
+* True apparent position on the sky (accounting for shift due to magnification)
+* Inclination angle relative to line-of-sight
+* Intrinsic position angle of the galaxy
+* Morphological information of the galaxy (e.g. bulge fraction, bulge size, disk size, etc.)
+* Shear and magnification values applied to the galaxy image
+
+See the data product information linked above for a detailed description of the data product.
+
+This information is stored in multiple ``.fits`` files (one for the galaxy catalog and one for the star catalog) associated with the data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** A DpdTrueUniverseOutput data product and its associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and EuclidPointingId (same as the ObservationId attribute of other data products) to specify which one. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_sim_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired product to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_sim_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351).
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``tu_output_product`` input argument.
+
 ``pipeline_config``:
 
 **Description:** One of the following:
