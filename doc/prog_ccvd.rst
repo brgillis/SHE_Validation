@@ -136,7 +136,7 @@ This information is stored in multiple Multi-HDU ``.fits`` files associated with
    cd $WORKDIR
    OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_vis_products.sh
 
-where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351).
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdVisCalibratedFrame and DpdVisStackedFrame data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
 
 After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
 
@@ -148,9 +148,34 @@ except with the actual filenames of the downloaded data products. The filename o
 
 ``mer_final_catalog_listfile``:
 
-**Description:**
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-12 ``.xml`` data products of type DpdMerFinalCatalog in the workdir, corresponding to catalogs for each tile which overlaps the observation being analysed. This data product contains the object detections catalogue provided by MER, containing the following information relevant to PF-SHE:
 
-**Source:**
+* Object ID assignments
+* Object positions
+* Object fluxes in various filters
+* Object segmentation map ID
+* Object segmentation map size
+
+This information is stored in one ``.fits`` file associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** The DpdMerFinalCatalog data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and multiple TileIndex values to specify which ones. These TileIndex values should correspond to the tiles which overlap the observation being analysed. These are most easily determined through using the online EAS viewer available at https://eas-dps-cus.test.euclid.astro.rug.nl/ to query for DpdMerFinalCatalog products whose ObservationIdList contains the ID of this observation, and which match the DataSetRelease in use.
+
+The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_mer_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   TILE_ID=$TILE_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_mer_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each overlapping tile (e.g. 90346, repeat for the TileIndex of each overlapping tile). Note that this script will download both the DpdMerFinalCatalog and DpdMerSegmentationMap data products. If the latter aren't needed, you can comment out this code within the script so that these are not unnecessarily downloaded.
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+
+.. code-block:: json
+
+   ["DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", "DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", ...]
+
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``mer_final_catalog_listfile`` input argument.
 
 ``she_validated_measurements_product``:
 
