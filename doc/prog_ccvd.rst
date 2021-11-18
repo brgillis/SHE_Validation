@@ -179,9 +179,27 @@ except with the actual filenames of the downloaded data products. The filename o
 
 ``she_validated_measurements_product``:
 
-**Description:**
+**Description:** The filename of a ``.xml`` data product of type DpdSheValidatedMeasurements in the workdir, containing catalogs of shear estimates and related data for all objects in the observation from each shear estimation algorithm. This includes the following information:
 
-**Source:**
+* Object ID (which can be matched to the Object ID in MER Final Catalogs)
+* Flags indicating the status of the fit (bits indicating possible reasons for fitting failure or warnings)
+* Best-fit object positions
+* Object shear estimates and errors
+* Object size estimates and errors
+* Object signal-to-noise estimates
+
+This information is stored in multiple ``.fits`` files (one for each shear estimation algorithm) associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** A DpdSheValidatedMeasurements data product and its associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which one. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_she_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired product to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_she_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheValidatedMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
 
 ``pipeline_config``:
 
