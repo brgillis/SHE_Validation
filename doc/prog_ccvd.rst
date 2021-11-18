@@ -116,6 +116,48 @@ Options
 Inputs
 ------
 
+``vis_calibrated_frame_listfile``:
+
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of type DpdVisCalibratedFrame in the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science images made available by PF-VIS, containing the following data relevant to PF-SHE:
+
+* Science images
+* Masks
+* Noise maps
+* Background maps
+* Weight maps
+* WCS solutions
+
+This information is stored in multiple Multi-HDU ``.fits`` files associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+
+**Source:** The DpdVisCalibratedFrame data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which ones. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_vis_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+
+.. code-block:: bash
+
+   cd $WORKDIR
+   OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_vis_products.sh
+
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351).
+
+After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+
+.. code-block:: json
+
+   ["DpdCalibratedFrame1.xml","DpdCalibratedFrame2.xml","DpdCalibratedFrame3.xml","DpdCalibratedFrame4.xml"]
+
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``vis_calibrated_frame_listfile`` input argument.
+
+``mer_final_catalog_listfile``:
+
+**Description:**
+
+**Source:**
+
+``she_validated_measurements_product``:
+
+**Description:**
+
+**Source:**
+
 ``pipeline_config``:
 
 **Description:** One of the following:
