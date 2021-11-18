@@ -15,7 +15,7 @@ To run the ``SHE_Validation_CalcCommonValData`` program with Elements, use the f
 
     E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir <dir> --vis_calibrated_frame_listfile <filename> --mer_final_catalog_listfile <filename> --she_validated_measurements_product <filename> --extended_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
 
-with the following options:
+with the arguments and options as defined in the following sections:
 
 
 Common Elements Arguments
@@ -67,7 +67,7 @@ Input Arguments
      - yes
      - N/A
    * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all objects in an observation.
+     - ``.xml`` data product of type DpdSheValidatedMeasurements, containing shear estimates of all detected objects in an observation.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
