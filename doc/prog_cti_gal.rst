@@ -3,7 +3,7 @@
 SHE_Validation_ValidateCTIGal
 =============================
 
-This program performs the CTI-Galaxy validation, T-SHE-000010-CTI-gal, which validates requirement R-SHE-CAL-F-140. This tests checks if there is any statistically-significant correlation between measured shear and distance of galaxy image from the detector's readout register. It checks this both for all objects, and for various bins of objects.
+This program performs the CTI-Galaxy validation test, T-SHE-000010-CTI-gal, which validates requirement R-SHE-CAL-F-140. This tests checks if there is any statistically-significant correlation between measured shear and distance of galaxy image from the detector's readout register. It checks this both for all objects, and for various bins of objects.
 
 
 Running the Program on EDEN/LODEEN
@@ -13,9 +13,9 @@ To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the foll
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --mdb <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
 
-with the following options:
+with the following arguments:
 
 
 Common Elements Arguments
@@ -68,6 +68,10 @@ Input Arguments
      - N/A
    * - ``--she_validated_measurements_product <filename>``
      - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
+     - yes
+     - N/A
+  * - ``--mdb <filename>``
+    - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -234,6 +238,21 @@ This information is stored in multiple ``.fits`` files (one for each shear estim
 where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
 
 After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
+
+``mdb``:
+
+**Description:** ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it. Note that despite also being in ``.xml`` format, this file is not readable or writable as a "data product" like other ``.xml`` files used as input and output.
+
+This file contains various parameters describing various specifics of the Euclid telescope and mission, such as the dimensions of the detectors in the VIS instrument. Some of this data is stored directly in the MDB ``.xml`` file, while other data is stored in ``.fits`` files linked to by it. Similar to ``.xml`` data products, these ``.fits`` files should be stored in the ``data`` subdirectory of the workdir. Given the large number of ``.fits`` files associated with the MDB, only those which are expected to be accessed are generally downloaded.
+
+For the purposes used within PF-SHE, the needed ``.fits`` files are those for the parameters:
+
+* SpaceSegment.Instrument.VIS.ReadoutNoiseTable
+* SpaceSegment.Instrument.VIS.GainCoeffs
+
+**Source:** The Euclid MDB's present and historical versions can be viewed online at https://euclid.esac.esa.int/epdb/. From here, it is possible to download the MDB ``.xml`` file of a given version by selecting that version using the version tree in the left panel. Once the desired version is selected, the MDB ``.xml`` file can be downloaded through the link at the top of the right panel.
+
+Next, the required ``.fits`` files should be downloaded. For each parameter where this is required (see list in the Description), select this parameter from the tree in the left panel. This will bring up the parameter's information in the right panel, which will include a link to the ``.fits`` file. Download the file from this link and store it in the ``data`` subdirectory of the workdir.
 
 ``pipeline_config``:
 
