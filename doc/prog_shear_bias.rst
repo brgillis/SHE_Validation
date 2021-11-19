@@ -317,7 +317,7 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --matched_catalog $MC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 8.2 SHE_Validation_ValidateShearBias --workdir $WORKDIR  --matched_catalog $MC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
 where the variable ``$$WORKDIR`` corresponds to the path to your workdir and the variable ``$MC_PRODUCT`` corresponds to the filename of the prepared matched catalog product.
 
