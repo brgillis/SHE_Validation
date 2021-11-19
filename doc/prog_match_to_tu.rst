@@ -312,6 +312,6 @@ Download the required input data into the desired workdir. The program can then 
 
     E-Run SHE_Validation 8.2 SHE_Validation_MatchToTU --she_validated_measurements_product $SVM_PRODUCT --tu_output_product $TU_PRODUCT --matched_catalog matched_catalog.xml
 
-where the variable ``$$WORKDIR`` corresponds to the path to your workdir and the variables  ``$SVM_PRODUCT`` and ``$TU_PRODUCT`` correspond to the filenames of the prepared downloaded products for each input port.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$SVM_PRODUCT`` and ``$TU_PRODUCT`` correspond to the filenames of the prepared downloaded products for each input port.
 
 This command will generate a new data product with the filename ``matched_catalog.xml``. This will point to a fits data table for each shear estimation algorithm, the names of which you can find in the product either by manual inspection or through a command such as ``grep \.fits extended_catalog.xml``. These tables can be opened either through a utility such as TOPCAT or a package such as astropy.

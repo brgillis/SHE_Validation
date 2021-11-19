@@ -319,6 +319,6 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
     E-Run SHE_Validation 8.2 SHE_Validation_ValidateShearBias --workdir $WORKDIR  --matched_catalog $MC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
-where the variable ``$$WORKDIR`` corresponds to the path to your workdir and the variable ``$MC_PRODUCT`` corresponds to the filename of the prepared matched catalog product.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variable ``$MC_PRODUCT`` corresponds to the filename of the prepared matched catalog product.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results. This will also point to a tarball of figures of the regression for each test case, the names of which you can find in the product either by manual inspection or through a command such as ``grep \.tar\.gz she_validation_test_results_product.xml``. After extracting the contents of the tarball (e.g. through ``tar -xvf <filename>.tar.gz``), the figures can opened with your image viewer of choice to see the regression results.
