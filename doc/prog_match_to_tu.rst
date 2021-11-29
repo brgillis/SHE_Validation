@@ -144,7 +144,7 @@ This information is stored in multiple ``.fits`` files (one for each shear estim
 
 where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
 
-After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
 
 ``tu_output_product``:
 
@@ -169,7 +169,7 @@ This information is stored in multiple ``.fits`` files (one for the galaxy catal
 
 where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351).
 
-After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``tu_output_product`` input argument.
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``tu_output_product`` input argument.
 
 ``pipeline_config``:
 

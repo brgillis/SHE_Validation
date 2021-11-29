@@ -170,7 +170,7 @@ This information is stored in multiple Multi-HDU ``.fits`` files associated with
 
 where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdVisCalibratedFrame and DpdVisStackedFrame data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
 
-After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
 
 .. code-block:: text
 
@@ -237,7 +237,7 @@ This information is stored in multiple ``.fits`` files (one for each shear estim
 
 where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdSheMeasurements and DpdSheLensMcChains data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
 
-After the data has been downloaded, sort the downloaded ``.fits`` data products into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. The filename of the downloaded ``.xml`` data product can then be passed to the ``she_validated_measurements_product`` input argument.
 
 ``mdb``:
 
