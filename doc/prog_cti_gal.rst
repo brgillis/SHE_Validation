@@ -70,8 +70,8 @@ Input Arguments
      - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
      - yes
      - N/A
-  * - ``--mdb <filename>``
-    - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
+   * - ``--mdb <filename>``
+     - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``

@@ -68,8 +68,8 @@ Input Arguments
      - ``.xml`` data product of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
      - yes
      - N/A
-  * - ``--mdb <filename>``
-    - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
+   * - ``--mdb <filename>``
+     - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
