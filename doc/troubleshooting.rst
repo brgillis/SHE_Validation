@@ -6,6 +6,12 @@ General
 -------
 
 
+SHE_Validation_ValidateCTIGal fails when run disconnected / with ``screen``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is a known bug in the SHE_Validation_ValidateCTIGal program in which the plotting routines will raise an exception if the terminal which triggers the program is disconnected (e.g. through using ``disown`` and logging out). Due to difficulty determining the source of this bug and the fact that it does not affect any production runs of this program, fixing it has been deprioritized. Any suggestions for addressing this bug or workarounds are welcome, and can be submitted as a GitLab issue. In the meantime, this task must be run either with a pipeline server or in an open terminal (optionally as part of a pipeline run in local, standalone mode).
+
+
 A test failed when I ran "make test"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
