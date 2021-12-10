@@ -305,6 +305,8 @@ Outputs
 
 Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the measured multiplicative and additive shear biases, the errors on the measurements, the numbers of standard deviations away from zero these are, and the threshold at which this triggers a failure. In the case of the global test cases, this is presented for the full data set. In other cases, this is presented for each bin of data, and the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run the test (i.e. bins are ignored if they have fewer than three objects in them).
 
+Regression results are reported for each bin of data. In the case that a bin contains no data points with positive weight which aren't flagged as failed measurements, the results will be reported as ``NaN`` for bias measurements, and ``Inf`` for errors. Unless another error is reported, the presence of these values should be taken to indicate that a bin is empty.
+
 Additionally, the data product contains to a tarball of ``.png`` figures illustrating the regressions for each bin of each test case. The filename of this tarball can most easily be obtained with a command such as ``grep \.tar\.gz she_observation_cti_gal_validation_test_results_product.xml``.
 
 
