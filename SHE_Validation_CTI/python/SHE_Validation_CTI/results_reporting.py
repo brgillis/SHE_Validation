@@ -19,6 +19,7 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
@@ -86,7 +87,7 @@ class CtiRequirementWriter(RequirementWriter):
     """
 
     # Comparison method used for this test
-    bin_slope_comparison_method: BinSlopeComparisonMethod
+    bin_slope_comparison_method: Optional[BinSlopeComparisonMethod] = None
 
     # Intermediate data used while writing
 
@@ -115,8 +116,9 @@ class CtiRequirementWriter(RequirementWriter):
     intercept_pass: bool
 
     def __init__(self,
+                 *args,
                  bin_slope_comparison_method: Optional[BinSlopeComparisonMethod] = None,
-                 *args, **kwargs):
+                 **kwargs):
         """ Init details for this test, then pass on to parent init.
         """
         if bin_slope_comparison_method is not None:
@@ -443,7 +445,7 @@ class CtiAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
     """
 
-    cti_test: CtiTest
+    cti_test: Optional[CtiTest] = None
 
     def __init__(self, *args, cti_test: Optional[CtiTest] = None, **kwargs):
         if cti_test is not None:
