@@ -72,8 +72,13 @@ DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versu
 MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
 
-CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
-CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
+D_CTI_DIRECTORY_FILENAMES = {CtiTest.GAL: "SheCtiGalResultsDirectory.txt",
+                             CtiTest.PSF: "SheCtiPSFResultsDirectory.txt"}
+D_CTI_DIRECTORY_HEADERS = {CtiTest.GAL: "### OU-SHE CTI-Gal Analysis Results File Directory ###",
+                           CtiTest.PSF: "### OU-SHE CTI-PSF Analysis Results File Directory ###"}
+
+D_ANALYSIS_PRODUCT_TYPES = {CtiTest.GAL: "CTI-GAL-ANALYSIS-FILES",
+                            CtiTest.PSF: "CTI-PSF-ANALYSIS-FILES", }
 
 
 class CtiRequirementWriter(RequirementWriter):
@@ -110,12 +115,12 @@ class CtiRequirementWriter(RequirementWriter):
     intercept_pass: bool
 
     def __init__(self,
-                 bin_slope_comparison_method: Optional[BinSlopeComparisonMethod],
+                 bin_slope_comparison_method: Optional[BinSlopeComparisonMethod] = None,
                  *args, **kwargs):
         """ Init details for this test, then pass on to parent init.
         """
         if bin_slope_comparison_method is not None:
-            self.bin_slope_comparison = bin_slope_comparison_method
+            self.bin_slope_comparison_method = bin_slope_comparison_method
         super().__init__(*args, **kwargs)
 
     def _get_slope_intercept_info(self,
@@ -418,7 +423,7 @@ class CtiRequirementWriter(RequirementWriter):
                              report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
 
 
-class CtiGalRequirementWriter(RequirementWriter):
+class CtiGalRequirementWriter(CtiRequirementWriter):
     """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-Gal test
     """
 
@@ -426,7 +431,7 @@ class CtiGalRequirementWriter(RequirementWriter):
     bin_slope_comparison_method = BinSlopeComparisonMethod.TO_ZERO
 
 
-class CtiPsfRequirementWriter(RequirementWriter):
+class CtiPsfRequirementWriter(CtiRequirementWriter):
     """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-PSF test
     """
 
@@ -438,19 +443,37 @@ class CtiAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(product_type = "CTI-GAL-ANALYSIS-FILES",
+    cti_test: CtiTest
+
+    def __init__(self, *args, cti_test: Optional[CtiTest] = None, **kwargs):
+        if cti_test is not None:
+            self.cti_test = cti_test
+        super().__init__(product_type = D_ANALYSIS_PRODUCT_TYPES[self.cti_test],
                          *args, **kwargs)
 
     def _generate_directory_filename(self):
         """ Overriding method to generate a filename for a directory file.
         """
-        self.directory_filename = CTI_GAL_DIRECTORY_FILENAME
+        self.directory_filename = D_CTI_DIRECTORY_FILENAMES[self.cti_test]
 
     def _get_directory_header(self):
         """ Overriding method to get the desired header for a directory file.
         """
-        return CTI_GAL_DIRECTORY_HEADER
+        return D_CTI_DIRECTORY_HEADERS[self.cti_test]
+
+
+class CtiGalAnalysisWriter(CtiAnalysisWriter):
+    """ Subclass of CtiAnalysisWriter, to set specific values for this test.
+    """
+
+    cti_test = CtiTest.GAL
+
+
+class CtiPsfAnalysisWriter(CtiAnalysisWriter):
+    """ Subclass of CtiAnalysisWriter, to set specific values for this test.
+    """
+
+    cti_test = CtiTest.PSF
 
 
 class CtiTestCaseWriter(TestCaseWriter):
@@ -460,6 +483,24 @@ class CtiTestCaseWriter(TestCaseWriter):
     # Types of child objects, overriding those in base class
     requirement_writer_type = CtiRequirementWriter
     analysis_writer_type = CtiAnalysisWriter
+
+
+class CtiGalTestCaseWriter(CtiTestCaseWriter):
+    """Subclass of CtiTestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = CtiGalRequirementWriter
+    analysis_writer_type = CtiGalAnalysisWriter
+
+
+class CtiPsfTestCaseWriter(CtiTestCaseWriter):
+    """Subclass of CtiTestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = CtiPsfRequirementWriter
+    analysis_writer_type = CtiPsfAnalysisWriter
 
 
 class CtiValidationResultsWriter(ValidationResultsWriter):
@@ -577,6 +618,22 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
             test_case_writer.write(requirements_kwargs = write_kwargs, )
 
 
+class CtiGalValidationResultsWriter(CtiValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to set specific member types for it
+    """
+
+    # Types of child classes
+    test_case_writer_type = CtiGalTestCaseWriter
+
+
+class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to set specific member types for it
+    """
+
+    # Types of child classes
+    test_case_writer_type = CtiPsfTestCaseWriter
+
+
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
@@ -597,13 +654,13 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                 mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer
-    test_results_writer = CtiValidationResultsWriter(test_object = test_result_product,
-                                                     workdir = workdir,
-                                                     regression_results_row_index = regression_results_row_index,
-                                                     d_regression_results_tables = d_regression_results_tables,
-                                                     fail_sigma_calculator = fail_sigma_calculator,
-                                                     d_bin_limits = d_bin_limits,
-                                                     method_data_exists = method_data_exists,
-                                                     dl_l_figures = dl_l_figures, )
+    test_results_writer = CtiGalValidationResultsWriter(test_object = test_result_product,
+                                                        workdir = workdir,
+                                                        regression_results_row_index = regression_results_row_index,
+                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        fail_sigma_calculator = fail_sigma_calculator,
+                                                        d_bin_limits = d_bin_limits,
+                                                        method_data_exists = method_data_exists,
+                                                        dl_l_figures = dl_l_figures, )
 
     test_results_writer.write()
