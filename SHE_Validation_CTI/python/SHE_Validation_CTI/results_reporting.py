@@ -80,8 +80,7 @@ class CtiRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single CTI requirement
     """
 
-    # Info on testing options
-    cti_test: CtiTest
+    # Comparison method used for this test
     bin_slope_comparison_method: BinSlopeComparisonMethod
 
     # Intermediate data used while writing
@@ -111,13 +110,12 @@ class CtiRequirementWriter(RequirementWriter):
     intercept_pass: bool
 
     def __init__(self,
-                 cti_test: CtiTest,
-                 bin_slope_comparison_method: BinSlopeComparisonMethod,
+                 bin_slope_comparison_method: Optional[BinSlopeComparisonMethod],
                  *args, **kwargs):
         """ Init details for this test, then pass on to parent init.
         """
-        self.cti_test = cti_test
-        self.bin_slope_comparison = bin_slope_comparison_method
+        if bin_slope_comparison_method is not None:
+            self.bin_slope_comparison = bin_slope_comparison_method
         super().__init__(*args, **kwargs)
 
     def _get_slope_intercept_info(self,
@@ -136,16 +134,7 @@ class CtiRequirementWriter(RequirementWriter):
         for prop in messages:
             for bin_index in range(self.num_bins):
 
-                if self.l_bin_limits is not None:
-                    bin_min = self.l_bin_limits[bin_index][0]
-                    bin_max = self.l_bin_limits[bin_index][1]
-                    messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
-
-                messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
-                                   f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
-                                   f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
-                                   f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+                self._append_message_for_bin(bin_index, prop, messages)
 
         slope_supplementary_info = SupplementaryInfo(key = KEY_SLOPE_INFO,
                                                      description = DESC_SLOPE_INFO,
@@ -157,10 +146,74 @@ class CtiRequirementWriter(RequirementWriter):
 
         return slope_supplementary_info, intercept_supplementary_info
 
+    def _append_message_for_bin(self,
+                                bin_index: int,
+                                prop: str,
+                                d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo, and appends
+            it to the dict of messages's entry for this property.
+        """
+
+        # Call specialized function depending on test mode
+        if self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
+            self._append_to_zero_message_for_bin(bin_index = bin_index, prop = prop, d_messages = d_messages)
+
+        # If we're doing a difference comparison, skip the first bin
+        elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index > 0:
+            self._append_diff_message_for_bin(bin_index = bin_index, prop = prop, d_messages = d_messages)
+
+        else:
+            return
+
+    def _append_to_zero_message_for_bin(self,
+                                        bin_index: int,
+                                        prop: str,
+                                        d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo based on a comparison
+        method
+            of the property to zero, and appends it to the dict of messages's entry for this property.
+        """
+        if self.l_bin_limits is not None:
+            bin_min = self.l_bin_limits[bin_index][0]
+            bin_max = self.l_bin_limits[bin_index][1]
+            d_messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+        d_messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
+                             f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
+                             f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
+                             f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
+                             f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+
+    def _append_diff_message_for_bin(self,
+                                     bin_index: int,
+                                     prop: str,
+                                     d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo based on a comparison
+        method of the property to the value in the previous bin, and appends it to the dict of messages's entry for
+        this property.
+        """
+
+        if self.l_bin_limits is None:
+            return
+
+        last_bin_min = self.l_bin_limits[bin_index - 1][0]
+        last_bin_max = self.l_bin_limits[bin_index - 1][1]
+        cur_bin_min = self.l_bin_limits[bin_index][0]
+        cur_bin_max = self.l_bin_limits[bin_index][1]
+        d_messages[prop] += (f"Results for bins {bin_index - 1} and {bin_index}, for values from {last_bin_min} to "
+                             f"{last_bin_max} and {cur_bin_min} to "
+                             f"{cur_bin_max}:")
+        d_messages[prop] += (
+                f"{prop}_lo = {getattr(self, f'l_{prop}')[bin_index - 1]} +/- "
+                f"{getattr(self, f'l_{prop}_err')[bin_index - 1]}\n" +
+                f"{prop}_hi = {getattr(self, f'l_{prop}')[bin_index]} +/- "
+                f"{getattr(self, f'l_{prop}_err')[bin_index]}\n" +
+                f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
+                f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
+                f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+
     def report_bad_data(self,
                         l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
                         ) -> None:
-
         l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
@@ -183,7 +236,6 @@ class CtiRequirementWriter(RequirementWriter):
                          warning: Optional[bool] = None,
                          l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
                          ) -> None:
-
         l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
@@ -238,7 +290,7 @@ class CtiRequirementWriter(RequirementWriter):
         # first bin
         if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
                 np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
-                (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index == 0)):
+                (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index <= 0)):
             self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
 
         elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
@@ -259,7 +311,8 @@ class CtiRequirementWriter(RequirementWriter):
             # If we're comparing the value in each bin to the value in the previous bin, and this isn't the first
             # bin
 
-            # Grab values for the current and previous value and error
+            # Grab values for the current and previous value and error. Note the previous if statement already checked
+            # that bin_index is at least 1
             cur_val = getattr(self, f"l_{prop}")[bin_index]
             last_val = getattr(self, f"l_{prop}")[bin_index - 1]
             cur_val_err = getattr(self, f"l_{prop}_err")[bin_index]
@@ -299,70 +352,86 @@ class CtiRequirementWriter(RequirementWriter):
         l_prop_pass[bin_index] = False
         l_prop_good_data[bin_index] = False
 
+    def write(self,
+              report_method: Callable[[Any], None] = None,
+              have_data: bool = False,
+              l_slope: List[float] = None,
+              l_slope_err: List[float] = None,
+              l_intercept: List[float] = None,
+              l_intercept_err: List[float] = None,
+              l_bin_limits: List[float] = None,
+              fail_sigma: float = None,
+              report_kwargs: Dict[str, Any] = None) -> str:
 
-def write(self,
-          report_method: Callable[[Any], None] = None,
-          have_data: bool = False,
-          l_slope: List[float] = None,
-          l_slope_err: List[float] = None,
-          l_intercept: List[float] = None,
-          l_intercept_err: List[float] = None,
-          l_bin_limits: List[float] = None,
-          fail_sigma: float = None,
-          report_kwargs: Dict[str, Any] = None) -> str:
-    # Default to reporting good data if we're not told otherwise
-    if report_method is None:
-        report_method = self.report_good_data
+        # Default to reporting good data if we're not told otherwise
+        if report_method is None:
+            report_method = self.report_good_data
 
-    # Default to empty dict for report_kwargs
-    if report_kwargs is None:
-        report_kwargs = {}
+        # Default to empty dict for report_kwargs
+        if report_kwargs is None:
+            report_kwargs = {}
 
-    # If we don't have data, report with the provided method and return
-    if not have_data:
-        report_method(**report_kwargs)
-        return RESULT_PASS
+        # If we don't have data, report with the provided method and return
+        if not have_data:
+            report_method(**report_kwargs)
+            return RESULT_PASS
 
-    self.l_slope = np.array(l_slope)
-    self.l_slope_err = np.array(l_slope_err)
-    self.l_intercept = np.array(l_intercept)
-    self.l_intercept_err = np.array(l_intercept_err)
-    if l_bin_limits is None:
-        self.l_bin_limits = None
-    else:
-        self.l_bin_limits = np.array(l_bin_limits)
-    self.fail_sigma = fail_sigma
+        self.l_slope = np.array(l_slope)
+        self.l_slope_err = np.array(l_slope_err)
+        self.l_intercept = np.array(l_intercept)
+        self.l_intercept_err = np.array(l_intercept_err)
+        if l_bin_limits is None:
+            self.l_bin_limits = None
+        else:
+            self.l_bin_limits = np.array(l_bin_limits)
+        self.fail_sigma = fail_sigma
 
-    self.num_bins = len(l_slope)
+        self.num_bins = len(l_slope)
 
-    # Calculate test results for both the slope and intercept
-    for prop in "slope", "intercept":
-        self._calc_test_results(prop)
+        # Calculate test results for both the slope and intercept
+        for prop in "slope", "intercept":
+            self._calc_test_results(prop)
 
-    # Report the result based on whether or not the slope passed.
-    self.requirement_object.ValidationResult = self.slope_result
-    self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
+        # Report the result based on whether or not the slope passed.
+        self.requirement_object.ValidationResult = self.slope_result
+        self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
 
-    # Check for data quality issues and report as proper if found
-    if np.all(self.l_slope_err == 0.):
-        report_method = self.report_zero_slope_err
-        extra_report_kwargs = {}
-    elif np.logical_or.reduce((np.isnan(self.l_slope),
-                               np.isinf(self.l_slope),
-                               np.isnan(self.l_slope_err),
-                               np.isinf(self.l_slope_err),
-                               self.l_slope_err == 0.)).all():
-        report_method = self.report_bad_data
-        extra_report_kwargs = {}
-    else:
-        report_method = self.report_good_data
+        # Check for data quality issues and report as proper if found
+        if np.all(self.l_slope_err == 0.):
+            report_method = self.report_zero_slope_err
+            extra_report_kwargs = {}
+        elif np.logical_or.reduce((np.isnan(self.l_slope),
+                                   np.isinf(self.l_slope),
+                                   np.isnan(self.l_slope_err),
+                                   np.isinf(self.l_slope_err),
+                                   self.l_slope_err == 0.)).all():
+            report_method = self.report_bad_data
+            extra_report_kwargs = {}
+        else:
+            report_method = self.report_good_data
 
-        # Report the maximum slope_z as the measured value for this test
-        extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
+            # Report the maximum slope_z as the measured value for this test
+            extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
 
-    return super().write(result = self.slope_result,
-                         report_method = report_method,
-                         report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+        return super().write(result = self.slope_result,
+                             report_method = report_method,
+                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+
+
+class CtiGalRequirementWriter(RequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-Gal test
+    """
+
+    # Override info on comparison method
+    bin_slope_comparison_method = BinSlopeComparisonMethod.TO_ZERO
+
+
+class CtiPsfRequirementWriter(RequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-PSF test
+    """
+
+    # Override info on comparison method
+    bin_slope_comparison_method = BinSlopeComparisonMethod.DIFFERENCE
 
 
 class CtiAnalysisWriter(AnalysisWriter):
