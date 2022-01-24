@@ -37,7 +37,9 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_CTI.ValidateCTIGal import defineSpecificProgramOptions, mainMethod
-from SHE_Validation_CTI.results_reporting import CTI_GAL_DIRECTORY_FILENAME
+from SHE_Validation_CTI.results_reporting import CtiTest, D_CTI_DIRECTORY_FILENAMES
+
+CTI_GAL_DIRECTORY_FILENAME = D_CTI_DIRECTORY_FILENAMES[CtiTest.GAL]
 
 # Output data filenames
 
