@@ -211,52 +211,12 @@ class CtiRequirementWriter(RequirementWriter):
 
         for bin_index in range(self.num_bins):
 
-            # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
-            # first bin
-            if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
-                    (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index == 0)):
-                self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
-
-            elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
-                # If we're comparing the value in each bin to zero
-
-                # Check if the slope is zero, and mark if so
-                if getattr(self, f"l_{prop}_err")[bin_index] == 0.:
-                    self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
-
-                # Otherwise we have good data and can calculate the Z value with it
-                else:
-                    l_prop_z[bin_index] = np.abs(
-                        getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
-                    l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
-                    l_prop_good_data[bin_index] = True
-
-            else:
-                # If we're comparing the value in each bin to the value in the previous bin, and this isn't the first
-                # bin
-
-                # Grab values for the current and previous value and error
-                cur_val = getattr(self, f"l_{prop}")[bin_index]
-                last_val = getattr(self, f"l_{prop}")[bin_index - 1]
-                cur_val_err = getattr(self, f"l_{prop}_err")[bin_index]
-                last_val_err = getattr(self, f"l_{prop}_err")[bin_index - 1]
-
-                # Check for any bad data and report as such if so
-                if any_is_inf_or_nan([cur_val, last_val, cur_val_err, last_val_err]):
-                    self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
-                elif any_is_zero([cur_val_err, last_val_err]):
-                    self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
-                else:
-                    # Data looks good, so calculate Z with it. Note we assume no correlated noise between bins here
-                    abs_diff = np.abs(cur_val - last_val)
-                    diff_err = np.sqrt(cur_val_err ** 2 + last_val_err ** 2)
-                    l_prop_z[bin_index] = abs_diff / diff_err
-
-            if l_prop_pass[bin_index]:
-                l_prop_result[bin_index] = RESULT_PASS
-            else:
-                l_prop_result[bin_index] = RESULT_FAIL
+            self._calc_test_result_for_bin(bin_index = bin_index,
+                                           prop = prop,
+                                           l_prop_z = l_prop_z,
+                                           l_prop_pass = l_prop_pass,
+                                           l_prop_good_data = l_prop_good_data,
+                                           l_prop_result = l_prop_result)
 
         # Pass if there's at least some good data, and all good data passes
         if np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data):
@@ -266,14 +226,74 @@ class CtiRequirementWriter(RequirementWriter):
             setattr(self, f"{prop}_pass", False)
             setattr(self, f"{prop}_result", RESULT_FAIL)
 
+    def _calc_test_result_for_bin(self,
+                                  bin_index: int,
+                                  prop: str,
+                                  l_prop_z: np.ndarray,
+                                  l_prop_pass: np.ndarray,
+                                  l_prop_good_data: np.ndarray,
+                                  l_prop_result: np.ndarray):
+        # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
+        # first bin
+        if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
+                np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
+                (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index == 0)):
+            self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+        elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
+            # If we're comparing the value in each bin to zero
+
+            # Check if the slope is zero, and mark if so
+            if getattr(self, f"l_{prop}_err")[bin_index] == 0.:
+                self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+            # Otherwise we have good data and can calculate the Z value with it
+            else:
+                l_prop_z[bin_index] = np.abs(
+                    getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
+                l_prop_good_data[bin_index] = True
+
+        else:
+            # If we're comparing the value in each bin to the value in the previous bin, and this isn't the first
+            # bin
+
+            # Grab values for the current and previous value and error
+            cur_val = getattr(self, f"l_{prop}")[bin_index]
+            last_val = getattr(self, f"l_{prop}")[bin_index - 1]
+            cur_val_err = getattr(self, f"l_{prop}_err")[bin_index]
+            last_val_err = getattr(self, f"l_{prop}_err")[bin_index - 1]
+
+            # Check for any bad data and report as such if so
+            if any_is_inf_or_nan([cur_val, last_val, cur_val_err, last_val_err]):
+                self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+            elif any_is_zero([cur_val_err, last_val_err]):
+                self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+            else:
+                # Data looks good, so calculate Z with it. Note we assume no correlated noise between bins here
+                abs_diff = np.abs(cur_val - last_val)
+                diff_err = np.sqrt(cur_val_err ** 2 + last_val_err ** 2)
+                l_prop_z[bin_index] = abs_diff / diff_err
+
+        if l_prop_pass[bin_index]:
+            l_prop_result[bin_index] = RESULT_PASS
+        else:
+            l_prop_result[bin_index] = RESULT_FAIL
+
     @staticmethod
-    def __mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data):
+    def __mark_zero_slope_for_bin(bin_index: int,
+                                  l_prop_z: np.ndarray,
+                                  l_prop_pass: np.ndarray,
+                                  l_prop_good_data: np.ndarray, ):
         l_prop_z[bin_index] = np.NaN
         l_prop_pass[bin_index] = False
         l_prop_good_data[bin_index] = True
 
     @staticmethod
-    def __mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data):
+    def __mark_nan_data_for_bin(bin_index: int,
+                                l_prop_z: np.ndarray,
+                                l_prop_pass: np.ndarray,
+                                l_prop_good_data: np.ndarray, ):
         l_prop_z[bin_index] = np.NaN
         l_prop_pass[bin_index] = False
         l_prop_good_data[bin_index] = False
