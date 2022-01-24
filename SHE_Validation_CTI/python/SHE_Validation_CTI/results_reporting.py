@@ -19,7 +19,7 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
+from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -27,7 +27,7 @@ from astropy import table
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import coerce_to_list
+from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
@@ -39,6 +39,26 @@ from .constants.cti_gal_test_info import (D_L_CTI_GAL_REQUIREMENT_INFO,
 from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
+
+
+# Define enum types to specify high-level options for reporting
+
+class CtiTest(Enum):
+    """Enum to specify whether something relates to the CTI-Gal or CTI-PSF validation test.
+    """
+    GAL = auto()
+    PSF = auto()
+
+
+class BinSlopeComparisonMethod(Enum):
+    """ Enum to specify choice in how to run the binned tests.
+
+        TO_ZERO: Compare slope in each bin to expected value of zero.
+        DIFFERENCE: Compare slope in each bin to slope in the previous bin.
+    """
+    TO_ZERO = auto()
+    DIFFERENCE = auto()
+
 
 # Define constants for various messages
 
@@ -55,14 +75,19 @@ CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
 CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
 
 
-class CtiGalRequirementWriter(RequirementWriter):
-    """ Class for managing reporting of results for a single CTI-Gal requirement
+class CtiRequirementWriter(RequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement
     """
+
+    # Info on testing options
+    cti_test: CtiTest
+    bin_slope_comparison_method: BinSlopeComparisonMethod
 
     # Intermediate data used while writing
 
     l_slope: Sequence[float]
     l_slope_err: Sequence[float]
+    l_slope_diff: Sequence[float]
     l_slope_z: Sequence[float]
     l_slope_result: Sequence[str]
     slope_pass: bool
@@ -70,6 +95,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
     l_intercept: Sequence[float]
     l_intercept_err: Sequence[float]
+    l_intercept_diff: Sequence[float]
     l_intercept_z: Sequence[float]
     l_intercept_result: Sequence[str]
     intercept_pass: bool
@@ -82,6 +108,16 @@ class CtiGalRequirementWriter(RequirementWriter):
 
     slope_pass: bool
     intercept_pass: bool
+
+    def __init__(self,
+                 cti_test: CtiTest,
+                 bin_slope_comparison_method: BinSlopeComparisonMethod,
+                 *args, **kwargs):
+        """ Init details for this test, then pass on to parent init.
+        """
+        self.cti_test = cti_test
+        self.bin_slope_comparison = bin_slope_comparison_method
+        super().__init__(*args, **kwargs)
 
     def _get_slope_intercept_info(self,
                                   extra_slope_message: str = "",
@@ -174,19 +210,49 @@ class CtiGalRequirementWriter(RequirementWriter):
         l_prop_good_data = np.empty(self.num_bins, dtype = bool)
 
         for bin_index in range(self.num_bins):
+
+            # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
+            # first bin
             if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
-                l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = False
-                l_prop_good_data[bin_index] = False
-            else:
-                if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
+                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
+                    (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index == 0)):
+                self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+            elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
+                # If we're comparing the value in each bin to zero
+
+                # Check if the slope is zero, and mark if so
+                if getattr(self, f"l_{prop}_err")[bin_index] == 0.:
+                    self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+                # Otherwise we have good data and can calculate the Z value with it
+                else:
                     l_prop_z[bin_index] = np.abs(
                         getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                    l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
+                    l_prop_good_data[bin_index] = True
+
+            else:
+                # If we're comparing the value in each bin to the value in the previous bin, and this isn't the first
+                # bin
+
+                # Grab values for the current and previous value and error
+                cur_val = getattr(self, f"l_{prop}")[bin_index]
+                last_val = getattr(self, f"l_{prop}")[bin_index - 1]
+                cur_val_err = getattr(self, f"l_{prop}_err")[bin_index]
+                last_val_err = getattr(self, f"l_{prop}_err")[bin_index - 1]
+
+                # Check for any bad data and report as such if so
+                if any_is_inf_or_nan([cur_val, last_val, cur_val_err, last_val_err]):
+                    self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+                elif any_is_zero([cur_val_err, last_val_err]):
+                    self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
                 else:
-                    l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
-                l_prop_good_data[bin_index] = True
+                    # Data looks good, so calculate Z with it. Note we assume no correlated noise between bins here
+                    abs_diff = np.abs(cur_val - last_val)
+                    diff_err = np.sqrt(cur_val_err ** 2 + last_val_err ** 2)
+                    l_prop_z[bin_index] = abs_diff / diff_err
+
             if l_prop_pass[bin_index]:
                 l_prop_result[bin_index] = RESULT_PASS
             else:
@@ -200,74 +266,86 @@ class CtiGalRequirementWriter(RequirementWriter):
             setattr(self, f"{prop}_pass", False)
             setattr(self, f"{prop}_result", RESULT_FAIL)
 
-    def write(self,
-              report_method: Callable[[Any], None] = None,
-              have_data: bool = False,
-              l_slope: List[float] = None,
-              l_slope_err: List[float] = None,
-              l_intercept: List[float] = None,
-              l_intercept_err: List[float] = None,
-              l_bin_limits: List[float] = None,
-              fail_sigma: float = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+    @staticmethod
+    def __mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data):
+        l_prop_z[bin_index] = np.NaN
+        l_prop_pass[bin_index] = False
+        l_prop_good_data[bin_index] = True
 
-        # Default to reporting good data if we're not told otherwise
-        if report_method is None:
-            report_method = self.report_good_data
-
-        # Default to empty dict for report_kwargs
-        if report_kwargs is None:
-            report_kwargs = {}
-
-        # If we don't have data, report with the provided method and return
-        if not have_data:
-            report_method(**report_kwargs)
-            return RESULT_PASS
-
-        self.l_slope = np.array(l_slope)
-        self.l_slope_err = np.array(l_slope_err)
-        self.l_intercept = np.array(l_intercept)
-        self.l_intercept_err = np.array(l_intercept_err)
-        if l_bin_limits is None:
-            self.l_bin_limits = None
-        else:
-            self.l_bin_limits = np.array(l_bin_limits)
-        self.fail_sigma = fail_sigma
-
-        self.num_bins = len(l_slope)
-
-        # Calculate test results for both the slope and intercept
-        for prop in "slope", "intercept":
-            self._calc_test_results(prop)
-
-        # Report the result based on whether or not the slope passed.
-        self.requirement_object.ValidationResult = self.slope_result
-        self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
-
-        # Check for data quality issues and report as proper if found
-        if np.all(self.l_slope_err == 0.):
-            report_method = self.report_zero_slope_err
-            extra_report_kwargs = {}
-        elif np.logical_or.reduce((np.isnan(self.l_slope),
-                                   np.isinf(self.l_slope),
-                                   np.isnan(self.l_slope_err),
-                                   np.isinf(self.l_slope_err),
-                                   self.l_slope_err == 0.)).all():
-            report_method = self.report_bad_data
-            extra_report_kwargs = {}
-        else:
-            report_method = self.report_good_data
-
-            # Report the maximum slope_z as the measured value for this test
-            extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
-
-        return super().write(result = self.slope_result,
-                             report_method = report_method,
-                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+    @staticmethod
+    def __mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data):
+        l_prop_z[bin_index] = np.NaN
+        l_prop_pass[bin_index] = False
+        l_prop_good_data[bin_index] = False
 
 
-class CtiGalAnalysisWriter(AnalysisWriter):
-    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+def write(self,
+          report_method: Callable[[Any], None] = None,
+          have_data: bool = False,
+          l_slope: List[float] = None,
+          l_slope_err: List[float] = None,
+          l_intercept: List[float] = None,
+          l_intercept_err: List[float] = None,
+          l_bin_limits: List[float] = None,
+          fail_sigma: float = None,
+          report_kwargs: Dict[str, Any] = None) -> str:
+    # Default to reporting good data if we're not told otherwise
+    if report_method is None:
+        report_method = self.report_good_data
+
+    # Default to empty dict for report_kwargs
+    if report_kwargs is None:
+        report_kwargs = {}
+
+    # If we don't have data, report with the provided method and return
+    if not have_data:
+        report_method(**report_kwargs)
+        return RESULT_PASS
+
+    self.l_slope = np.array(l_slope)
+    self.l_slope_err = np.array(l_slope_err)
+    self.l_intercept = np.array(l_intercept)
+    self.l_intercept_err = np.array(l_intercept_err)
+    if l_bin_limits is None:
+        self.l_bin_limits = None
+    else:
+        self.l_bin_limits = np.array(l_bin_limits)
+    self.fail_sigma = fail_sigma
+
+    self.num_bins = len(l_slope)
+
+    # Calculate test results for both the slope and intercept
+    for prop in "slope", "intercept":
+        self._calc_test_results(prop)
+
+    # Report the result based on whether or not the slope passed.
+    self.requirement_object.ValidationResult = self.slope_result
+    self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
+
+    # Check for data quality issues and report as proper if found
+    if np.all(self.l_slope_err == 0.):
+        report_method = self.report_zero_slope_err
+        extra_report_kwargs = {}
+    elif np.logical_or.reduce((np.isnan(self.l_slope),
+                               np.isinf(self.l_slope),
+                               np.isnan(self.l_slope_err),
+                               np.isinf(self.l_slope_err),
+                               self.l_slope_err == 0.)).all():
+        report_method = self.report_bad_data
+        extra_report_kwargs = {}
+    else:
+        report_method = self.report_good_data
+
+        # Report the maximum slope_z as the measured value for this test
+        extra_report_kwargs = {"measured_value": np.nanmax(self.l_slope_z)}
+
+    return super().write(result = self.slope_result,
+                         report_method = report_method,
+                         report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+
+
+class CtiAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
     """
 
     def __init__(self, *args, **kwargs):
@@ -285,19 +363,21 @@ class CtiGalAnalysisWriter(AnalysisWriter):
         return CTI_GAL_DIRECTORY_HEADER
 
 
-class CtiGalTestCaseWriter(TestCaseWriter):
-    """TODO: Add a docstring to this class."""
+class CtiTestCaseWriter(TestCaseWriter):
+    """Subclass of TestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
 
     # Types of child objects, overriding those in base class
-    requirement_writer_type = CtiGalRequirementWriter
-    analysis_writer_type = CtiGalAnalysisWriter
+    requirement_writer_type = CtiRequirementWriter
+    analysis_writer_type = CtiAnalysisWriter
 
 
-class CtiGalValidationResultsWriter(ValidationResultsWriter):
-    """TODO: Add a docstring to this class."""
+class CtiValidationResultsWriter(ValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to handle setup specific for CTI tests.
+    """
 
     # Types of child classes
-    test_case_writer_type = CtiGalTestCaseWriter
+    test_case_writer_type = CtiTestCaseWriter
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
@@ -427,13 +507,13 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                 mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer
-    test_results_writer = CtiGalValidationResultsWriter(test_object = test_result_product,
-                                                        workdir = workdir,
-                                                        regression_results_row_index = regression_results_row_index,
-                                                        d_regression_results_tables = d_regression_results_tables,
-                                                        fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_bin_limits,
-                                                        method_data_exists = method_data_exists,
-                                                        dl_l_figures = dl_l_figures, )
+    test_results_writer = CtiValidationResultsWriter(test_object = test_result_product,
+                                                     workdir = workdir,
+                                                     regression_results_row_index = regression_results_row_index,
+                                                     d_regression_results_tables = d_regression_results_tables,
+                                                     fail_sigma_calculator = fail_sigma_calculator,
+                                                     d_bin_limits = d_bin_limits,
+                                                     method_data_exists = method_data_exists,
+                                                     dl_l_figures = dl_l_figures, )
 
     test_results_writer.write()
