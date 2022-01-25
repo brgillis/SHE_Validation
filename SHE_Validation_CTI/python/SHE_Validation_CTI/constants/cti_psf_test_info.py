@@ -20,7 +20,9 @@ __updated__ = "2021-08-09"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.test_info import BinParameters, RequirementInfo, TestCaseInfo, TestInfo
+from SHE_Validation.constants.test_info import (BinParameters, ID_NUMBER_REPLACE_TAG, NAME_REPLACE_TAG, RequirementInfo,
+                                                TestCaseInfo,
+                                                TestInfo, )
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 
 # Metadata about the requirement
@@ -35,9 +37,11 @@ CTI_PSF_TEST_INFO = TestInfo(test_id = "T-SHE-000009-CTI-PSF",
                              description = ("Linear dependence of PSF ellipticity with read-out register  distance ("
                                             "slope)."))
 
-BASE_CTI_PSF_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = "T-SHE-000010-CTI-gal",
+BASE_CTI_PSF_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-PSF-"
+                                                               f"{NAME_REPLACE_TAG}",
                                            base_description = ("Linear dependence of PSF ellipticity with read-out "
-                                                               "register  distance (slope)."), )
+                                                               "register  distance (slope)."),
+                                           base_id_number = 100024)
 
 # Create a list and dict of the test case info for each bin parameter
 CTI_PSF_BIN_PARAMETERS = [BinParameters.SNR,
