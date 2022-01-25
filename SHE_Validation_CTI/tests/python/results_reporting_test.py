@@ -50,6 +50,13 @@ from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
+D_EX_TEST_CASE_IDS = {BinParameters.GLOBAL: "TC-SHE--1-CTI-gal-global",
+                      BinParameters.SNR   : "TC-SHE-100028-CTI-gal-SNR",
+                      BinParameters.BG    : "TC-SHE-100029-CTI-gal-bg",
+                      BinParameters.SIZE  : "TC-SHE-100030-CTI-gal-size",
+                      BinParameters.COLOUR: "TC-SHE-100031-CTI-gal-col",
+                      BinParameters.EPOCH : "TC-SHE-100032-CTI-gal-epoch"}
+
 
 class TestCtiResultsReporting(SheTestCase):
     """ Test case for CTI validation results reporting.
@@ -203,7 +210,7 @@ class TestCtiResultsReporting(SheTestCase):
                         exp_row[RR_TF.intercept] = exp_results.intercept
                         exp_row[RR_TF.intercept_err] = exp_results.intercept_err
 
-        # Set up the exposure output data products
+        # Create the exposure output data products
         for exp_index, exp_results in enumerate(exp_results_list):
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
                 num_tests = NUM_CTI_GAL_TEST_CASES)
@@ -220,11 +227,16 @@ class TestCtiResultsReporting(SheTestCase):
 
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
-        # Figure out the index for LensMC Global and Colour test results and save it for each check
+        # Check the test case IDs are all correct, and while doing so, figure out the index for LensMC Global and
+        # Colour test results and save it for each check
         test_case_index = 0
         lensmc_global_test_case_index: int = -1
         lensmc_colour_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+
+            exp_test_result = exp_product_list[0].Data.ValidationTestList[test_case_index]
+            assert D_EX_TEST_CASE_IDS[test_case_info.bins] in exp_test_result.TestId
+
             if test_case_info.method == ShearEstimationMethods.LENSMC:
                 if test_case_info.bins == BinParameters.GLOBAL:
                     lensmc_global_test_case_index = test_case_index
