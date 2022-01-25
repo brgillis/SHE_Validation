@@ -76,6 +76,8 @@ MSG_NO_DATA: str = "No data is available for this test."
 MSG_NOT_IMPLEMENTED: str = "This test has not yet been implemented."
 MSG_NO_INFO: str = "No supplementary information available."
 
+MEASURED_VAL_BAD_DATA = 1e99
+
 
 # Utility functions
 
@@ -323,7 +325,7 @@ class RequirementWriter:
         """
 
         # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = -1.0
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
 
         self.requirement_object.Comment = WARNING_BAD_DATA
 
