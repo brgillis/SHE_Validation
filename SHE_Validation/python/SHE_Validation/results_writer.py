@@ -324,7 +324,7 @@ class RequirementWriter:
         """ Reports bad data in the data model object for one or more items, modifying self._requirement_object.
         """
 
-        # Report -1 as the measured value for this test
+        # Report the special value as the measured value for this test
         self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
 
         self.requirement_object.Comment = WARNING_BAD_DATA
@@ -361,6 +361,7 @@ class RequirementWriter:
         """
 
         self.requirement_object.MeasuredValue[0].Parameter = WARNING_TEST_NOT_RUN
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
         self.requirement_object.ValidationResult = RESULT_PASS
         self.requirement_object.Comment = WARNING_TEST_NOT_RUN
 
