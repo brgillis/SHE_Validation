@@ -52,14 +52,16 @@ NUM_BIN_PARAMETERS: int = len(BinParameters)
 NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
                                                   if bin_parameter != BinParameters.GLOBAL]
 
+# Define dicts listing how ID numbers and names work within test cases with various bin parameters
+
+# ID number offset is how much the test case ID differs from the lowest value for each test case
 D_ID_NUMBER_OFFSETS: Dict[Union[BinParameters, None], int] = {None                : 0,
                                                               BinParameters.GLOBAL: -1,
                                                               BinParameters.SNR   : 0,
                                                               BinParameters.BG    : 1,
                                                               BinParameters.COLOUR: 3,
                                                               BinParameters.SIZE  : 2,
-                                                              BinParameters.EPOCH : 4,
-                                                              }
+                                                              BinParameters.EPOCH : 4, }
 
 
 class BinParameterMeta:
@@ -111,7 +113,7 @@ class BinParameterMeta:
         if id_tail is not None:
             self._id_tail = id_tail
         else:
-            self._id_tail = self.name
+            self._id_tail = self.value
 
     # Accessors for attributes
     @property
@@ -207,11 +209,12 @@ class BinParameterMeta:
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL)
+D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL, )
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
                                                            long_name = "SNR",
-                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS, )
+                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                                                           id_tail = "SNR")
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum = BinParameters.BG,
                                                           long_name = "background level",

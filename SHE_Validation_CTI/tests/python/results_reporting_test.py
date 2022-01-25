@@ -50,7 +50,7 @@ from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
-D_EX_TEST_CASE_IDS = {BinParameters.GLOBAL: "TC-SHE--1-CTI-gal-GLOBAL",
+D_EX_TEST_CASE_IDS = {BinParameters.GLOBAL: "TC-SHE--1-CTI-gal-global",
                       BinParameters.SNR   : "TC-SHE-100028-CTI-gal-SNR",
                       BinParameters.BG    : "TC-SHE-100029-CTI-gal-bg",
                       BinParameters.SIZE  : "TC-SHE-100030-CTI-gal-size",
