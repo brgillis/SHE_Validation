@@ -351,7 +351,7 @@ class TestCtiResultsReporting(SheTestCase):
                                         regression_results_row_index = 0,
                                         d_regression_results_tables = d_obs_results_tables,
                                         pipeline_config = self.pipeline_config,
-                                        d_bin_limits = self.d_bin_limits,
+                                        d_l_bin_limits = self.d_bin_limits,
                                         workdir = self.workdir,
                                         method_data_exists = False)
 
@@ -422,7 +422,7 @@ class TestCtiResultsReporting(SheTestCase):
                                             regression_results_row_index = exp_index,
                                             d_regression_results_tables = d_exp_results_tables,
                                             pipeline_config = self.pipeline_config,
-                                            d_bin_limits = self.d_bin_limits,
+                                            d_l_bin_limits = self.d_bin_limits,
                                             workdir = self.workdir,
                                             method_data_exists = True)
 

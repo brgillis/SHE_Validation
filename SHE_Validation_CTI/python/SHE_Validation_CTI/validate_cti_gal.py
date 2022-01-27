@@ -155,7 +155,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                             regression_results_row_index = product_index,
                                             d_regression_results_tables = d_exposure_regression_results_tables,
                                             pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                            d_bin_limits = d_l_bin_limits,
+                                            d_l_bin_limits = d_l_bin_limits,
                                             method_data_exists = method_data_exists)
 
         # And fill in the observation product
@@ -164,8 +164,8 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                         regression_results_row_index = 0,
                                         d_regression_results_tables = d_observation_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                        d_bin_limits = d_l_bin_limits,
-                                        dl_l_figures = plot_filenames,
+                                        d_l_bin_limits = d_l_bin_limits,
+                                        dl_dl_figures = plot_filenames,
                                         method_data_exists = method_data_exists)
 
     # Write out the exposure test results products and listfile

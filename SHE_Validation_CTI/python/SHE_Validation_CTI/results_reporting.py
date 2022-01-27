@@ -640,10 +640,10 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
-                                    d_bin_limits: Dict[BinParameters, np.ndarray],
+                                    d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
-                                    dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                        List[Union[Dict[str, str], List[str]]]] = None,
+                                    dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -652,7 +652,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
                                                 l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                d_l_bin_limits = d_bin_limits,
+                                                d_l_bin_limits = d_l_bin_limits,
                                                 mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer
@@ -661,8 +661,39 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         regression_results_row_index = regression_results_row_index,
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_bin_limits,
+                                                        d_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
-                                                        dl_l_figures = dl_l_figures, )
+                                                        dl_dl_figures = dl_dl_figures, )
+
+    test_results_writer.write()
+
+
+def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestResults,
+                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    pipeline_config: Dict[ConfigKeys, Any],
+                                    d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                                    workdir: str,
+                                    dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
+                                    method_data_exists: bool = True):
+    """ Interprets the results in the regression_results_row and other provided data to fill out the provided
+        test_result_product with the results of this validation test.
+    """
+
+    # Set up a calculator object for scaled fail sigmas
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
+                                                l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                d_l_bin_limits = d_l_bin_limits,
+                                                mode = ExecutionMode.LOCAL)
+
+    # Initialize a test results writer
+    test_results_writer = CtiPsfValidationResultsWriter(test_object = test_result_product,
+                                                        workdir = workdir,
+                                                        regression_results_row_index = 0,
+                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        fail_sigma_calculator = fail_sigma_calculator,
+                                                        d_bin_limits = d_l_bin_limits,
+                                                        method_data_exists = method_data_exists,
+                                                        dl_dl_figures = dl_dl_figures, )
 
     test_results_writer.write()
