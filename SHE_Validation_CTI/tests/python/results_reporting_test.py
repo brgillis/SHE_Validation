@@ -163,38 +163,24 @@ class TestCtiResultsReporting(SheTestCase):
                 assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tcb_local_fail_sigma)
 
-    def test_fill_cg_val_results(self, l_exp_results):
-        """ Test of the fill_cti_gal_validation_results function.
+    def test_test_case_ids(self, l_exp_results):
+        """Check the test case IDs are all correct.
         """
-
-        # Check the results for each exposure are as expected. Only check for LensMC-Global here
-
-        # Check the test case IDs are all correct, and while doing so, figure out the index for LensMC Global and
-        # Colour test results and MomentsML global test results and save it for each check
         test_case_index = 0
-        lensmc_global_test_case_index: int = -1
-        lensmc_colour_test_case_index: int = -1
-        momentsml_global_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
             exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
             assert D_EX_TEST_CASE_IDS[test_case_info.bins] in exp_test_result.TestId
 
-            if test_case_info.method == ShearEstimationMethods.LENSMC:
-                if test_case_info.bins == BinParameters.GLOBAL:
-                    lensmc_global_test_case_index = test_case_index
-                elif test_case_info.bins == BinParameters.COLOUR:
-                    lensmc_colour_test_case_index = test_case_index
-
-            if test_case_info.method == ShearEstimationMethods.MOMENTSML:
-                if test_case_info.bins == BinParameters.GLOBAL:
-                    momentsml_global_test_case_index = test_case_index
-
             test_case_index += 1
 
-        assert lensmc_global_test_case_index >= 0
-        assert lensmc_colour_test_case_index >= 0
-        assert momentsml_global_test_case_index >= 0
+    # Check the results for each exposure are as expected. Only check for LensMC-Global here
+
+    def test_exposure_all_pass(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
 
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = l_exp_results[0].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -230,6 +216,12 @@ class TestCtiResultsReporting(SheTestCase):
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
+    def test_exposure_most_pass(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
+
         # Exposure 0 Colour - slope pass and intercept pass for all bins except index 2
         exp_test_result = l_exp_results[0].Data.ValidationTestList[lensmc_colour_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
@@ -259,6 +251,12 @@ class TestCtiResultsReporting(SheTestCase):
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
+    def test_exposure_fail_pass(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
+
         # Exposure 1 - slope fail and intercept pass
         exp_test_result = l_exp_results[1].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
@@ -267,6 +265,12 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
+
+    def test_exposure_pass_fail(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
 
         # Exposure 2 - slope pass and intercept fail
         exp_test_result = l_exp_results[2].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -277,6 +281,12 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == RESULT_PASS
 
+    def test_exposure_both_fail(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
+
         # Exposure 3 - slope fail and intercept fail
         exp_test_result = l_exp_results[3].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
@@ -285,6 +295,12 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
+
+    def test_exposure_zero_err(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
 
         # Exposure 4 - zero slope_err and zero intercept_err
         exp_test_result = l_exp_results[4].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -298,6 +314,12 @@ class TestCtiResultsReporting(SheTestCase):
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
         assert MSG_ZERO_SLOPE_ERR in exp_slope_info_string
 
+    def test_exposure_nan_data(self, l_exp_results, lmc_indices):
+        """ Test that the filled results are as expected
+        """
+
+        lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
+
         # Exposure 5 - NaN data
         exp_test_result = l_exp_results[5].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
@@ -309,6 +331,10 @@ class TestCtiResultsReporting(SheTestCase):
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
         assert MSG_NAN_SLOPE in exp_slope_info_string
+
+    def test_observation_results(self):
+        """ Test of the fill_cti_gal_validation_results function.
+        """
 
         # With the observation, test saying we have no data
         obs_results_table = RR_TF.init_table(product_type = "OBS", size = 1)
@@ -354,6 +380,34 @@ class TestCtiResultsReporting(SheTestCase):
                 assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
             else:
                 assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
+
+    @pytest.fixture(scope = 'class')
+    def lmc_indices(self, l_exp_results):
+        # Figure out the index for LensMC Global and olour test results and MomentsML global test results and save it
+        # for each check
+        test_case_index = 0
+        lensmc_global_test_case_index: int = -1
+        lensmc_colour_test_case_index: int = -1
+        momentsml_global_test_case_index: int = -1
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+
+            exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
+
+            if test_case_info.method == ShearEstimationMethods.LENSMC:
+                if test_case_info.bins == BinParameters.GLOBAL:
+                    lensmc_global_test_case_index = test_case_index
+                elif test_case_info.bins == BinParameters.COLOUR:
+                    lensmc_colour_test_case_index = test_case_index
+
+            if test_case_info.method == ShearEstimationMethods.MOMENTSML:
+                if test_case_info.bins == BinParameters.GLOBAL:
+                    momentsml_global_test_case_index = test_case_index
+
+            test_case_index += 1
+        assert lensmc_global_test_case_index >= 0
+        assert lensmc_colour_test_case_index >= 0
+        assert momentsml_global_test_case_index >= 0
+        return lensmc_colour_test_case_index, lensmc_global_test_case_index
 
     @pytest.fixture(scope = 'class')
     def l_exp_results(self, class_setup):
