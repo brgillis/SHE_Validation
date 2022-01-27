@@ -21,12 +21,11 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Dict, List, NamedTuple, Optional
 
 import numpy as np
 import pytest
 from astropy.table import Table
-from py._path.local import LocalPath
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -65,9 +64,8 @@ class TestCtiResultsReporting(SheTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir: LocalPath):
-        self._setup_workdir_from_tmpdir(tmpdir)
+    def setup(self):
+        self._setup_workdir_from_tmpdir(self.tmpdir_factory.mktemp("test"))
 
         # Make a pipeline_config using the default values
         self.pipeline_config = read_config(config_filename = None, config_keys = (GlobalConfigKeys,
@@ -165,66 +163,9 @@ class TestCtiResultsReporting(SheTestCase):
                 assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tcb_local_fail_sigma)
 
-    def test_fill_cg_val_results(self):
+    def test_fill_cg_val_results(self, l_exp_results):
         """ Test of the fill_cti_gal_validation_results function.
         """
-
-        class RegResults(NamedTuple):
-            slope: float
-            slope_err: float
-            intercept: float
-            intercept_err: float
-
-        exp_results_list = [RegResults(3., 2., 0., 2.),
-                            RegResults(-15, 2., 0., 2.),
-                            RegResults(3., 2., 44., 5.),
-                            RegResults(-15., 2., 44., 5.),
-                            RegResults(-15., 0., 44., 0.),
-                            RegResults(np.NaN, np.NaN, np.NaN, np.NaN), ]
-
-        num_exposures: int = len(exp_results_list)
-        exp_product_list: List[Any] = [None] * num_exposures
-
-        # Set up mock input data and fill the products for each set of possible results
-        base_exp_results_table = RR_TF.init_table(product_type = "EXP", size = len(exp_results_list))
-
-        d_exp_results_tables: Dict[str, List[Optional[Table]]] = {}
-        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
-            num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
-            d_exp_results_tables[test_case_info.name] = [None] * num_bins
-            for bin_index in range(num_bins):
-                exp_results_table = deepcopy(base_exp_results_table)
-                d_exp_results_tables[test_case_info.name][bin_index] = exp_results_table
-
-                # Set up data for each test case
-                for exp_index, exp_results in enumerate(exp_results_list):
-                    exp_row = exp_results_table[exp_index]
-                    # To test handling of empty bins, set bin_index 2 to NaN, otherwise normal data
-                    if bin_index == 2:
-                        exp_row[RR_TF.slope] = np.NaN
-                        exp_row[RR_TF.slope_err] = np.NaN
-                        exp_row[RR_TF.intercept] = np.NaN
-                        exp_row[RR_TF.intercept_err] = np.NaN
-                    else:
-                        exp_row[RR_TF.slope] = exp_results.slope
-                        exp_row[RR_TF.slope_err] = exp_results.slope_err
-                        exp_row[RR_TF.intercept] = exp_results.intercept
-                        exp_row[RR_TF.intercept_err] = exp_results.intercept_err
-
-        # Create the exposure output data products
-        for exp_index, exp_results in enumerate(exp_results_list):
-            exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests = NUM_CTI_GAL_TEST_CASES)
-
-            fill_cti_gal_validation_results(test_result_product = exp_product,
-                                            regression_results_row_index = exp_index,
-                                            d_regression_results_tables = d_exp_results_tables,
-                                            pipeline_config = self.pipeline_config,
-                                            d_bin_limits = self.d_bin_limits,
-                                            workdir = self.workdir,
-                                            method_data_exists = True)
-
-            exp_product_list[exp_index] = exp_product
 
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
@@ -236,7 +177,7 @@ class TestCtiResultsReporting(SheTestCase):
         momentsml_global_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
-            exp_test_result = exp_product_list[0].Data.ValidationTestList[test_case_index]
+            exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
             assert D_EX_TEST_CASE_IDS[test_case_info.bins] in exp_test_result.TestId
 
             if test_case_info.method == ShearEstimationMethods.LENSMC:
@@ -256,7 +197,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert momentsml_global_test_case_index >= 0
 
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
-        exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[0].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -290,7 +231,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
         # Exposure 0 Colour - slope pass and intercept pass for all bins except index 2
-        exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_colour_test_case_index]
+        exp_test_result = l_exp_results[0].Data.ValidationTestList[lensmc_colour_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -319,7 +260,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
         # Exposure 1 - slope fail and intercept pass
-        exp_test_result = exp_product_list[1].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[1].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -328,7 +269,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 2 - slope pass and intercept fail
-        exp_test_result = exp_product_list[2].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[2].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -337,7 +278,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.ValidationResult == RESULT_PASS
 
         # Exposure 3 - slope fail and intercept fail
-        exp_test_result = exp_product_list[3].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[3].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -346,7 +287,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         # Exposure 4 - zero slope_err and zero intercept_err
-        exp_test_result = exp_product_list[4].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[4].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -358,7 +299,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert MSG_ZERO_SLOPE_ERR in exp_slope_info_string
 
         # Exposure 5 - NaN data
-        exp_test_result = exp_product_list[5].Data.ValidationTestList[lensmc_global_test_case_index]
+        exp_test_result = l_exp_results[5].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_FAIL
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
@@ -413,3 +354,63 @@ class TestCtiResultsReporting(SheTestCase):
                 assert obs_info.Parameter[0].StringValue == MSG_NOT_IMPLEMENTED
             else:
                 assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
+
+    @pytest.fixture(scope = 'class')
+    def l_exp_results(self, class_setup):
+        d_exp_results_tables = self.create_exp_results_tables()
+        # Create the exposure output data products
+        l_exp_results = [None] * self.num_exposures
+        for exp_index, exp_results in enumerate(self.exp_results_list):
+            exp_product = products.she_validation_test_results.create_validation_test_results_product(
+                num_tests = NUM_CTI_GAL_TEST_CASES)
+
+            fill_cti_gal_validation_results(test_result_product = exp_product,
+                                            regression_results_row_index = exp_index,
+                                            d_regression_results_tables = d_exp_results_tables,
+                                            pipeline_config = self.pipeline_config,
+                                            d_bin_limits = self.d_bin_limits,
+                                            workdir = self.workdir,
+                                            method_data_exists = True)
+
+            l_exp_results[exp_index] = exp_product
+        return l_exp_results
+
+    def create_exp_results_tables(self):
+        class RegResults(NamedTuple):
+            slope: float
+            slope_err: float
+            intercept: float
+            intercept_err: float
+
+        self.exp_results_list = [RegResults(3., 2., 0., 2.),
+                                 RegResults(-15, 2., 0., 2.),
+                                 RegResults(3., 2., 44., 5.),
+                                 RegResults(-15., 2., 44., 5.),
+                                 RegResults(-15., 0., 44., 0.),
+                                 RegResults(np.NaN, np.NaN, np.NaN, np.NaN), ]
+        self.num_exposures = len(self.exp_results_list)
+        # Set up mock input data and fill the products for each set of possible results
+        base_exp_results_table = RR_TF.init_table(product_type = "EXP", size = len(self.exp_results_list))
+        d_exp_results_tables: Dict[str, List[Optional[Table]]] = {}
+        for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
+            num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
+            d_exp_results_tables[test_case_info.name] = [None] * num_bins
+            for bin_index in range(num_bins):
+                exp_results_table = deepcopy(base_exp_results_table)
+                d_exp_results_tables[test_case_info.name][bin_index] = exp_results_table
+
+                # Set up data for each test case
+                for exp_index, exp_results in enumerate(self.exp_results_list):
+                    exp_row = exp_results_table[exp_index]
+                    # To test handling of empty bins, set bin_index 2 to NaN, otherwise normal data
+                    if bin_index == 2:
+                        exp_row[RR_TF.slope] = np.NaN
+                        exp_row[RR_TF.slope_err] = np.NaN
+                        exp_row[RR_TF.intercept] = np.NaN
+                        exp_row[RR_TF.intercept_err] = np.NaN
+                    else:
+                        exp_row[RR_TF.slope] = exp_results.slope
+                        exp_row[RR_TF.slope_err] = exp_results.slope_err
+                        exp_row[RR_TF.intercept] = exp_results.intercept
+                        exp_row[RR_TF.intercept_err] = exp_results.intercept_err
+        return d_exp_results_tables
