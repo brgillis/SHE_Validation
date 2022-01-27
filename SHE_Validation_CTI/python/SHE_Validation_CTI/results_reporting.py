@@ -31,7 +31,8 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
-from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
+from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MEASURED_VAL_BAD_DATA,
+                                           MSG_NOT_IMPLEMENTED, MSG_NO_DATA,
                                            RESULT_FAIL, RESULT_PASS, RequirementWriter, SupplementaryInfo,
                                            TestCaseWriter, ValidationResultsWriter, WARNING_MULTIPLE, )
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
@@ -227,8 +228,9 @@ class CtiRequirementWriter(RequirementWriter):
         super().report_bad_data([*l_supplementary_info, *extra_l_supplementary_info])
 
     def report_zero_slope_err(self):
-        # Report -2 as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = -2.0
+
+        # Report the special bad data value as the measured value for this test
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
 
         self.requirement_object.Comment = WARNING_MULTIPLE
 

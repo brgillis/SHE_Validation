@@ -35,7 +35,8 @@ from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, rea
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS_STR, FailSigmaScaling
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MSG_NOT_IMPLEMENTED,
+from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MEASURED_VAL_BAD_DATA,
+                                           MSG_NOT_IMPLEMENTED,
                                            MSG_NO_DATA, RESULT_FAIL, RESULT_PASS, WARNING_BAD_DATA, WARNING_MULTIPLE,
                                            WARNING_TEST_NOT_RUN, )
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -228,10 +229,11 @@ class TestCtiResultsReporting(SheTestCase):
         # Check the results for each exposure are as expected. Only check for LensMC-Global here
 
         # Check the test case IDs are all correct, and while doing so, figure out the index for LensMC Global and
-        # Colour test results and save it for each check
+        # Colour test results and MomentsML global test results and save it for each check
         test_case_index = 0
         lensmc_global_test_case_index: int = -1
         lensmc_colour_test_case_index: int = -1
+        momentsml_global_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
             exp_test_result = exp_product_list[0].Data.ValidationTestList[test_case_index]
@@ -243,10 +245,15 @@ class TestCtiResultsReporting(SheTestCase):
                 elif test_case_info.bins == BinParameters.COLOUR:
                     lensmc_colour_test_case_index = test_case_index
 
+            if test_case_info.method == ShearEstimationMethods.MOMENTSML:
+                if test_case_info.bins == BinParameters.GLOBAL:
+                    momentsml_global_test_case_index = test_case_index
+
             test_case_index += 1
 
         assert lensmc_global_test_case_index >= 0
         assert lensmc_colour_test_case_index >= 0
+        assert momentsml_global_test_case_index >= 0
 
         # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = exp_product_list[0].Data.ValidationTestList[lensmc_global_test_case_index]
@@ -344,7 +351,7 @@ class TestCtiResultsReporting(SheTestCase):
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == WARNING_MULTIPLE
-        assert requirement_object.MeasuredValue[0].Value.FloatValue == -2.0
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == MEASURED_VAL_BAD_DATA
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
@@ -356,7 +363,7 @@ class TestCtiResultsReporting(SheTestCase):
 
         requirement_object = exp_test_result.ValidatedRequirements.Requirement[0]
         assert requirement_object.Comment == WARNING_BAD_DATA
-        assert requirement_object.MeasuredValue[0].Value.FloatValue == -1.0
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == MEASURED_VAL_BAD_DATA
         assert requirement_object.ValidationResult == RESULT_FAIL
 
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
@@ -397,6 +404,8 @@ class TestCtiResultsReporting(SheTestCase):
             # Check that the product indeed reports no data
             assert obs_test_result.GlobalResult == RESULT_PASS
             assert obs_test_result.ValidatedRequirements.Requirement[0].Comment == WARNING_TEST_NOT_RUN
+            assert (obs_test_result.ValidatedRequirements.Requirement[0].MeasuredValue[0].Value.FloatValue ==
+                    MEASURED_VAL_BAD_DATA)
             obs_info = obs_test_result.ValidatedRequirements.Requirement[0].SupplementaryInformation
             assert obs_info.Parameter[0].Key == KEY_REASON
             assert obs_info.Parameter[0].Description == DESC_NOT_RUN_REASON
