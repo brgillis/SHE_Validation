@@ -404,7 +404,7 @@ class AnalysisWriter:
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
     _product_type: str = "UNKNOWN-TYPE"
     _dl_l_textfiles: Optional[StrDictOrList] = None
-    _dl_l_figures: Optional[StrDictOrList] = None
+    _dl_dl_figures: Optional[StrDictOrList] = None
 
     # Attributes determined at init
     _workdir: str
@@ -424,7 +424,7 @@ class AnalysisWriter:
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type: str = "UNKNOWN-TYPE",
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_l_figures: Optional[StrDictOrList] = None):
+                 dl_dl_figures: Optional[StrDictOrList] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
@@ -432,10 +432,10 @@ class AnalysisWriter:
             self._dl_l_textfiles = dl_l_textfiles
         else:
             self._dl_l_textfiles = []
-        if dl_l_figures is not None:
-            self._dl_l_figures = dl_l_figures
+        if dl_dl_figures is not None:
+            self._dl_dl_figures = dl_dl_figures
         else:
-            self._dl_l_figures = []
+            self._dl_dl_figures = []
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -476,8 +476,8 @@ class AnalysisWriter:
         return self._dl_l_textfiles
 
     @property
-    def dl_l_figures(self):
-        return self._dl_l_figures
+    def dl_dl_figures(self):
+        return self._dl_dl_figures
 
     # Getters/setters for attributes set when requested
     @property
@@ -587,7 +587,7 @@ class AnalysisWriter:
 
     def _write_directory(self,
                          dl_l_textfiles: Optional[StrDictOrList],
-                         dl_l_figures: Optional[StrDictOrList]) -> None:
+                         dl_dl_figures: Optional[StrDictOrList]) -> None:
 
         # Generate a filename for the directory if needed
         if self._directory_filename is None:
@@ -605,7 +605,7 @@ class AnalysisWriter:
 
             # Write a comment for the start of the figures section, then write out the figure filenames
             fo.write(f"{FIGURES_SECTION_HEADER}\n")
-            self._write_filenames_to_directory(fo, dl_l_figures)
+            self._write_filenames_to_directory(fo, dl_dl_figures)
 
     def _add_directory_to_textfiles(self, dl_l_textfiles: Optional[StrDictOrList]) -> None:
         """ Adds the directory filename to a dict or list of textfiles.
@@ -683,8 +683,8 @@ class AnalysisWriter:
         """
 
         # Create a directory if desired
-        if write_directory and len(self.dl_l_textfiles) + len(self.dl_l_figures) > 0:
-            self._write_directory(self.dl_l_textfiles, self.dl_l_figures)
+        if write_directory and len(self.dl_l_textfiles) + len(self.dl_dl_figures) > 0:
+            self._write_directory(self.dl_l_textfiles, self.dl_dl_figures)
             self._add_directory_to_textfiles(self.dl_l_textfiles)
 
         # Write out textfiles and figures
@@ -694,7 +694,7 @@ class AnalysisWriter:
                           write_dummy_files = write_dummy_files,
                           delete_files = delete_files)
 
-        self._write_files(files = self.dl_l_figures,
+        self._write_files(files = self.dl_dl_figures,
                           tarball_filename = self.figures_filename,
                           data_container_attr = "Figures",
                           write_dummy_files = write_dummy_files,
@@ -727,7 +727,7 @@ class TestCaseWriter:
     def _init_analysis_object(self,
                               analysis_object: Any,
                               dl_l_textfiles,
-                              dl_l_figures):
+                              dl_dl_figures):
 
         analysis_textfiles_object: Any = dataContainer(filestatus = "PROPOSED")
         analysis_object.TextFiles = analysis_textfiles_object
@@ -737,7 +737,7 @@ class TestCaseWriter:
 
         self._analysis_object = analysis_object
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
-                                                           dl_l_figures = dl_l_figures)
+                                                           dl_dl_figures = dl_dl_figures)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
@@ -746,7 +746,7 @@ class TestCaseWriter:
                  num_requirements: int = None,
                  l_requirement_info: Union[None, RequirementInfo, List[RequirementInfo]] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_l_figures: Optional[StrDictOrList] = None):
+                 dl_dl_figures: Optional[StrDictOrList] = None):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
@@ -799,7 +799,7 @@ class TestCaseWriter:
         # Set up the Analysis Writer
         self._init_analysis_object(analysis_object,
                                    dl_l_textfiles,
-                                   dl_l_figures)
+                                   dl_dl_figures)
 
     # Getters/setters for attributes set at init
     @property
@@ -916,13 +916,13 @@ class ValidationResultsWriter:
     _test_object: dpdSheValidationTestResults
     _workdir: str
     dl_l_textfiles: Optional[StrDictOrList] = None
-    dl_l_figures: Optional[StrDictOrList] = None
+    dl_dl_figures: Optional[StrDictOrList] = None
     num_test_cases: Optional[int] = None
     l_test_case_info: Optional[List[Optional[TestCaseInfo]]] = None
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
     dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
     _dl_l_textfiles: Optional[StrDictOrList] = None
-    _dl_l_figures: Optional[StrDictOrList] = None
+    _dl_dl_figures: Optional[StrDictOrList] = None
 
     # Attributes determined at init
     _l_test_case_writers: List[Optional[TestCaseWriter]]
@@ -933,7 +933,7 @@ class ValidationResultsWriter:
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_l_figures: Optional[StrDictOrList] = None,
+                 dl_dl_figures: Optional[StrDictOrList] = None,
                  num_test_cases: Optional[int] = None,
                  l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
                  dl_num_requirements: Union[None, Dict[str, int], List[int]] = None,
@@ -942,7 +942,7 @@ class ValidationResultsWriter:
 
         # Init attributes directly from arguments
         self.dl_l_textfiles = dl_l_textfiles
-        self.dl_l_figures = dl_l_figures
+        self.dl_dl_figures = dl_dl_figures
         self.num_test_cases = num_test_cases
         self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none = True)
         self.dl_num_requirements = dl_num_requirements
@@ -1094,7 +1094,7 @@ class ValidationResultsWriter:
         # Get the proper textfiles and figures for this test case
         key = self.test_case_keys[i]
         test_case_textfiles = self._get_item_from_dl(self.dl_l_textfiles, key)
-        test_case_figures = self._get_item_from_dl(self.dl_l_figures, key)
+        test_case_figures = self._get_item_from_dl(self.dl_dl_figures, key)
         num_requirements = self._get_item_from_dl(self.dl_num_requirements, key)
         l_requirement_info = self._get_item_from_dl(self.dl_l_requirement_info, key)
 
@@ -1103,7 +1103,7 @@ class ValidationResultsWriter:
         self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object = test_case_object,
                                                                   test_case_info = test_case_info,
                                                                   dl_l_textfiles = test_case_textfiles,
-                                                                  dl_l_figures = test_case_figures,
+                                                                  dl_dl_figures = test_case_figures,
                                                                   num_requirements = num_requirements,
                                                                   l_requirement_info = l_requirement_info)
         self.l_test_case_objects[i] = test_case_object
