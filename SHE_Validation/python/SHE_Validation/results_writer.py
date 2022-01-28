@@ -488,12 +488,11 @@ class AnalysisWriter:
     @property
     def textfiles_filename(self) -> str:
         if self._textfiles_filename is None:
-            filename_tag: str = self._get_filename_tag()
             instance_id_tail: str
-            if filename_tag is None:
+            if self.filename_tag is None:
                 instance_id_tail = ""
             else:
-                instance_id_tail = f"-{filename_tag.upper()}"
+                instance_id_tail = f"-{self.filename_tag.upper()}"
             self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type,
                                                                     instance_id = (f"TEXTFILES-{os.getpid()}"
                                                                                    f"{instance_id_tail}"),
@@ -513,11 +512,10 @@ class AnalysisWriter:
     @property
     def figures_filename(self) -> str:
         if self._figures_filename is None:
-            filename_tag = self._get_filename_tag()
-            if filename_tag is None:
+            if self.filename_tag is None:
                 instance_id_tail = ""
             else:
-                instance_id_tail = f"-{filename_tag.upper()}"
+                instance_id_tail = f"-{self.filename_tag.upper()}"
             self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type,
                                                                   instance_id = (f"FIGURES-{os.getpid()}"
                                                                                  f"{instance_id_tail}"),
@@ -558,11 +556,6 @@ class AnalysisWriter:
         return self._qualified_directory_filename
 
     # Private and protected methods
-
-    def _get_filename_tag(self) -> Optional[str]:
-        """ Overridable method to get a tag to add to figure/textfile filenames.
-        """
-        return None
 
     def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.
