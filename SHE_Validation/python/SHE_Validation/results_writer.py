@@ -738,7 +738,7 @@ class TestCaseWriter:
         filename_tag = self.test_case_info.name.replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF", "")
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
                                                            dl_l_figures = dl_l_figures,
-                                                           filename_tag = self.test_case_info.name)
+                                                           filename_tag = filename_tag)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
