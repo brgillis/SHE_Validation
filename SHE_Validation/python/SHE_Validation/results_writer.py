@@ -651,7 +651,7 @@ class AnalysisWriter:
                      files: Optional[StrDictOrList],
                      tarball_filename: str,
                      data_container_attr: str,
-                     write_dummy_files: bool = False,
+                     write_dummy_files: bool = True,
                      delete_files: bool = False) -> None:
         """ Tar a set of files and update the data product with the filename of the tarball. Optionally delete
             files now included in the tarball.
@@ -675,7 +675,7 @@ class AnalysisWriter:
 
     def write(self,
               write_directory: bool = True,
-              write_dummy_files: bool = False,
+              write_dummy_files: bool = True,
               delete_files: bool = True) -> None:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
