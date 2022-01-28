@@ -517,10 +517,10 @@ class AnalysisWriter:
             else:
                 instance_id = f"{self.filename_tag.upper()}"
 
-            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-FIGURES",
-                                                                    instance_id = instance_id,
-                                                                    extension = ".tar.gz",
-                                                                    version = __version__)
+            self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type + "-FIGURES",
+                                                                  instance_id = instance_id,
+                                                                  extension = ".tar.gz",
+                                                                  version = __version__)
         return self._figures_filename
 
     @property
