@@ -488,14 +488,14 @@ class AnalysisWriter:
     @property
     def textfiles_filename(self) -> str:
         if self._textfiles_filename is None:
-            instance_id_tail: str
+            instance_id: str
             if self.filename_tag is None:
                 instance_id = ""
             else:
                 instance_id = f"{self.filename_tag.upper()}"
 
             self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-TEXTFILES",
-                                                                    instance_id = instance_id_tail,
+                                                                    instance_id = instance_id,
                                                                     extension = ".tar.gz",
                                                                     version = __version__)
         return self._textfiles_filename
@@ -518,7 +518,7 @@ class AnalysisWriter:
                 instance_id = f"{self.filename_tag.upper()}"
 
             self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-FIGURES",
-                                                                    instance_id = instance_id_tail,
+                                                                    instance_id = instance_id,
                                                                     extension = ".tar.gz",
                                                                     version = __version__)
         return self._figures_filename
