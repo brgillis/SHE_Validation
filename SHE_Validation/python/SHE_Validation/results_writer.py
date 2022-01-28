@@ -494,7 +494,7 @@ class AnalysisWriter:
             else:
                 instance_id_tail = f"-{self.filename_tag.upper()}"
             self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                    instance_id = (f"TEXTFILES-{os.getpid()}"
+                                                                    instance_id = (f"TX-{os.getpid()}"
                                                                                    f"{instance_id_tail}"),
                                                                     extension = ".tar.gz",
                                                                     version = __version__)
@@ -517,7 +517,7 @@ class AnalysisWriter:
             else:
                 instance_id_tail = f"-{self.filename_tag.upper()}"
             self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                  instance_id = (f"FIGURES-{os.getpid()}"
+                                                                  instance_id = (f"FG-{os.getpid()}"
                                                                                  f"{instance_id_tail}"),
                                                                   extension = ".tar.gz",
                                                                   version = __version__)
@@ -735,6 +735,7 @@ class TestCaseWriter:
         analysis_object.Figures = analysis_figures_object
 
         self._analysis_object = analysis_object
+        filename_tag = self.test_case_info.name.replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF", "")
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
                                                            dl_l_figures = dl_l_figures,
                                                            filename_tag = self.test_case_info.name)
