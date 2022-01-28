@@ -490,12 +490,12 @@ class AnalysisWriter:
         if self._textfiles_filename is None:
             instance_id_tail: str
             if self.filename_tag is None:
-                instance_id_tail = ""
+                instance_id = ""
             else:
-                instance_id_tail = f"-{self.filename_tag.upper()}"
-            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                    instance_id = (f"TX-{os.getpid()}"
-                                                                                   f"{instance_id_tail}"),
+                instance_id = f"{self.filename_tag.upper()}"
+
+            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-TEXTFILES",
+                                                                    instance_id = instance_id_tail,
                                                                     extension = ".tar.gz",
                                                                     version = __version__)
         return self._textfiles_filename
@@ -513,14 +513,14 @@ class AnalysisWriter:
     def figures_filename(self) -> str:
         if self._figures_filename is None:
             if self.filename_tag is None:
-                instance_id_tail = ""
+                instance_id = ""
             else:
-                instance_id_tail = f"-{self.filename_tag.upper()}"
-            self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                  instance_id = (f"FG-{os.getpid()}"
-                                                                                 f"{instance_id_tail}"),
-                                                                  extension = ".tar.gz",
-                                                                  version = __version__)
+                instance_id = f"{self.filename_tag.upper()}"
+
+            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-FIGURES",
+                                                                    instance_id = instance_id_tail,
+                                                                    extension = ".tar.gz",
+                                                                    version = __version__)
         return self._figures_filename
 
     @property
@@ -735,7 +735,8 @@ class TestCaseWriter:
         analysis_object.Figures = analysis_figures_object
 
         self._analysis_object = analysis_object
-        filename_tag = self.test_case_info.name.replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF", "")
+        filename_tag = self.test_case_info.name.upper().replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF",
+                                                                                                           "")
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
                                                            dl_l_figures = dl_l_figures,
                                                            filename_tag = filename_tag)
