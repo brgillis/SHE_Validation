@@ -451,7 +451,10 @@ class TestCaseInfo:
                 self._name = self._name.replace(ID_NUMBER_REPLACE_TAG,
                                                 str(self.id_number))
             if self.method is not None:
-                self._name += f"-{self.method.value}"
+                method_name = self.method.value
+                if len(method_name) > 6:
+                    method_name = method_name[:6]
+                self._name += f"-{method_name}"
         return self._name
 
     @property
