@@ -406,6 +406,7 @@ class AnalysisWriter:
     _product_type: str = "UNKNOWN-TYPE"
     _dl_l_textfiles: Optional[StrDictOrList] = None
     _dl_l_figures: Optional[StrDictOrList] = None
+    filename_tag: Optional[str] = None
 
     # Attributes determined at init
     _workdir: str
@@ -425,7 +426,8 @@ class AnalysisWriter:
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type: str = "UNKNOWN-TYPE",
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_l_figures: Optional[StrDictOrList] = None):
+                 dl_l_figures: Optional[StrDictOrList] = None,
+                 filename_tag: Optional[str] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
@@ -437,6 +439,8 @@ class AnalysisWriter:
             self._dl_l_figures = dl_l_figures
         else:
             self._dl_l_figures = []
+        if filename_tag is not None:
+            self.filename_tag = filename_tag
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -555,10 +559,10 @@ class AnalysisWriter:
 
     # Private and protected methods
 
-    def _get_filename_tag(self) -> str:
+    def _get_filename_tag(self) -> Optional[str]:
         """ Overridable method to get a tag to add to figure/textfile filenames.
         """
-        return ""
+        return None
 
     def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.
@@ -739,7 +743,8 @@ class TestCaseWriter:
 
         self._analysis_object = analysis_object
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
-                                                           dl_l_figures = dl_l_figures)
+                                                           dl_l_figures = dl_l_figures,
+                                                           filename_tag = self.test_case_info.name)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
