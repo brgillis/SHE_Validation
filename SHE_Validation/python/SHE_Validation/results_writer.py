@@ -30,6 +30,7 @@ import scipy.stats
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.product_utility import coerce_no_include_data_subdir
 from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
@@ -661,7 +662,8 @@ class AnalysisWriter:
 
         # Check if we will be creating a file we want to point the data product to
         if len(files) > 0 or write_dummy_files:
-            getattr(self.analysis_object, data_container_attr).FileName = tarball_filename
+            getattr(self.analysis_object, data_container_attr).FileName = coerce_no_include_data_subdir(
+                tarball_filename)
             if len(files) == 0:
                 self._write_dummy_data(os.path.join(self.workdir, tarball_filename))
             else:
