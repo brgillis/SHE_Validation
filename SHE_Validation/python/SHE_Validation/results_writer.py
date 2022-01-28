@@ -657,6 +657,14 @@ class AnalysisWriter:
             files now included in the tarball.
         """
 
+        # Prune Nones from files
+        if isinstance(files, list):
+            files = [file for file in files if file is not None]
+        elif isinstance(files, dict):
+            files = {key: files[key] for key in files if files[key] is not None}
+        else:
+            raise ValueError(f"Unexpected type for input files: {type(files)}")
+
         # Check if we will be creating a file we want to point the data product to
         if len(files) > 0 or write_dummy_files:
             getattr(self.analysis_object, data_container_attr).FileName = coerce_no_include_data_subdir(
@@ -667,6 +675,8 @@ class AnalysisWriter:
                 self._tar_files(tarball_filename = tarball_filename,
                                 filenames = files,
                                 delete_files = delete_files)
+            if not os.path.exists(os.path.join(self.workdir, tarball_filename)):
+                raise IOError(f"Expected file {os.path.join(self.workdir, tarball_filename)} was not created.")
         else:
             # No file for the data product, so set the attribute to None
             setattr(self.analysis_object, data_container_attr, None)
