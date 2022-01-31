@@ -51,10 +51,12 @@ class ShearBiasTestCases(Enum):
 
 M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
 BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id = M_TEST_CASE_ID,
+                                                base_name = "SB-M",
                                                 base_description = "Multiplicative shear bias.",
                                                 bins = BinParameters.GLOBAL)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
 BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id = C_TEST_CASE_ID,
+                                                base_name = "SB-C",
                                                 base_description = "Additive shear bias.",
                                                 bins = BinParameters.GLOBAL, )
 
