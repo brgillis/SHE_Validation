@@ -39,6 +39,7 @@ CTI_PSF_TEST_INFO = TestInfo(test_id = "T-SHE-000009-CTI-PSF",
 
 BASE_CTI_PSF_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-PSF-"
                                                                f"{NAME_REPLACE_TAG}",
+                                           base_name = f"CG-{NAME_REPLACE_TAG}",
                                            base_description = ("Linear dependence of PSF ellipticity with read-out "
                                                                "register  distance (slope)."),
                                            base_id_number = 100024)
