@@ -445,11 +445,17 @@ class TestCaseInfo:
         if self._name is None:
             self._name = f"{self.base_name}"
             if self.bins is not None:
-                self._name = self._name.replace(NAME_REPLACE_TAG,
-                                                D_BIN_PARAMETER_META[self.bins].id_tail)
+                name_replacement = D_BIN_PARAMETER_META[self.bins].id_tail
+            else:
+                name_replacement = "NA"
+            self._name = self._name.replace(NAME_REPLACE_TAG, name_replacement)
+
             if self.id_number is not None:
-                self._name = self._name.replace(ID_NUMBER_REPLACE_TAG,
-                                                str(self.id_number))
+                id_replacement = str(self.id_number)
+            else:
+                id_replacement = "NA"
+            self._name = self._name.replace(ID_NUMBER_REPLACE_TAG, id_replacement)
+
             if self.method is not None:
                 method_name = self.method.value
                 if len(method_name) > 6:
