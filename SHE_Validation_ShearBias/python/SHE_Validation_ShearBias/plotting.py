@@ -53,7 +53,7 @@ class ShearBiasPlotter(ValidationPlotter):
     bin_parameter: BinParameters
 
     # Attributes overriding parent to use specific values
-    _short_test_case_name: str = "SHEAR-BIAS"
+    _short_test_case_name: str = "SB"
 
     # Attributes used when plotting
     _instance_id_tail: str

@@ -38,6 +38,7 @@ CTI_GAL_TEST_INFO = TestInfo(test_id = "T-SHE-000010-CTI-gal",
 
 BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-gal-"
                                                                f"{NAME_REPLACE_TAG}",
+                                           base_name = f"CG-{NAME_REPLACE_TAG}",
                                            base_description = ("Linear dependence of " +
                                                                "residual galaxy ellipticity with read-out " +
                                                                "register distance (slope)."),

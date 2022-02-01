@@ -22,7 +22,9 @@ __updated__ = "2021-08-27"
 
 from enum import Enum
 
-from SHE_Validation.constants.test_info import (BinParameters, RequirementInfo, TestCaseInfo, TestInfo)
+from SHE_Validation.constants.test_info import (BinParameters, NAME_REPLACE_TAG, RequirementInfo,
+                                                TestCaseInfo,
+                                                TestInfo, )
 from SHE_Validation.test_info_utility import (make_test_case_info_for_bins_and_methods)
 
 # Metadata about the requirements
@@ -51,10 +53,12 @@ class ShearBiasTestCases(Enum):
 
 M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
 BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id = M_TEST_CASE_ID,
+                                                base_name = f"M-{NAME_REPLACE_TAG}",
                                                 base_description = "Multiplicative shear bias.",
                                                 bins = BinParameters.GLOBAL)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
 BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id = C_TEST_CASE_ID,
+                                                base_name = f"C-{NAME_REPLACE_TAG}",
                                                 base_description = "Additive shear bias.",
                                                 bins = BinParameters.GLOBAL, )
 

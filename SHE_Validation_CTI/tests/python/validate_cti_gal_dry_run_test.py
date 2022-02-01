@@ -32,7 +32,7 @@ from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_SHE_MEAS,
 from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.file_io import read_xml_product
+from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -118,7 +118,7 @@ class TestCtiGalRun(SheTestCase):
         assert figures_tarball_filename
 
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell = True)
+            subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell = True)
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
         plot_filename = None

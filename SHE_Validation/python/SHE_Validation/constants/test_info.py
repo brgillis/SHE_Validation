@@ -443,11 +443,34 @@ class TestCaseInfo:
     @property
     def name(self) -> Optional[str]:
         if self._name is None:
+
             self._name = f"{self.base_name}"
-            if self.method is not None:
-                self._name += f"-{self.method.value}"
+
             if self.bins is not None:
-                self._name += f"-{self.bins.value}"
+                name_replacement = D_BIN_PARAMETER_META[self.bins].id_tail
+            else:
+                name_replacement = ""
+
+            if NAME_REPLACE_TAG in self._name:
+                self._name = self._name.replace(NAME_REPLACE_TAG, name_replacement)
+            else:
+                self._name += f"-{name_replacement}"
+
+            if self.id_number is not None:
+                id_replacement = str(self.id_number)
+            else:
+                id_replacement = ""
+
+            if ID_NUMBER_REPLACE_TAG in self._name:
+                self._name = self._name.replace(ID_NUMBER_REPLACE_TAG, id_replacement)
+            else:
+                self._name += f"-{id_replacement}"
+
+            if self.method is not None:
+                method_name = self.method.value
+                if len(method_name) > 6:
+                    method_name = method_name[:6]
+                self._name += f"-{method_name}"
         return self._name
 
     @property
