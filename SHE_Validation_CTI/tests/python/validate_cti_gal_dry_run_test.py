@@ -77,14 +77,20 @@ class TestCtiGalRun(SheTestCase):
 
         return args
 
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture(scope = 'class')
+    def class_setup(self, tmpdir_factory):
+        """ Inherit parent setup, downloading data to work with here.
+        """
 
-        cls._download_mdb()
-        cls._download_datastack(read_in = False)
+        self._download_mdb()
+        self._download_datastack(read_in = False)
+
+        self._finalize_class_setup(tmpdir_factory)
+
+        return self
 
     @pytest.mark.skip()
-    def test_cti_gal_dry_run(self):
+    def test_cti_gal_dry_run(self, local_setup):
 
         # Ensure this is a dry run
         setattr(self.args, CA_DRY_RUN, True)
@@ -92,7 +98,7 @@ class TestCtiGalRun(SheTestCase):
         # Call to validation function
         mainMethod(self.args)
 
-    def test_cti_gal_integration(self):
+    def test_cti_gal_integration(self, local_setup):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
 
