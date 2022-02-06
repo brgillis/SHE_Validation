@@ -146,9 +146,14 @@ class ValidationPlotter(abc.ABC):
             Credit: Guillaume on StackOverflow
         """
 
+        if not len(l_x) == len(l_y):
+            raise ValueError(f"Input arrays must be the same length: len(l_x)={len(l_x)}, len(l_y)={len(l_y)}")
+
         # Prune any NaN values from l_x and l_y
-        l_x = l_x[~np.isnan(l_x)]
-        l_y = l_y[~np.isnan(l_y)]
+        nan_values = np.logical_or(np.isnan(l_x), np.isnan(l_y))
+
+        l_x = l_x[~nan_values]
+        l_y = l_y[~nan_values]
 
         data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins = bins, density = True)
         l_z: np.ndarray = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
