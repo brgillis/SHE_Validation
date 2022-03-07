@@ -77,17 +77,12 @@ class TestCtiGalRun(SheTestCase):
 
         return args
 
-    @pytest.fixture(scope = 'class')
-    def class_setup(self, tmpdir_factory):
-        """ Inherit parent setup, downloading data to work with here.
+    def setup(self):
+        """ Override parent setup, downloading data to work with here.
         """
 
         self._download_mdb()
         self._download_datastack(read_in = False)
-
-        self._finalize_class_setup(tmpdir_factory)
-
-        return self
 
     @pytest.mark.skip()
     def test_cti_gal_dry_run(self, local_setup):
