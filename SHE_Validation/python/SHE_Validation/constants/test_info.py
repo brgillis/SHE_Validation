@@ -20,7 +20,7 @@ __updated__ = "2021-08-26"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from SHE_PPT.constants.classes import AllowedEnum
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
@@ -31,6 +31,10 @@ BACKGROUND_LEVEL_UNITS: str = "ADU/pixel"
 COLOUR_DEFINITION: str = "2.5*log10(FLUX_VIS_APER/FLUX_NIR_STACK_APER)"
 SIZE_UNITS: str = "pixels"
 SIZE_DEFINITION: str = "area of segmentation map"
+
+# Tags for replacement in test case ID strings
+ID_NUMBER_REPLACE_TAG = "$ID_NUMBER"
+NAME_REPLACE_TAG = "$NAME"
 
 
 class BinParameters(AllowedEnum):
@@ -47,6 +51,17 @@ class BinParameters(AllowedEnum):
 NUM_BIN_PARAMETERS: int = len(BinParameters)
 NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
                                                   if bin_parameter != BinParameters.GLOBAL]
+
+# Define dicts listing how ID numbers and names work within test cases with various bin parameters
+
+# ID number offset is how much the test case ID differs from the lowest value for each test case
+D_ID_NUMBER_OFFSETS: Dict[Union[BinParameters, None], int] = {None                : 0,
+                                                              BinParameters.GLOBAL: -1,
+                                                              BinParameters.SNR   : 0,
+                                                              BinParameters.BG    : 1,
+                                                              BinParameters.COLOUR: 3,
+                                                              BinParameters.SIZE  : 2,
+                                                              BinParameters.EPOCH : 4, }
 
 
 class BinParameterMeta:
@@ -98,7 +113,7 @@ class BinParameterMeta:
         if id_tail is not None:
             self._id_tail = id_tail
         else:
-            self._id_tail = self.name
+            self._id_tail = self.value
 
     # Accessors for attributes
     @property
@@ -194,11 +209,12 @@ class BinParameterMeta:
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL)
+D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL, )
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
                                                            long_name = "SNR",
-                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS, )
+                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                                                           id_tail = "SNR")
 
 D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum = BinParameters.BG,
                                                           long_name = "background level",
@@ -294,6 +310,7 @@ class TestCaseInfo:
     _base_test_case_id: Optional[str] = None
     _base_description: Optional[str] = None
     _base_name: str = ""
+    base_id_number: Optional[int] = None
     _bins: Optional[BinParameters] = None
     _method: Optional[ShearEstimationMethods] = None
 
@@ -303,12 +320,15 @@ class TestCaseInfo:
     _bins_cline_arg: Optional[str] = None
     _bins_config_key: Optional[str] = None
     _name: Optional[str] = None
+    _id_number_offset: Optional[int] = None
+    _id_number: Optional[int] = None
 
     def __init__(self,
                  test_info: Optional[TestInfo] = None,
                  base_test_case_id: Optional[str] = None,
                  base_description: Optional[str] = None,
                  base_name: Optional[str] = None,
+                 base_id_number: Optional[int] = None,
                  bins: Optional[BinParameters] = None,
                  method: Optional[ShearEstimationMethods] = None):
 
@@ -316,6 +336,7 @@ class TestCaseInfo:
         self._base_test_case_id = base_test_case_id
         self._base_description = base_description
         self.base_name = base_name
+        self.base_id_number = base_id_number
         self._bins = bins
         self._method = method
 
@@ -333,7 +354,11 @@ class TestCaseInfo:
         if self._test_case_id is None:
             self._test_case_id = self._base_test_case_id
             if self.bins is not None:
-                self._test_case_id += f"-{D_BIN_PARAMETER_META[self.bins].id_tail}"
+                self._test_case_id = self._test_case_id.replace(NAME_REPLACE_TAG,
+                                                                D_BIN_PARAMETER_META[self.bins].id_tail)
+            if self.id_number is not None:
+                self._test_case_id = self._test_case_id.replace(ID_NUMBER_REPLACE_TAG,
+                                                                str(self.id_number))
             if self.method is not None:
                 self._test_case_id += f"-{self.method.value}"
         return self._test_case_id
@@ -418,9 +443,48 @@ class TestCaseInfo:
     @property
     def name(self) -> Optional[str]:
         if self._name is None:
+
             self._name = f"{self.base_name}"
-            if self.method is not None:
-                self._name += f"-{self.method.value}"
+
             if self.bins is not None:
-                self._name += f"-{self.bins.value}"
+                name_replacement = D_BIN_PARAMETER_META[self.bins].id_tail
+            else:
+                name_replacement = ""
+
+            if NAME_REPLACE_TAG in self._name:
+                self._name = self._name.replace(NAME_REPLACE_TAG, name_replacement)
+            else:
+                self._name += f"-{name_replacement}"
+
+            if self.id_number is not None:
+                id_replacement = str(self.id_number)
+            else:
+                id_replacement = ""
+
+            if ID_NUMBER_REPLACE_TAG in self._name:
+                self._name = self._name.replace(ID_NUMBER_REPLACE_TAG, id_replacement)
+            else:
+                self._name += f"-{id_replacement}"
+
+            if self.method is not None:
+                method_name = self.method.value
+                if len(method_name) > 6:
+                    method_name = method_name[:6]
+                self._name += f"-{method_name}"
         return self._name
+
+    @property
+    def id_number_offset(self) -> int:
+        if self._id_number_offset is None:
+            self._id_number_offset = D_ID_NUMBER_OFFSETS[self.bins]
+        return self._id_number_offset
+
+    @property
+    def id_number(self) -> Optional[int]:
+        if self._id_number is None and self.base_id_number is not None and self.id_number_offset is not None:
+            if self.id_number_offset == -1:
+                # Value of -1 indicates no number is assigned for this test
+                self._id_number = -1
+            else:
+                self._id_number = self.base_id_number + self.id_number_offset
+        return self._id_number

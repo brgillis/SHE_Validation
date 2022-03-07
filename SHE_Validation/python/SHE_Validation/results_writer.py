@@ -30,6 +30,7 @@ import scipy.stats
 from SHE_PPT import file_io
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.product_utility import coerce_no_include_data_subdir
 from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
@@ -75,6 +76,8 @@ MSG_BAD_DATA: str = "Test failed due to NaN results for measured parameter."
 MSG_NO_DATA: str = "No data is available for this test."
 MSG_NOT_IMPLEMENTED: str = "This test has not yet been implemented."
 MSG_NO_INFO: str = "No supplementary information available."
+
+MEASURED_VAL_BAD_DATA = 1e99
 
 
 # Utility functions
@@ -322,8 +325,8 @@ class RequirementWriter:
         """ Reports bad data in the data model object for one or more items, modifying self._requirement_object.
         """
 
-        # Report -1 as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = -1.0
+        # Report the special value as the measured value for this test
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
 
         self.requirement_object.Comment = WARNING_BAD_DATA
 
@@ -359,6 +362,7 @@ class RequirementWriter:
         """
 
         self.requirement_object.MeasuredValue[0].Parameter = WARNING_TEST_NOT_RUN
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = MEASURED_VAL_BAD_DATA
         self.requirement_object.ValidationResult = RESULT_PASS
         self.requirement_object.Comment = WARNING_TEST_NOT_RUN
 
@@ -402,6 +406,7 @@ class AnalysisWriter:
     _product_type: str = "UNKNOWN-TYPE"
     _dl_l_textfiles: Optional[StrDictOrList] = None
     _dl_l_figures: Optional[StrDictOrList] = None
+    filename_tag: Optional[str] = None
 
     # Attributes determined at init
     _workdir: str
@@ -421,7 +426,8 @@ class AnalysisWriter:
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type: str = "UNKNOWN-TYPE",
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_l_figures: Optional[StrDictOrList] = None):
+                 dl_l_figures: Optional[StrDictOrList] = None,
+                 filename_tag: Optional[str] = None):
 
         # Set attrs from kwargs
         self._product_type = product_type
@@ -433,6 +439,8 @@ class AnalysisWriter:
             self._dl_l_figures = dl_l_figures
         else:
             self._dl_l_figures = []
+        if filename_tag is not None:
+            self.filename_tag = filename_tag
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -480,15 +488,14 @@ class AnalysisWriter:
     @property
     def textfiles_filename(self) -> str:
         if self._textfiles_filename is None:
-            filename_tag: str = self._get_filename_tag()
-            instance_id_tail: str
-            if filename_tag is None:
-                instance_id_tail = ""
+            instance_id: str
+            if self.filename_tag is None:
+                instance_id = ""
             else:
-                instance_id_tail = f"-{filename_tag.upper()}"
-            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                    instance_id = (f"TEXTFILES-{os.getpid()}"
-                                                                                   f"{instance_id_tail}"),
+                instance_id = f"{self.filename_tag.upper()}"
+
+            self._textfiles_filename = file_io.get_allowed_filename(type_name = self.product_type + "-TEXTFILES",
+                                                                    instance_id = instance_id,
                                                                     extension = ".tar.gz",
                                                                     version = __version__)
         return self._textfiles_filename
@@ -505,14 +512,13 @@ class AnalysisWriter:
     @property
     def figures_filename(self) -> str:
         if self._figures_filename is None:
-            filename_tag = self._get_filename_tag()
-            if filename_tag is None:
-                instance_id_tail = ""
+            if self.filename_tag is None:
+                instance_id = ""
             else:
-                instance_id_tail = f"-{filename_tag.upper()}"
-            self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type,
-                                                                  instance_id = (f"FIGURES-{os.getpid()}"
-                                                                                 f"{instance_id_tail}"),
+                instance_id = f"{self.filename_tag.upper()}"
+
+            self._figures_filename = file_io.get_allowed_filename(type_name = self.product_type + "-FIGURES",
+                                                                  instance_id = instance_id,
                                                                   extension = ".tar.gz",
                                                                   version = __version__)
         return self._figures_filename
@@ -550,11 +556,6 @@ class AnalysisWriter:
         return self._qualified_directory_filename
 
     # Private and protected methods
-
-    def _get_filename_tag(self) -> str:
-        """ Overridable method to get a tag to add to figure/textfile filenames.
-        """
-        return ""
 
     def _generate_directory_filename(self) -> None:
         """ Overridable method to generate a filename for a directory file.
@@ -650,21 +651,32 @@ class AnalysisWriter:
                      files: Optional[StrDictOrList],
                      tarball_filename: str,
                      data_container_attr: str,
-                     write_dummy_files: bool = False,
+                     write_dummy_files: bool = True,
                      delete_files: bool = False) -> None:
         """ Tar a set of files and update the data product with the filename of the tarball. Optionally delete
             files now included in the tarball.
         """
 
+        # Prune Nones from files
+        if isinstance(files, list):
+            files = [file for file in files if file is not None]
+        elif isinstance(files, dict):
+            files = {key: files[key] for key in files if files[key] is not None}
+        else:
+            raise ValueError(f"Unexpected type for input files: {type(files)}")
+
         # Check if we will be creating a file we want to point the data product to
         if len(files) > 0 or write_dummy_files:
-            getattr(self.analysis_object, data_container_attr).FileName = tarball_filename
+            getattr(self.analysis_object, data_container_attr).FileName = coerce_no_include_data_subdir(
+                tarball_filename)
             if len(files) == 0:
                 self._write_dummy_data(os.path.join(self.workdir, tarball_filename))
             else:
                 self._tar_files(tarball_filename = tarball_filename,
                                 filenames = files,
                                 delete_files = delete_files)
+            if not os.path.exists(os.path.join(self.workdir, tarball_filename)):
+                raise IOError(f"Expected file {os.path.join(self.workdir, tarball_filename)} was not created.")
         else:
             # No file for the data product, so set the attribute to None
             setattr(self.analysis_object, data_container_attr, None)
@@ -673,7 +685,7 @@ class AnalysisWriter:
 
     def write(self,
               write_directory: bool = True,
-              write_dummy_files: bool = False,
+              write_dummy_files: bool = True,
               delete_files: bool = True) -> None:
         """ Writes analysis data in the data model object for one or more items, modifying self._analysis_object and
             writing files to disk, which the data model object will point to.
@@ -733,8 +745,11 @@ class TestCaseWriter:
         analysis_object.Figures = analysis_figures_object
 
         self._analysis_object = analysis_object
+        filename_tag = self.test_case_info.name.upper().replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF",
+                                                                                                           "")
         self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
-                                                           dl_l_figures = dl_l_figures)
+                                                           dl_l_figures = dl_l_figures,
+                                                           filename_tag = filename_tag)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,

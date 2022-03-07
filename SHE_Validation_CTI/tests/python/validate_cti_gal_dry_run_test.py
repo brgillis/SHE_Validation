@@ -5,7 +5,7 @@
     Unit tests the input/output interface of the CTI-Gal validation task.
 """
 
-__updated__ = "2021-08-26"
+__updated__ = "2022-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -32,7 +32,7 @@ from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_SHE_MEAS,
 from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.file_io import read_xml_product
+from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -53,6 +53,11 @@ class TestCtiGalRun(SheTestCase):
 
     def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.
+
+            This overrides the _make_mock_args() method of the SheTestCase class, which is called by the
+            self.args property, setting the cached value self._args = self._make_mock_args() if self._args
+            is None (which it will be when the object is initialized). This means that in each test case,
+            self.args will return the result of this method (cached so that it only runs once).
         """
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
@@ -63,6 +68,10 @@ class TestCtiGalRun(SheTestCase):
         setattr(args, CA_MDB, MDB_PRODUCT_FILENAME)
         setattr(args, CA_SHE_OBS_TEST_RESULTS, SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME)
         setattr(args, CA_SHE_EXP_TEST_RESULTS_LIST, SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME)
+
+        # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
+        # called, it sets it to the default value of None. For the case of the pipeline_config, this is a
+        # valid value, which will result in all defaults for configurable parameters being used.
 
         return args
 
@@ -82,17 +91,16 @@ class TestCtiGalRun(SheTestCase):
         mainMethod(self.args)
 
     def test_cti_gal_integration(self):
-        """ Integration test of the full executable. Once we have a proper integration test set up,
-            this should be skipped.
+        """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
 
         # Ensure this is not a dry run
         setattr(self.args, CA_DRY_RUN, False)
 
-        # Call to validation function
+        # Call to validation function, which was imported directly from the entry-point file
         mainMethod(self.args)
 
-        # Check the resulting data product and plot exist
+        # Check the resulting data product and plots exist in the expected locations
 
         workdir = self.workdir
         output_filename = getattr(self.args, CA_SHE_OBS_TEST_RESULTS)
@@ -102,7 +110,7 @@ class TestCtiGalRun(SheTestCase):
 
         p = read_xml_product(xml_filename = qualified_output_filename)
 
-        # Find the index for the LensMC Global test case
+        # Find the index for the LensMC Global test case. We'll check that for the presence of expected output data
 
         textfiles_tarball_filename: str = ""
         figures_tarball_filename: str = ""
@@ -115,10 +123,17 @@ class TestCtiGalRun(SheTestCase):
         assert textfiles_tarball_filename
         assert figures_tarball_filename
 
+        # Unpack the tarballs containing both the textfiles and the figures
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell = True)
+            subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell = True)
+
+        # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
+        # containing with in the filenames of all other files which were tarred up. We open this first, and use
+        # it to guide us on the filenames of other files that were tarred up, and test for their existence.
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
+
+        # Search for the line in the directory file which contails the plot for the LensMC-global test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:
@@ -128,5 +143,8 @@ class TestCtiGalRun(SheTestCase):
                 if key == "LensMC-global-0":
                     plot_filename = value
 
+        # Check that we found the filename for this plot
         assert plot_filename is not None
+
+        # Check that this plot file exists
         assert os.path.isfile(os.path.join(workdir, plot_filename))
