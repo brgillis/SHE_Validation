@@ -42,6 +42,9 @@ from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
+# Specify some formatting details
+Z_FORMAT = ".2f"
+
 
 # Define enum types to specify high-level options for reporting
 
@@ -187,7 +190,7 @@ class CtiRequirementWriter(RequirementWriter):
         d_messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
                              f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
                              f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
-                             f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
+                             f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma'):{Z_FORMAT}}\n" +
                              f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
 
     def _append_diff_message_for_bin(self,
@@ -215,7 +218,7 @@ class CtiRequirementWriter(RequirementWriter):
                 f"{prop}_hi = {getattr(self, f'l_{prop}')[bin_index]} +/- "
                 f"{getattr(self, f'l_{prop}_err')[bin_index]}\n" +
                 f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
-                f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
+                f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma'):{Z_FORMAT}}\n" +
                 f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
 
     def report_bad_data(self,

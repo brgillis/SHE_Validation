@@ -45,7 +45,7 @@ from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_
                                                             NUM_CTI_GAL_TEST_CASES, )
 from SHE_Validation_CTI.results_reporting import (DESC_INTERCEPT_INFO, DESC_SLOPE_INFO, FailSigmaCalculator,
                                                   KEY_INTERCEPT_INFO, KEY_SLOPE_INFO, MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
-                                                  fill_cti_gal_validation_results, )
+                                                  Z_FORMAT, fill_cti_gal_validation_results, )
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
@@ -89,6 +89,12 @@ class TestCtiResultsReporting(SheTestCase):
         super()._setup()
 
     def test_fail_sigma_scaling(self):
+
+        # Define a utility function so tests don't fail if the threshold comes out to be infinite
+        def greater_or_inf(x1: float, x2: float) -> bool:
+            if np.isinf(x2):
+                return np.isinf(x1) and x1 >= x2
+            return x1 > x2
 
         base_global_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA]
         base_local_fail_sigma = self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]
@@ -138,15 +144,15 @@ class TestCtiResultsReporting(SheTestCase):
             assert tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] > base_global_fail_sigma
             assert tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] > base_local_fail_sigma
 
-            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] >
-                    bin_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
-            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] >
-                    bin_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
+            assert greater_or_inf(tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name],
+                                  bin_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
+            assert greater_or_inf(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
+                                  bin_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
 
-            assert (tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name] >
-                    tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
-            assert (tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name] >
-                    tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
+            assert greater_or_inf(tcb_fail_sigma_calculator.d_scaled_global_sigma[test_case_name],
+                                  tc_fail_sigma_calculator.d_scaled_global_sigma[test_case_name])
+            assert greater_or_inf(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
+                                  tc_fail_sigma_calculator.d_scaled_local_sigma[test_case_name])
 
             # Check that all test_cases and test_case_bins fail sigma are equal between test cases
             if first_tc_global_fail_sigma is None:
@@ -202,7 +208,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -213,7 +219,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"intercept_err = {2.}\n" in exp_intercept_info_string
         assert f"intercept_z = {0. / 2.}\n" in exp_intercept_info_string
         assert ("Maximum allowed intercept_z = " +
-                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
@@ -239,7 +245,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
@@ -248,7 +254,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope_err = nan\n" in exp_slope_info_string
         assert f"slope_z = nan\n" in exp_slope_info_string
         assert (f"Maximum allowed slope_z = " +
-                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]}\n"
+                f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
