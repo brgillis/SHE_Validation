@@ -39,20 +39,14 @@ class TestCtiGalInput(SheTestCase):
     """ Unit tests for loading CTI validation input data.
     """
 
-    @classmethod
-    def setup_class(cls):
+    def setup(self):
 
-        cls._download_datastack()
+        self._download_datastack()
 
         # Set up some expected values
-        cls.EX_BG_LEVEL = 45.71
+        self.EX_BG_LEVEL = 45.71
 
-    @classmethod
-    def teardown_class(cls):
-
-        return
-
-    def test_get_raw_cgo_data(self):
+    def test_get_raw_cgo_data(self, local_setup):
 
         # Read in the mock shear estimates
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]

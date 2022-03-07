@@ -20,6 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -27,7 +28,7 @@ from astropy import table
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import coerce_to_list
+from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MEASURED_VAL_BAD_DATA,
@@ -41,6 +42,29 @@ from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
+# Specify some formatting details
+Z_FORMAT = ".2f"
+
+
+# Define enum types to specify high-level options for reporting
+
+class CtiTest(Enum):
+    """Enum to specify whether something relates to the CTI-Gal or CTI-PSF validation test.
+    """
+    GAL = auto()
+    PSF = auto()
+
+
+class BinSlopeComparisonMethod(Enum):
+    """ Enum to specify choice in how to run the binned tests.
+
+        TO_ZERO: Compare slope in each bin to expected value of zero.
+        DIFFERENCE: Compare slope in each bin to slope in the previous bin.
+    """
+    TO_ZERO = auto()
+    DIFFERENCE = auto()
+
+
 # Define constants for various messages
 
 KEY_SLOPE_INFO = "SLOPE_INFO"
@@ -52,18 +76,27 @@ DESC_INTERCEPT_INFO = "Information about the test on intercept of g1_image versu
 MSG_NAN_SLOPE = "Test failed due to NaN regression results for slope."
 MSG_ZERO_SLOPE_ERR = "Test failed due to zero slope error."
 
-CTI_GAL_DIRECTORY_FILENAME = "SheCtiGalResultsDirectory.txt"
-CTI_GAL_DIRECTORY_HEADER = "### OU-SHE CTI-Gal Analysis Results File Directory ###"
+D_CTI_DIRECTORY_FILENAMES = {CtiTest.GAL: "SheCtiGalResultsDirectory.txt",
+                             CtiTest.PSF: "SheCtiPSFResultsDirectory.txt"}
+D_CTI_DIRECTORY_HEADERS = {CtiTest.GAL: "### OU-SHE CTI-Gal Analysis Results File Directory ###",
+                           CtiTest.PSF: "### OU-SHE CTI-PSF Analysis Results File Directory ###"}
+
+D_ANALYSIS_PRODUCT_TYPES = {CtiTest.GAL: "CTI-GAL-ANALYSIS-FILES",
+                            CtiTest.PSF: "CTI-PSF-ANALYSIS-FILES", }
 
 
-class CtiGalRequirementWriter(RequirementWriter):
-    """ Class for managing reporting of results for a single CTI-Gal requirement
+class CtiRequirementWriter(RequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement
     """
+
+    # Comparison method used for this test
+    bin_slope_comparison_method: Optional[BinSlopeComparisonMethod] = None
 
     # Intermediate data used while writing
 
     l_slope: Sequence[float]
     l_slope_err: Sequence[float]
+    l_slope_diff: Sequence[float]
     l_slope_z: Sequence[float]
     l_slope_result: Sequence[str]
     slope_pass: bool
@@ -71,6 +104,7 @@ class CtiGalRequirementWriter(RequirementWriter):
 
     l_intercept: Sequence[float]
     l_intercept_err: Sequence[float]
+    l_intercept_diff: Sequence[float]
     l_intercept_z: Sequence[float]
     l_intercept_result: Sequence[str]
     intercept_pass: bool
@@ -83,6 +117,16 @@ class CtiGalRequirementWriter(RequirementWriter):
 
     slope_pass: bool
     intercept_pass: bool
+
+    def __init__(self,
+                 *args,
+                 bin_slope_comparison_method: Optional[BinSlopeComparisonMethod] = None,
+                 **kwargs):
+        """ Init details for this test, then pass on to parent init.
+        """
+        if bin_slope_comparison_method is not None:
+            self.bin_slope_comparison_method = bin_slope_comparison_method
+        super().__init__(*args, **kwargs)
 
     def _get_slope_intercept_info(self,
                                   extra_slope_message: str = "",
@@ -100,16 +144,7 @@ class CtiGalRequirementWriter(RequirementWriter):
         for prop in messages:
             for bin_index in range(self.num_bins):
 
-                if self.l_bin_limits is not None:
-                    bin_min = self.l_bin_limits[bin_index][0]
-                    bin_max = self.l_bin_limits[bin_index][1]
-                    messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
-
-                messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
-                                   f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
-                                   f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
-                                   f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma')}\n" +
-                                   f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+                self._append_message_for_bin(bin_index, prop, messages)
 
         slope_supplementary_info = SupplementaryInfo(key = KEY_SLOPE_INFO,
                                                      description = DESC_SLOPE_INFO,
@@ -121,10 +156,74 @@ class CtiGalRequirementWriter(RequirementWriter):
 
         return slope_supplementary_info, intercept_supplementary_info
 
+    def _append_message_for_bin(self,
+                                bin_index: int,
+                                prop: str,
+                                d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo, and appends
+            it to the dict of messages's entry for this property.
+        """
+
+        # Call specialized function depending on test mode
+        if self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
+            self._append_to_zero_message_for_bin(bin_index = bin_index, prop = prop, d_messages = d_messages)
+
+        # If we're doing a difference comparison, skip the first bin
+        elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index > 0:
+            self._append_diff_message_for_bin(bin_index = bin_index, prop = prop, d_messages = d_messages)
+
+        else:
+            return
+
+    def _append_to_zero_message_for_bin(self,
+                                        bin_index: int,
+                                        prop: str,
+                                        d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo based on a comparison
+        method
+            of the property to zero, and appends it to the dict of messages's entry for this property.
+        """
+        if self.l_bin_limits is not None:
+            bin_min = self.l_bin_limits[bin_index][0]
+            bin_max = self.l_bin_limits[bin_index][1]
+            d_messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+        d_messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
+                             f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
+                             f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
+                             f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma'):{Z_FORMAT}}\n" +
+                             f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+
+    def _append_diff_message_for_bin(self,
+                                     bin_index: int,
+                                     prop: str,
+                                     d_messages: Dict[str, str]):
+        """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo based on a comparison
+        method of the property to the value in the previous bin, and appends it to the dict of messages's entry for
+        this property.
+        """
+
+        if self.l_bin_limits is None:
+            return
+
+        last_bin_min = self.l_bin_limits[bin_index - 1][0]
+        last_bin_max = self.l_bin_limits[bin_index - 1][1]
+        cur_bin_min = self.l_bin_limits[bin_index][0]
+        cur_bin_max = self.l_bin_limits[bin_index][1]
+        d_messages[prop] += (f"Results for bins {bin_index - 1} and {bin_index}, for values from {last_bin_min} to "
+                             f"{last_bin_max} and {cur_bin_min} to "
+                             f"{cur_bin_max}:")
+        d_messages[prop] += (
+                f"{prop}_lo = {getattr(self, f'l_{prop}')[bin_index - 1]} +/- "
+                f"{getattr(self, f'l_{prop}_err')[bin_index - 1]}\n" +
+                f"{prop}_hi = {getattr(self, f'l_{prop}')[bin_index]} +/- "
+                f"{getattr(self, f'l_{prop}_err')[bin_index]}\n" +
+                f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
+                f"Maximum allowed {prop}_z = {getattr(self, f'fail_sigma'):{Z_FORMAT}}\n" +
+                f"Result: {getattr(self, f'l_{prop}_result')[bin_index]}\n\n")
+
     def report_bad_data(self,
                         l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
                         ) -> None:
-
         l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
@@ -147,7 +246,6 @@ class CtiGalRequirementWriter(RequirementWriter):
                          warning: Optional[bool] = None,
                          l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
                          ) -> None:
-
         l_supplementary_info = coerce_to_list(l_supplementary_info)
 
         # If the slope passes but the intercept doesn't, we should raise a warning
@@ -175,23 +273,13 @@ class CtiGalRequirementWriter(RequirementWriter):
         l_prop_good_data = np.empty(self.num_bins, dtype = bool)
 
         for bin_index in range(self.num_bins):
-            if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                    np.isnan(getattr(self, f"l_{prop}_err")[bin_index])):
-                l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = False
-                l_prop_good_data[bin_index] = False
-            else:
-                if getattr(self, f"l_{prop}_err")[bin_index] != 0.:
-                    l_prop_z[bin_index] = np.abs(
-                        getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
-                else:
-                    l_prop_z[bin_index] = np.NaN
-                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
-                l_prop_good_data[bin_index] = True
-            if l_prop_pass[bin_index]:
-                l_prop_result[bin_index] = RESULT_PASS
-            else:
-                l_prop_result[bin_index] = RESULT_FAIL
+
+            self._calc_test_result_for_bin(bin_index = bin_index,
+                                           prop = prop,
+                                           l_prop_z = l_prop_z,
+                                           l_prop_pass = l_prop_pass,
+                                           l_prop_good_data = l_prop_good_data,
+                                           l_prop_result = l_prop_result)
 
         # Pass if there's at least some good data, and all good data passes
         if np.all(np.logical_or(l_prop_pass, ~l_prop_good_data)) and not np.all(~l_prop_good_data):
@@ -200,6 +288,79 @@ class CtiGalRequirementWriter(RequirementWriter):
         else:
             setattr(self, f"{prop}_pass", False)
             setattr(self, f"{prop}_result", RESULT_FAIL)
+
+    def _calc_test_result_for_bin(self,
+                                  bin_index: int,
+                                  prop: str,
+                                  l_prop_z: np.ndarray,
+                                  l_prop_pass: np.ndarray,
+                                  l_prop_good_data: np.ndarray,
+                                  l_prop_result: np.ndarray):
+        # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
+        # first bin
+        if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
+                np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
+                (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index <= 0)):
+            self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+        elif self.bin_slope_comparison_method == BinSlopeComparisonMethod.TO_ZERO:
+            # If we're comparing the value in each bin to zero
+
+            # Check if the slope is zero, and mark if so
+            if getattr(self, f"l_{prop}_err")[bin_index] == 0.:
+                self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+
+            # Otherwise we have good data and can calculate the Z value with it
+            else:
+                l_prop_z[bin_index] = np.abs(
+                    getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
+                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
+                l_prop_good_data[bin_index] = True
+
+        else:
+            # If we're comparing the value in each bin to the value in the previous bin, and this isn't the first
+            # bin
+
+            # Grab values for the current and previous value and error. Note the previous if statement already checked
+            # that bin_index is at least 1
+            cur_val = getattr(self, f"l_{prop}")[bin_index]
+            last_val = getattr(self, f"l_{prop}")[bin_index - 1]
+            cur_val_err = getattr(self, f"l_{prop}_err")[bin_index]
+            last_val_err = getattr(self, f"l_{prop}_err")[bin_index - 1]
+
+            # Check for any bad data and report as such if so
+            if any_is_inf_or_nan([cur_val, last_val, cur_val_err, last_val_err]):
+                self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+            elif any_is_zero([cur_val_err, last_val_err]):
+                self.__mark_zero_slope_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
+            else:
+                # Data looks good, so calculate Z with it. Note we assume no correlated noise between bins here
+                abs_diff = np.abs(cur_val - last_val)
+                diff_err = np.sqrt(cur_val_err ** 2 + last_val_err ** 2)
+                l_prop_z[bin_index] = abs_diff / diff_err
+
+        if l_prop_pass[bin_index]:
+            l_prop_result[bin_index] = RESULT_PASS
+        else:
+            l_prop_result[bin_index] = RESULT_FAIL
+
+    @staticmethod
+    def __mark_zero_slope_for_bin(bin_index: int,
+                                  l_prop_z: np.ndarray,
+                                  l_prop_pass: np.ndarray,
+                                  l_prop_good_data: np.ndarray, ):
+        l_prop_z[bin_index] = np.NaN
+        l_prop_pass[bin_index] = False
+        l_prop_good_data[bin_index] = True
+
+    @staticmethod
+    def __mark_nan_data_for_bin(bin_index: int,
+                                l_prop_z: np.ndarray,
+                                l_prop_pass: np.ndarray,
+                                l_prop_good_data: np.ndarray, ):
+        l_prop_z[bin_index] = np.NaN
+        l_prop_pass[bin_index] = False
+        l_prop_good_data[bin_index] = False
 
     def write(self,
               report_method: Callable[[Any], None] = None,
@@ -267,38 +428,92 @@ class CtiGalRequirementWriter(RequirementWriter):
                              report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
 
 
-class CtiGalAnalysisWriter(AnalysisWriter):
-    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+class CtiGalRequirementWriter(CtiRequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-Gal test
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(product_type = "CTI-GAL-ANALYSIS-FILES",
+    # Override info on comparison method
+    bin_slope_comparison_method = BinSlopeComparisonMethod.TO_ZERO
+
+
+class CtiPsfRequirementWriter(CtiRequirementWriter):
+    """ Class for managing reporting of results for a single CTI requirement, specialized for the CTI-PSF test
+    """
+
+    # Override info on comparison method
+    bin_slope_comparison_method = BinSlopeComparisonMethod.DIFFERENCE
+
+
+class CtiAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
+    """
+
+    cti_test: Optional[CtiTest] = None
+
+    def __init__(self, *args, cti_test: Optional[CtiTest] = None, **kwargs):
+        if cti_test is not None:
+            self.cti_test = cti_test
+        super().__init__(product_type = D_ANALYSIS_PRODUCT_TYPES[self.cti_test],
                          *args, **kwargs)
 
     def _generate_directory_filename(self):
         """ Overriding method to generate a filename for a directory file.
         """
-        self.directory_filename = CTI_GAL_DIRECTORY_FILENAME
+        self.directory_filename = D_CTI_DIRECTORY_FILENAMES[self.cti_test]
 
     def _get_directory_header(self):
         """ Overriding method to get the desired header for a directory file.
         """
-        return CTI_GAL_DIRECTORY_HEADER
+        return D_CTI_DIRECTORY_HEADERS[self.cti_test]
 
 
-class CtiGalTestCaseWriter(TestCaseWriter):
-    """TODO: Add a docstring to this class."""
+class CtiGalAnalysisWriter(CtiAnalysisWriter):
+    """ Subclass of CtiAnalysisWriter, to set specific values for this test.
+    """
+
+    cti_test = CtiTest.GAL
+
+
+class CtiPsfAnalysisWriter(CtiAnalysisWriter):
+    """ Subclass of CtiAnalysisWriter, to set specific values for this test.
+    """
+
+    cti_test = CtiTest.PSF
+
+
+class CtiTestCaseWriter(TestCaseWriter):
+    """Subclass of TestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = CtiRequirementWriter
+    analysis_writer_type = CtiAnalysisWriter
+
+
+class CtiGalTestCaseWriter(CtiTestCaseWriter):
+    """Subclass of CtiTestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
 
     # Types of child objects, overriding those in base class
     requirement_writer_type = CtiGalRequirementWriter
     analysis_writer_type = CtiGalAnalysisWriter
 
 
-class CtiGalValidationResultsWriter(ValidationResultsWriter):
-    """TODO: Add a docstring to this class."""
+class CtiPsfTestCaseWriter(CtiTestCaseWriter):
+    """Subclass of CtiTestCaseWriter, which defines types of requirement writer and analysis writer used here.
+    """
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = CtiPsfRequirementWriter
+    analysis_writer_type = CtiPsfAnalysisWriter
+
+
+class CtiValidationResultsWriter(ValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to handle setup specific for CTI tests.
+    """
 
     # Types of child classes
-    test_case_writer_type = CtiGalTestCaseWriter
+    test_case_writer_type = CtiTestCaseWriter
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
@@ -408,14 +623,30 @@ class CtiGalValidationResultsWriter(ValidationResultsWriter):
             test_case_writer.write(requirements_kwargs = write_kwargs, )
 
 
+class CtiGalValidationResultsWriter(CtiValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to set specific member types for it
+    """
+
+    # Types of child classes
+    test_case_writer_type = CtiGalTestCaseWriter
+
+
+class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
+    """Subclass of ValidationResultsWriter, to set specific member types for it
+    """
+
+    # Types of child classes
+    test_case_writer_type = CtiPsfTestCaseWriter
+
+
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
                                     d_regression_results_tables: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
-                                    d_bin_limits: Dict[BinParameters, np.ndarray],
+                                    d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
-                                    dl_l_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                        List[Union[Dict[str, str], List[str]]]] = None,
+                                    dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
                                     method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
@@ -424,7 +655,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     # Set up a calculator object for scaled fail sigmas
     fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
                                                 l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                d_l_bin_limits = d_bin_limits,
+                                                d_l_bin_limits = d_l_bin_limits,
                                                 mode = ExecutionMode.LOCAL)
 
     # Initialize a test results writer
@@ -433,8 +664,39 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         regression_results_row_index = regression_results_row_index,
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_bin_limits,
+                                                        d_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
-                                                        dl_l_figures = dl_l_figures, )
+                                                        dl_dl_figures = dl_dl_figures, )
+
+    test_results_writer.write()
+
+
+def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestResults,
+                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    pipeline_config: Dict[ConfigKeys, Any],
+                                    d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                                    workdir: str,
+                                    dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
+                                    method_data_exists: bool = True):
+    """ Interprets the results in the regression_results_row and other provided data to fill out the provided
+        test_result_product with the results of this validation test.
+    """
+
+    # Set up a calculator object for scaled fail sigmas
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
+                                                l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
+                                                d_l_bin_limits = d_l_bin_limits,
+                                                mode = ExecutionMode.LOCAL)
+
+    # Initialize a test results writer
+    test_results_writer = CtiPsfValidationResultsWriter(test_object = test_result_product,
+                                                        workdir = workdir,
+                                                        regression_results_row_index = 0,
+                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        fail_sigma_calculator = fail_sigma_calculator,
+                                                        d_bin_limits = d_l_bin_limits,
+                                                        method_data_exists = method_data_exists,
+                                                        dl_dl_figures = dl_dl_figures, )
 
     test_results_writer.write()

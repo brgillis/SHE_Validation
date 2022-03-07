@@ -562,6 +562,6 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
                                                            fail_sigma_calculator = fail_sigma_calculator,
                                                            method_data_exists = method_data_exists,
                                                            mode = mode,
-                                                           dl_l_figures = dl_dl_plot_filenames)
+                                                           dl_dl_figures = dl_dl_plot_filenames)
 
     test_results_writer.write()

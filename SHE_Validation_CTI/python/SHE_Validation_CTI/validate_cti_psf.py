@@ -43,6 +43,7 @@ from .constants.cti_psf_test_info import L_CTI_PSF_TEST_CASE_INFO, NUM_CTI_PSF_T
 from .data_processing import add_readout_register_distance, calculate_regression_results
 from .file_io import CtiPsfPlotFileNamer
 from .plot_cti import CtiPlotter
+from .results_reporting import fill_cti_psf_validation_results
 from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
@@ -90,10 +91,11 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
 
     add_readout_register_distance(star_catalog_table, y_colname = SC_TF.y)
 
-    d_regression_results_tables = validate_cti_psf(star_catalog_table = star_catalog_table,
-                                                   extended_catalog_table = extended_catalog_table,
-                                                   d_l_bin_limits = d_l_bin_limits,
-                                                   workdir = workdir)
+    (d_regression_results_tables,
+     d_d_figures) = validate_cti_psf(star_catalog_table = star_catalog_table,
+                                     extended_catalog_table = extended_catalog_table,
+                                     d_l_bin_limits = d_l_bin_limits,
+                                     workdir = workdir)
 
     # Set up output product, using the star catalog product as a reference
     test_result_product = create_dpd_she_validation_test_results(reference_product = star_catalog_product,
@@ -107,7 +109,8 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
                                         workdir = workdir,
                                         d_regression_results_tables = d_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                        d_l_bin_limits = d_l_bin_limits, )
+                                        d_l_bin_limits = d_l_bin_limits,
+                                        dl_dl_figures = d_d_figures)
 
     # Write out the test results product
     write_xml_product(test_result_product,
@@ -129,7 +132,7 @@ def validate_cti_psf(star_catalog_table: Table,
 
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_l_regression_results_tables: Dict[str, List[Table]] = {}
-    plot_filenames: Dict[str, Dict[str, str]] = {}
+    d_d_figures: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_PSF_TEST_CASE_INFO,
@@ -141,7 +144,7 @@ def validate_cti_psf(star_catalog_table: Table,
     for test_case_info in L_CTI_PSF_TEST_CASE_INFO:
 
         # Initialise for this test case
-        plot_filenames[test_case_info.name] = {}
+        d_d_figures[test_case_info.name] = {}
         l_test_case_bin_limits = d_l_bin_limits[test_case_info.bins]
         num_bins = len(l_test_case_bin_limits) - 1
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
@@ -176,10 +179,10 @@ def validate_cti_psf(star_catalog_table: Table,
                                  l_ids_in_bin = l_test_case_object_ids, )
             plotter.plot()
             plot_label = f"{test_case_info.bins.value}-{bin_index}"
-            plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
+            d_d_figures[test_case_info.name][plot_label] = plotter.plot_filename
 
         # Fill in the results of this test case in the output dict
         d_l_regression_results_tables[test_case_info.name] = l_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return d_l_regression_results_tables, plot_filenames
+    return d_l_regression_results_tables, d_d_figures

@@ -23,8 +23,6 @@ __updated__ = "2021-08-30"
 import os
 
 import numpy as np
-import pytest
-from py._path.local import LocalPath
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.testing.utility import SheTestCase
@@ -39,19 +37,7 @@ class TestPlotCti(SheTestCase):
     """ Test case for CTI validation test plotting.
     """
 
-    @classmethod
-    def setup_class(cls):
-        return
-
-    @classmethod
-    def teardown_class(cls):
-        return
-
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir: LocalPath):
-        self._setup_workdir_from_tmpdir(tmpdir)
-
-    def test_plot_cti_gal(self):
+    def test_plot_cti_gal(self, local_setup):
         method = ShearEstimationMethods.LENSMC
 
         # Make some mock data
