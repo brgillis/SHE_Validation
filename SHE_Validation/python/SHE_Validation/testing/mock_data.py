@@ -27,10 +27,12 @@ import numpy as np
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
+from SHE_PPT.detector import VIS_DETECTOR_PIXELS_X, VIS_DETECTOR_PIXELS_Y
 from SHE_PPT.logging import getLogger
 from SHE_PPT.table_formats.mer_final_catalog import (MerFinalCatalogFormat, filter_list, filter_list_ext,
                                                      mer_final_catalog_format, )
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
+from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
 from SHE_PPT.testing.mock_data import MockDataGenerator, NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_POINTS
 from SHE_PPT.utility import default_init_if_none, default_value_if_none
@@ -313,6 +315,76 @@ class MockTUMatchedDataGenerator(MockDataGenerator):
         self._se_data = self.mock_shear_estimate_data_generator.get_data()
 
         self.data = {**self.data, **self._tu_data, **self._se_data}
+
+
+# Constants describing how to generate mock star data
+
+STAR_CAT_POS_ERR_PIX = 0.2
+STAR_CAT_PIXEL_SCALE = 0.1 / 3600
+STAR_CAT_FLUX_MIN = 10
+STAR_CAT_FLUX_MAX = 100
+STAR_CAT_FLUX_ERR = 5
+STAR_CAT_SIGMA_E = 0.2
+STAR_CAT_E_ERR = 0.01
+STAR_CAT_RES_CHISQ_MEAN = 1000
+STAR_CAT_RES_CHISQ_ERR = 30
+STAR_CAT_RES_CHISQ_DOF = 1000
+
+
+class MockStarCatDataGenerator(MockDataGenerator):
+    """ A class to handle the generation of mock star catalog data.
+    """
+
+    # Overring base class default values
+    tf: SheStarCatalogFormat = SHE_STAR_CAT_TF
+    seed: int = 3513
+
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate mock star data.
+        """
+
+        self.data[self.tf.id] = self._indices
+
+        # Fill in catalog data
+
+        # Detector position - random detector for each mock star
+        self.data[self.tf.det_x] = self._rng.integers(low = 1, high = 6, size = self.num_test_points)
+        self.data[self.tf.det_y] = self._rng.integers(low = 1, high = 6, size = self.num_test_points)
+
+        # Position on detector - random uniform position
+        self.data[self.tf.x] = self._rng.uniform(low = 0, high = VIS_DETECTOR_PIXELS_X, size = self.num_test_points)
+        self.data[self.tf.y] = self._rng.uniform(low = 0, high = VIS_DETECTOR_PIXELS_Y, size = self.num_test_points)
+
+        # Position on error - same for all
+        self.data[self.tf.x_err] = STAR_CAT_POS_ERR_PIX * self._ones
+        self.data[self.tf.y_err] = STAR_CAT_POS_ERR_PIX * self._ones
+
+        # Sky position - use pixel-scale only WCS here for simplicity
+        self.data[self.tf.ra] = -self.data[self.tf.x] * STAR_CAT_PIXEL_SCALE
+        self.data[self.tf.dec] = self.data[self.tf.y] * STAR_CAT_PIXEL_SCALE
+        self.data[self.tf.ra_err] = self.data[self.tf.x_err] * STAR_CAT_PIXEL_SCALE
+        self.data[self.tf.dec_err] = self.data[self.tf.y_err] * STAR_CAT_PIXEL_SCALE
+
+        # Uniform distribution for flux, fixed value for flux error
+        self.data[self.tf.flux] = self._rng.uniform(low = STAR_CAT_FLUX_MIN, high = STAR_CAT_FLUX_MAX,
+                                                    size = self.num_test_points)
+        self.data[self.tf.flux_err] = STAR_CAT_FLUX_ERR * self._ones
+
+        # Gaussian distributions for e1 and e2, fixed values for errors
+        self.data[self.tf.e1] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e2] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e1_err] = STAR_CAT_E_ERR * self._ones
+        self.data[self.tf.e2_err] = STAR_CAT_E_ERR * self._ones
+
+        # All even-indexed used for fit
+        self.data[self.tf.used_for_fit] = np.where(self._indices % 2 == 0, self._ones.astype(bool),
+                                                   self._zeros.astype(bool))
+
+        # Gaussian dist of chi-squared, fixed value for DOF
+        self.data[self.tf.res_chisq] = self._rng.uniform(loc = STAR_CAT_RES_CHISQ_MEAN, scale = STAR_CAT_RES_CHISQ_ERR,
+                                                         size = self.num_test_points)
+        self.data[self.tf.dof] = STAR_CAT_RES_CHISQ_DOF * self._ones
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
