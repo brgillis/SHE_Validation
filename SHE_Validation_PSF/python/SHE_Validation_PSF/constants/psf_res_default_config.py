@@ -1,11 +1,11 @@
-""" @file cti_psf_default_config.py
+""" @file psf_res_default_config.py
 
-    Created 28 Octo 2021
+    Created 08 March 2022 by Bryan Gillis
 
-    Constants relating to CTI-PSF configuration
+    Constants relating to PSF-Res configuration
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2022-04-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,6 +24,6 @@ from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_A
                                                      D_VALIDATION_CONFIG_TYPES, )
 
 # Create the default config dicts for this task by extending the tot default config dicts
-D_CTI_PSF_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
-D_CTI_PSF_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
-D_CTI_PSF_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
+D_PSF_RES_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
+D_PSF_RES_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
+D_PSF_RES_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}

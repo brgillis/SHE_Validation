@@ -103,7 +103,7 @@ class TestCase:
         # Convenience shortened constants
         LMC = ShearEstimationMethods.LENSMC
         KSB = ShearEstimationMethods.KSB
-        GBL = BinParameters.GLOBAL
+        GBL = BinParameters.TOT
         SNR = BinParameters.SNR
 
         # Fill the bias measurements with mock data
@@ -158,9 +158,9 @@ class TestCase:
                                      method_data_exists = True,
                                      mode = ExecutionMode.LOCAL)
 
-        # Check the results are as expected. Only check for LensMC-Global here
+        # Check the results are as expected. Only check for LensMC-Tot here
 
-        # Figure out the index for LensMC Global test results and save it for each check
+        # Figure out the index for LensMC Tot test results and save it for each check
         test_case_index = 0
         lensmc_global_m_test_case_index = -1
         lensmc_global_c_test_case_index = -1

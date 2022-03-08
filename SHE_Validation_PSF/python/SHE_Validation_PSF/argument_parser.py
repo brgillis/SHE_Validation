@@ -1,11 +1,11 @@
-""" @file cti_psf_default_config.py
+""" @file argument_parser.py
 
-    Created 28 Octo 2021
+    Created 08 March 2022 by Bryan Gillis
 
-    Constants relating to CTI-PSF configuration
+    Classes for argument parsers for SHE PSF Validation executables.
 """
 
-__updated__ = "2021-08-03"
+__updated__ = "2022-04-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,10 +20,25 @@ __updated__ = "2021-08-03"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
-                                                     D_VALIDATION_CONFIG_TYPES, )
+from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_BIN_PARAMETERS
 
-# Create the default config dicts for this task by extending the tot default config dicts
-D_CTI_PSF_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
-D_CTI_PSF_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
-D_CTI_PSF_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
+
+class PsfResArgumentParser(ValidationArgumentParser):
+    """ Argument parser specialized for SHE CTI-Gal Validation executables.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Input filename arguments
+
+        self.add_star_catalog_arg()
+
+        # Output filename arguments
+
+        self.add_test_result_arg()
+
+        # Optional arguments
+
+        self.add_bin_parameter_args(l_bin_parameters = L_PSF_RES_BIN_PARAMETERS)

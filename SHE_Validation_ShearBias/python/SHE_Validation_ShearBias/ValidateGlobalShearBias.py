@@ -65,7 +65,7 @@ def mainMethod(args: Namespace) -> None:
 
     executor = ShearBiasValExecutor(run_from_args_function = validate_shear_bias_from_args,
                                     log_options = ValLogOptions(executable_name = EXEC_NAME),
-                                    run_args = RunArgs(d_run_kwargs = {"mode": ExecutionMode.GLOBAL}))
+                                    run_args = RunArgs(d_run_kwargs = {"mode": ExecutionMode.TOT}))
 
     executor.run(args, logger = logger, pass_args_as_dict = True)
 

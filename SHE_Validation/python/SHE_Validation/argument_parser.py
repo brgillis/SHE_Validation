@@ -19,6 +19,7 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from typing import Iterable
 
 from SHE_PPT.argument_parser import ClineArgType, SheArgumentParser
 from .constants.test_info import BinParameterMeta, BinParameters, D_BIN_PARAMETER_META
@@ -72,8 +73,10 @@ class ValidationArgumentParser(SheArgumentParser):
 
     # Convenience functions to add options cline-args
 
-    def add_bin_parameter_args(self, arg_type: ClineArgType = ClineArgType.INPUT):
-        for bin_parameter in BinParameters:
+    def add_bin_parameter_args(self,
+                               arg_type: ClineArgType = ClineArgType.INPUT,
+                               l_bin_parameters: Iterable[BinParameters] = BinParameters):
+        for bin_parameter in l_bin_parameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
             self.add_arg_with_type(f'--{bin_parameter_meta.cline_arg}', type = str, default = None, arg_type =
             arg_type,

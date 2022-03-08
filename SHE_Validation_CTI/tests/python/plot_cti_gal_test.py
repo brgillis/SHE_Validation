@@ -71,7 +71,7 @@ class TestPlotCti(SheTestCase):
 
         # Run the plotting
         file_namer = CtiGalPlotFileNamer(method = method,
-                                         bin_parameter = BinParameters.GLOBAL,
+                                         bin_parameter = BinParameters.TOT,
                                          bin_index = 0,
                                          workdir = self.workdir)
         plotter = CtiPlotter(file_namer = file_namer,

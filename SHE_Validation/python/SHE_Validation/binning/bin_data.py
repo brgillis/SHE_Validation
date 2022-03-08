@@ -86,7 +86,7 @@ TF = BIN_DATA_TABLE_FORMAT
 
 def add_global_column(_t: Table,
                       _data_stack: SHEFrameStack) -> None:
-    """ Dummy method to add a global column, for a consistent interface.
+    """ Dummy method to add a tot column, for a consistent interface.
     """
     pass
 
@@ -239,7 +239,7 @@ def _determine_data_table(t: Table,
 
 
 D_COLUMN_ADDING_METHODS = {
-    BinParameters.GLOBAL: add_global_column,
+    BinParameters.TOT   : add_global_column,
     BinParameters.SNR   : add_snr_column,
     BinParameters.BG    : add_bg_column,
     BinParameters.COLOUR: add_colour_column,

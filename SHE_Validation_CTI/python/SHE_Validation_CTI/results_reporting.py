@@ -568,8 +568,8 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
             l_intercept_err[bin_index] = regression_results_row[RR_TF.intercept_err]
             l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
-        # For the global case, override the bin limits with None
-        if test_case_info.bins == BinParameters.GLOBAL:
+        # For the tot case, override the bin limits with None
+        if test_case_info.bins == BinParameters.TOT:
             l_bin_limits = None
 
         return l_slope, l_slope_err, l_intercept, l_intercept_err, l_bin_limits

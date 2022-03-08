@@ -53,14 +53,14 @@ EXTRA_EST_G_ERR = 0.005
 EXTRA_EST_G_ERR_ERR = 0.005
 
 D_D_L_D_INPUT_BIAS: Dict[ShearEstimationMethods, Dict[BinParameters, List[Dict[str, float]]]] = {
-    ShearEstimationMethods.LENSMC: {BinParameters.GLOBAL: [{"m1"    : 0.05,
-                                                            "m1_err": 0.015,
-                                                            "c1"    : -0.2,
-                                                            "c1_err": 0.05,
-                                                            "m2"    : -0.1,
-                                                            "m2_err": 0.04,
-                                                            "c2"    : 0.01,
-                                                            "c2_err": 0.003, }]},
+    ShearEstimationMethods.LENSMC: {BinParameters.TOT: [{"m1"    : 0.05,
+                                                         "m1_err": 0.015,
+                                                         "c1"    : -0.2,
+                                                         "c1_err": 0.05,
+                                                         "m2"    : -0.1,
+                                                         "m2_err": 0.04,
+                                                         "c2"    : 0.01,
+                                                         "c2_err": 0.003, }]},
     ShearEstimationMethods.KSB   : {BinParameters.SNR: [{"m1"    : 0.2,
                                                          "m1_err": 0.003,
                                                          "c1"    : -0.3,
@@ -150,7 +150,7 @@ class MockTUGalaxyDataGenerator(MockDataGenerator):
         i: int
         bin_parameter: BinParameters
         for i, bin_parameter in enumerate(BinParameters):
-            if bin_parameter == BinParameters.GLOBAL:
+            if bin_parameter == BinParameters.TOT:
                 continue
             factor = 2 ** i
             self.data[bin_parameter.name] = np.where(self._indices % factor < factor / 2, self._ones, self._zeros)
@@ -227,8 +227,8 @@ class MockShearEstimateDataGenerator(MockDataGenerator):
         # Fill in rows with mock output data - this bit depends on which method we're using
         d_l_d_method_input_bias = D_D_L_D_INPUT_BIAS[self.method]
         if self.method == ShearEstimationMethods.LENSMC:
-            d_bias_0m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
-            d_bias_1m2 = d_l_d_method_input_bias[BinParameters.GLOBAL][0]
+            d_bias_0m2 = d_l_d_method_input_bias[BinParameters.TOT][0]
+            d_bias_1m2 = d_l_d_method_input_bias[BinParameters.TOT][0]
         else:
             d_bias_0m2 = d_l_d_method_input_bias[BinParameters.SNR][0]
             d_bias_1m2 = d_l_d_method_input_bias[BinParameters.SNR][1]

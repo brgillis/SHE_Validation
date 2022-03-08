@@ -1,11 +1,11 @@
-""" @file validate_cti_gal_dry_run_test.py
+""" @file validate_psf_res_integration_test.py
 
-    Created 10 December 2020
+    Created 08 March 2022 by Bryan Gillis
 
-    Unit tests the input/output interface of the CTI-Gal validation task.
+    Unit tests the input/output interface of the PSF-Res validation task.
 """
 
-__updated__ = "2022-03-03"
+__updated__ = "2022-04-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -24,31 +24,22 @@ import os
 import subprocess
 from argparse import Namespace
 
-import pytest
-
-from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_SHE_MEAS,
-                                     CA_VIS_CAL_FRAME,
-                                     )
-from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
-                                         SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME,
-                                         VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
+from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
+from SHE_PPT.constants.test_data import (SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
+                                         )
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
+from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_CTI.ValidateCTIGal import defineSpecificProgramOptions, mainMethod
-from SHE_Validation_CTI.results_reporting import CtiTest, D_CTI_DIRECTORY_FILENAMES
-
-CTI_GAL_DIRECTORY_FILENAME = D_CTI_DIRECTORY_FILENAMES[CtiTest.GAL]
+from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions, mainMethod
 
 # Output data filenames
 
-SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
-SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
+SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
 
 
-class TestCtiGalRun(SheTestCase):
-    """ Test case for CTI-Gal validation test code.
+class TestPsfResRun(SheTestCase):
+    """ Test case for PSF-Res validation test code.
     """
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
@@ -64,12 +55,8 @@ class TestCtiGalRun(SheTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_VIS_CAL_FRAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME)
-        setattr(args, CA_SHE_EXT_CAT, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME)
-        setattr(args, CA_SHE_MEAS, SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
-        setattr(args, CA_MDB, MDB_PRODUCT_FILENAME)
-        setattr(args, CA_SHE_OBS_TEST_RESULTS, SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME)
-        setattr(args, CA_SHE_EXP_TEST_RESULTS_LIST, SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_STAR_CAT, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
         # called, it sets it to the default value of None. For the case of the pipeline_config, this is a
@@ -78,47 +65,39 @@ class TestCtiGalRun(SheTestCase):
         return args
 
     def setup(self):
-        """ Override parent setup, downloading data to work with here.
+        """ Override parent setup, setting up data to work with here.
+
+            TODO: Set up mock input data for testing.
         """
 
-        self._download_mdb()
-        self._download_datastack(read_in = False)
+        return
 
-    @pytest.mark.skip()
-    def test_cti_gal_dry_run(self, local_setup):
-
-        # Ensure this is a dry run
-        setattr(self.args, CA_DRY_RUN, True)
-
-        # Call to validation function
-        mainMethod(self.args)
-
-    def test_cti_gal_integration(self, local_setup):
+    def test_psf_res_integration(self, local_setup):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
-
-        # Ensure this is not a dry run
-        setattr(self.args, CA_DRY_RUN, False)
 
         # Call to validation function, which was imported directly from the entry-point file
         mainMethod(self.args)
 
+        # TODO: Once output data is actually generated, let the code continue to test its presence
+        return
+
         # Check the resulting data product and plots exist in the expected locations
 
         workdir = self.workdir
-        output_filename = getattr(self.args, CA_SHE_OBS_TEST_RESULTS)
+        output_filename = getattr(self.args, CA_SHE_TEST_RESULTS)
         qualified_output_filename = os.path.join(workdir, output_filename)
 
         assert os.path.isfile(qualified_output_filename)
 
         p = read_xml_product(xml_filename = qualified_output_filename)
 
-        # Find the index for the LensMC Tot test case. We'll check that for the presence of expected output data
+        # Find the index for the Tot test case. We'll check that for the presence of expected output data
 
         textfiles_tarball_filename: str = ""
         figures_tarball_filename: str = ""
         for val_test in p.Data.ValidationTestList:
-            if "tot-lensmc" not in val_test.TestId.lower():
+            if "tot" not in val_test.TestId.lower():
                 continue
             textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
             figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
@@ -134,7 +113,7 @@ class TestCtiGalRun(SheTestCase):
         # containing with in the filenames of all other files which were tarred up. We open this first, and use
         # it to guide us on the filenames of other files that were tarred up, and test for their existence.
 
-        qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
+        qualified_directory_filename = os.path.join(workdir, PSF_RES_DIRECTORY_FILENAME)
 
         # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
         plot_filename = None
@@ -143,7 +122,7 @@ class TestCtiGalRun(SheTestCase):
                 if line[0] == "#":
                     continue
                 key, value = line.strip().split(": ")
-                if key == "LensMC-tot-0":
+                if key == "tot-0":
                     plot_filename = value
 
         # Check that we found the filename for this plot

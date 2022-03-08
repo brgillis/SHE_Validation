@@ -188,7 +188,7 @@ class TestShearBias:
             self.d_d_mock_data_processors[method] = {}
             self.d_d_l_mock_data_processors[method] = {}
 
-            for bin_parameter in [BinParameters.GLOBAL, BinParameters.SNR]:
+            for bin_parameter in [BinParameters.TOT, BinParameters.SNR]:
 
                 # Make mock test case info to use
 

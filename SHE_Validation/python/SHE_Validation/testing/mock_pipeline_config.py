@@ -124,7 +124,7 @@ class MockValPipelineConfigFactory(MockPipelineConfigFactory):
         # Set modified bin limits in the dict
         for bin_parameter in BinParameters:
             config_key = D_BIN_PARAMETER_META[bin_parameter].config_key
-            if bin_parameter == BinParameters.GLOBAL or bin_parameter == BinParameters.EPOCH:
+            if bin_parameter == BinParameters.TOT or bin_parameter == BinParameters.EPOCH:
                 continue
             else:
                 config_dict[config_key] = self.d_l_bin_limits[bin_parameter]

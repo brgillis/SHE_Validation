@@ -389,10 +389,10 @@ class VisDetBinConstraint(ValueBinConstraint):
 
 
 class GlobalBinConstraint(RangeBinConstraint):
-    """ Global binning - everything is in the bin. Inherits from RangeBinConstraint for a consistent interface.
+    """ Tot binning - everything is in the bin. Inherits from RangeBinConstraint for a consistent interface.
     """
 
-    bin_parameter: BinParameters = BinParameters.GLOBAL
+    bin_parameter: BinParameters = BinParameters.TOT
     bin_colname: Optional[str] = None
     bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS
 
@@ -427,7 +427,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
                              f"bin_parameter = {bin_parameter}.")
 
         # Set column name for this bin parameter if applicable, or else set to None
-        if self.bin_parameter != BinParameters.GLOBAL:
+        if self.bin_parameter != BinParameters.TOT:
             self.bin_colname = getattr(BIN_TF, self.bin_parameter.value)
         else:
             self.bin_colname = None
@@ -441,8 +441,8 @@ class BinParameterBinConstraint(RangeBinConstraint):
         """ Need to check what implementation we need based on the bin parameter.
         """
 
-        # For GLOBAL case, we don't need any special setup
-        if self.bin_parameter == BinParameters.GLOBAL:
+        # For TOT case, we don't need any special setup
+        if self.bin_parameter == BinParameters.TOT:
             return super().is_in_bin(data)
 
         # For other cases, we need to make sure we have the needed data and add it if not
