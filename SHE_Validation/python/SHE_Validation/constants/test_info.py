@@ -209,7 +209,8 @@ class BinParameterMeta:
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL, )
+D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL,
+                                                              id_tail = "tot")
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
                                                            long_name = "SNR",
