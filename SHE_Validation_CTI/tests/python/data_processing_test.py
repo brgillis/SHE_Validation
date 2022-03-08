@@ -172,7 +172,7 @@ class TestCtiGalDataProcessing(SheTestCase):
                                                             data_stack = None)
 
         for test_case_info in l_test_case_info:
-            if test_case_info.bins == BinParameters.GLOBAL or test_case_info.bins == BinParameters.EPOCH:
+            if test_case_info.bins == BinParameters.TOT or test_case_info.bins == BinParameters.EPOCH:
                 continue
             l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
             for bin_index in range(2):

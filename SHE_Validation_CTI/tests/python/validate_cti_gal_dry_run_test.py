@@ -113,12 +113,12 @@ class TestCtiGalRun(SheTestCase):
 
         p = read_xml_product(xml_filename = qualified_output_filename)
 
-        # Find the index for the LensMC Global test case. We'll check that for the presence of expected output data
+        # Find the index for the LensMC Tot test case. We'll check that for the presence of expected output data
 
         textfiles_tarball_filename: str = ""
         figures_tarball_filename: str = ""
         for val_test in p.Data.ValidationTestList:
-            if "global-lensmc" not in val_test.TestId.lower():
+            if "tot-lensmc" not in val_test.TestId.lower():
                 continue
             textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
             figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
@@ -136,14 +136,14 @@ class TestCtiGalRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
 
-        # Search for the line in the directory file which contails the plot for the LensMC-global test, for bin 0
+        # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:
                 if line[0] == "#":
                     continue
                 key, value = line.strip().split(": ")
-                if key == "LensMC-global-0":
+                if key == "LensMC-tot-0":
                     plot_filename = value
 
         # Check that we found the filename for this plot

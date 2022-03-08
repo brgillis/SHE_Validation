@@ -183,8 +183,8 @@ def read_l_matched_catalog_filenames(d_args: Dict[str, Any],
         matched_catalog = d_args[CA_SHE_MATCHED_CAT]
         logger.info(f"Using matched data from product {matched_catalog}")
         l_matched_catalog_product_filenames: List[str] = [matched_catalog]
-    elif mode == ExecutionMode.GLOBAL:
-        # In global mode, read in the listfile to get the list of filenames
+    elif mode == ExecutionMode.TOT:
+        # In tot mode, read in the listfile to get the list of filenames
         matched_catalog_listfile = d_args[CA_SHE_MATCHED_CAT_LIST]
         logger.info(f"Using matched data from products in listfile {matched_catalog_listfile}")
         qualified_matched_catalog_listfile_filename: str = file_io.find_file(matched_catalog_listfile,

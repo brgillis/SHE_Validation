@@ -892,7 +892,7 @@ class TestCaseWriter:
             which writes out desired files, or leave this empty if no files need to be written.
         """
 
-        # Write the global result, using what was determined for writing requirements
+        # Write the tot result, using what was determined for writing requirements
         if self.global_result is None:
             raise ValueError("self.global_results is not set when self.write_analysis_files method is called.")
         self.test_case_object.AnalysisResult.Result = self.global_result

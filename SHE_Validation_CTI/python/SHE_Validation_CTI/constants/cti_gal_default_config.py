@@ -23,7 +23,7 @@ __updated__ = "2021-08-03"
 from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
                                                      D_VALIDATION_CONFIG_TYPES, )
 
-# Create the default config dicts for this task by extending the global default config dicts
+# Create the default config dicts for this task by extending the tot default config dicts
 D_CTI_GAL_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
 D_CTI_GAL_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
 D_CTI_GAL_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}

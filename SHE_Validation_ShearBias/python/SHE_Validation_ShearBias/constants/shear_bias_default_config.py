@@ -27,7 +27,7 @@ from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_A
 LOCAL_PROFILING_FILENAME = "validate_local_shear_bias.prof"
 GLOBAL_PROFILING_FILENAME = "validate_global_shear_bias.prof"
 
-# Create the default config dicts for this task by extending the global default config dicts
+# Create the default config dicts for this task by extending the tot default config dicts
 D_SHEAR_BIAS_CONFIG_DEFAULTS = {ValidationConfigKeys.SBV_MAX_G_IN             : 0.99,
                                 ValidationConfigKeys.SBV_BOOTSTRAP_ERRORS     : True,
                                 ValidationConfigKeys.SBV_REQUIRE_FITCLASS_ZERO: False,

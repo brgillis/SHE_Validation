@@ -58,7 +58,7 @@ class TestBinConstraints:
     NUM_ROWS_IN_BIN = 40
     BASE_BIN_LIMITS = np.array((0, NUM_ROWS_IN_BIN))
 
-    D_PAR_OFFSETS = {BinParameters.GLOBAL: 0.,
+    D_PAR_OFFSETS = {BinParameters.TOT   : 0.,
                      BinParameters.BG    : 1000.,
                      BinParameters.SNR   : 2000.,
                      BinParameters.COLOUR: 3000.,
@@ -87,7 +87,7 @@ class TestBinConstraints:
         cls.t_mfc[ID_COLNAME] = np.arange(cls.TABLE_SIZE) + cls.ID_OFFSET
         cls.t_lmc[ID_COLNAME] = np.arange(cls.TABLE_SIZE) + cls.ID_OFFSET
 
-        # Set up columns in the MFC catalog for each bin parameter except GLOBAL
+        # Set up columns in the MFC catalog for each bin parameter except TOT
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
 
             bin_colname = getattr(BIN_TF, bin_parameter.value)
@@ -108,7 +108,7 @@ class TestBinConstraints:
         cls.t_lmc[LMC_TF.fit_flags] = fitflags_data
 
         # Set up d_bin_limits
-        cls.d_l_bin_limits = {BinParameters.GLOBAL: DEFAULT_BIN_LIMITS}
+        cls.d_l_bin_limits = {BinParameters.TOT: DEFAULT_BIN_LIMITS}
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             cls.d_l_bin_limits[bin_parameter] = np.linspace(start = cls.D_PAR_OFFSETS[bin_parameter],
                                                             stop = cls.D_PAR_OFFSETS[bin_parameter] + cls.TABLE_SIZE,
@@ -124,7 +124,7 @@ class TestBinConstraints:
         """ Test applying a bin constraint with each bin parameter.
         """
 
-        # Test each bin parameter other than GLOBAL
+        # Test each bin parameter other than TOT
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
 
             bin_limits = self.BASE_BIN_LIMITS + self.D_PAR_OFFSETS[bin_parameter]
@@ -147,8 +147,8 @@ class TestBinConstraints:
             assert (ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET).all()
             assert (self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN).all()
 
-        # Special check for GLOBAL test case
-        bin_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.GLOBAL)
+        # Special check for TOT test case
+        bin_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.TOT)
 
         # Apply the constraint
         l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_mfc)
@@ -257,8 +257,8 @@ class TestBinConstraints:
 
             l_l_ids = d_l_l_ids[bin_parameter]
 
-            # Special check for global case
-            if bin_parameter == BinParameters.GLOBAL:
+            # Special check for tot case
+            if bin_parameter == BinParameters.TOT:
                 assert len(l_l_ids) == 1
                 assert len(l_l_ids[0]) == self.TABLE_SIZE
                 continue
@@ -298,8 +298,8 @@ class TestBinConstraints:
 
             l_l_ids = d_l_l_ids[test_case_info.name]
 
-            # Special check for global case
-            if bin_parameter == BinParameters.GLOBAL:
+            # Special check for tot case
+            if bin_parameter == BinParameters.TOT:
                 assert len(l_l_ids) == 1
                 assert len(l_l_ids[0]) == self.TABLE_SIZE
                 continue

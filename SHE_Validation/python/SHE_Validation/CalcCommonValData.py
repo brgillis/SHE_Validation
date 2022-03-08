@@ -32,7 +32,7 @@ from .constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDAT
                                        D_VALIDATION_CONFIG_TYPES, )
 from .executor import SheValExecutor, ValLogOptions
 
-# Create the default config dicts for this task by extending the global default config dicts
+# Create the default config dicts for this task by extending the tot default config dicts
 EXEC_NAME = "SHE_Validation_CalcCommonValData"
 
 S_CCVD_CONFIG_KEYS = {AnalysisConfigKeys,

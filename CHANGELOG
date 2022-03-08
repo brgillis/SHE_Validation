@@ -61,7 +61,7 @@ New Features
 ------------
 
 - SHE_Validation_ValidateCTIGal task now includes test cases:
-  - Global (all objects in one bin, not an official test case but a useful check)
+  - Tot (all objects in one bin, not an official test case but a useful check)
   - SNR
   - Background level
   - Colour

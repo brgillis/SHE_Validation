@@ -50,7 +50,7 @@ from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
-D_EX_TEST_CASE_IDS = {BinParameters.GLOBAL: "TC-SHE--1-CTI-gal-global",
+D_EX_TEST_CASE_IDS = {BinParameters.TOT   : "TC-SHE--1-CTI-gal-tot",
                       BinParameters.SNR   : "TC-SHE-100028-CTI-gal-SNR",
                       BinParameters.BG    : "TC-SHE-100029-CTI-gal-bg",
                       BinParameters.SIZE  : "TC-SHE-100030-CTI-gal-size",
@@ -181,7 +181,7 @@ class TestCtiResultsReporting(SheTestCase):
 
             test_case_index += 1
 
-    # Check the results for each exposure are as expected. Only check for LensMC-Global here
+    # Check the results for each exposure are as expected. Only check for LensMC-Tot here
 
     def test_exposure_all_pass(self, l_exp_results, lmc_indices):
         """ Test that the filled results are as expected
@@ -189,7 +189,7 @@ class TestCtiResultsReporting(SheTestCase):
 
         lensmc_colour_test_case_index, lensmc_global_test_case_index = lmc_indices
 
-        # Exposure 0 Global - slope pass and intercept pass. Do most detailed checks here
+        # Exposure 0 Tot - slope pass and intercept pass. Do most detailed checks here
         exp_test_result = l_exp_results[0].Data.ValidationTestList[lensmc_global_test_case_index]
         assert exp_test_result.GlobalResult == RESULT_PASS
 
@@ -390,7 +390,7 @@ class TestCtiResultsReporting(SheTestCase):
 
     @pytest.fixture(scope = 'class')
     def lmc_indices(self, l_exp_results):
-        # Figure out the index for LensMC Global and olour test results and MomentsML global test results and save it
+        # Figure out the index for LensMC Tot and olour test results and MomentsML tot test results and save it
         # for each check
         test_case_index = 0
         lensmc_global_test_case_index: int = -1
@@ -401,13 +401,13 @@ class TestCtiResultsReporting(SheTestCase):
             exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
 
             if test_case_info.method == ShearEstimationMethods.LENSMC:
-                if test_case_info.bins == BinParameters.GLOBAL:
+                if test_case_info.bins == BinParameters.TOT:
                     lensmc_global_test_case_index = test_case_index
                 elif test_case_info.bins == BinParameters.COLOUR:
                     lensmc_colour_test_case_index = test_case_index
 
             if test_case_info.method == ShearEstimationMethods.MOMENTSML:
-                if test_case_info.bins == BinParameters.GLOBAL:
+                if test_case_info.bins == BinParameters.TOT:
                     momentsml_global_test_case_index = test_case_index
 
             test_case_index += 1

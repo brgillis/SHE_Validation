@@ -27,7 +27,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import SheFileNamer, instance_id_maxlen
 from SHE_PPT.utility import join_without_none
 from . import __version__
-from .constants.test_info import BinParameters
+from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
 class SheValFileNamer(SheFileNamer):
@@ -100,12 +100,12 @@ class SheValFileNamer(SheFileNamer):
             method_value: Optional[str] = None
 
         if self.bin_parameter is not None:
-            bin_parameter_value: Optional[str] = self.bin_parameter.value
+            bin_id_tail: Optional[str] = D_BIN_PARAMETER_META[self.bin_parameter].id_tail
         else:
-            bin_parameter_value: Optional[str] = None
+            bin_id_tail: Optional[str] = None
 
         self._instance_id_body = join_without_none(l_s = [method_value,
-                                                          bin_parameter_value,
+                                                          bin_id_tail,
                                                           self.bin_index,
                                                           os.getpid()],
                                                    default = None)

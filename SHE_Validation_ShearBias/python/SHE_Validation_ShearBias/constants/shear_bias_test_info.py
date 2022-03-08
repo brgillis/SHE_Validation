@@ -55,12 +55,12 @@ M_TEST_CASE_ID = "TC-SHE-100017-shear-bias-m"
 BASE_SHEAR_BIAS_TEST_CASE_M_INFO = TestCaseInfo(base_test_case_id = M_TEST_CASE_ID,
                                                 base_name = f"M-{NAME_REPLACE_TAG}",
                                                 base_description = "Multiplicative shear bias.",
-                                                bins = BinParameters.GLOBAL)
+                                                bins = BinParameters.TOT)
 C_TEST_CASE_ID = "TC-SHE-100018-shear-bias-c"
 BASE_SHEAR_BIAS_TEST_CASE_C_INFO = TestCaseInfo(base_test_case_id = C_TEST_CASE_ID,
                                                 base_name = f"C-{NAME_REPLACE_TAG}",
                                                 base_description = "Additive shear bias.",
-                                                bins = BinParameters.GLOBAL, )
+                                                bins = BinParameters.TOT, )
 
 # Create lists of the test case info for just m, just c, and combined
 L_SHEAR_BIAS_TEST_CASE_M_INFO = make_test_case_info_for_bins_and_methods([BASE_SHEAR_BIAS_TEST_CASE_M_INFO])

@@ -137,8 +137,8 @@ class CtiPlotter(ValidationPlotter):
 
         # Check if there's any valid data for this bin
         if len(l_rr_dist) <= 1:
-            # We'll always make the global plot for testing purposes, but log a warning if no data
-            if self.bin_parameter == BinParameters.GLOBAL:
+            # We'll always make the tot plot for testing purposes, but log a warning if no data
+            if self.bin_parameter == BinParameters.TOT:
                 logger.warning(f"Insufficient valid data to plot for {opt_method_str}and test case "
                                f"{self.bin_parameter.value}, but making plot anyway for testing purposes.")
             else:
@@ -169,7 +169,7 @@ class CtiPlotter(ValidationPlotter):
 
         self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
 
-        if self.bin_parameter != BinParameters.GLOBAL:
+        if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
         plt.title(plot_title, fontsize = TITLE_FONTSIZE)
 

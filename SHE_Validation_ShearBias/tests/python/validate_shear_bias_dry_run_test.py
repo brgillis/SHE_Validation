@@ -128,7 +128,7 @@ class ShearBiasTestCase(SheTestCase):
                     if line[0] == "#":
                         continue
                     key, value = line.strip().split(": ")
-                    if key == "LensMC-global-0-g1":
+                    if key == "LensMC-tot-0-g1":
                         plot_filename = value
 
         assert plot_filename is not None

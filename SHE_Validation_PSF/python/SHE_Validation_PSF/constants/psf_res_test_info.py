@@ -47,7 +47,7 @@ BASE_PSF_RES_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMB
 
 # Create a dict of the test case info
 
-L_CTI_PSF_BIN_PARAMETERS = (BinParameters.GLOBAL, BinParameters.SNR)
+L_CTI_PSF_BIN_PARAMETERS = (BinParameters.TOT, BinParameters.SNR)
 
 L_PSF_RES_TEST_CASE_INFO = make_test_case_info_for_bins(BASE_PSF_RES_TEST_CASE_INFO,
                                                         l_bin_parameters = L_CTI_PSF_BIN_PARAMETERS)

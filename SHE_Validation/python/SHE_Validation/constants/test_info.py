@@ -40,7 +40,7 @@ NAME_REPLACE_TAG = "$NAME"
 class BinParameters(AllowedEnum):
     """ Enum of possible binning parameters for test cases.
     """
-    GLOBAL = "global"
+    TOT = "tot"
     SNR = "snr"
     BG = "bg"
     COLOUR = "colour"
@@ -50,13 +50,13 @@ class BinParameters(AllowedEnum):
 
 NUM_BIN_PARAMETERS: int = len(BinParameters)
 NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
-                                                  if bin_parameter != BinParameters.GLOBAL]
+                                                  if bin_parameter != BinParameters.TOT]
 
 # Define dicts listing how ID numbers and names work within test cases with various bin parameters
 
 # ID number offset is how much the test case ID differs from the lowest value for each test case
 D_ID_NUMBER_OFFSETS: Dict[Union[BinParameters, None], int] = {None                : 0,
-                                                              BinParameters.GLOBAL: -1,
+                                                              BinParameters.TOT   : -1,
                                                               BinParameters.SNR   : 0,
                                                               BinParameters.BG    : 1,
                                                               BinParameters.COLOUR: 3,
@@ -69,7 +69,7 @@ class BinParameterMeta:
     """
 
     # Values set directly from init
-    _enum: BinParameters = BinParameters.GLOBAL
+    _enum: BinParameters = BinParameters.TOT
     _long_name: Optional[str] = None
     _id_tail: Optional[str] = None
     _units: Optional[str] = None
@@ -209,8 +209,7 @@ class BinParameterMeta:
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.GLOBAL] = BinParameterMeta(bin_parameter_enum = BinParameters.GLOBAL,
-                                                              id_tail = "tot")
+D_BIN_PARAMETER_META[BinParameters.TOT] = BinParameterMeta(bin_parameter_enum = BinParameters.TOT, )
 
 D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
                                                            long_name = "SNR",

@@ -30,7 +30,7 @@ from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_A
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation.match_to_tu import match_to_tu_from_args
 
-# Create the default config dicts for this task by extending the global default config dicts
+# Create the default config dicts for this task by extending the tot default config dicts
 EXEC_NAME = "SHE_Validation_MatchToTU"
 S_TUM_STORE_TRUE = {"add_bin_columns"}
 S_TUM_CONFIG_KEYS = {AnalysisConfigKeys,

@@ -32,10 +32,10 @@ from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 class ExecutionMode(AllowedEnum):
     """ Execution mode options - whether an executable operates on individual observation or tile (local) or
-        all that are available (global).
+        all that are available (tot).
     """
     LOCAL = "local"
-    GLOBAL = "global"
+    TOT = "tot"
 
 
 class FailSigmaScaling(AllowedEnum):
