@@ -22,7 +22,7 @@ __updated__ = "2022-04-08"
 
 from typing import Type
 
-from SHE_PPT.constants.config import AnalysisConfigKeys
+from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_PPT.utility import default_value_if_none
 from SHE_Validation.executor import SheValExecutor, ValReadConfigArgs
 from .constants.psf_res_default_config import (D_PSF_RES_CONFIG_CLINE_ARGS, D_PSF_RES_CONFIG_DEFAULTS,
@@ -46,7 +46,8 @@ class PsfResReadConfigArgs(ValReadConfigArgs):
         self.d_config_cline_args = default_value_if_none(self.d_config_cline_args,
                                                          D_PSF_RES_CONFIG_CLINE_ARGS)
         self.s_config_keys_types = default_value_if_none(self.s_config_keys_types,
-                                                         {AnalysisConfigKeys})
+                                                         {AnalysisConfigKeys,
+                                                          ValidationConfigKeys})
 
 
 class PsfResValExecutor(SheValExecutor):
