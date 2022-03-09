@@ -49,6 +49,9 @@ MFC_TABLE_LISTFILE_FILENAME = "mock_mer_final_catalog_listfile.json"
 MFC_TABLE_PRODUCT_FILENAME = "mock_mer_final_catalog_product.xml"
 MFC_TABLE_FILENAME = "data/mock_mer_final_catalog.fits"
 
+STAR_CAT_PRODUCT_FILENAME = "mock_she_star_catalog_product.xml"
+STAR_CAT_TABLE_FILENAME = "data/mock_she_star_catalog.fits"
+
 # Output data filename
 SHE_BIAS_TEST_RESULT_FILENAME = "she_observation_validation_test_results.xml"
 

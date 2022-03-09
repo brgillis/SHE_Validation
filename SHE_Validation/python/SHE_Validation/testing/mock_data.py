@@ -319,6 +319,7 @@ class MockTUMatchedDataGenerator(MockDataGenerator):
 
 # Constants describing how to generate mock star data
 
+STAR_CAT_SEED = 152314
 STAR_CAT_POS_ERR_PIX = 0.2
 STAR_CAT_PIXEL_SCALE = 0.1 / 3600
 STAR_CAT_FLUX_MIN = 10
