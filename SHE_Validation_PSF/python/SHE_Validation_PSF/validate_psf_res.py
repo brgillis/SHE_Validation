@@ -59,7 +59,7 @@ def load_psf_res_input(d_args, workdir):
 
     # Load the star catalog table
     logger.info("Loading star catalog.")
-    p_star_cat, star_cat = read_product_and_table(xml_filename = d_args[CA_SHE_STAR_CAT],
+    p_star_cat, star_cat = read_product_and_table(product_filename = d_args[CA_SHE_STAR_CAT],
                                                   workdir = workdir,
                                                   product_type = dpdSheStarCatalog)
 
