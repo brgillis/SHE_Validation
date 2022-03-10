@@ -21,12 +21,17 @@ __updated__ = "2022-04-10"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from argparse import Namespace
 
+import numpy as np
+
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
+from SHE_PPT.file_io import write_product_and_table
+from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
 from SHE_PPT.testing.utility import SheTestCase
 # Output data filenames
-from SHE_Validation.testing.constants import STAR_CAT_PRODUCT_FILENAME
+from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS, STAR_CAT_PRODUCT_FILENAME, STAR_CAT_TABLE_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import write_mock_starcat_table
+from SHE_Validation.testing.mock_tables import make_mock_starcat_table
 from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions
 from SHE_Validation_PSF.validate_psf_res import load_psf_res_input
 
@@ -49,7 +54,15 @@ class TestPsfResReadInput(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        write_mock_starcat_table(workdir = self.workdir)
+        self.mock_starcat_table = make_mock_starcat_table()
+        self.mock_starcat_product = create_dpd_she_star_catalog()
+
+        write_product_and_table(product = self.mock_starcat_product,
+                                product_filename = STAR_CAT_PRODUCT_FILENAME,
+                                table = make_mock_starcat_table(),
+                                table_filename = STAR_CAT_TABLE_FILENAME,
+                                workdir = self.workdir)
+
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 
         return
@@ -61,3 +74,8 @@ class TestPsfResReadInput(SheTestCase):
         (d_l_bin_limits,
          p_star_cat,
          star_cat) = load_psf_res_input(self.d_args, self.workdir)
+
+        # Check that the input is as expected
+        np.testing.assert_allclose(d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+        assert self.mock_starcat_product.Header.ProductId == p_star_cat.Header.ProductId
+        assert (self.mock_starcat_table == star_cat).all()
