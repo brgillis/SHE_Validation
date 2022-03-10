@@ -52,8 +52,7 @@ class TestPsfResRun(SheTestCase):
             is None (which it will be when the object is initialized). This means that in each test case,
             self.args will return the result of this method (cached so that it only runs once).
         """
-        parser = defineSpecificProgramOptions()
-        args = parser.parse_args([])
+        args = defineSpecificProgramOptions().parse_args([])
 
         setattr(args, CA_SHE_STAR_CAT, STAR_CAT_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
