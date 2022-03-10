@@ -373,8 +373,8 @@ class MockStarCatDataGenerator(MockDataGenerator):
         self.data[self.tf.flux_err] = STAR_CAT_FLUX_ERR * self._ones
 
         # Gaussian distributions for e1 and e2, fixed values for errors
-        self.data[self.tf.e1] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
-        self.data[self.tf.e2] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e1] = self._rng.normal(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e2] = self._rng.normal(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
         self.data[self.tf.e1_err] = STAR_CAT_E_ERR * self._ones
         self.data[self.tf.e2_err] = STAR_CAT_E_ERR * self._ones
 
@@ -383,9 +383,9 @@ class MockStarCatDataGenerator(MockDataGenerator):
                                                    self._zeros.astype(bool))
 
         # Gaussian dist of chi-squared, fixed value for DOF
-        self.data[self.tf.res_chisq] = self._rng.uniform(loc = STAR_CAT_RES_CHISQ_MEAN, scale = STAR_CAT_RES_CHISQ_ERR,
-                                                         size = self.num_test_points)
-        self.data[self.tf.dof] = STAR_CAT_RES_CHISQ_DOF * self._ones
+        self.data[self.tf.res_chisq] = self._rng.normal(loc = STAR_CAT_RES_CHISQ_MEAN, scale = STAR_CAT_RES_CHISQ_ERR,
+                                                        size = self.num_test_points)
+        self.data[self.tf.res_dof] = STAR_CAT_RES_CHISQ_DOF * self._ones
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
