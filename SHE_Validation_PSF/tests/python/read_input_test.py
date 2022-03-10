@@ -24,6 +24,7 @@ from SHE_PPT.testing.utility import SheTestCase
 
 # Output data filenames
 from SHE_Validation.testing.mock_tables import write_mock_starcat_table
+from SHE_Validation_PSF.validate_psf_res import load_psf_res_input
 
 
 class TestPsfResReadInput(SheTestCase):
@@ -41,3 +42,7 @@ class TestPsfResReadInput(SheTestCase):
     def test_read_input(self, local_setup):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
+
+        (d_l_bin_limits,
+         p_star_cat,
+         star_cat) = load_psf_res_input(self.d_args, self.workdir)
