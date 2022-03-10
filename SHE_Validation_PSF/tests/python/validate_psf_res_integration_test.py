@@ -64,7 +64,7 @@ class TestPsfResRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def setup_workdir(self) -> None:
         """ Override parent setup, setting up data to work with here.
 
             TODO: Set up mock input data for testing.

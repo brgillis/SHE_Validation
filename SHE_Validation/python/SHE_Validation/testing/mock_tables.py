@@ -31,6 +31,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.file_io import try_remove_file, write_listfile, write_product_and_table, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
+from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
 from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
 from SHE_PPT.table_formats.mer_final_catalog import MerFinalCatalogFormat, mer_final_catalog_format
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat, she_measurements_table_format
@@ -276,7 +277,8 @@ def write_mock_starcat_table(workdir: str) -> str:
     write_product_and_table(product = create_dpd_she_star_catalog(),
                             product_filename = STAR_CAT_PRODUCT_FILENAME,
                             table = make_mock_starcat_table(),
-                            table_filename = STAR_CAT_TABLE_FILENAME)
+                            table_filename = STAR_CAT_TABLE_FILENAME,
+                            workdir = workdir)
 
     return STAR_CAT_PRODUCT_FILENAME
 

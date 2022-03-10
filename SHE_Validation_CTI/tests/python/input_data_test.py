@@ -39,7 +39,7 @@ class TestCtiGalInput(SheTestCase):
     """ Unit tests for loading CTI validation input data.
     """
 
-    def setup(self):
+    def setup_workdir(self):
 
         self._download_datastack()
 

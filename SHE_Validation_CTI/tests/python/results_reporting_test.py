@@ -64,7 +64,7 @@ class TestCtiResultsReporting(SheTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    def _setup(self):
+    def post_setup(self):
 
         # Make a pipeline_config using the default values
         self.pipeline_config = read_config(config_filename = None, config_keys = (GlobalConfigKeys,
@@ -85,8 +85,6 @@ class TestCtiResultsReporting(SheTestCase):
             bin_limits_array = np.array(bin_limits_list, dtype = float)
 
             self.d_bin_limits[test_case_info.bins] = bin_limits_array
-
-        super()._setup()
 
     def test_fail_sigma_scaling(self):
 
