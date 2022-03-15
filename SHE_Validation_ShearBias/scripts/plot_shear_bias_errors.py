@@ -2,7 +2,28 @@
 
     Script to generate a plot of shear bias errors compared to requirements.
 """
+
 import numpy as np
+from matplotlib import pyplot as plt
+
+# Measured error values
+
+MEASURED_ERRS = {"m": (0.00514, 0.00512),
+                 "c": (8.181e-5, 8.161e-5)}
+
+# Specify which bias will be plotted on which axis
+X_KEY = "m"
+Y_KEY = "c"
+
+AXIS_SIZE_FACTOR_HI = 2.5
+AXIS_SIZE_FACTOR_LO = 0.
+
+AXIS_LABELS = {"m": r"Multiplicative bias error $\sigma(m)$",
+               "c": r"Additive bias error $\sigma(c)$", }
+
+FILL_COLOR = {"m": "b",
+              "c": "r"}
+FILL_ALPHA = 0.15
 
 # Constants for requirement values
 
@@ -12,12 +33,49 @@ FULL_REQS = {"m": 2e-3,
 ALG_REQ_FACTOR = 20
 
 ALG_REQS = {"m": FULL_REQS["m"] / ALG_REQ_FACTOR,
-            "c": FULL_REQS["C"] / ALG_REQ_FACTOR}
+            "c": FULL_REQS["c"] / ALG_REQ_FACTOR}
 
-SPATIAL_REQ_FACTOR = np.sqrt(14514 / 59.5)
+SPATIAL_REQ_FACTOR = np.sqrt(14514. / 59.5)
 
 SPATIAL_REQS = {"m": FULL_REQS["m"] * SPATIAL_REQ_FACTOR,
-                "c": FULL_REQS["C"] * SPATIAL_REQ_FACTOR}
+                "c": FULL_REQS["c"] * SPATIAL_REQ_FACTOR}
 
 SPATIAL_ALG_REQS = {"m": ALG_REQS["m"] * SPATIAL_REQ_FACTOR,
-                    "c": ALG_REQS["C"] * SPATIAL_REQ_FACTOR}
+                    "c": ALG_REQS["c"] * SPATIAL_REQ_FACTOR}
+
+# What to plot
+REQS_TO_PLOT = (FULL_REQS,)
+
+# Determine limits
+l_d_mc_vals = (*REQS_TO_PLOT, MEASURED_ERRS)
+xmax = AXIS_SIZE_FACTOR_HI * np.max([np.max(a[X_KEY]) for a in l_d_mc_vals])
+ymax = AXIS_SIZE_FACTOR_HI * np.max([np.max(a[Y_KEY]) for a in l_d_mc_vals])
+xmin = AXIS_SIZE_FACTOR_LO * np.min([np.min(a[X_KEY]) for a in l_d_mc_vals])
+ymin = AXIS_SIZE_FACTOR_LO * np.min([np.min(a[Y_KEY]) for a in l_d_mc_vals])
+
+xlim = (xmin, xmax)
+ylim = (ymin, ymax)
+
+# Set up the plot
+fig = plt.figure()
+ax = fig.add_subplot(1, 1, 1)
+
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+
+ax.set_xlabel(AXIS_LABELS[X_KEY])
+ax.set_ylabel(AXIS_LABELS[Y_KEY])
+
+# Fill and outline regions for requirements
+for d_reqs in REQS_TO_PLOT:
+    ax.plot((d_reqs[X_KEY], d_reqs[X_KEY]), ylim, linestyle = "--", color = "k")
+    ax.fill_between((xmin, d_reqs[X_KEY]), (ymin, ymin), (ymax, ymax), color = FILL_COLOR[X_KEY], alpha = FILL_ALPHA)
+
+    ax.plot(xlim, (d_reqs[Y_KEY], d_reqs[Y_KEY]), linestyle = "--", color = "k")
+    ax.fill_between(xlim, (ymin, ymin), (d_reqs[Y_KEY], d_reqs[Y_KEY]), color = FILL_COLOR[Y_KEY], alpha = FILL_ALPHA)
+
+# Plot the points
+ax.scatter(MEASURED_ERRS[X_KEY], MEASURED_ERRS[Y_KEY], c = "k")
+
+plt.title('Shear Bias Error Validation')
+plt.show()
