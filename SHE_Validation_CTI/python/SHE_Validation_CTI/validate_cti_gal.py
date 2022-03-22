@@ -37,10 +37,11 @@ from SHE_PPT.file_io import (get_allowed_filename, read_d_method_tables, read_li
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.utility import join_without_none
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
-from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
 from . import __version__
@@ -317,18 +318,15 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot for each exposure
-                file_namer = CtiGalPlotFileNamer(method = method,
-                                                 bin_parameter = test_case_info.bins,
-                                                 bin_index = bin_index,
-                                                 exp_index = exp_index,
-                                                 workdir = workdir)
-                plotter = CtiPlotter(file_namer = file_namer,
-                                     object_table = object_data_table,
-                                     bin_limits = bin_limits,
-                                     l_ids_in_bin = l_test_case_object_ids, )
-                plotter.plot()
-                plot_label = f"{method.value}-{exp_index}-{test_case_info.bins.value}-{bin_index}"
-                plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
+                make_and_save_cti_gal_plot(method = method,
+                                           test_case_info = test_case_info,
+                                           bin_index = bin_index,
+                                           exp_index = exp_index,
+                                           object_data_table = object_data_table,
+                                           bin_limits = bin_limits,
+                                           l_test_case_object_ids = l_test_case_object_ids,
+                                           d_d_plot_filenames = plot_filenames,
+                                           workdir = workdir)
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
             merged_object_table = table_vstack(tables = l_object_data_table)
@@ -339,18 +337,15 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                 product_type = "OBS", )
 
             # Make a plot for the observation
-            file_namer = CtiGalPlotFileNamer(method = method,
-                                             bin_parameter = test_case_info.bins,
-                                             bin_index = bin_index,
-                                             exp_index = None,
-                                             workdir = workdir)
-            plotter = CtiPlotter(file_namer = file_namer,
-                                 object_table = merged_object_table,
-                                 bin_limits = bin_limits,
-                                 l_ids_in_bin = l_test_case_object_ids, )
-            plotter.plot()
-            plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
-            plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
+            make_and_save_cti_gal_plot(method = method,
+                                       test_case_info = test_case_info,
+                                       bin_index = bin_index,
+                                       exp_index = None,
+                                       object_data_table = merged_object_table,
+                                       bin_limits = bin_limits,
+                                       l_test_case_object_ids = l_test_case_object_ids,
+                                       d_d_plot_filenames = plot_filenames,
+                                       workdir = workdir)
 
             l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
             l_observation_regression_results_tables[bin_index] = observation_regression_results_table
@@ -362,3 +357,34 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
     # And we're done here, so return the results and object tables
     return d_l_exposure_regression_results_tables, d_l_observation_regression_results_tables, plot_filenames
+
+
+def make_and_save_cti_gal_plot(method: ShearEstimationMethods,
+                               test_case_info: TestCaseInfo,
+                               bin_index: int,
+                               exp_index: Optional[int],
+                               object_data_table: Table,
+                               bin_limits: Sequence[float],
+                               l_test_case_object_ids: Sequence[int],
+                               d_d_plot_filenames: Dict[str, Dict[str, str]],
+                               workdir: str) -> None:
+    """ Creates a CTI-Gal regression plot for a given data slice, saves it, and records the filename of the saved
+        plot in the provided d_d_plot_filenames dict.
+    """
+
+    # Create a file namer, and use dependency injection to provide it to the created plotter
+    file_namer = CtiGalPlotFileNamer(method = method,
+                                     bin_parameter = test_case_info.bins,
+                                     bin_index = bin_index,
+                                     exp_index = exp_index,
+                                     workdir = workdir)
+    plotter = CtiPlotter(file_namer = file_namer,
+                         object_table = object_data_table,
+                         bin_limits = bin_limits,
+                         l_ids_in_bin = l_test_case_object_ids, )
+
+    plotter.plot()
+
+    # Save the name of the created plot in the d_d_plot_filenames dict
+    plot_label = join_without_none([method.value, exp_index, test_case_info.bins.value, bin_index])
+    d_d_plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
