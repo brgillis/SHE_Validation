@@ -17,6 +17,8 @@ Deprecated Features
 
 Bug Fixes
 ---------
+- Fixed a bug in CTI-Gal test where plots were only being saved for one exposure, now generates for all exposures and
+  full observation properly
 
 
 New Features
