@@ -19,6 +19,7 @@ Bug Fixes
 ---------
 - Fixed a bug in CTI-Gal test where plots were only being saved for one exposure, now generates for all exposures and
   full observation properly
+- Fixed a bug where sometimes the CTI-Gal input data could be run without the MDB being inited.
 
 
 New Features
