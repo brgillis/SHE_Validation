@@ -316,17 +316,18 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                product_type = "EXP")
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
-                # Make a plot
+                # Make a plot for each exposure
                 file_namer = CtiGalPlotFileNamer(method = method,
                                                  bin_parameter = test_case_info.bins,
                                                  bin_index = bin_index,
+                                                 exp_index = exp_index,
                                                  workdir = workdir)
                 plotter = CtiPlotter(file_namer = file_namer,
                                      object_table = object_data_table,
                                      bin_limits = bin_limits,
                                      l_ids_in_bin = l_test_case_object_ids, )
                 plotter.plot()
-                plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
+                plot_label = f"{method.value}-{exp_index}-{test_case_info.bins.value}-{bin_index}"
                 plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
@@ -336,6 +337,20 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                 l_ids_in_bin = l_test_case_object_ids,
                                                                                 method = method,
                                                                                 product_type = "OBS", )
+
+            # Make a plot for the observation
+            file_namer = CtiGalPlotFileNamer(method = method,
+                                             bin_parameter = test_case_info.bins,
+                                             bin_index = bin_index,
+                                             exp_index = None,
+                                             workdir = workdir)
+            plotter = CtiPlotter(file_namer = file_namer,
+                                 object_table = merged_object_table,
+                                 bin_limits = bin_limits,
+                                 l_ids_in_bin = l_test_case_object_ids, )
+            plotter.plot()
+            plot_label = f"{method.value}-{test_case_info.bins.value}-{bin_index}"
+            plot_filenames[test_case_info.name][plot_label] = plotter.plot_filename
 
             l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
             l_observation_regression_results_tables[bin_index] = observation_regression_results_table
