@@ -327,9 +327,8 @@ STAR_CAT_FLUX_MAX = 100
 STAR_CAT_FLUX_ERR = 5
 STAR_CAT_SIGMA_E = 0.2
 STAR_CAT_E_ERR = 0.01
-STAR_CAT_RES_CHISQ_MEAN = 1000
-STAR_CAT_RES_CHISQ_ERR = 30
-STAR_CAT_RES_CHISQ_DOF = 1000
+STAR_CAT_NUM_UNMASKED_PER_STAR = 100
+STAR_CAT_NUM_FITTED_PER_GROUP = 10
 
 
 class MockStarCatDataGenerator(MockDataGenerator):
@@ -382,10 +381,29 @@ class MockStarCatDataGenerator(MockDataGenerator):
         self.data[self.tf.used_for_fit] = np.where(self._indices % 2 == 0, self._ones.astype(bool),
                                                    self._zeros.astype(bool))
 
-        # Gaussian dist of chi-squared, fixed value for DOF
-        self.data[self.tf.res_chisq] = self._rng.normal(loc = STAR_CAT_RES_CHISQ_MEAN, scale = STAR_CAT_RES_CHISQ_ERR,
-                                                        size = self.num_test_points)
-        self.data[self.tf.res_dof] = STAR_CAT_RES_CHISQ_DOF * self._ones
+        # Assign those where modulo 4 = 0 to group 0, others to group 1
+        self.data[self.tf.group_id] = np.where(self._indices % 4 == 0, 0, 1)
+
+        # Get a list of group IDs and the number of groups
+        l_group_ids = np.unique(self.data[self.tf.group_id])
+
+        # Determine data for each group
+        d_group_num_unmasked_pix = {}
+        d_group_num_fitted_params = {}
+        d_group_chisqs = {}
+        for group_id in l_group_ids:
+            num_stars_in_group = (self.data[self.tf.group_id] == group_id).sum()
+            d_group_num_unmasked_pix[group_id] = num_stars_in_group * STAR_CAT_NUM_UNMASKED_PER_STAR
+            d_group_num_fitted_params[group_id] = STAR_CAT_NUM_FITTED_PER_GROUP
+
+            dofs = d_group_num_unmasked_pix[group_id] - d_group_num_fitted_params[group_id]
+
+            d_group_chisqs[group_id] = self._rng.normal(loc = dofs, scale = np.sqrt(dofs))
+
+        # And assign this data to arrays for the table
+        self.data[self.tf.group_unmasked_pix] = d_group_num_unmasked_pix[self.data[self.tf.group_id]]
+        self.data[self.tf.group_num_fitted_params] = d_group_num_fitted_params[self.data[self.tf.group_id]]
+        self.data[self.tf.group_chisq] = d_group_chisqs[self.data[self.tf.group_id]]
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
