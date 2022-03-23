@@ -24,18 +24,60 @@ __updated__ = "2022-04-23"
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-from typing import Dict, Sequence
+from typing import Dict, List, Sequence
 
 from astropy.table import Table
 
 from SHE_PPT import logging as log
+from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
 
 logger = log.getLogger(__name__)
 
 
+# We'll be modifying the star catalog table a bit, so define an extended table format for the new columns
+
+class SheExtStarCatalogMeta(SheStarCatalogMeta):
+
+    def __init__(self):
+        super().__init__()
+
+        self.bin_parameter = "BIN_PAR"
+        self.bin_limits = "BIN_LIMS"
+
+
+class SheExtStarCatalogFormat(SheStarCatalogFormat):
+
+    def __init__(self):
+        super().__init__()
+
+        self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype = ">f4", fits_dtype = "E",
+                                                  comment = "p-value for a Chi-squared test on this group")
+
+        self._finalize_init()
+
+
 def test_psf_res(star_cat: Table,
-                 d_l_bin_limits = Dict[Sequence[float]]):
+                 d_l_bin_limits = Dict[Sequence[float]]) -> Dict[List[Table]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
     """
 
-    return
+    # Create a dict of lists of tables for results
+    d_l_psf_res_results: Dict[List[Table]] = {}
+
+    # Loop over bin parameters first, then over bin limits, and test for each
+    for bin_parameter in d_l_bin_limits:
+
+        # Create a list for the results of each set of bin limits
+        l_psf_res_results: List[Table] = []
+
+        l_bin_limits = d_l_bin_limits[bin_parameter]
+        num_bins = len(l_bin_limits) - 1
+
+        # Loop over bins now
+        for bin_index in range(num_bins):
+            bin_limits = l_bin_limits[bin_index:bin_index + 2]
+
+        # Add the list of results to the output dict
+        d_l_psf_res_results[bin_parameter] = l_psf_res_results
+
+    return d_l_psf_res_results
