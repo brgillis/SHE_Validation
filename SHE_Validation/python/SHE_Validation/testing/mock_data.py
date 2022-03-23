@@ -400,10 +400,13 @@ class MockStarCatDataGenerator(MockDataGenerator):
 
             d_group_chisqs[group_id] = self._rng.normal(loc = dofs, scale = np.sqrt(dofs))
 
-        # And assign this data to arrays for the table
-        self.data[self.tf.group_unmasked_pix] = d_group_num_unmasked_pix[self.data[self.tf.group_id]]
-        self.data[self.tf.group_num_fitted_params] = d_group_num_fitted_params[self.data[self.tf.group_id]]
-        self.data[self.tf.group_chisq] = d_group_chisqs[self.data[self.tf.group_id]]
+        # And assign this data to arrays for the table, applying the dicts to each element of the arrays
+        self.data[self.tf.group_unmasked_pix] = np.array([d_group_num_unmasked_pix[self.data[self.tf.group_id][i]]
+                                                          for i in self._indices])
+        self.data[self.tf.group_num_fitted_params] = np.array([d_group_num_fitted_params[self.data[self.tf.group_id][i]]
+                                                               for i in self._indices])
+        self.data[self.tf.group_chisq] = np.array([d_group_chisqs[self.data[self.tf.group_id][i]]
+                                                   for i in self._indices])
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
