@@ -372,8 +372,8 @@ class MockStarCatDataGenerator(MockDataGenerator):
         self.data[self.tf.flux_err] = STAR_CAT_FLUX_ERR * self._ones
 
         # Gaussian distributions for e1 and e2, fixed values for errors
-        self.data[self.tf.e1] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
-        self.data[self.tf.e2] = self._rng.uniform(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e1] = self._rng.normal(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
+        self.data[self.tf.e2] = self._rng.normal(loc = 0, scale = STAR_CAT_SIGMA_E, size = self.num_test_points)
         self.data[self.tf.e1_err] = STAR_CAT_E_ERR * self._ones
         self.data[self.tf.e2_err] = STAR_CAT_E_ERR * self._ones
 

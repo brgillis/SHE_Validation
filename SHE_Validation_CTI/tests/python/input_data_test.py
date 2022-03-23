@@ -39,9 +39,10 @@ class TestCtiGalInput(SheTestCase):
     """ Unit tests for loading CTI validation input data.
     """
 
-    def setup(self):
+    def setup_workdir(self):
 
         self._download_datastack()
+        self._download_mdb()
 
         # Set up some expected values
         self.EX_BG_LEVEL = 45.71

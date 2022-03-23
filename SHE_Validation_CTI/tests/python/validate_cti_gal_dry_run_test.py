@@ -77,7 +77,7 @@ class TestCtiGalRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def setup_workdir(self):
         """ Override parent setup, downloading data to work with here.
         """
 
@@ -144,10 +144,16 @@ class TestCtiGalRun(SheTestCase):
                     continue
                 key, value = line.strip().split(": ")
                 if key == "LensMC-tot-0":
-                    plot_filename = value
+                    obs_plot_filename = value
+                elif key == "LensMC-0-tot-0":
+                    exp_plot_filename = value
 
-        # Check that we found the filename for this plot
-        assert plot_filename is not None
+        # Check that we found the filenames for the plots
+        assert obs_plot_filename is not None
+        assert exp_plot_filename is not None
+
+        assert obs_plot_filename != exp_plot_filename
 
         # Check that this plot file exists
-        assert os.path.isfile(os.path.join(workdir, plot_filename))
+        assert os.path.isfile(os.path.join(workdir, obs_plot_filename))
+        assert os.path.isfile(os.path.join(workdir, exp_plot_filename))
