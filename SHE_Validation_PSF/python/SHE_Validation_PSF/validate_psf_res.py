@@ -49,6 +49,10 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
      p_star_cat,
      star_cat) = load_psf_res_input(d_args, workdir)
 
+    # Process the data, getting the results of the test
+    d_l_psf_res_test_results = test_psf_res(star_cat = star_cat,
+                                            d_l_bin_limits = d_l_bin_limits)
+
 
 def load_psf_res_input(d_args, workdir):
     """Function to load in required input data for the PSF Residual validation test.
