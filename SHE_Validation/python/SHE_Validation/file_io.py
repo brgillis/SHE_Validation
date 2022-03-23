@@ -43,11 +43,13 @@ class SheValFileNamer(SheFileNamer):
     _method: Optional[ShearEstimationMethods] = None
     _bin_parameter: Optional[BinParameters] = None
     _bin_index: Optional[int] = None
+    _exp_index: Optional[int] = None
 
     def __init__(self,
                  method: Optional[ShearEstimationMethods] = None,
                  bin_parameter: Optional[BinParameters] = None,
                  bin_index: Optional[int] = None,
+                 exp_index: Optional[int] = None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -60,6 +62,9 @@ class SheValFileNamer(SheFileNamer):
 
         if bin_index is not None:
             self._bin_index = bin_index
+
+        if exp_index is not None:
+            self._exp_index = exp_index
 
     @property
     def method(self) -> Optional[ShearEstimationMethods]:
@@ -88,6 +93,15 @@ class SheValFileNamer(SheFileNamer):
         self._bin_index = bin_index
         self.instance_id_body = None
 
+    @property
+    def exp_index(self) -> Optional[int]:
+        return self._exp_index
+
+    @exp_index.setter
+    def exp_index(self, exp_index: Optional[int]) -> None:
+        self._exp_index = exp_index
+        self.instance_id_body = None
+
     # Protected methods
 
     def _determine_instance_id_body(self):
@@ -105,6 +119,7 @@ class SheValFileNamer(SheFileNamer):
             bin_id_tail: Optional[str] = None
 
         self._instance_id_body = join_without_none(l_s = [method_value,
+                                                          self.exp_index,
                                                           bin_id_tail,
                                                           self.bin_index,
                                                           os.getpid()],
