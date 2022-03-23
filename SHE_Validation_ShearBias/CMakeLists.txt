@@ -16,3 +16,6 @@ elements_add_python_program(SHE_Validation_ValidateGlobalShearBias SHE_Validatio
 
 # Install the auxiliary files
 # elements_install_aux_files()
+
+# Install the scripts
+elements_install_scripts()
