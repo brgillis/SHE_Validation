@@ -24,12 +24,13 @@ __updated__ = "2022-04-23"
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Type
 
 from astropy.table import Table
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
+from SHE_PPT.table_utility import SheTableMeta
 
 logger = log.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class SheExtStarCatalogMeta(SheStarCatalogMeta):
 
 
 class SheExtStarCatalogFormat(SheStarCatalogFormat):
+    meta_type: Type[SheTableMeta] = SheExtStarCatalogMeta
 
     def __init__(self):
         super().__init__()
