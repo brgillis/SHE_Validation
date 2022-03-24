@@ -23,6 +23,7 @@ __updated__ = "2022-03-03"
 import os
 import subprocess
 from argparse import Namespace
+from typing import List, Optional
 
 import pytest
 
@@ -136,6 +137,9 @@ class TestCtiGalRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
 
+        EX_NUM_EXPOSURES = 4
+        l_exp_plot_filenames: List[Optional[str]] = [None] * EX_NUM_EXPOSURES
+
         # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
@@ -145,15 +149,16 @@ class TestCtiGalRun(SheTestCase):
                 key, value = line.strip().split(": ")
                 if key == "LensMC-tot-0":
                     obs_plot_filename = value
-                elif key == "LensMC-0-tot-0":
-                    exp_plot_filename = value
+                else:
+                    for exp_index in range(4):
+                        if key == f"LensMC-{exp_index}-tot-0":
+                            l_exp_plot_filenames[exp_index] = value
 
-        # Check that we found the filenames for the plots
+        # Check that we found the filenames for the plots and they all exist
         assert obs_plot_filename is not None
-        assert exp_plot_filename is not None
-
-        assert obs_plot_filename != exp_plot_filename
-
-        # Check that this plot file exists
         assert os.path.isfile(os.path.join(workdir, obs_plot_filename))
-        assert os.path.isfile(os.path.join(workdir, exp_plot_filename))
+
+        for exp_index in range(EX_NUM_EXPOSURES):
+            assert l_exp_plot_filenames[exp_index] is not None
+            assert obs_plot_filename != l_exp_plot_filenames[exp_index]
+            assert os.path.isfile(os.path.join(workdir, l_exp_plot_filenames[exp_index]))
