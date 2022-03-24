@@ -408,6 +408,11 @@ class MockStarCatDataGenerator(MockDataGenerator):
         self.data[self.tf.group_chisq] = np.array([d_group_chisqs[self.data[self.tf.group_id][i]]
                                                    for i in self._indices])
 
+        # Assign per-star data
+        self.data[self.tf.star_unmasked_pix] = STAR_CAT_NUM_UNMASKED_PER_STAR * self._ones
+        self.data[self.tf.star_chisq] = self._rng.normal(loc = STAR_CAT_NUM_UNMASKED_PER_STAR,
+                                                         scale = np.sqrt(STAR_CAT_NUM_UNMASKED_PER_STAR))
+
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
     """ Generate a mock dictionary of bin limits for testing.
