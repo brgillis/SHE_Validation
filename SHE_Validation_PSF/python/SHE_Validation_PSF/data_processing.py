@@ -27,6 +27,7 @@ __updated__ = "2022-04-23"
 from copy import deepcopy
 from typing import Dict, List, Sequence, Type
 
+import numpy as np
 from astropy.table import Table
 
 from SHE_PPT import logging as log
@@ -59,7 +60,8 @@ class SheExtStarCatalogFormat(SheStarCatalogFormat):
         super().__init__()
 
         self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype = ">f4", fits_dtype = "E",
-                                                  comment = "p-value for a Chi-squared test on this group")
+                                                  comment = "p-value for a Chi-squared test on this group",
+                                                  is_optional = True)
 
         self._finalize_init()
 
@@ -68,7 +70,7 @@ TF = SheExtStarCatalogFormat()
 
 
 def test_psf_res(star_cat: Table,
-                 d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[List[float]]:
+                 d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[BinParameters, List[float]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
     """
 
@@ -112,3 +114,10 @@ def test_psf_res(star_cat: Table,
         d_l_psf_res_result_ps[bin_parameter] = l_psf_res_result_ps
 
     return d_l_psf_res_result_ps
+
+
+def test_psf_res_for_bin(t: Table) -> float:
+    """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
+    """
+
+    return 0.
