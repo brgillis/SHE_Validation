@@ -47,6 +47,8 @@ CTI_GAL_DIRECTORY_FILENAME = D_CTI_DIRECTORY_FILENAMES[CtiTest.GAL]
 SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
 
+EX_NUM_EXPOSURES = 4
+
 
 class TestCtiGalRun(SheTestCase):
     """ Test case for CTI-Gal validation test code.
@@ -137,7 +139,6 @@ class TestCtiGalRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
 
-        EX_NUM_EXPOSURES = 4
         l_exp_plot_filenames: List[Optional[str]] = [None] * EX_NUM_EXPOSURES
 
         # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
