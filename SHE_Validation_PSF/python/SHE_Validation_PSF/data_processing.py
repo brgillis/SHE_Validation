@@ -29,6 +29,7 @@ from typing import Dict, List, Optional, Sequence, Type, Union
 
 import numpy as np
 from astropy.table import Row, Table
+from scipy.stats import chi2
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
@@ -72,6 +73,8 @@ TF = SheExtStarCatalogFormat()
 def test_psf_res(star_cat: Table,
                  d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[BinParameters, List[float]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
+
+        Returns a Dict of Lists of log(p) values for each test case and bin.
     """
 
     # Get lists of IDs in each bin
@@ -121,6 +124,8 @@ def test_psf_res_for_bin(star_cat: Table,
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
 
         If group_mode is set to True, will do the test on groups rather than individual stars
+
+        Returns log(p) for the set of tests (sum of log(p) for each group or individual star).
     """
 
     # Select the ID column based on the mode
@@ -139,7 +144,7 @@ def test_psf_res_for_bin(star_cat: Table,
     l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
     num_groups = len(l_unique_ids)
 
-    l_ps = np.ones(num_groups, dtype = float)
+    l_log_ps = np.ones(num_groups, dtype = float)
 
     # Run the test for each group
     star_cat.add_index(id_colname)
@@ -162,7 +167,9 @@ def test_psf_res_for_bin(star_cat: Table,
         else:
             num_fitted_params = 0
 
-        l_ps[i] = get_chisq_p(chisq = data_row[chisq_colname],
-                              dofs = data_row[num_pix_colname] - num_fitted_params)
+        l_log_ps[i] = chi2.logsf(x = data_row[chisq_colname],
+                                 df = data_row[num_pix_colname] - num_fitted_params)
 
-    return l_ps.product()
+    # Return the sum of the log(p) values, which is the log of the product of the p values - the probability
+    # of all these p values simultaneously
+    return l_log_ps.sum()
