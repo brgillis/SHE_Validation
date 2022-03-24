@@ -25,10 +25,10 @@ __updated__ = "2022-04-23"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 from copy import deepcopy
-from typing import Dict, List, Sequence, Type
+from typing import Dict, List, Optional, Sequence, Type, Union
 
 import numpy as np
-from astropy.table import Table
+from astropy.table import Row, Table
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
@@ -106,7 +106,7 @@ def test_psf_res(star_cat: Table,
             table_in_bin.meta[TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
 
             # Run the test on this table and store the result
-            l_psf_res_result_ps[bin_index] = test_psf_res_for_bin(t = table_in_bin)
+            l_psf_res_result_ps[bin_index] = test_psf_res_for_bin(star_cat = table_in_bin)
 
             # Store the resulting p-value for the test on this bin
 
@@ -116,8 +116,53 @@ def test_psf_res(star_cat: Table,
     return d_l_psf_res_result_ps
 
 
-def test_psf_res_for_bin(t: Table) -> float:
+def test_psf_res_for_bin(star_cat: Table,
+                         group_mode: bool = False) -> float:
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
+
+        If group_mode is set to True, will do the test on groups rather than individual stars
     """
 
-    return 0.
+    # Select the ID column based on the mode
+    if group_mode:
+        id_colname = TF.group_id
+        chisq_colname = TF.group_chisq
+        num_pix_colname = TF.group_unmasked_pix
+        num_fitted_params_colname: Optional[str] = TF.group_num_fitted_params
+    else:
+        id_colname = TF.id
+        chisq_colname = TF.star_chisq
+        num_pix_colname = TF.star_unmasked_pix
+        num_fitted_params_colname: Optional[str] = None
+
+    # We'll just use one row from each group, or each individual star, for the test
+    l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
+    num_groups = len(l_unique_ids)
+
+    l_ps = np.ones(num_groups, dtype = float)
+
+    # Run the test for each group
+    star_cat.add_index(id_colname)
+    for i, group_id in enumerate(l_unique_ids):
+        # Extract just the first row of each group
+        table_or_row_in_group: Union[Table, Row] = star_cat.loc[group_id]
+        if isinstance(table_or_row_in_group, Table):
+            # Multiple rows are in this group, so just get the first
+            data_row: Row = table_or_row_in_group[0]
+        elif isinstance(table_or_row_in_group, Row):
+            data_row: Row = table_or_row_in_group
+        else:
+            raise TypeError(f"Type of object returned by Table.loc is not recognized: {type(table_or_row_in_group)}")
+
+        # Run the test on this row
+
+        # Get the number of fitted params - if the colname is None, that means we have 0 fitted params
+        if num_fitted_params_colname is not None:
+            num_fitted_params = data_row[num_fitted_params_colname]
+        else:
+            num_fitted_params = 0
+
+        l_ps[i] = get_chisq_p(chisq = data_row[chisq_colname],
+                              dofs = data_row[num_pix_colname] - num_fitted_params)
+
+    return l_ps.product()
