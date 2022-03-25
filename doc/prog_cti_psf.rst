@@ -44,7 +44,7 @@ Common Elements Arguments
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -61,7 +61,7 @@ Input Arguments
      - Required
      - Default
    * - ``--star_catalog_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdSheStarCatalog <hhttps://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing PF-SHE's updated information on stars fit by the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program.
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing PF-SHE's updated information on stars fit by the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program.
      - yes
      - N/A
    * - ``--extended_catalog <filename>``
@@ -144,7 +144,7 @@ Inputs
 
 ``star_catalog_listfile``:
 
-**Description:** ``.json`` listfile pointing to ``.xml`` data products of type `DpdSheStarCatalog <hhttps://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing PF-SHE's updated information on stars fit by the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program. This contains the following relevant information for stars used in the fitting process:
+**Description:** ``.json`` listfile pointing to ``.xml`` data products of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing PF-SHE's updated information on stars fit by the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program. This contains the following relevant information for stars used in the fitting process:
 
 * Updated world position
 * Position on detector
@@ -312,7 +312,7 @@ Example
 
 **Note:** This program is still in development, and it is not yet possible to generate the needed ``star_catalog`` input data products. This example is provided to illustrate the intended functionality of this program.
 
-Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``mer_final_catalog_listfile``, and ``she_validated_measurements_product`` data, and then running the `SHE_Validation_CalcCommonValData <prog_ccvd.html#SHE_Validation_CalcCommonValData>`__ program to generate the ``extended_catalog`` data product, and also the `SHE_PSF_Toolkit_FitPSFs <phttps://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program to generate the ``star_catalog_listfile`` and the data products it points to.
+Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``mer_final_catalog_listfile``, and ``she_validated_measurements_product`` data, and then running the `SHE_Validation_CalcCommonValData <prog_ccvd.html#SHE_Validation_CalcCommonValData>`__ program to generate the ``extended_catalog`` data product, and also the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program to generate the ``star_catalog_listfile`` and the data products it points to.
 
 The program can then be run with the following command in an EDEN 2.1 environment:
 

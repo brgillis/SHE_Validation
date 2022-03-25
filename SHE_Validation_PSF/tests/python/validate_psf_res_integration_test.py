@@ -24,13 +24,14 @@ import os
 import subprocess
 from argparse import Namespace
 
+from SHE_Validation.testing.mock_tables import write_mock_starcat_table
+
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import write_mock_starcat_table
 from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions, mainMethod
 
 # Output data filenames
@@ -114,7 +115,7 @@ class TestPsfResRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, PSF_RES_DIRECTORY_FILENAME)
 
-        # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
+        # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:

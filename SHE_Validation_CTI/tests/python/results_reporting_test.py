@@ -388,7 +388,7 @@ class TestCtiResultsReporting(SheTestCase):
 
     @pytest.fixture(scope = 'class')
     def lmc_indices(self, l_exp_results):
-        # Figure out the index for LensMC Tot and olour test results and MomentsML tot test results and save it
+        # Figure out the index for LensMC Tot and colour test results and MomentsML tot test results and save it
         # for each check
         test_case_index = 0
         lensmc_global_test_case_index: int = -1

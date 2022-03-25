@@ -59,7 +59,7 @@ def calc_common_val_data_from_args(d_args: Dict[str, Any]):
     # We'll modify the detections stack attribute within the data stack to create the extended table
     extended_catalog: Table = data_stack.detections_catalogue
 
-    # Add bin data colums to the table
+    # Add bin data columns to the table
     add_binning_data(extended_catalog, data_stack = data_stack)
 
     # Write out to a fits file
