@@ -32,6 +32,7 @@ from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_er
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
 from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
+from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -78,7 +79,7 @@ class MockDataProcessor(NamedTuple):
         pass
 
 
-class TestShearBias:
+class TestShearBias(SheTestCase):
     """ Unit tests for plotting shear bias results
     """
 
