@@ -24,7 +24,6 @@ import os
 from typing import Any, Dict, List, NamedTuple, Sequence
 
 import numpy as np
-import pytest
 from astropy.table import Table
 
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
@@ -32,13 +31,13 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
-from SHE_Validation.testing.mock_data import (EST_SEED, make_mock_bin_limits, )
-from SHE_Validation.testing.mock_tables import cleanup_mock_matched_tables, make_mock_matched_table
+from SHE_Validation.testing.mock_data import make_mock_bin_limits
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      )
 from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
@@ -103,30 +102,9 @@ class TestShearBias:
     d_d_m_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
     d_d_c_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
 
-    @classmethod
-    def setup_class(cls):
-        """ Setup is handled in setup method due to use of tmpdir fixture.
-        """
-        pass
-
-    @classmethod
-    def teardown_class(cls):
-        """ Necessary presence alongside setup_class.
-        """
-
-        # Delete the created data
-        if cls.workdir:
-            cleanup_mock_matched_tables(cls.workdir)
-
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
+    def post_setup(self):
         """ Sets up workdir and data for our use.
         """
-
-        # Set up workdir
-        self.workdir = tmpdir.strpath
-        self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
 
         # Set up the data we'll be processing
 
@@ -148,8 +126,10 @@ class TestShearBias:
                                                ShearEstimationMethods.KSB]):
             tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
-            matched_table = make_mock_matched_table(method = method,
-                                                    seed = EST_SEED + method_index)
+            matched_table_gen = MockTUMatchedTableGenerator(method = method,
+                                                            workdir = self.workdir)
+
+            matched_table = matched_table_gen.get_mock_table()
             self.d_matched_tables[method] = matched_table
 
             l_good_g1_in: Sequence[float] = -matched_table[tf.tu_gamma1][:NUM_GOOD_TEST_POINTS]

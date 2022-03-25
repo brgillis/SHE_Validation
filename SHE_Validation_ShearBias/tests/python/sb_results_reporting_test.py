@@ -31,12 +31,12 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, DEFAULT_C_TARGET, DEFAULT_M_TARGET
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
+from SHE_PPT.testing.mock_measurements_cat import D_D_L_D_INPUT_BIAS
 from SHE_Validation.constants.default_config import ExecutionMode, FailSigmaScaling
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, )
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
-from SHE_Validation.testing.mock_data import D_D_L_D_INPUT_BIAS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
