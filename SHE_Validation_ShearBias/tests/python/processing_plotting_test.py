@@ -24,6 +24,7 @@ import os
 from typing import Any, Dict, List, NamedTuple, Sequence
 
 import numpy as np
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from astropy.table import Table
 
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
@@ -31,7 +32,6 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
-from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
@@ -129,6 +129,8 @@ class TestShearBias(SheTestCase):
 
             matched_table = matched_table_gen.get_mock_table()
             self.d_matched_tables[method] = matched_table
+
+            # TODO: Tables need to have binning columns added back in here
 
             l_good_g1_in: Sequence[float] = -matched_table[tf.tu_gamma1][:NUM_GOOD_TEST_POINTS]
             l_good_g2_in: Sequence[float] = matched_table[tf.tu_gamma2][:NUM_GOOD_TEST_POINTS]
