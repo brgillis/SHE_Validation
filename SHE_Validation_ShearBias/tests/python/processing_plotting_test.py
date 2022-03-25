@@ -83,9 +83,6 @@ class TestShearBias(SheTestCase):
     """ Unit tests for plotting shear bias results
     """
 
-    workdir: str = ""
-    logdir: str = ""
-
     rng: Any
 
     d_l_bin_limits: Dict[BinParameters, np.ndarray]
@@ -276,7 +273,7 @@ class TestShearBias(SheTestCase):
             np.testing.assert_allclose(data_loader.d_g_out[i], mock_data_loader.d_g_out[i])
             np.testing.assert_allclose(data_loader.d_g_out_err[i], mock_data_loader.d_g_out_err[i])
 
-    def test_data_loader(self):
+    def test_data_loader(self, local_setup):
         """ Tests loading in shear bias data.
         """
 
