@@ -396,7 +396,7 @@ class TestCtiResultsReporting(SheTestCase):
         momentsml_global_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
-            exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
+            assert l_exp_results[0].Data.ValidationTestList[test_case_index] is not None
 
             if test_case_info.method == ShearEstimationMethods.LENSMC:
                 if test_case_info.bins == BinParameters.TOT:

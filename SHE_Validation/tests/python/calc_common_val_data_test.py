@@ -24,7 +24,10 @@ import os
 
 import numpy as np
 import pytest
+from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables, cleanup_mock_mfc_table,
+                                                write_mock_measurements_tables, write_mock_mfc_table, )
 from astropy.table import Table
+# noinspection PyProtectedMember
 from py._path.local import LocalPath
 
 from SHE_PPT.argument_parser import CA_MER_CAT, CA_SHE_MEAS
@@ -35,8 +38,6 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.CalcCommonValData import (defineSpecificProgramOptions, mainMethod, )
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables, cleanup_mock_mfc_table,
-                                                write_mock_measurements_tables, write_mock_mfc_table, )
 
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 

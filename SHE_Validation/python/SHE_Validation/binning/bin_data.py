@@ -222,7 +222,7 @@ def _determine_data_table(t: Table,
         full_data_table: Table = data_stack.detections_catalogue
 
         # We need to make sure IDs align, so here we select on IDs in t
-        if not MFC_TF.ID in full_data_table.indices:
+        if MFC_TF.ID not in full_data_table.indices:
             full_data_table.add_index(MFC_TF.ID)
 
         l_ids = t[MFC_TF.ID]
