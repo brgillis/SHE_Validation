@@ -27,7 +27,9 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Type, Union
 import numpy as np
 from astropy.table import Column, Row, Table, vstack as table_vstack
 
-from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods
+from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
+                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
+                                                        ShearEstimationMethods, )
 from SHE_PPT.file_io import MultiTableLoader, TableLoader
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
@@ -36,6 +38,9 @@ from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
 from .bin_data import D_COLUMN_ADDING_METHODS, TF as BIN_TF
 from ..constants.default_config import DEFAULT_BIN_LIMITS
 from ..constants.test_info import BinParameters, TestCaseInfo
+
+POSSIBLE_BIN_TFS = (BIN_TF, *D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.values(),
+                    *D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS.values())
 
 
 class BinConstraint(abc.ABC):
@@ -446,7 +451,20 @@ class BinParameterBinConstraint(RangeBinConstraint):
             return super().is_in_bin(data)
 
         # For other cases, we need to make sure we have the needed data and add it if not
-        new_bin_colname = getattr(BIN_TF, self.bin_parameter.value)
+
+        # First, we need to determine the table format of the data. Search through possible known table formats
+        new_bin_colname: Optional[str] = None
+        for tf in POSSIBLE_BIN_TFS:
+            test_bin_colname = getattr(tf, self.bin_parameter.value)
+            if test_bin_colname in data.colnames:
+                new_bin_colname = test_bin_colname
+                break
+
+        if new_bin_colname is None:
+            raise TypeError(f"Table 'data' passed to 'is_in_bin' method is not of any format known to be able to "
+                            f"provide binning data - attribute {self.bin_parameter.value} not present. Possible table "
+                            f"formats are: {POSSIBLE_BIN_TFS}")
+
         if new_bin_colname not in data.colnames:
             D_COLUMN_ADDING_METHODS[self.bin_parameter](data, data_stack)
 
