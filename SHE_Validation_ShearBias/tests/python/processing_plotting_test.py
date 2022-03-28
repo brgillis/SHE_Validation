@@ -24,7 +24,6 @@ import os
 from typing import Any, Dict, List, NamedTuple, Sequence
 
 import numpy as np
-from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from astropy.table import Table
 
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
@@ -32,6 +31,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
@@ -44,6 +44,8 @@ from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIA
 from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
                                                       ShearBiasTestCaseDataProcessor, )
 from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
+
+TEST_TABLE_FILENAME = "tu_matched_table.fits"
 
 
 class MockDataLoader(NamedTuple):
@@ -280,8 +282,7 @@ class TestShearBias(SheTestCase):
         """
 
         # Set up filenames
-        tu_matched_table_filename = "tu_matched_table.fits"
-        qualified_tu_matched_table_filename = os.path.join(self.workdir, tu_matched_table_filename)
+        qualified_tu_matched_table_filename = os.path.join(self.workdir, TEST_TABLE_FILENAME)
 
         for method in TEST_METHODS:
 
@@ -290,7 +291,7 @@ class TestShearBias(SheTestCase):
                                                 overwrite = True)
 
             # Create a data loader object and load in the data
-            data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+            data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
                                               workdir = self.workdir,
                                               method = method)
             data_loader.load_ids(self.good_ids)
@@ -319,7 +320,7 @@ class TestShearBias(SheTestCase):
                                                      overwrite = True)
 
         # Create a data loader object and load in the data
-        data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+        data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
                                           workdir = self.workdir,
                                           method = bin_test_method)
 
