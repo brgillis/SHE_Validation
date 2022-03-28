@@ -21,7 +21,7 @@ __updated__ = "2021-08-31"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Any, Dict, List, NamedTuple, Sequence
+from typing import Any, Dict, List, NamedTuple, Sequence, Type
 
 import numpy as np
 from astropy.table import Table
@@ -31,7 +31,8 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
-from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
+from SHE_PPT.testing.mock_tables import MockDataGeneratorType
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedDataGenerator, MockTUMatchedTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
@@ -81,6 +82,33 @@ class MockDataProcessor(NamedTuple):
         pass
 
 
+class MockValTUMatchedDataGenerator(MockTUMatchedDataGenerator):
+    """ Subclass of MockTUMatchedDataGenerator which also generates data for columns used for binning.
+    """
+
+    def _generate_unique_data(self):
+        """ Inherit data generation, and also add columns for binning data.
+        """
+
+        super()._generate_unique_data()
+
+        i: int
+        bin_parameter: BinParameters
+        for i, bin_parameter in enumerate(BinParameters):
+            if bin_parameter == BinParameters.TOT:
+                continue
+            colname = getattr(self.tf, bin_parameter.value)
+            factor = 2 ** i
+            self.data[colname] = np.where(self._indices % factor < factor / 2, self._ones, self._zeros)
+
+
+class MockValTUMatchedTableGenerator(MockTUMatchedTableGenerator):
+    """ Subclass of MockTUMatchedTableGenerator which uses the MockValTUMatchedDataGenerator data generator.
+    """
+
+    mock_data_generator_type: Type[MockDataGeneratorType] = MockValTUMatchedDataGenerator
+
+
 class TestShearBias(SheTestCase):
     """ Unit tests for plotting shear bias results
     """
@@ -126,8 +154,8 @@ class TestShearBias(SheTestCase):
                                                ShearEstimationMethods.KSB]):
             tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
-            matched_table_gen = MockTUMatchedTableGenerator(method = method,
-                                                            workdir = self.workdir)
+            matched_table_gen = MockValTUMatchedTableGenerator(method = method,
+                                                               workdir = self.workdir)
 
             matched_table = matched_table_gen.get_mock_table()
             self.d_matched_tables[method] = matched_table
