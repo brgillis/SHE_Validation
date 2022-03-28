@@ -134,7 +134,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
-    def test_calc_regression_results(self, mock_data, object_data_table, detections_table, measurements_table):
+    def test_calc_regression_results(self, object_data_table, detections_table, measurements_table):
 
         d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
 
