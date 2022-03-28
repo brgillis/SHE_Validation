@@ -455,7 +455,10 @@ class BinParameterBinConstraint(RangeBinConstraint):
         # First, we need to determine the table format of the data. Search through possible known table formats
         new_bin_colname: Optional[str] = None
         for tf in POSSIBLE_BIN_TFS:
-            test_bin_colname = getattr(tf, self.bin_parameter.value)
+            try:
+                test_bin_colname = getattr(tf, self.bin_parameter.value)
+            except AttributeError:
+                continue
             if test_bin_colname in data.colnames:
                 new_bin_colname = test_bin_colname
                 break
