@@ -450,10 +450,16 @@ class BinParameterBinConstraint(RangeBinConstraint):
         if self.bin_parameter == BinParameters.TOT:
             return super().is_in_bin(data)
 
+        new_bin_colname: Optional[str] = None
+
+        # EPOCH case doesn't have columns defined for it in table formats yet, so we use a hack to get around that
+        # until it's ready
+        if self.bin_parameter == BinParameters.EPOCH:
+            new_bin_colname = self.bin_parameter.name
+
         # For other cases, we need to make sure we have the needed data and add it if not
 
         # First, we need to determine the table format of the data. Search through possible known table formats
-        new_bin_colname: Optional[str] = None
         for tf in POSSIBLE_BIN_TFS:
             try:
                 test_bin_colname = getattr(tf, self.bin_parameter.value)
