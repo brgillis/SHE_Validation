@@ -135,6 +135,13 @@ class CtiPlotter(ValidationPlotter):
             opt_method_str = f"method {self.method_name}, "
             plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
 
+        # Append note of exposure or observation
+        exp_index = self.file_namer.exp_index
+        if exp_index is None:
+            plot_title += "- Full Observation"
+        else:
+            plot_title += f"- Exposure {exp_index}"
+
         # Check if there's any valid data for this bin
         if len(l_rr_dist) <= 1:
             # We'll always make the tot plot for testing purposes, but log a warning if no data

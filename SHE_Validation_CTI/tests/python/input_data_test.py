@@ -42,6 +42,7 @@ class TestCtiGalInput(SheTestCase):
     def setup(self):
 
         self._download_datastack()
+        self._download_mdb()
 
         # Set up some expected values
         self.EX_BG_LEVEL = 45.71

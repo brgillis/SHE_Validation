@@ -23,6 +23,7 @@ __updated__ = "2022-03-03"
 import os
 import subprocess
 from argparse import Namespace
+from typing import List, Optional
 
 import pytest
 
@@ -45,6 +46,8 @@ CTI_GAL_DIRECTORY_FILENAME = D_CTI_DIRECTORY_FILENAMES[CtiTest.GAL]
 
 SHE_OBS_TEST_RESULTS_PRODUCT_FILENAME = "she_observation_validation_test_results.xml"
 SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.json"
+
+EX_NUM_EXPOSURES = 4
 
 
 class TestCtiGalRun(SheTestCase):
@@ -136,6 +139,8 @@ class TestCtiGalRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
 
+        l_exp_plot_filenames: List[Optional[str]] = [None] * EX_NUM_EXPOSURES
+
         # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
@@ -144,10 +149,17 @@ class TestCtiGalRun(SheTestCase):
                     continue
                 key, value = line.strip().split(": ")
                 if key == "LensMC-tot-0":
-                    plot_filename = value
+                    obs_plot_filename = value
+                else:
+                    for exp_index in range(4):
+                        if key == f"LensMC-{exp_index}-tot-0":
+                            l_exp_plot_filenames[exp_index] = value
 
-        # Check that we found the filename for this plot
-        assert plot_filename is not None
+        # Check that we found the filenames for the plots and they all exist
+        assert obs_plot_filename is not None
+        assert os.path.isfile(os.path.join(workdir, obs_plot_filename))
 
-        # Check that this plot file exists
-        assert os.path.isfile(os.path.join(workdir, plot_filename))
+        for exp_index in range(EX_NUM_EXPOSURES):
+            assert l_exp_plot_filenames[exp_index] is not None
+            assert obs_plot_filename != l_exp_plot_filenames[exp_index]
+            assert os.path.isfile(os.path.join(workdir, l_exp_plot_filenames[exp_index]))
