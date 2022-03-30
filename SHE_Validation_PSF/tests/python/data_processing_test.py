@@ -25,7 +25,7 @@ from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
 from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.data_processing import test_psf_res_for_bin
+from SHE_Validation_PSF.data_processing import run_psf_res_val_test_for_bin
 
 MIN_ALLOWED_P = 0.05
 
@@ -41,28 +41,24 @@ class TestPsfDataProcessing(SheTestCase):
         """
 
         mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
-        self.mock_starcat_table = mock_starcat_table_gen.get_mock_table()
+        self.mock_good_starcat_table = mock_starcat_table_gen.get_mock_table()
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 
-        return
-
-    def test_test_psf_res_for_bin(self, local_setup):
+    def test_psf_res_for_bin(self):
         """ Test running the "test_psf_res_for_bin" function, using all data in the table.
         """
 
         # Run a test for individual stars
-        star_kstest_result = test_psf_res_for_bin(star_cat = self.mock_starcat_table,
-                                                  group_mode = False)
+        star_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_good_starcat_table,
+                                                          group_mode = False)
 
         # And for the group
-        group_kstest_result = test_psf_res_for_bin(star_cat = self.mock_starcat_table,
-                                                   group_mode = True)
+        group_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_good_starcat_table,
+                                                           group_mode = True)
 
         # Check that the results are reasonable, and that the two modes are doing something different
         assert star_kstest_result.pvalue > MIN_ALLOWED_P
         assert group_kstest_result.pvalue > MIN_ALLOWED_P
 
         assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
-
-    pass

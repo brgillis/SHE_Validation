@@ -71,8 +71,9 @@ class SheExtStarCatalogFormat(SheStarCatalogFormat):
 TF = SheExtStarCatalogFormat()
 
 
-def test_psf_res(star_cat: Table,
-                 d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[BinParameters, List[KstestResult]]:
+def run_psf_res_val_test(star_cat: Table,
+                         d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[
+    BinParameters, List[KstestResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
         Returns a Dict of Lists of log(p) values for each test case and bin.
@@ -110,7 +111,7 @@ def test_psf_res(star_cat: Table,
             table_in_bin.meta[TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
 
             # Run the test on this table and store the result
-            l_psf_res_result_ps[bin_index] = test_psf_res_for_bin(star_cat = table_in_bin)
+            l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin)
 
             # Store the resulting p-value for the test on this bin
 
@@ -120,8 +121,8 @@ def test_psf_res(star_cat: Table,
     return d_l_psf_res_result_ps
 
 
-def test_psf_res_for_bin(star_cat: Table,
-                         group_mode: bool = False) -> KstestResult:
+def run_psf_res_val_test_for_bin(star_cat: Table,
+                                 group_mode: bool = False) -> KstestResult:
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
 
         If group_mode is set to True, will do the test on groups rather than individual stars
