@@ -7,21 +7,8 @@
 
 __updated__ = "2021-08-27"
 
-# Copyright (C) 2012-2020 Euclid Science Ground Segment
-#
-# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
-# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
-# any later version.
-#
-# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
-# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-# details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
 from copy import deepcopy
-from typing import Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 import pytest
@@ -47,6 +34,19 @@ from SHE_Validation_CTI.results_reporting import (DESC_INTERCEPT_INFO, DESC_SLOP
                                                   KEY_INTERCEPT_INFO, KEY_SLOPE_INFO, MSG_NAN_SLOPE, MSG_ZERO_SLOPE_ERR,
                                                   Z_FORMAT, fill_cti_gal_validation_results, )
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
+
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 logger = getLogger(__name__)
 
@@ -168,7 +168,7 @@ class TestCtiResultsReporting(SheTestCase):
                 assert np.isclose(tcb_fail_sigma_calculator.d_scaled_local_sigma[test_case_name],
                                   first_tcb_local_fail_sigma)
 
-    def test_test_case_ids(self, l_exp_results):
+    def test_test_case_ids(self, l_exp_results: List[Any]):
         """Check the test case IDs are all correct.
         """
         test_case_index = 0
@@ -181,7 +181,9 @@ class TestCtiResultsReporting(SheTestCase):
 
     # Check the results for each exposure are as expected. Only check for LensMC-Tot here
 
-    def test_exposure_all_pass(self, l_exp_results, lmc_indices):
+    def test_exposure_all_pass(self,
+                               l_exp_results: List[Any],
+                               lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -221,7 +223,9 @@ class TestCtiResultsReporting(SheTestCase):
                 in exp_intercept_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_intercept_info_string
 
-    def test_exposure_most_pass(self, l_exp_results, lmc_indices):
+    def test_exposure_most_pass(self,
+                                l_exp_results: List[Any],
+                                lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -256,7 +260,9 @@ class TestCtiResultsReporting(SheTestCase):
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
 
-    def test_exposure_fail_pass(self, l_exp_results, lmc_indices):
+    def test_exposure_fail_pass(self,
+                                l_exp_results: List[Any],
+                                lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -271,7 +277,9 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
 
-    def test_exposure_pass_fail(self, l_exp_results, lmc_indices):
+    def test_exposure_pass_fail(self,
+                                l_exp_results: List[Any],
+                                lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -286,7 +294,9 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 3. / 2.
         assert requirement_object.ValidationResult == RESULT_PASS
 
-    def test_exposure_both_fail(self, l_exp_results, lmc_indices):
+    def test_exposure_both_fail(self,
+                                l_exp_results: List[Any],
+                                lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -301,7 +311,9 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.MeasuredValue[0].Value.FloatValue == 15. / 2.
         assert requirement_object.ValidationResult == RESULT_FAIL
 
-    def test_exposure_zero_err(self, l_exp_results, lmc_indices):
+    def test_exposure_zero_err(self,
+                               l_exp_results: List[Any],
+                               lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -319,7 +331,9 @@ class TestCtiResultsReporting(SheTestCase):
         exp_slope_info_string = requirement_object.SupplementaryInformation.Parameter[0].StringValue
         assert MSG_ZERO_SLOPE_ERR in exp_slope_info_string
 
-    def test_exposure_nan_data(self, l_exp_results, lmc_indices):
+    def test_exposure_nan_data(self,
+                               l_exp_results: List[Any],
+                               lmc_indices: Tuple[int, int]):
         """ Test that the filled results are as expected
         """
 
@@ -387,8 +401,8 @@ class TestCtiResultsReporting(SheTestCase):
                 assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
 
     @pytest.fixture(scope = 'class')
-    def lmc_indices(self, l_exp_results):
-        # Figure out the index for LensMC Tot and olour test results and MomentsML tot test results and save it
+    def lmc_indices(self, l_exp_results: List[Any]):
+        # Figure out the index for LensMC Tot and colour test results and MomentsML tot test results and save it
         # for each check
         test_case_index = 0
         lensmc_global_test_case_index: int = -1
@@ -396,7 +410,7 @@ class TestCtiResultsReporting(SheTestCase):
         momentsml_global_test_case_index: int = -1
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
-            exp_test_result = l_exp_results[0].Data.ValidationTestList[test_case_index]
+            assert l_exp_results[0].Data.ValidationTestList[test_case_index] is not None
 
             if test_case_info.method == ShearEstimationMethods.LENSMC:
                 if test_case_info.bins == BinParameters.TOT:

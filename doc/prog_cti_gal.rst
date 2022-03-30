@@ -42,7 +42,7 @@ Common Elements Arguments
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -307,7 +307,7 @@ optionally any of the following which apply to this executable:
      - List of quoted, space-separated values listing the bin limits for when binning by epoch.
      - Will use default bin limits, as listed above in the `Options`_ section above.
 
-See `Bin Definitions <bin_definitions>`_ for the spefic definitions of values used for binning.
+See `Bin Definitions <bin_definitions>`_ for the specific definitions of values used for binning.
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
