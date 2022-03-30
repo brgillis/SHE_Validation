@@ -26,8 +26,9 @@ import numpy as np
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
 from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.data_processing import run_psf_res_val_test_for_bin
+from SHE_Validation_PSF.data_processing import run_psf_res_val_test, run_psf_res_val_test_for_bin
 
 MIN_ALLOWED_P = 0.05
 
@@ -83,3 +84,10 @@ class TestPsfDataProcessing(SheTestCase):
 
         assert star_bad_kstest_result.pvalue < star_kstest_result.pvalue
         assert star_too_good_kstest_result.pvalue < star_kstest_result.pvalue
+
+    def test_run_psf_res_val_test(self):
+        """ Test that the function for testing across all bins works as expected.
+        """
+
+        d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_good_starcat_table,
+                                                  d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
