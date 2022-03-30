@@ -33,7 +33,7 @@ from scipy.stats import chi2, kstest, uniform
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
-from SHE_PPT.table_formats.she_star_catalog import SC_TF, SheStarCatalogFormat, SheStarCatalogMeta
+from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
 from SHE_Validation.binning.bin_data import BIN_TF
@@ -132,7 +132,7 @@ def add_snr_column_to_star_cat(star_cat):
     """Adds the SNR column to the star catalog if not already present.
     """
     if BIN_TF.snr not in star_cat.colnames:
-        star_cat[BIN_TF.snr] = star_cat[SC_TF.flux] / star_cat[SC_TF.flux_err]
+        star_cat[BIN_TF.snr] = star_cat[SHE_STAR_CAT_TF.flux] / star_cat[SHE_STAR_CAT_TF.flux_err]
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,

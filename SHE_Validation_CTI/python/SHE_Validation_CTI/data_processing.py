@@ -29,7 +29,7 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
-from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
+from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
@@ -88,7 +88,7 @@ def calculate_regression_results(object_data_table: table.Table,
     else:
         method_name = None
         method_tail = ""
-        odt_tf = SC_TF
+        odt_tf = SHE_STAR_CAT_TF
 
     # Initialize a table for the output data
     regression_results_table = RR_TF.init_table(product_type = product_type, size = 1)

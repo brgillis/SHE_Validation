@@ -28,7 +28,7 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults, linregress_with_errors
-from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
+from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
 from SHE_PPT.utility import coerce_to_list
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.constants.test_info import BinParameters
@@ -78,8 +78,8 @@ class CtiPlotter(ValidationPlotter):
 
         # Determine attrs from kwargs
         if self.method is None:
-            self._g1_colname = SC_TF.e1
-            self._g1_err_colname = SC_TF.e1_err
+            self._g1_colname = SHE_STAR_CAT_TF.e1
+            self._g1_err_colname = SHE_STAR_CAT_TF.e1_err
         else:
             self.method_name = self.method.value
             self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
