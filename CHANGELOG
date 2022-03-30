@@ -8,6 +8,7 @@ API Changes
 - Added new executable SHE_Validation_ValidatePSFRes
   - Main executable and interface implemented
   - Reading in of input data implemented
+  - Processing of data implemented
 
 Dependency Changes
 ------------------
