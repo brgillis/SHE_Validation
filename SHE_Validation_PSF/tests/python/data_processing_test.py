@@ -19,6 +19,8 @@ __updated__ = "2022-04-30"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from copy import deepcopy
+
 import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
@@ -40,10 +42,20 @@ class TestPsfDataProcessing(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
+        setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
+
+        # Generate a table with good chi2 data
         mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
         self.mock_good_starcat_table = mock_starcat_table_gen.get_mock_table()
+        tf = mock_starcat_table_gen.tf
 
-        setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
+        # And tables with bad chi2 data
+        self.mock_bad_starcat_table = deepcopy(self.mock_good_starcat_table)
+        self.mock_too_good_starcat_table = deepcopy(self.mock_good_starcat_table)
+
+        # Let's pretend chi2 for individual stars is too bad for the first table, and too good for the second
+        self.mock_bad_starcat_table[tf.star_chisq] += 2
+        self.mock_too_good_starcat_table[tf.star_chisq] -= 2
 
     def test_run_psf_res_val_test_for_bin(self):
         """ Test running the "test_psf_res_for_bin" function, using all data in the table.
@@ -62,3 +74,12 @@ class TestPsfDataProcessing(SheTestCase):
         assert group_kstest_result.pvalue > MIN_ALLOWED_P
 
         assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
+
+        # Now try with the bad and too-good data, and check that the p-values for each are lower
+        star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
+                                                              group_mode = False)
+        star_too_good_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_too_good_starcat_table,
+                                                                   group_mode = False)
+
+        assert star_bad_kstest_result.pvalue < star_kstest_result.pvalue
+        assert star_too_good_kstest_result.pvalue < star_kstest_result.pvalue
