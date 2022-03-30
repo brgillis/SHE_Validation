@@ -31,6 +31,7 @@ from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT, CA_WORK
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.file_io import read_product_and_table
 from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation_PSF.data_processing import run_psf_res_val_test
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 
 logger = log.getLogger(__name__)
@@ -50,8 +51,8 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
      star_cat) = load_psf_res_input(d_args, workdir)
 
     # Process the data, getting the results of the test
-    d_l_psf_res_test_results = test_psf_res(star_cat = star_cat,
-                                            d_l_bin_limits = d_l_bin_limits)
+    d_l_psf_res_test_results = run_psf_res_val_test(star_cat = star_cat,
+                                                    d_l_bin_limits = d_l_bin_limits)
 
 
 def load_psf_res_input(d_args, workdir):
