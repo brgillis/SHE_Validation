@@ -26,8 +26,10 @@ import numpy as np
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
 from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO
 from SHE_Validation_PSF.data_processing import run_psf_res_val_test, run_psf_res_val_test_for_bin
 
 MIN_ALLOWED_P = 0.05
@@ -49,6 +51,14 @@ class TestPsfDataProcessing(SheTestCase):
         mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
         self.mock_good_starcat_table = mock_starcat_table_gen.get_mock_table()
         tf = mock_starcat_table_gen.tf
+
+        # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating
+        factor = 4
+        self.num_test_points = mock_starcat_table_gen.num_test_points
+        data_gen = mock_starcat_table_gen.mock_data_generator
+        self.mock_good_starcat_table[BIN_TF.snr] = np.where(data_gen._indices % factor < factor / 2,
+                                                            data_gen._ones,
+                                                            data_gen._zeros)
 
         # And tables with bad chi2 data
         self.mock_bad_starcat_table = deepcopy(self.mock_good_starcat_table)
@@ -91,3 +101,21 @@ class TestPsfDataProcessing(SheTestCase):
 
         d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_good_starcat_table,
                                                   d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
+
+        tc_tot = L_PSF_RES_TEST_CASE_INFO[0]
+        tc_snr = L_PSF_RES_TEST_CASE_INFO[1]
+
+        # Compare the results for the test cases and bins
+        tot_kstest_result = d_l_kstest_results[tc_tot.name][0]
+        l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
+
+        # Make sure they all pass
+        assert tot_kstest_result.pvalue > MIN_ALLOWED_P
+        assert l_snr_kstest_results[0].pvalue > MIN_ALLOWED_P
+        assert l_snr_kstest_results[1].pvalue > MIN_ALLOWED_P
+
+        # Make sure they aren't all the same
+        assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
+        assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
+
+        pass
