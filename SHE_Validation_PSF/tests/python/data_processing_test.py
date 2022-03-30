@@ -45,7 +45,7 @@ class TestPsfDataProcessing(SheTestCase):
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 
-    def test_psf_res_for_bin(self):
+    def test_run_psf_res_val_test_for_bin(self):
         """ Test running the "test_psf_res_for_bin" function, using all data in the table.
         """
 
