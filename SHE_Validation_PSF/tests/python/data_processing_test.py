@@ -21,9 +21,9 @@ __updated__ = "2022-04-30"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
+from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import make_mock_starcat_table
 
 
 class TestPsfDataProcessing(SheTestCase):
@@ -36,7 +36,8 @@ class TestPsfDataProcessing(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        self.mock_starcat_table = make_mock_starcat_table()
+        mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
+        self.mock_starcat_table = mock_starcat_table_gen.get_mock_table()
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 
