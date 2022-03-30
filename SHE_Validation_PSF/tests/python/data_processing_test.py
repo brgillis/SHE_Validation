@@ -19,11 +19,15 @@ __updated__ = "2022-04-30"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
 from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation_PSF.data_processing import test_psf_res_for_bin
+
+MIN_ALLOWED_P = 0.05
 
 
 class TestPsfDataProcessing(SheTestCase):
@@ -43,8 +47,22 @@ class TestPsfDataProcessing(SheTestCase):
 
         return
 
-    def test_data_processing(self, local_setup):
-        """ Test of the data processing step in PSF Residual validation
+    def test_test_psf_res_for_bin(self, local_setup):
+        """ Test running the "test_psf_res_for_bin" function, using all data in the table.
         """
+
+        # Run a test for individual stars
+        star_kstest_result = test_psf_res_for_bin(star_cat = self.mock_starcat_table,
+                                                  group_mode = False)
+
+        # And for the group
+        group_kstest_result = test_psf_res_for_bin(star_cat = self.mock_starcat_table,
+                                                   group_mode = True)
+
+        # Check that the results are reasonable, and that the two modes are doing something different
+        assert star_kstest_result.pvalue > MIN_ALLOWED_P
+        assert group_kstest_result.pvalue > MIN_ALLOWED_P
+
+        assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
 
     pass
