@@ -73,8 +73,7 @@ TF = SheExtStarCatalogFormat()
 
 
 def run_psf_res_val_test(star_cat: Table,
-                         d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[
-    BinParameters, List[KstestResult]]:
+                         d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[str, List[KstestResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
         Returns a Dict of Lists of log(p) values for each test case and bin.
@@ -90,7 +89,7 @@ def run_psf_res_val_test(star_cat: Table,
                                                         bin_constraint_type = BinParameterBinConstraint)
 
     # Init a dict of list of results
-    d_l_psf_res_result_ps: Dict[BinParameters, List[KstestResult]] = {}
+    d_l_psf_res_result_ps: Dict[str, List[KstestResult]] = {}
 
     # Loop over bin parameters first, then over bin limits, and test for each
     for test_case in L_PSF_RES_TEST_CASE_INFO:
@@ -123,7 +122,7 @@ def run_psf_res_val_test(star_cat: Table,
             # Store the resulting p-value for the test on this bin
 
         # Add the list of results to the output dict
-        d_l_psf_res_result_ps[bin_parameter] = l_psf_res_result_ps
+        d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
 
     return d_l_psf_res_result_ps
 
