@@ -33,9 +33,10 @@ from scipy.stats import chi2, kstest, uniform
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
-from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
+from SHE_PPT.table_formats.she_star_catalog import SC_TF, SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
-from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases, get_table_of_ids
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
+from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO
 
@@ -79,19 +80,25 @@ def run_psf_res_val_test(star_cat: Table,
         Returns a Dict of Lists of log(p) values for each test case and bin.
     """
 
+    # Add the necessary SNR column to the star_cat so we can bin with it
+    add_snr_column_to_star_cat(star_cat)
+
     # Get lists of IDs in each bin
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
-                                                        detections_table = star_cat, )
+                                                        detections_table = star_cat,
+                                                        bin_constraint_type = BinParameterBinConstraint)
 
     # Init a dict of list of results
     d_l_psf_res_result_ps: Dict[BinParameters, List[KstestResult]] = {}
 
     # Loop over bin parameters first, then over bin limits, and test for each
-    for bin_parameter in d_l_bin_limits:
+    for test_case in L_PSF_RES_TEST_CASE_INFO:
+
+        bin_parameter = test_case.bin_parameter
 
         # Get data for this bin parameter
-        l_l_test_case_object_ids = d_l_l_test_case_object_ids[bin_parameter]
+        l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case.name]
         l_bin_limits = d_l_bin_limits[bin_parameter]
         num_bins = len(l_bin_limits) - 1
 
@@ -119,6 +126,13 @@ def run_psf_res_val_test(star_cat: Table,
         d_l_psf_res_result_ps[bin_parameter] = l_psf_res_result_ps
 
     return d_l_psf_res_result_ps
+
+
+def add_snr_column_to_star_cat(star_cat):
+    """Adds the SNR column to the star catalog if not already present.
+    """
+    if BIN_TF.snr not in star_cat.colnames:
+        star_cat[BIN_TF.snr] = star_cat[SC_TF.flux] / star_cat[SC_TF.flux_err]
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,

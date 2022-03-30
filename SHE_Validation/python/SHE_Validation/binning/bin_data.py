@@ -75,10 +75,10 @@ class SheBinDataFormat(SheTableFormat):
 
 
 # Define an instance of this object that can be imported
-BIN_DATA_TABLE_FORMAT = SheBinDataFormat()
+BIN_TF = SheBinDataFormat()
 
 # And a convenient alias for it
-TF = BIN_DATA_TABLE_FORMAT
+TF = BIN_TF
 
 
 # Functions to add columns of bin data to a table
