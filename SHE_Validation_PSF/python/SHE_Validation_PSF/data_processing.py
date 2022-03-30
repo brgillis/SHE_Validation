@@ -29,7 +29,8 @@ from typing import Dict, List, Optional, Sequence, Type, Union
 
 import numpy as np
 from astropy.table import Row, Table
-from scipy.stats import chi2
+from scipy.stats import chi2, kstest, uniform
+from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
@@ -120,7 +121,7 @@ def test_psf_res(star_cat: Table,
 
 
 def test_psf_res_for_bin(star_cat: Table,
-                         group_mode: bool = False) -> float:
+                         group_mode: bool = False) -> KstestResult:
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
 
         If group_mode is set to True, will do the test on groups rather than individual stars
@@ -144,7 +145,7 @@ def test_psf_res_for_bin(star_cat: Table,
     l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
     num_groups = len(l_unique_ids)
 
-    l_log_ps = np.ones(num_groups, dtype = float)
+    l_ps = np.ones(num_groups, dtype = float)
 
     # Run the test for each group
     star_cat.add_index(id_colname)
@@ -167,9 +168,14 @@ def test_psf_res_for_bin(star_cat: Table,
         else:
             num_fitted_params = 0
 
-        l_log_ps[i] = chi2.logsf(x = data_row[chisq_colname],
-                                 df = data_row[num_pix_colname] - num_fitted_params)
+        l_ps[i] = chi2.sf(x = data_row[chisq_colname],
+                          df = data_row[num_pix_colname] - num_fitted_params)
+
+    # Now, we take these various p values and test that this set of p values is reasonable to be obtained, using a KS
+    # test and assuming that ideally, these would come from a uniform distribution from 0 to 1.
+
+    ks_test_result = kstest(rvs = l_ps, cdf = uniform.cdf)
 
     # Return the sum of the log(p) values, which is the log of the product of the p values - the probability
     # of all these p values simultaneously
-    return l_log_ps.sum()
+    return ks_test_result
