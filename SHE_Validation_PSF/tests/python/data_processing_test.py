@@ -26,11 +26,11 @@ import numpy as np
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO
-from SHE_Validation_PSF.data_processing import run_psf_res_val_test, run_psf_res_val_test_for_bin
+from SHE_Validation_PSF.data_processing import (ESC_TF, SheExtStarCatalogFormat, run_psf_res_val_test,
+                                                run_psf_res_val_test_for_bin, )
 
 MIN_ALLOWED_P = 0.05
 
@@ -39,21 +39,24 @@ class MockValStarCatDataGenerator(MockStarCatDataGenerator):
     """ Modified version of the data generator which adds bin columns in directly.
     """
 
+    tf: SheExtStarCatalogFormat = ESC_TF
+
     def _generate_unique_data(self):
         super()._generate_unique_data()
 
         # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating
         factor = 4
         self.num_test_points = self.num_test_points
-        self.data[BIN_TF.snr] = np.where(self._indices % factor < factor / 2,
-                                         self._ones,
-                                         self._zeros)
+        self.data[self.tf.snr] = np.where(self._indices % factor < factor / 2,
+                                          self._ones,
+                                          self._zeros)
 
 
 class MockValStarCatTableGenerator(MockStarCatTableGenerator):
     """ Modified version of the table generator which used the modified version of the data generator.
     """
 
+    tf: SheExtStarCatalogFormat = ESC_TF
     mock_data_generator_type = MockValStarCatDataGenerator
 
 

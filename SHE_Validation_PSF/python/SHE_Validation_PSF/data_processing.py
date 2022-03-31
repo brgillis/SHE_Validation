@@ -46,6 +46,8 @@ logger = log.getLogger(__name__)
 # We'll be modifying the star catalog table a bit, so define an extended table format for the new columns
 
 class SheExtStarCatalogMeta(SheStarCatalogMeta):
+    """ Modified star catalog metadata format which adds some meta values.
+    """
 
     def __init__(self):
         super().__init__()
@@ -55,6 +57,8 @@ class SheExtStarCatalogMeta(SheStarCatalogMeta):
 
 
 class SheExtStarCatalogFormat(SheStarCatalogFormat):
+    """ Modified star catalog table format which adds a few extra columns and some metadata values.
+    """
     meta_type: Type[SheTableMeta] = SheExtStarCatalogMeta
     meta: SheExtStarCatalogMeta
     m: SheExtStarCatalogMeta
@@ -62,14 +66,22 @@ class SheExtStarCatalogFormat(SheStarCatalogFormat):
     def __init__(self):
         super().__init__()
 
+        self.snr = self.set_column_properties(BIN_TF.snr, dtype = BIN_TF.dtypes[BIN_TF.snr],
+                                              fits_dtype = BIN_TF.fits_dtypes[BIN_TF.snr],
+                                              is_optional = True)
+
         self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype = ">f4", fits_dtype = "E",
                                                   comment = "p-value for a Chi-squared test on this group",
                                                   is_optional = True)
 
+        self.star_p = self.set_column_properties("SHE_STARCAT_STAR_P", dtype = ">f4", fits_dtype = "E",
+                                                 comment = "p-value for a Chi-squared test on this star",
+                                                 is_optional = True)
+
         self._finalize_init()
 
 
-TF = SheExtStarCatalogFormat()
+ESC_TF = SheExtStarCatalogFormat()
 
 
 def run_psf_res_val_test(star_cat: Table,
@@ -110,11 +122,11 @@ def run_psf_res_val_test(star_cat: Table,
             l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
 
             # Get a table with only data in this bin
-            table_in_bin = deepcopy(get_table_of_ids(star_cat, l_test_case_object_ids, id_colname = TF.id))
+            table_in_bin = deepcopy(get_table_of_ids(star_cat, l_test_case_object_ids, id_colname = ESC_TF.id))
 
             # Save the info about bin_parameter and bin_limits in the table's metadata
-            table_in_bin.meta[TF.m.bin_parameter] = bin_parameter.value
-            table_in_bin.meta[TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
+            table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
+            table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
 
             # Run the test on this table and store the result
             l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin)
@@ -145,14 +157,14 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
 
     # Select the ID column based on the mode
     if group_mode:
-        id_colname = TF.group_id
-        chisq_colname = TF.group_chisq
-        num_pix_colname = TF.group_unmasked_pix
-        num_fitted_params_colname: Optional[str] = TF.group_num_fitted_params
+        id_colname = ESC_TF.group_id
+        chisq_colname = ESC_TF.group_chisq
+        num_pix_colname = ESC_TF.group_unmasked_pix
+        num_fitted_params_colname: Optional[str] = ESC_TF.group_num_fitted_params
     else:
-        id_colname = TF.id
-        chisq_colname = TF.star_chisq
-        num_pix_colname = TF.star_unmasked_pix
+        id_colname = ESC_TF.id
+        chisq_colname = ESC_TF.star_chisq
+        num_pix_colname = ESC_TF.star_unmasked_pix
         num_fitted_params_colname: Optional[str] = None
 
     # We'll just use one row from each group, or each individual star, for the test
