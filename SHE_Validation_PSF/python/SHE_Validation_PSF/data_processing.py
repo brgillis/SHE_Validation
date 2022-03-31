@@ -35,6 +35,7 @@ from scipy.stats.stats import KstestResult
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
+from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
@@ -197,11 +198,22 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         l_ps[i] = chi2.sf(x = data_row[chisq_colname],
                           df = data_row[num_pix_colname] - num_fitted_params)
 
-    # Now, we take these various p values and test that this set of p values is reasonable to be obtained, using a KS
-    # test and assuming that ideally, these would come from a uniform distribution from 0 to 1.
+    # Check if we have any valid data
+    l_ps_trimmed = [x for x in l_ps if not is_inf_or_nan(x)]
+    if len(l_ps_trimmed) == 0:
 
-    ks_test_result = kstest(rvs = l_ps, cdf = uniform.cdf)
+        logger.warning("No valid data present in execution of run_psf_res_val_test_for_bin. \n"
+                       f"Total data length: {len(l_ps)}\n"
+                       f"Number of NaN results: {np.sum(np.isnan(l_ps))}\n"
+                       f"Number of Inf results: {np.sum(np.isinf(l_ps))}\n")
 
-    # Return the sum of the log(p) values, which is the log of the product of the p values - the probability
-    # of all these p values simultaneously
+        # Return a NaN test result
+        ks_test_result: KstestResult = KstestResult(np.nan, np.nan)
+
+    else:
+
+        # Now, we take these various p values and test that this set of p values is reasonable to be obtained,
+        # using a KS test and assuming that ideally, these would come from a uniform distribution from 0 to 1.
+        ks_test_result: KstestResult = kstest(rvs = l_ps, cdf = uniform.cdf)
+
     return ks_test_result
