@@ -181,6 +181,9 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         num_fitted_params_colname: Optional[str] = None
         p_colname = ESC_TF.star_p
 
+    # Add a column to store p values if necessary (the function handles a check if it's already there)
+    add_p_columns_to_star_cat(star_cat)
+
     # We'll just use one row from each group, or each individual star, for the test
     l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
     num_groups = len(l_unique_ids)
