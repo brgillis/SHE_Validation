@@ -33,7 +33,7 @@ from scipy.stats import chi2, kstest, uniform
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
-from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat, SheStarCatalogMeta
+from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
@@ -140,11 +140,22 @@ def run_psf_res_val_test(star_cat: Table,
     return d_l_psf_res_result_ps
 
 
-def add_snr_column_to_star_cat(star_cat):
+def add_snr_column_to_star_cat(star_cat: Table) -> None:
     """Adds the SNR column to the star catalog if not already present.
     """
-    if BIN_TF.snr not in star_cat.colnames:
-        star_cat[BIN_TF.snr] = star_cat[SHE_STAR_CAT_TF.flux] / star_cat[SHE_STAR_CAT_TF.flux_err]
+    if ESC_TF.snr not in star_cat.colnames:
+        star_cat[ESC_TF.snr] = star_cat[ESC_TF.flux] / star_cat[ESC_TF.flux_err]
+
+
+def add_p_columns_to_star_cat(star_cat: Table) -> None:
+    """ Adds columns for star and group p-values to the table if not already present. The new columns will initially
+        be filled with np.NaN to indicate it has not yet been calculated.
+    """
+    len_star_cat = len(star_cat)
+    if ESC_TF.group_p not in star_cat.colnames:
+        star_cat[ESC_TF.group_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.group_p])
+    if ESC_TF.star_p not in star_cat.colnames:
+        star_cat[ESC_TF.star_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.star_p])
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,
@@ -162,11 +173,13 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         chisq_colname = ESC_TF.group_chisq
         num_pix_colname = ESC_TF.group_unmasked_pix
         num_fitted_params_colname: Optional[str] = ESC_TF.group_num_fitted_params
+        p_colname = ESC_TF.group_p
     else:
         id_colname = ESC_TF.id
         chisq_colname = ESC_TF.star_chisq
         num_pix_colname = ESC_TF.star_unmasked_pix
         num_fitted_params_colname: Optional[str] = None
+        p_colname = ESC_TF.star_p
 
     # We'll just use one row from each group, or each individual star, for the test
     l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
@@ -187,6 +200,11 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         else:
             raise TypeError(f"Type of object returned by Table.loc is not recognized: {type(table_or_row_in_group)}")
 
+        # Check if the p value has already been calculated, and use that if so
+        if not np.isnan(data_row[p_colname]):
+            l_ps[i] = data_row[p_colname]
+            continue
+
         # Run the test on this row
 
         # Get the number of fitted params - if the colname is None, that means we have 0 fitted params
@@ -197,6 +215,9 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
 
         l_ps[i] = chi2.sf(x = data_row[chisq_colname],
                           df = data_row[num_pix_colname] - num_fitted_params)
+
+        # Save this value in the initial data table
+        table_or_row_in_group[p_colname] = l_ps[i]
 
     # Check if we have any valid data
     l_ps_trimmed = [x for x in l_ps if not is_inf_or_nan(x)]
