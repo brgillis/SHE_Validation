@@ -175,10 +175,15 @@ class ShearBiasRequirementWriter(RequirementWriter):
     result: Optional[str] = None
 
     def _get_supplementary_info(self,
+                                *args,
+                                extra_message: str = "",
                                 extra_g1_message: str = "",
-                                extra_g2_message: str = "", ) -> Sequence[SupplementaryInfo]:
+                                extra_g2_message: str = "",
+                                **kwargs) -> Sequence[SupplementaryInfo]:
 
         # Check the extra messages and make sure they end in a linebreak
+        if extra_message != "" and extra_message[-1:] != "\n":
+            extra_message = extra_message + "\n"
         if extra_g1_message != "" and extra_g1_message[-1:] != "\n":
             extra_g1_message = extra_g1_message + "\n"
         if extra_g2_message != "" and extra_g2_message[-1:] != "\n":
@@ -188,8 +193,8 @@ class ShearBiasRequirementWriter(RequirementWriter):
                                    f"bins.\n")
 
         # Set up result messages for each component
-        d_messages: Dict[int, str] = {1: method_bin_message + extra_g1_message + "\n",
-                                      2: method_bin_message + extra_g2_message + "\n"}
+        d_messages: Dict[int, str] = {1: method_bin_message + extra_message + extra_g1_message + "\n",
+                                      2: method_bin_message + extra_message + extra_g2_message + "\n"}
 
         # Report results for each bin of each component
 
