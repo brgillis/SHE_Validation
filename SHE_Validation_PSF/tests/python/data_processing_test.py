@@ -81,8 +81,8 @@ class TestPsfDataProcessing(SheTestCase):
                                                            group_mode = True)
 
         # Check that the results are reasonable, and that the two modes are doing something different
-        assert star_kstest_result.pvalue > MIN_ALLOWED_P
-        assert group_kstest_result.pvalue > MIN_ALLOWED_P
+        assert 1 > star_kstest_result.pvalue > MIN_ALLOWED_P
+        assert 1 > group_kstest_result.pvalue > MIN_ALLOWED_P
 
         assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
 
@@ -110,9 +110,9 @@ class TestPsfDataProcessing(SheTestCase):
         l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
 
         # Make sure they all pass
-        assert tot_kstest_result.pvalue > MIN_ALLOWED_P
-        assert l_snr_kstest_results[0].pvalue > MIN_ALLOWED_P
-        assert l_snr_kstest_results[1].pvalue > MIN_ALLOWED_P
+        assert 1 > tot_kstest_result.pvalue > MIN_ALLOWED_P
+        assert 1 > l_snr_kstest_results[0].pvalue > MIN_ALLOWED_P
+        assert 1 > l_snr_kstest_results[1].pvalue > MIN_ALLOWED_P
 
         # Make sure they aren't all the same
         assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
