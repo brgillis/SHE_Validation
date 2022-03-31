@@ -24,6 +24,7 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
@@ -70,7 +71,13 @@ class TestPsfDataProcessing(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
+        pipeline_config = self.mock_pipeline_config_factory.pipeline_config
+
+        # For the bin limits, add an extra bin we expect to be empty
+        base_snr_bin_limits = pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
+        pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
+
+        setattr(self._args, CA_PIPELINE_CONFIG, pipeline_config)
 
         # Generate a table with good chi2 data
         mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir)
@@ -135,4 +142,5 @@ class TestPsfDataProcessing(SheTestCase):
         assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
         assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
 
-        pass
+        # Check that the empty bin at the end has a NaN p value, as expected
+        assert np.isnan(l_snr_kstest_results[2].pvalue)
