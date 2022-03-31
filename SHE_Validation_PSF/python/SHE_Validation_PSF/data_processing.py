@@ -115,7 +115,7 @@ def run_psf_res_val_test(star_cat: Table,
         num_bins = len(l_bin_limits) - 1
 
         # Create a list for the results of each set of bin limits
-        l_psf_res_result_ps: List[KstestResult] = [np.nan] * num_bins
+        l_psf_res_result_ps: List[KstestResult] = [KstestResult(np.nan, np.nan)] * num_bins
 
         # Loop over bins now
         for bin_index in range(num_bins):
@@ -130,9 +130,9 @@ def run_psf_res_val_test(star_cat: Table,
             table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
 
             # Run the test on this table and store the result
-            l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin)
-
-            # Store the resulting p-value for the test on this bin
+            l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin,
+                                                                          group_mode = (
+                                                                                  bin_parameter == BinParameters.TOT))
 
         # Add the list of results to the output dict
         d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
