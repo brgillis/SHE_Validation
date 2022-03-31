@@ -9,6 +9,7 @@ API Changes
   - Main executable and interface implemented
   - Reading in of input data implemented
   - Processing of data implemented
+  - Reporting of results to in-memory data product implemented
 
 Dependency Changes
 ------------------
