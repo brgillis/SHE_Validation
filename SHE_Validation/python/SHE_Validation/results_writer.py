@@ -79,27 +79,55 @@ MSG_NO_INFO: str = "No supplementary information available."
 
 MEASURED_VAL_BAD_DATA = 1e99
 
-
 # Utility functions
 
+DEFAULT_VAL = 0.
+DEFAULT_VAL_ERR = None
+DEFAULT_VAL_Z = None
+DEFAULT_VAL_TARGET = 0.
 
-def check_test_pass(val: float, val_err: float, val_z: float, val_target: float) -> bool:
+
+# Functions for different ways a test will be deemed to fail - return True on failure
+def z_over_target(val_z: Union[float, np.ndarray],
+                  val_target: Union[float, np.ndarray],
+                  *_args, **_kwargs) -> bool:
+    return val_z > val_target
+
+
+def val_under_target(val: Union[float, np.ndarray],
+                     val_target: Union[float, np.ndarray],
+                     *_args, **_kwargs) -> bool:
+    return val < val_target
+
+
+DEFAULT_VALUE_TEST = z_over_target
+
+
+def check_test_pass(val: float,
+                    val_err: Optional[float],
+                    val_z: Optional[float],
+                    val_target: float,
+                    test: Callable = DEFAULT_VALUE_TEST) -> bool:
     """ Check if a given test has good data and passes.
     """
-    if ((val_err == 0.) or
-            (any_is_inf_or_nan([val, val_err])) or
-            (val_z > val_target)):
+    if (val_err == 0.) or (any_is_inf_or_nan([val, val_err])):
+        return False
+    if not test(val, val_err, val_z, val_target):
         return False
     return True
 
 
-def check_test_pass_if_data(val: float, val_err: float, val_z: float, val_target: float,
-                            good_data: bool) -> bool:
+def check_test_pass_if_data(val: float,
+                            val_err: float,
+                            val_z: float,
+                            val_target: float,
+                            good_data: bool,
+                            test: Callable = DEFAULT_VALUE_TEST) -> bool:
     """ Check if a test either doesn't have good data, or does and passes.
     """
     if not good_data:
         return True
-    return check_test_pass(val, val_err, val_z, val_target)
+    return check_test_pass(val, val_err, val_z, val_target, test)
 
 
 def get_result_string(test_pass: bool):
@@ -269,6 +297,24 @@ class RequirementWriter:
     _requirement_object: Optional[Any] = None
     _requirement_info: Optional[RequirementInfo] = None
 
+    # Results values to be filled in
+
+    # Data for each bin
+    l_val: Optional[Sequence[float]] = None
+    l_val_err: Optional[Sequence[float]] = None
+    l_val_z: Optional[Sequence[float]] = None
+    l_val_target: Optional[Sequence[float]] = None
+
+    # Which bin(s) have at least some good data / pass / result?
+    l_good_data: Optional[List[bool]] = None
+    l_test_pass: Optional[List[bool]] = None
+    l_result: Optional[List[str]] = None
+
+    # Overall results
+    good_data: Optional[bool] = None
+    test_pass: Optional[bool] = None
+    result: Optional[str] = None
+
     def __init__(self,
                  parent_test_case_writer: Optional["TestCaseWriter"] = None,
                  requirement_object = None,
@@ -289,11 +335,17 @@ class RequirementWriter:
 
     # Public methods
     def add_supplementary_info(self,
-                               l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
+                               *args,
+                               l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
+                               **kwargs,
                                ) -> None:
         """ Fills out supplementary information in the data model object for one or more items,
             modifying self._requirement_object.
         """
+
+        # Generate supplementary_info if necessary
+        if l_supplementary_info is None:
+            l_supplementary_info = self._get_supplementary_info(*args, **kwargs)
 
         # Silently coerce single item into list
         l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none = True)
@@ -380,6 +432,8 @@ class RequirementWriter:
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
         """
 
+        self._determine_results()
+
         # Default to report good data method
         if report_method is None:
             report_method = self.report_good_data
@@ -395,6 +449,34 @@ class RequirementWriter:
         report_method(**report_kwargs)
 
         return result
+
+    # Protected methods
+    def _get_supplementary_info(self, *args, **kwargs) -> Optional[List[SupplementaryInfo]]:
+        """ Overridable method to create supplementary info objects based on currently-stored data."""
+        return None
+
+    def _determine_results(self) -> None:
+        """ Overridable method which can be used to determine self.l_good_data and self.l_test_pass.
+        """
+        return
+
+    def _determine_overall_results(self):
+        """ Interprets self.l_good_data and self.l_test_pass to fill in the rest of the result values.
+        """
+
+        if self.l_good_data is None or self.l_test_pass is None:
+            raise Exception(
+                "self.l_good_data and self.l_test_pass must be set before calling _determine_overall_results")
+
+        # Get the list of results for bins
+        self.l_result = list(map(get_result_string, self.l_test_pass))
+
+        # Get the overall results
+        self.good_data = np.any(self.l_good_data)
+        l_test_pass_if_data = list(map(check_test_pass_if_data, self.l_val, self.l_val_err, self.l_val_err,
+                                       self.l_val_target, self.l_good_data))
+        self.test_pass = np.all(l_test_pass_if_data)
+        self.result = get_result_string(self.test_pass)
 
 
 class AnalysisWriter:
