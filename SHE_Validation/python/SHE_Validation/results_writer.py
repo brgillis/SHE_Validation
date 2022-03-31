@@ -28,10 +28,11 @@ import numpy as np
 import scipy.stats
 
 from SHE_PPT import file_io
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.product_utility import coerce_no_include_data_subdir
-from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
+from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list, default_value_if_none
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
@@ -297,13 +298,23 @@ class RequirementWriter:
     _requirement_object: Optional[Any] = None
     _requirement_info: Optional[RequirementInfo] = None
 
-    # Results values to be filled in
+    # Attrs set when writing
+
+    fail_sigma: Optional[float] = None
+
+    method: ShearEstimationMethods
+
+    bin_parameter: BinParameters
+    l_bin_limits: Sequence[float]
+    num_bins: int
 
     # Data for each bin
-    l_val: Optional[Sequence[float]] = None
-    l_val_err: Optional[Sequence[float]] = None
-    l_val_z: Optional[Sequence[float]] = None
-    l_val_target: Optional[Sequence[float]] = None
+    l_val: Optional[List[float]] = None
+    l_val_err: Optional[List[float]] = None
+    l_val_z: Optional[List[float]] = None
+    l_val_target: Optional[List[float]] = None
+
+    # Results values to be filled in
 
     # Which bin(s) have at least some good data / pass / result?
     l_good_data: Optional[List[bool]] = None
@@ -426,11 +437,35 @@ class RequirementWriter:
     def write(self,
               result: str = RESULT_PASS,
               report_method: Callable[[Any], None] = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+              report_kwargs: Dict[str, Any] = None,
+              l_val: Optional[List[float]] = None,
+              l_val_err: Optional[List[float]] = None,
+              l_val_target: Optional[List[float]] = None,
+              l_val_z: Optional[List[float]] = None,
+              fail_sigma: Optional[float] = None,
+              method: Optional[ShearEstimationMethods] = None,
+              bin_parameter: Optional[BinParameters] = None,
+              l_bin_limits: Optional[Sequence[float]] = None,
+              ) -> str:
         """ Reports data in the data model object for one or more items, modifying self._requirement_object.
 
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
         """
+
+        # Store values passed to this function
+        self.l_val = default_value_if_none(l_val, self.l_val)
+        self.l_val_err = default_value_if_none(l_val_err, self.l_val_err)
+        self.l_val_target = default_value_if_none(l_val_target, self.l_val_target)
+        self.l_val_z = default_value_if_none(l_val_z, self.l_val_z)
+        self.fail_sigma = default_value_if_none(fail_sigma, self.fail_sigma)
+        self.method = default_value_if_none(method, self.method)
+        self.bin_parameter = default_value_if_none(bin_parameter, self.bin_parameter)
+        self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
+
+        if self.l_bin_limits is not None:
+            self.num_bins = len(self.l_bin_limits) - 1
+        else:
+            self.num_bins = 1
 
         self._determine_results()
 

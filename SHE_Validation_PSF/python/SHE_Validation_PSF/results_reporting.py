@@ -20,13 +20,12 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List, Optional, Sequence, TypeVar
+from typing import Dict, TypeVar
 
 import numpy as np
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
-from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (RequirementWriter,
                                            val_under_target, )
 
@@ -52,25 +51,6 @@ class PSFResRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
 
-    l_val: Optional[Sequence[float]] = None
-    val_target: Optional[float] = None
-
-    bin_parameter: BinParameters
-    l_bin_limits: Sequence[float]
-    num_bins: int
-
-    def write(self,
-              *args,
-              l_val: Optional[List[float]] = None,
-              val_target: Optional[float] = None,
-              **kwargs) -> str:
-        """ Inherit from parent write to set required attributes before writing.
-        """
-        self.l_val = l_val
-        self.val_target = val_target
-
-        return super().write(*args, **kwargs)
-
     def _determine_results(self):
         """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
         """
@@ -81,9 +61,6 @@ class PSFResRequirementWriter(RequirementWriter):
         # Get an array of whether or not we have good data
         l_bad_val = is_inf_or_nan(self.l_val)
         self.l_good_data = np.logical_not(l_bad_val)
-
-        # Make an array of the target value
-        self.l_val_target = self.val_target * np.ones(self.num_bins)
 
         # Make an array of test results
         self.l_test_pass = np.logical_not(val_under_target(val = self.l_val, val_target = self.l_val_target))
