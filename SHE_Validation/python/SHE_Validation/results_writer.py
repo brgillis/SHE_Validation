@@ -32,7 +32,7 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.product_utility import coerce_no_include_data_subdir
-from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list, default_value_if_none
+from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list, default_value_if_none, empty_dict_if_none
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
@@ -80,12 +80,14 @@ MSG_NO_INFO: str = "No supplementary information available."
 
 MEASURED_VAL_BAD_DATA = 1e99
 
-# Utility functions
-
 DEFAULT_VAL = 0.
 DEFAULT_VAL_ERR = None
 DEFAULT_VAL_Z = None
 DEFAULT_VAL_TARGET = 0.
+DEFAULT_VAL_NAME = "value"
+
+
+# Utility functions
 
 
 # Functions for different ways a test will be deemed to fail - return True on failure
@@ -293,6 +295,11 @@ class RequirementWriter:
     """ Class for managing reporting of results for a single test case.
     """
 
+    # Class-level constants
+    supp_info_key: str = KEY_INFO
+    supp_info_desc: str = DESC_INFO
+    value_name: str = DEFAULT_VAL_NAME
+
     # Attrs set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
     _requirement_object: Optional[Any] = None
@@ -452,7 +459,7 @@ class RequirementWriter:
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
         """
 
-        # Store values passed to this function
+        # Store values passed to this function, using defaults if not supplied
         self.l_val = default_value_if_none(l_val, self.l_val)
         self.l_val_err = default_value_if_none(l_val_err, self.l_val_err)
         self.l_val_target = default_value_if_none(l_val_target, self.l_val_target)
@@ -462,6 +469,8 @@ class RequirementWriter:
         self.bin_parameter = default_value_if_none(bin_parameter, self.bin_parameter)
         self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
 
+        report_kwargs = empty_dict_if_none(report_kwargs)
+
         if self.l_bin_limits is not None:
             self.num_bins = len(self.l_bin_limits) - 1
         else:
@@ -469,13 +478,12 @@ class RequirementWriter:
 
         self._determine_results()
 
-        # Default to report good data method
+        # If report method isn't specified, determine it based on if we have any good data
         if report_method is None:
-            report_method = self.report_good_data
-
-        # Default to empty dict for report_kwargs
-        if report_kwargs is None:
-            report_kwargs = {}
+            if self.good_data:
+                report_method = self.report_good_data
+            else:
+                report_method = self.report_bad_data
 
         # Report the result
         self.requirement_object.Id = self.requirement_info.id
@@ -486,9 +494,47 @@ class RequirementWriter:
         return result
 
     # Protected methods
-    def _get_supplementary_info(self, *args, **kwargs) -> Optional[List[SupplementaryInfo]]:
+    def _get_supplementary_info(self, *args,
+                                extra_message: str = "",
+                                **kwargs) -> Optional[List[SupplementaryInfo]]:
         """ Overridable method to create supplementary info objects based on currently-stored data."""
-        return None
+
+        # Check the extra message and make sure it ends in a linebreak
+        if extra_message != "" and extra_message[-1:] != "\n":
+            extra_message = extra_message + "\n"
+
+        # Set up result message for each bin
+        message = extra_message
+        for bin_index in range(self.num_bins):
+
+            message = self._append_message_for_bin(bin_index, message)
+
+        supplementary_info = SupplementaryInfo(key = self.supp_info_key,
+                                               description = self.supp_info_desc,
+                                               message = message)
+
+        return [supplementary_info]
+
+    def _append_message_for_bin(self, bin_index, message) -> str:
+        """ Overridable method which appends supplemetary info for each bin.
+        """
+
+        if self.l_bin_limits is not None:
+            bin_min = self.l_bin_limits[bin_index][0]
+            bin_max = self.l_bin_limits[bin_index][1]
+            message += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+
+        if self.l_val is not None:
+            message += f"{self.value_name} = {self.l_val[bin_index]}\n"
+        if self.l_val_err is not None:
+            message += f"{self.value_name}_err = {self.l_val_err[bin_index]}\n"
+        if self.l_val_z is not None:
+            message += f"{self.value_name}_z = {self.l_val_z[bin_index]}\n"
+        if self.l_val_target is not None:
+            message += f"{self.value_name}_target = {self.l_val_target[bin_index]}\n"
+        message += f"Result: {self.l_result[bin_index]}"
+
+        return message
 
     def _determine_results(self) -> None:
         """ Overridable method which can be used to determine self.l_good_data and self.l_test_pass.

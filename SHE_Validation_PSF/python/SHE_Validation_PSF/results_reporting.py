@@ -28,6 +28,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (RequirementWriter,
                                            val_under_target, )
+from SHE_Validation_PSF.constants.psf_res_test_info import PSF_RES_VAL_NAME
 
 logger = getLogger(__name__)
 
@@ -50,6 +51,8 @@ ComponentDict = Dict[int, Number]
 class PSFResRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
+
+    value_name: str = PSF_RES_VAL_NAME
 
     def _determine_results(self):
         """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
