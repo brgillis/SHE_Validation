@@ -144,7 +144,7 @@ class CtiRequirementWriter(RequirementWriter):
         for prop in messages:
             for bin_index in range(self.num_bins):
 
-                self._append_message_for_bin(bin_index, prop, messages)
+                self._append_prop_message_for_bin(bin_index, prop, messages)
 
         slope_supplementary_info = SupplementaryInfo(key = KEY_SLOPE_INFO,
                                                      description = DESC_SLOPE_INFO,
@@ -156,10 +156,10 @@ class CtiRequirementWriter(RequirementWriter):
 
         return slope_supplementary_info, intercept_supplementary_info
 
-    def _append_message_for_bin(self,
-                                bin_index: int,
-                                prop: str,
-                                d_messages: Dict[str, str]):
+    def _append_prop_message_for_bin(self,
+                                     bin_index: int,
+                                     prop: str,
+                                     d_messages: Dict[str, str]):
         """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo, and appends
             it to the dict of messages's entry for this property.
         """
@@ -363,6 +363,7 @@ class CtiRequirementWriter(RequirementWriter):
         l_prop_good_data[bin_index] = False
 
     def write(self,
+              *args,
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
               l_slope: List[float] = None,
@@ -371,7 +372,8 @@ class CtiRequirementWriter(RequirementWriter):
               l_intercept_err: List[float] = None,
               l_bin_limits: List[float] = None,
               fail_sigma: float = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+              report_kwargs: Dict[str, Any] = None,
+              **kwargs) -> str:
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
@@ -425,7 +427,8 @@ class CtiRequirementWriter(RequirementWriter):
 
         return super().write(result = self.slope_result,
                              report_method = report_method,
-                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+                             report_kwargs = {**report_kwargs, **extra_report_kwargs},
+                             *args, **kwargs)
 
 
 class CtiGalRequirementWriter(CtiRequirementWriter):
