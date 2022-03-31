@@ -27,7 +27,7 @@ from argparse import Namespace
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
+from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -67,7 +67,7 @@ class TestPsfResRun(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
+        mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)
         mock_starcat_table_gen.write_mock_product()
 
         return

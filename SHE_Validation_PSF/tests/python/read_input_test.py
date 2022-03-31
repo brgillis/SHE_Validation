@@ -26,7 +26,7 @@ import numpy as np
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
 from SHE_PPT.file_io import read_product_and_table
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-from SHE_PPT.testing.mock_she_star_cat import MockSheStarCatTableGenerator
+from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 # Output data filenames
 from SHE_Validation.constants.test_info import BinParameters
@@ -54,7 +54,7 @@ class TestPsfResReadInput(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        mock_starcat_table_gen = MockSheStarCatTableGenerator(workdir = self.workdir)
+        mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)
         mock_starcat_product_filename = mock_starcat_table_gen.write_mock_product()
         (self.mock_starcat_product,
          self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
