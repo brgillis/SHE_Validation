@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 
@@ -432,8 +432,8 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
     # Class members
 
     # Types of child objects, overriding those in base class
-    requirement_writer_type: Type = ShearBiasRequirementWriter
-    analysis_writer_type: Type = ShearBiasAnalysisWriter
+    requirement_writer_type = ShearBiasRequirementWriter
+    analysis_writer_type = ShearBiasAnalysisWriter
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):

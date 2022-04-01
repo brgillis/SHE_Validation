@@ -27,7 +27,7 @@ import numpy as np
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
-                                           val_under_target, )
+                                           TestCaseWriter, val_under_target, )
 from SHE_Validation_PSF.constants.psf_res_test_info import PSF_RES_VAL_NAME
 
 logger = getLogger(__name__)
@@ -76,3 +76,14 @@ class PsfResAnalysisWriter(AnalysisWriter):
     product_type = "PSF-RES-ANALYSIS-FILES"
     _directory_filename: str = PSF_RES_DIRECTORY_FILENAME
     directory_header: str = PSF_RES_DIRECTORY_HEADER
+
+
+class PsfResTestCaseWriter(TestCaseWriter):
+    """ TestCaseWriter specialized for the PSF-Res validation test.
+    """
+
+    # Class members
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = PsfResRequirementWriter
+    analysis_writer_type = PsfResAnalysisWriter

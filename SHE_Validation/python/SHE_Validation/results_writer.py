@@ -22,7 +22,7 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
-from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Union
+from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Type, Union
 
 import numpy as np
 import scipy.stats
@@ -859,8 +859,8 @@ class TestCaseWriter:
     """
 
     # Types of child objects, which can be overridden by derived classes
-    requirement_writer_type = RequirementWriter
-    analysis_writer_type = AnalysisWriter
+    requirement_writer_type: Type[RequirementWriter] = RequirementWriter
+    analysis_writer_type: Type[AnalysisWriter] = AnalysisWriter
 
     # Attributes set from kwargs at init
     _parent_val_results_writer: Optional["ValidationResultsWriter"] = None
