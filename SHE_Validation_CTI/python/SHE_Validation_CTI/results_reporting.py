@@ -527,7 +527,6 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
                  regression_results_row_index: int,
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 d_bin_limits: Dict[BinParameters, np.ndarray],
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
@@ -538,7 +537,6 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
         self.regression_results_row_index = regression_results_row_index
         self.d_regression_results_tables = d_regression_results_tables
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
     def _get_method_info(self,
@@ -550,7 +548,7 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
         """ Sort the data out from the tables for this method.
         """
 
-        l_test_case_bins = self.d_bin_limits[test_case_info.bins]
+        l_test_case_bins = self.d_l_bin_limits[test_case_info.bins]
         l_test_case_regression_results_tables = self.d_regression_results_tables[test_case_info.name]
 
         num_bins = len(l_test_case_bins) - 1
@@ -672,7 +670,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         regression_results_row_index = regression_results_row_index,
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_l_bin_limits,
+                                                        d_l_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 
@@ -703,7 +701,7 @@ def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestRes
                                                         regression_results_row_index = 0,
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_l_bin_limits,
+                                                        d_l_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 
