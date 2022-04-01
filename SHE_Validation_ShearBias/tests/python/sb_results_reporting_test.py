@@ -155,7 +155,6 @@ class TestCase:
                                      d_l_bin_limits = self.d_bin_limits,
                                      workdir = self.workdir,
                                      dl_dl_plot_filenames = None,
-                                     method_data_exists = True,
                                      mode = ExecutionMode.LOCAL)
 
         # Check the results are as expected. Only check for LensMC-Tot here

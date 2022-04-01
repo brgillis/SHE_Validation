@@ -449,7 +449,6 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
                  d_l_bin_limits: Dict[BinParameters, np.ndarray],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 method_data_exists: bool = True,
                  mode: ExecutionMode = ExecutionMode.LOCAL,
                  **kwargs):
 
@@ -462,7 +461,6 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
         self.d_l_d_bias_measurements = d_l_d_bias_measurements
         self.d_l_bin_limits = d_l_bin_limits
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.method_data_exists = method_data_exists
         self.mode = mode
 
     def write_test_case_objects(self):
@@ -485,8 +483,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if (self.method_data_exists and test_case_info.bins != BinParameters.EPOCH and
-                    test_case_name in self.d_l_d_bias_measurements):
+            if (test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_d_bias_measurements):
 
                 num_bins = len(l_bin_limits) - 1
 
@@ -538,10 +535,11 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
                                  d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
                                  pipeline_config: Dict[ConfigKeys, Any],
-                                 d_l_bin_limits: Dict[BinParameters, np.ndarray], workdir: str,
+                                 d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                                 workdir: str,
                                  dl_dl_plot_filenames: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                              List[Union[Dict[str, str], List[str]]]] = None,
-                                 method_data_exists: bool = True, mode: ExecutionMode = ExecutionMode.LOCAL):
+                                 mode: ExecutionMode = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
@@ -557,7 +555,6 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
                                                            d_l_d_bias_measurements = d_l_d_bias_measurements,
                                                            d_l_bin_limits = d_l_bin_limits,
                                                            fail_sigma_calculator = fail_sigma_calculator,
-                                                           method_data_exists = method_data_exists,
                                                            mode = mode,
                                                            dl_dl_figures = dl_dl_plot_filenames)
 
