@@ -68,10 +68,13 @@ class PsfResRequirementWriter(RequirementWriter):
 
     def _determine_results(self):
         """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
+            and self.measured_value
         """
 
-        if self.l_good_data is not None and self.l_test_pass is not None:
+        if self.l_good_data is not None and self.l_test_pass is not None and self.measured_value is not None:
             return
+
+        self.measured_value = np.min(self.l_val)
 
         # Get an array of whether or not we have good data
         l_bad_val = is_inf_or_nan(self.l_val)

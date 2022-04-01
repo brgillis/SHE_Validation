@@ -316,6 +316,8 @@ class RequirementWriter:
     l_bin_limits: Sequence[float]
     num_bins: int = 0
 
+    measured_value: Optional[float] = None
+
     # Data for each bin
     l_bin_limits: Optional[List[float]] = None
     l_test_results: Optional[List[Any]] = None
@@ -421,7 +423,6 @@ class RequirementWriter:
         self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
-                         measured_value: float = -99.,
                          warning: bool = False,
                          l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                          ) -> None:
@@ -429,7 +430,7 @@ class RequirementWriter:
         """
 
         # Report the maximum slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = measured_value
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = self.measured_value
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if warning:
@@ -557,7 +558,8 @@ class RequirementWriter:
         return message
 
     def _determine_results(self) -> None:
-        """ Overridable method which can be used to determine self.l_good_data and self.l_test_pass.
+        """ Overridable method which can be used to determine self.l_good_data, self.l_test_pass,
+            and self.measured_value
         """
         return
 
