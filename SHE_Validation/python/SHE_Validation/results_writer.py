@@ -891,9 +891,9 @@ class TestCaseWriter:
         self._analysis_object = analysis_object
         filename_tag = self.test_case_info.name.upper().replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF",
                                                                                                            "")
-        self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
-                                                           dl_dl_figures = dl_dl_figures,
-                                                           filename_tag = filename_tag)
+        self._analysis_writer = self.analysis_writer_type(dl_l_textfiles = dl_l_textfiles,
+                                                          dl_dl_figures = dl_dl_figures,
+                                                          filename_tag = filename_tag)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
@@ -927,8 +927,8 @@ class TestCaseWriter:
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
             requirement_object: Any = base_requirement_object
-            self._l_requirement_writers = [self._make_requirement_writer(requirement_object = requirement_object,
-                                                                         requirement_info = l_requirement_info)]
+            self._l_requirement_writers = [self.requirement_writer_type(requirement_object = requirement_object,
+                                                                        requirement_info = l_requirement_info)]
             self._l_requirement_objects = [requirement_object]
 
         else:
@@ -947,8 +947,8 @@ class TestCaseWriter:
 
                 requirement_object = deepcopy(base_requirement_object)
                 self.l_requirement_objects[i] = requirement_object
-                self.l_requirement_writers[i] = self._make_requirement_writer(requirement_object = requirement_object,
-                                                                              requirement_info = requirement_info)
+                self.l_requirement_writers[i] = self.requirement_writer_type(requirement_object = requirement_object,
+                                                                             requirement_info = requirement_info)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -993,20 +993,6 @@ class TestCaseWriter:
     @property
     def analysis_object(self) -> Any:
         return self._analysis_object
-
-    # Private and protected methods
-    def _make_requirement_writer(self, **kwargs) -> RequirementWriter:
-        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this
-            in case they need to alter the kwargs in any way..
-        """
-        return self.requirement_writer_type(self, **kwargs)
-
-    def _make_analysis_writer(self, **kwargs) -> AnalysisWriter:
-        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
-            in case they need to alter the kwargs in any way..
-        """
-        return self.analysis_writer_type(self,
-                                         **kwargs)
 
     # Public methods
     def write_meta(self) -> None:
@@ -1267,19 +1253,13 @@ class ValidationResultsWriter:
 
         # Create a test case writer and keep it in the list of writers
         test_case_object = deepcopy(base_test_case_object)
-        self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object = test_case_object,
-                                                                  test_case_info = test_case_info,
-                                                                  dl_l_textfiles = test_case_textfiles,
-                                                                  dl_dl_figures = test_case_figures,
-                                                                  num_requirements = num_requirements,
-                                                                  l_requirement_info = l_requirement_info)
+        self.l_test_case_writers[i] = self.test_case_writer_type(test_case_object = test_case_object,
+                                                                 test_case_info = test_case_info,
+                                                                 dl_l_textfiles = test_case_textfiles,
+                                                                 dl_dl_figures = test_case_figures,
+                                                                 num_requirements = num_requirements,
+                                                                 l_requirement_info = l_requirement_info)
         self.l_test_case_objects[i] = test_case_object
-
-    def _make_test_case_writer(self, **kwargs) -> TestCaseWriter:
-        """ Method to initialize a test case writer, which we use to allow inherited classes to override this,
-            in case they need to change the kwargs in any way.
-        """
-        return self.test_case_writer_type(self, **kwargs)
 
     # Public methods
     def add_test_case_writer(self,
