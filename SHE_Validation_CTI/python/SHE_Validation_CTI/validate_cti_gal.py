@@ -114,6 +114,13 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                              + " is invalid type.")
         l_vis_calibrated_frame_product.append(vis_calibrated_frame_prod)
 
+    # Log a warning if no data from any method and set a flag for later code to refer to
+    if all(value is None for value in d_shear_estimate_tables.values()):
+        logger.warning("No method has any data associated with it.")
+        method_data_exists = False
+    else:
+        method_data_exists = True
+
     logger.info(MSG_COMPLETE)
 
     # Run the validation
@@ -149,7 +156,8 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                             regression_results_row_index = product_index,
                                             d_regression_results_tables = d_exposure_regression_results_tables,
                                             pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                            d_l_bin_limits = d_l_bin_limits)
+                                            d_l_bin_limits = d_l_bin_limits,
+                                            method_data_exists = method_data_exists)
 
         # And fill in the observation product
         fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
@@ -158,7 +166,8 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                         d_regression_results_tables = d_observation_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits = d_l_bin_limits,
-                                        dl_dl_figures = plot_filenames)
+                                        dl_dl_figures = plot_filenames,
+                                        method_data_exists = method_data_exists)
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,

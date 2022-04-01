@@ -527,6 +527,7 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
                  d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
                  d_bin_limits: Dict[BinParameters, np.ndarray],
+                 method_data_exists: bool = True,
                  *args, **kwargs):
 
         super().__init__(test_object = test_object,
@@ -539,6 +540,7 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
         self.d_regression_results_tables = d_regression_results_tables
         self.fail_sigma_calculator = fail_sigma_calculator
         self.d_bin_limits = d_bin_limits
+        self.method_data_exists = method_data_exists
 
     def _get_method_info(self,
                          test_case_info: TestCaseInfo) -> Tuple[List[float],
@@ -591,7 +593,7 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if test_case_info.bins != BinParameters.EPOCH:
+            if self.method_data_exists and test_case_info.bins != BinParameters.EPOCH:
 
                 (l_slope,
                  l_slope_err,
@@ -649,7 +651,8 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                         List[Union[Dict[str, str], List[str]]]] = None):
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
+                                    method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
     """
@@ -667,6 +670,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
                                                         d_bin_limits = d_l_bin_limits,
+                                                        method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 
     test_results_writer.write()
@@ -678,7 +682,8 @@ def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestRes
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
                                     dl_dl_figures: Union[Dict[str, Union[Dict[str, str], List[str]]],
-                                                         List[Union[Dict[str, str], List[str]]]] = None):
+                                                         List[Union[Dict[str, str], List[str]]]] = None,
+                                    method_data_exists: bool = True):
     """ Interprets the results in the regression_results_row and other provided data to fill out the provided
         test_result_product with the results of this validation test.
     """
@@ -696,6 +701,7 @@ def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestRes
                                                         d_regression_results_tables = d_regression_results_tables,
                                                         fail_sigma_calculator = fail_sigma_calculator,
                                                         d_bin_limits = d_l_bin_limits,
+                                                        method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 
     test_results_writer.write()

@@ -371,7 +371,8 @@ class TestCtiResultsReporting(SheTestCase):
                                         d_regression_results_tables = d_obs_results_tables,
                                         pipeline_config = self.pipeline_config,
                                         d_l_bin_limits = self.d_bin_limits,
-                                        workdir = self.workdir)
+                                        workdir = self.workdir,
+                                        method_data_exists = False)
 
         # Check that the product validates its binding
         obs_product.validateBinding()
@@ -441,7 +442,8 @@ class TestCtiResultsReporting(SheTestCase):
                                             d_regression_results_tables = d_exp_results_tables,
                                             pipeline_config = self.pipeline_config,
                                             d_l_bin_limits = self.d_bin_limits,
-                                            workdir = self.workdir)
+                                            workdir = self.workdir,
+                                            method_data_exists = True)
 
             l_exp_results[exp_index] = exp_product
         return l_exp_results
