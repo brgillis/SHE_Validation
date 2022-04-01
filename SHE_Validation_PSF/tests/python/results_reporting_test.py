@@ -23,6 +23,7 @@ import numpy as np
 import pytest
 from scipy.stats.stats import KstestResult
 
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
@@ -50,6 +51,8 @@ class TestCtiResultsReporting(SheTestCase):
     def post_setup(self):
         # Make a pipeline_config using the default values
         self.pipeline_config = self.mock_pipeline_config_factory.pipeline_config
+        base_snr_bin_limits = self.pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
+        self.pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
 
         # Make a dictionary of bin limits
         self.d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config)
@@ -62,7 +65,8 @@ class TestCtiResultsReporting(SheTestCase):
         # Make a dict of mock test results
         self.d_l_test_results = {L_PSF_RES_TEST_CASE_INFO[0].name: [KstestResult(np.nan, P_TOT)],
                                  L_PSF_RES_TEST_CASE_INFO[1].name: [KstestResult(np.nan, P_SNR_0),
-                                                                    KstestResult(np.nan, P_SNR_1)]}
+                                                                    KstestResult(np.nan, P_SNR_1),
+                                                                    KstestResult(np.nan, np.nan)]}
 
     @pytest.fixture(scope = 'class')
     def test_result_product(self, class_setup):

@@ -74,7 +74,7 @@ class PsfResRequirementWriter(RequirementWriter):
         if self.l_good_data is not None and self.l_test_pass is not None and self.measured_value is not None:
             return
 
-        self.measured_value = np.min(self.l_val)
+        self.measured_value = np.nanmin(self.l_val)
 
         # Get an array of whether or not we have good data
         l_bad_val = is_inf_or_nan(self.l_val)
