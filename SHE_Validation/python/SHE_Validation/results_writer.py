@@ -95,13 +95,13 @@ DEFAULT_VAL_NAME = "value"
 def z_under_target(val_z: Union[float, np.ndarray],
                    val_target: Union[float, np.ndarray],
                    *_args, **_kwargs) -> bool:
-    return val_z <= val_target
+    return np.asarray(val_z) <= np.asarray(val_target)
 
 
 def val_over_target(val: Union[float, np.ndarray],
                     val_target: Union[float, np.ndarray],
                     *_args, **_kwargs) -> Union[bool, List[bool]]:
-    return val >= val_target
+    return np.asarray(val) >= np.asarray(val_target)
 
 
 DEFAULT_VALUE_TEST = z_under_target
@@ -364,7 +364,7 @@ class RequirementWriter:
 
     # Protected methods
     def _interpret_test_results(self) -> None:
-        """Overridable method which takes self.l_test results and determins self.l_val, self.l_val_err etc. from it.
+        """Overridable method which takes self.l_test results and determine self.l_val, self.l_val_err etc. from it.
         """
         return
 
@@ -485,6 +485,7 @@ class RequirementWriter:
         self.method = default_value_if_none(method, self.method)
         self.bin_parameter = default_value_if_none(bin_parameter, self.bin_parameter)
         self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
+        self.result = result
 
         report_kwargs = empty_dict_if_none(report_kwargs)
 
@@ -505,11 +506,11 @@ class RequirementWriter:
 
         # Report the result
         self.requirement_object.Id = self.requirement_info.id
-        self.requirement_object.ValidationResult = result
+        self.requirement_object.ValidationResult = self.result
         self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
         report_method(**report_kwargs)
 
-        return result
+        return self.result
 
     # Protected methods
     def _get_supplementary_info(self, *args,
@@ -534,7 +535,7 @@ class RequirementWriter:
         return [supplementary_info]
 
     def _append_message_for_bin(self, bin_index, message) -> str:
-        """ Overridable method which appends supplemetary info for each bin.
+        """ Overridable method which appends supplementary info for each bin.
         """
 
         if self.l_bin_limits is not None:
@@ -571,11 +572,19 @@ class RequirementWriter:
         # Get the list of results for bins
         self.l_result = list(map(get_result_string, self.l_test_pass))
 
+        # Make sure all lists we're working with exist, so we can map across them all
+        default_list: List[float] = [0.] * self.num_bins
+        l_val = default_value_if_none(self.l_val, default_list)
+        l_val_err = default_value_if_none(self.l_val_err, default_list)
+        l_val_z = default_value_if_none(self.l_val_z, default_list)
+        l_val_target = default_value_if_none(self.l_val_target, default_list)
+
         # Get the overall results
         self.good_data = np.any(self.l_good_data)
-        l_test_pass_if_data = list(map(check_test_pass_if_data, self.l_val, self.l_val_err, self.l_val_err,
-                                       self.l_val_target, self.l_good_data))
+
+        l_test_pass_if_data = np.logical_or(self.l_test_pass, np.logical_not(self.good_data))
         self.test_pass = np.all(l_test_pass_if_data)
+
         self.result = get_result_string(self.test_pass)
 
 

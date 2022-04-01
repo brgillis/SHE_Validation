@@ -26,7 +26,7 @@ import numpy as np
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import coerce_to_list, is_inf_or_nan
+from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
                                            TestCaseWriter, ValidationResultsWriter, val_over_target, )
 from SHE_Validation_PSF.constants.psf_res_test_info import (D_L_PSF_RES_REQUIREMENT_INFO, L_PSF_RES_TEST_CASE_INFO,
@@ -78,7 +78,7 @@ class PsfResRequirementWriter(RequirementWriter):
         self.l_good_data = np.logical_not(l_bad_val)
 
         # Make an array of test results
-        self.l_test_pass = coerce_to_list(val_over_target(val = self.l_val, val_target = self.l_val_target))
+        self.l_test_pass = val_over_target(val = self.l_val, val_target = self.l_val_target)
 
 
 class PsfResAnalysisWriter(AnalysisWriter):
