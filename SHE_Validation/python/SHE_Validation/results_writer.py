@@ -32,7 +32,8 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.product_utility import coerce_no_include_data_subdir
-from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list, default_value_if_none, empty_dict_if_none
+from SHE_PPT.utility import (any_is_inf_or_nan, coerce_to_list, default_value_if_none, empty_dict_if_none,
+                             empty_list_if_none, )
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
@@ -587,23 +588,16 @@ class AnalysisWriter:
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
-                 product_type: str = "UNKNOWN-TYPE",
+                 product_type: Optional[str] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  filename_tag: Optional[str] = None):
 
         # Set attrs from kwargs
-        self._product_type = product_type
-        if dl_l_textfiles is not None:
-            self._dl_l_textfiles = dl_l_textfiles
-        else:
-            self._dl_l_textfiles = []
-        if dl_dl_figures is not None:
-            self._dl_dl_figures = dl_dl_figures
-        else:
-            self._dl_dl_figures = []
-        if filename_tag is not None:
-            self.filename_tag = filename_tag
+        self._product_type = default_value_if_none(product_type, self.product_type)
+        self._dl_l_textfiles = empty_list_if_none(dl_l_textfiles)
+        self._dl_dl_figures = empty_list_if_none(dl_dl_figures)
+        self.filename_tag = default_value_if_none(filename_tag, self.filename_tag)
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
