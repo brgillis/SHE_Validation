@@ -494,6 +494,7 @@ class RequirementWriter:
             self.num_bins = 1
 
         self._determine_results()
+        self._determine_overall_results()
 
         # If report method isn't specified, determine it based on if we have any good data
         if report_method is None:
