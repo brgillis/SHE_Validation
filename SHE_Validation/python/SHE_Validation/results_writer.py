@@ -100,7 +100,7 @@ def z_under_target(val_z: Union[float, np.ndarray],
 
 def val_over_target(val: Union[float, np.ndarray],
                     val_target: Union[float, np.ndarray],
-                    *_args, **_kwargs) -> bool:
+                    *_args, **_kwargs) -> Union[bool, List[bool]]:
     return val >= val_target
 
 
@@ -317,6 +317,8 @@ class RequirementWriter:
     num_bins: int = 0
 
     # Data for each bin
+    l_bin_limits: Optional[List[float]] = None
+    l_test_results: Optional[List[Any]] = None
     l_val: Optional[List[float]] = None
     l_val_err: Optional[List[float]] = None
     l_val_z: Optional[List[float]] = None
@@ -337,11 +339,19 @@ class RequirementWriter:
     def __init__(self,
                  parent_test_case_writer: Optional["TestCaseWriter"] = None,
                  requirement_object = None,
-                 requirement_info: RequirementInfo = None):
+                 requirement_info: RequirementInfo = None,
+                 l_bin_limits: Optional[List[float]] = None,
+                 l_test_results: Optional[List[Any]] = None):
 
         self._parent_test_case_writer = parent_test_case_writer
+
         self._requirement_object = requirement_object
-        self._requirement_info = requirement_info
+        self._requirement_info = default_value_if_none(requirement_info, self.requirement_info)
+
+        self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
+        self.l_test_results = default_value_if_none(l_test_results, self.l_test_results)
+
+        self._interpret_test_results()
 
     # Getters/setters for attrs set at init
     @property
@@ -351,6 +361,12 @@ class RequirementWriter:
     @property
     def requirement_info(self) -> Optional[RequirementInfo]:
         return self._requirement_info
+
+    # Protected methods
+    def _interpret_test_results(self) -> None:
+        """Overridable method which takes self.l_test results and determins self.l_val, self.l_val_err etc. from it.
+        """
+        return
 
     # Public methods
     def add_supplementary_info(self,
@@ -902,7 +918,10 @@ class TestCaseWriter:
                  num_requirements: int = None,
                  l_requirement_info: Union[None, RequirementInfo, List[RequirementInfo]] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_dl_figures: Optional[StrDictOrList] = None):
+                 dl_dl_figures: Optional[StrDictOrList] = None,
+                 d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
+                 d_l_test_results: Optional[Dict[str, List[Any]]] = None,
+                 ):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
@@ -918,17 +937,22 @@ class TestCaseWriter:
 
         # Get attributes from arguments
         self._test_case_object = test_case_object
-        self._test_case_info = test_case_info
+        self._test_case_info = default_value_if_none(test_case_info, self.test_case_info)
 
         # Init l_requirement_writers etc. always as lists
         base_requirement_object: Any = test_case_object.ValidatedRequirements.Requirement[0]
         analysis_object: Any = test_case_object.AnalysisResult.AnalysisFiles
 
+        l_bin_limits = d_l_bin_limits[self.test_case_info.bin_parameter]
+        l_test_results = d_l_test_results[self.test_case_info.name]
+
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
             requirement_object: Any = base_requirement_object
             self._l_requirement_writers = [self.requirement_writer_type(requirement_object = requirement_object,
-                                                                        requirement_info = l_requirement_info)]
+                                                                        requirement_info = l_requirement_info,
+                                                                        l_bin_limits = l_bin_limits,
+                                                                        l_test_results = l_test_results)]
             self._l_requirement_objects = [requirement_object]
 
         else:
@@ -948,7 +972,9 @@ class TestCaseWriter:
                 requirement_object = deepcopy(base_requirement_object)
                 self.l_requirement_objects[i] = requirement_object
                 self.l_requirement_writers[i] = self.requirement_writer_type(requirement_object = requirement_object,
-                                                                             requirement_info = requirement_info)
+                                                                             requirement_info = requirement_info,
+                                                                             d_l_bin_limits = l_bin_limits,
+                                                                             d_l_test_results = l_test_results)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -1258,7 +1284,9 @@ class ValidationResultsWriter:
                                                                  dl_l_textfiles = test_case_textfiles,
                                                                  dl_dl_figures = test_case_figures,
                                                                  num_requirements = num_requirements,
-                                                                 l_requirement_info = l_requirement_info)
+                                                                 l_requirement_info = l_requirement_info,
+                                                                 d_l_bin_limits = self.d_l_bin_limits,
+                                                                 d_l_test_results = self.d_l_test_results)
         self.l_test_case_objects[i] = test_case_object
 
     # Public methods
