@@ -537,8 +537,8 @@ class RequirementWriter:
         """
 
         if self.l_bin_limits is not None:
-            bin_min = self.l_bin_limits[bin_index][0]
-            bin_max = self.l_bin_limits[bin_index][1]
+            bin_min = self.l_bin_limits[bin_index]
+            bin_max = self.l_bin_limits[bin_index + 1]
             message += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
 
         if self.l_val is not None:
@@ -605,6 +605,7 @@ class AnalysisWriter:
     _qualified_figures_filename: Optional[str] = None
 
     def __init__(self,
+                 workdir: str,
                  parent_test_case_writer: "TestCaseWriter" = None,
                  product_type: Optional[str] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
@@ -612,6 +613,7 @@ class AnalysisWriter:
                  filename_tag: Optional[str] = None):
 
         # Set attrs from kwargs
+        self.workdir = workdir
         self._product_type = default_value_if_none(product_type, self.product_type)
         self._dl_l_textfiles = empty_list_if_none(dl_l_textfiles)
         self._dl_dl_figures = empty_list_if_none(dl_dl_figures)
@@ -907,7 +909,9 @@ class TestCaseWriter:
         self._analysis_object = analysis_object
         filename_tag = self.test_case_info.name.upper().replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF",
                                                                                                            "")
-        self._analysis_writer = self.analysis_writer_type(dl_l_textfiles = dl_l_textfiles,
+        self._analysis_writer = self.analysis_writer_type(workdir = self.workdir,
+                                                          parent_test_case_writer = self,
+                                                          dl_l_textfiles = dl_l_textfiles,
                                                           dl_dl_figures = dl_dl_figures,
                                                           filename_tag = filename_tag)
 
@@ -973,8 +977,8 @@ class TestCaseWriter:
                 self.l_requirement_objects[i] = requirement_object
                 self.l_requirement_writers[i] = self.requirement_writer_type(requirement_object = requirement_object,
                                                                              requirement_info = requirement_info,
-                                                                             d_l_bin_limits = l_bin_limits,
-                                                                             d_l_test_results = l_test_results)
+                                                                             l_bin_limits = l_bin_limits,
+                                                                             l_test_results = l_test_results)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -1279,7 +1283,8 @@ class ValidationResultsWriter:
 
         # Create a test case writer and keep it in the list of writers
         test_case_object = deepcopy(base_test_case_object)
-        self.l_test_case_writers[i] = self.test_case_writer_type(test_case_object = test_case_object,
+        self.l_test_case_writers[i] = self.test_case_writer_type(parent_val_results_writer = self,
+                                                                 test_case_object = test_case_object,
                                                                  test_case_info = test_case_info,
                                                                  dl_l_textfiles = test_case_textfiles,
                                                                  dl_dl_figures = test_case_figures,
