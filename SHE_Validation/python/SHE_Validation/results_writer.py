@@ -1097,12 +1097,17 @@ class ValidationResultsWriter:
                                               List[List[RequirementInfo]]] = None) -> None:
 
         # Init attributes directly from arguments
-        self.dl_l_textfiles = dl_l_textfiles
-        self.dl_dl_figures = dl_dl_figures
-        self.num_test_cases = num_test_cases
-        self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none = True)
-        self.dl_num_requirements = dl_num_requirements
-        self.dl_l_requirement_info = dl_l_requirement_info
+        self.dl_l_textfiles = default_value_if_none(dl_l_textfiles, self.dl_l_textfiles)
+        self.dl_dl_figures = default_value_if_none(dl_dl_figures, self.dl_dl_figures)
+
+        self.num_test_cases = default_value_if_none(num_test_cases, self.num_test_cases)
+
+        self.l_test_case_info = coerce_to_list(default_value_if_none(l_test_case_info, self.l_test_case_info),
+                                               keep_none = True)
+
+        self.dl_num_requirements = default_value_if_none(dl_num_requirements, self.dl_num_requirements)
+        self.dl_l_requirement_info = default_value_if_none(dl_l_requirement_info, self.dl_l_requirement_info)
+
         self._test_object = test_object
         self._workdir = workdir
 
@@ -1128,6 +1133,7 @@ class ValidationResultsWriter:
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
     # Getters/setters for attrs set at init
+    
     @property
     def test_object(self) -> Any:
         return self._test_object

@@ -439,8 +439,10 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
     """TODO: Add a docstring to this class."""
 
-    # Types of child classes
+    # Override some class-level attributes
     test_case_writer_type = ShearBiasTestCaseWriter
+    l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
@@ -454,8 +456,6 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
         super().__init__(test_object = test_object,
                          workdir = workdir,
-                         l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO,
-                         dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO,
                          *args, **kwargs)
 
         self.d_l_d_bias_measurements = d_l_d_bias_measurements

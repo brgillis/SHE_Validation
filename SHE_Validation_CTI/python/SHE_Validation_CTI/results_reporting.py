@@ -38,6 +38,7 @@ from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from .constants.cti_gal_test_info import (D_L_CTI_GAL_REQUIREMENT_INFO,
                                           L_CTI_GAL_TEST_CASE_INFO, )
+from .constants.cti_psf_test_info import D_L_CTI_PSF_REQUIREMENT_INFO, L_CTI_PSF_TEST_CASE_INFO
 from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
@@ -532,8 +533,6 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
 
         super().__init__(test_object = test_object,
                          workdir = workdir,
-                         l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                         dl_l_requirement_info = D_L_CTI_GAL_REQUIREMENT_INFO,
                          *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
@@ -634,6 +633,8 @@ class CtiGalValidationResultsWriter(CtiValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = CtiGalTestCaseWriter
+    l_test_case_info = L_CTI_GAL_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_CTI_GAL_REQUIREMENT_INFO
 
 
 class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
@@ -642,6 +643,8 @@ class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = CtiPsfTestCaseWriter
+    l_test_case_info = L_CTI_PSF_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_CTI_PSF_REQUIREMENT_INFO
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
