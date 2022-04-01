@@ -1071,6 +1071,9 @@ class ValidationResultsWriter:
     # Attributes set at init from arguments
     _test_object: dpdSheValidationTestResults
     _workdir: str
+    d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None
+    d_l_test_results: Optional[Dict[str, List[Any]]] = None
+
     dl_l_textfiles: Optional[StrDictOrList] = None
     dl_dl_figures: Optional[StrDictOrList] = None
     num_test_cases: Optional[int] = None
@@ -1086,6 +1089,8 @@ class ValidationResultsWriter:
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
+                 d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
+                 d_l_test_results: Optional[Dict[str, List[Any]]] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  num_test_cases: Optional[int] = None,
@@ -1095,6 +1100,11 @@ class ValidationResultsWriter:
                                               List[List[RequirementInfo]]] = None) -> None:
 
         # Init attributes directly from arguments
+        self._test_object = test_object
+        self._workdir = workdir
+        self.d_l_bin_limits = default_value_if_none(d_l_bin_limits, self.d_l_bin_limits)
+        self.d_l_test_results = default_value_if_none(d_l_test_results, self.d_l_test_results)
+
         self.dl_l_textfiles = default_value_if_none(dl_l_textfiles, self.dl_l_textfiles)
         self.dl_dl_figures = default_value_if_none(dl_dl_figures, self.dl_dl_figures)
 
@@ -1105,9 +1115,6 @@ class ValidationResultsWriter:
 
         self.dl_num_requirements = default_value_if_none(dl_num_requirements, self.dl_num_requirements)
         self.dl_l_requirement_info = default_value_if_none(dl_l_requirement_info, self.dl_l_requirement_info)
-
-        self._test_object = test_object
-        self._workdir = workdir
 
         # Check validity of input args and process them to calculate derivative values
 

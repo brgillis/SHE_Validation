@@ -449,17 +449,16 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  workdir: str,
                  *args,
                  d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
-                 d_l_bin_limits: Dict[BinParameters, np.ndarray],
                  fail_sigma_calculator: FailSigmaCalculator,
                  mode: ExecutionMode = ExecutionMode.LOCAL,
                  **kwargs):
 
-        super().__init__(test_object = test_object,
+        super().__init__(*args,
+                         test_object = test_object,
                          workdir = workdir,
-                         *args, **kwargs)
+                         **kwargs)
 
         self.d_l_d_bias_measurements = d_l_d_bias_measurements
-        self.d_l_bin_limits = d_l_bin_limits
         self.fail_sigma_calculator = fail_sigma_calculator
         self.mode = mode
 
