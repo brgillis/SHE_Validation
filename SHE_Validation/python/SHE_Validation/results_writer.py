@@ -91,20 +91,20 @@ DEFAULT_VAL_NAME = "value"
 # Utility functions
 
 
-# Functions for different ways a test will be deemed to fail - return True on failure
-def z_over_target(val_z: Union[float, np.ndarray],
-                  val_target: Union[float, np.ndarray],
-                  *_args, **_kwargs) -> bool:
-    return val_z > val_target
+# Functions for different ways a test will be deemed to fail - return True on success
+def z_under_target(val_z: Union[float, np.ndarray],
+                   val_target: Union[float, np.ndarray],
+                   *_args, **_kwargs) -> bool:
+    return val_z <= val_target
 
 
-def val_under_target(val: Union[float, np.ndarray],
-                     val_target: Union[float, np.ndarray],
-                     *_args, **_kwargs) -> bool:
-    return val < val_target
+def val_over_target(val: Union[float, np.ndarray],
+                    val_target: Union[float, np.ndarray],
+                    *_args, **_kwargs) -> bool:
+    return val >= val_target
 
 
-DEFAULT_VALUE_TEST = z_over_target
+DEFAULT_VALUE_TEST = z_under_target
 
 
 def check_test_pass(val: float,
@@ -116,7 +116,7 @@ def check_test_pass(val: float,
     """
     if (val_err == 0.) or (any_is_inf_or_nan([val, val_err])):
         return False
-    if not test(val, val_err, val_z, val_target):
+    if not test(val = val, val_err = val_err, val_z = val_z, val_target = val_target):
         return False
     return True
 
