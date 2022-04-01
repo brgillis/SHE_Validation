@@ -414,29 +414,16 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     """
 
     method: ShearEstimationMethods
+    product_type = "SHEAR-BIAS-ANALYSIS-FILES"
+    _directory_filename: str = SHEAR_BIAS_DIRECTORY_FILENAME
+    directory_header: str = SHEAR_BIAS_DIRECTORY_HEADER
 
     def __init__(self,
                  *args, **kwargs):
-        super().__init__(product_type = "SHEAR-BIAS-ANALYSIS-FILES",
-                         *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Get the shear estimation method from the parent's test case info
         self.method = self.parent_test_case_writer.test_case_info.method
-
-    def _get_filename_tag(self):
-        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
-        """
-        return self.method.value
-
-    def _generate_directory_filename(self):
-        """ Overriding method to generate a filename for a directory file.
-        """
-        self.directory_filename = SHEAR_BIAS_DIRECTORY_FILENAME
-
-    def _get_directory_header(self):
-        """ Overriding method to get the desired header for a directory file.
-        """
-        return SHEAR_BIAS_DIRECTORY_HEADER
 
 
 class ShearBiasTestCaseWriter(TestCaseWriter):

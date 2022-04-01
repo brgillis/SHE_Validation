@@ -310,11 +310,11 @@ class RequirementWriter:
 
     fail_sigma: Optional[float] = None
 
-    method: ShearEstimationMethods
+    method: Optional[ShearEstimationMethods] = None
 
-    bin_parameter: BinParameters
+    bin_parameter: Optional[BinParameters] = None
     l_bin_limits: Sequence[float]
-    num_bins: int
+    num_bins: int = 0
 
     # Data for each bin
     l_val: Optional[List[float]] = None
@@ -533,7 +533,8 @@ class RequirementWriter:
             message += f"{self.value_name}_z = {self.l_val_z[bin_index]}\n"
         if self.l_val_target is not None:
             message += f"{self.value_name}_target = {self.l_val_target[bin_index]}\n"
-        message += f"Result: {self.l_result[bin_index]}"
+        if self.l_result is not None:
+            message += f"Result: {self.l_result[bin_index]}"
 
         return message
 
@@ -565,6 +566,11 @@ class AnalysisWriter:
     """ Class for managing writing of analysis data for a single test case
     """
 
+    # Class level attributes
+    _directory_filename: str = DEFAULT_DIRECTORY_FILENAME
+    _qualified_directory_filename: Optional[str] = None
+    directory_header: str = DEFAULT_DIRECTORY_HEADER
+
     # Attributes set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
     _product_type: str = "UNKNOWN-TYPE"
@@ -581,10 +587,6 @@ class AnalysisWriter:
     _qualified_textfiles_filename: Optional[str] = None
     _figures_filename: Optional[str] = None
     _qualified_figures_filename: Optional[str] = None
-
-    # Attributes set when write is called
-    _directory_filename: Optional[str] = None
-    _qualified_directory_filename: Optional[str] = None
 
     def __init__(self,
                  parent_test_case_writer: "TestCaseWriter" = None,
@@ -714,16 +716,6 @@ class AnalysisWriter:
 
     # Private and protected methods
 
-    def _generate_directory_filename(self) -> None:
-        """ Overridable method to generate a filename for a directory file.
-        """
-        self.directory_filename = DEFAULT_DIRECTORY_FILENAME
-
-    def _get_directory_header(self) -> str:
-        """ Overridable method to get the desired header for a directory file.
-        """
-        return DEFAULT_DIRECTORY_HEADER
-
     @staticmethod
     def _write_filenames_to_directory(fo: IO,
                                       filenames: Optional[StrDictOrList]) -> None:
@@ -744,15 +736,10 @@ class AnalysisWriter:
                          dl_l_textfiles: Optional[StrDictOrList],
                          dl_dl_figures: Optional[StrDictOrList]) -> None:
 
-        # Generate a filename for the directory if needed
-        if self._directory_filename is None:
-            self._generate_directory_filename()
-
         # Write out the directory file
         with open(self.qualified_directory_filename, "w") as fo:
-
             # Write the header using the possible-overloaded method self._get_directory_header()
-            fo.write(f"{self._get_directory_header()}\n")
+            fo.write(f"{self.directory_header}\n")
 
             # Write a comment for the start of the textfiles section, then write out the textfile filenames
             fo.write(f"{TEXTFILES_SECTION_HEADER}\n")

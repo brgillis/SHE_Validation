@@ -26,7 +26,7 @@ import numpy as np
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
-from SHE_Validation.results_writer import (RequirementWriter,
+from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
                                            val_under_target, )
 from SHE_Validation_PSF.constants.psf_res_test_info import PSF_RES_VAL_NAME
 
@@ -48,7 +48,7 @@ Number = TypeVar('Number', float, int)
 ComponentDict = Dict[int, Number]
 
 
-class PSFResRequirementWriter(RequirementWriter):
+class PsfResRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
 
@@ -67,3 +67,12 @@ class PSFResRequirementWriter(RequirementWriter):
 
         # Make an array of test results
         self.l_test_pass = np.logical_not(val_under_target(val = self.l_val, val_target = self.l_val_target))
+
+
+class PsfResAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for this test.
+    """
+
+    product_type = "PSF-RES-ANALYSIS-FILES"
+    _directory_filename: str = PSF_RES_DIRECTORY_FILENAME
+    directory_header: str = PSF_RES_DIRECTORY_HEADER

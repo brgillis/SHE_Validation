@@ -239,7 +239,7 @@ class CtiRequirementWriter(RequirementWriter):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_ZERO_SLOPE_ERR)
-        self.add_supplementary_info(l_supplementary_info)
+        self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
                          measured_value: float = -99.,
@@ -459,12 +459,14 @@ class CtiAnalysisWriter(AnalysisWriter):
         super().__init__(product_type = D_ANALYSIS_PRODUCT_TYPES[self.cti_test],
                          *args, **kwargs)
 
-    def _generate_directory_filename(self):
+    @property
+    def directory_filename(self) -> Optional[str]:
         """ Overriding method to generate a filename for a directory file.
         """
-        self.directory_filename = D_CTI_DIRECTORY_FILENAMES[self.cti_test]
+        return D_CTI_DIRECTORY_FILENAMES[self.cti_test]
 
-    def _get_directory_header(self):
+    @property
+    def directory_header(self) -> str:
         """ Overriding method to get the desired header for a directory file.
         """
         return D_CTI_DIRECTORY_HEADERS[self.cti_test]
