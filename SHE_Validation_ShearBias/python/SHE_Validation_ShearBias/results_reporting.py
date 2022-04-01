@@ -442,11 +442,16 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
     # Types of child classes
     test_case_writer_type = ShearBiasTestCaseWriter
 
-    def __init__(self, test_object: dpdSheValidationTestResults, workdir: str,
+    def __init__(self,
+                 test_object: dpdSheValidationTestResults,
+                 workdir: str,
+                 *args,
                  d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
                  d_l_bin_limits: Dict[BinParameters, np.ndarray],
-                 fail_sigma_calculator: FailSigmaCalculator, method_data_exists: bool = True,
-                 mode: ExecutionMode = ExecutionMode, *args, **kwargs):
+                 fail_sigma_calculator: FailSigmaCalculator,
+                 method_data_exists: bool = True,
+                 mode: ExecutionMode = ExecutionMode.LOCAL,
+                 **kwargs):
 
         super().__init__(test_object = test_object,
                          workdir = workdir,
