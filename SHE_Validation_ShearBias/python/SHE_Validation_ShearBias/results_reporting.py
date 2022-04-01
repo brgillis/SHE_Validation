@@ -443,12 +443,12 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
     test_case_writer_type = ShearBiasTestCaseWriter
     l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO
     dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO
+    d_l_test_results: Dict[str, List[Dict[int, BiasMeasurements]]]
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
                  *args,
-                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
                  fail_sigma_calculator: FailSigmaCalculator,
                  mode: ExecutionMode = ExecutionMode.LOCAL,
                  **kwargs):
@@ -458,7 +458,6 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                          workdir = workdir,
                          **kwargs)
 
-        self.d_l_d_bias_measurements = d_l_d_bias_measurements
         self.fail_sigma_calculator = fail_sigma_calculator
         self.mode = mode
 
@@ -482,7 +481,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if (test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_d_bias_measurements):
+            if (test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_test_results):
 
                 num_bins = len(l_bin_limits) - 1
 
@@ -491,7 +490,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                 l_d_val_target: List[Optional[Dict[int, float]]] = [None] * num_bins
                 l_d_val_z: List[Optional[Dict[int, float]]] = [None] * num_bins
 
-                l_d_bias_measurements = self.d_l_d_bias_measurements[test_case_name]
+                l_d_bias_measurements = self.d_l_test_results[test_case_name]
 
                 for bin_index in range(num_bins):
 
@@ -551,7 +550,7 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object = test_result_product,
                                                            workdir = workdir,
-                                                           d_l_d_bias_measurements = d_l_d_bias_measurements,
+                                                           d_l_test_results = d_l_d_bias_measurements,
                                                            d_l_bin_limits = d_l_bin_limits,
                                                            fail_sigma_calculator = fail_sigma_calculator,
                                                            mode = mode,
