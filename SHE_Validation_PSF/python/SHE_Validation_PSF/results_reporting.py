@@ -20,17 +20,21 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, TypeVar
+from typing import Dict, List, Optional, TypeVar
 
 import numpy as np
+from scipy.stats.stats import KstestResult
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
-                                           TestCaseWriter, val_under_target, )
-from SHE_Validation_PSF.constants.psf_res_test_info import PSF_RES_VAL_NAME
+                                           TestCaseWriter, ValidationResultsWriter, val_over_target, )
+from SHE_Validation_PSF.constants.psf_res_test_info import (D_L_PSF_RES_REQUIREMENT_INFO, L_PSF_RES_TEST_CASE_INFO,
+                                                            PSF_RES_VAL_NAME, )
 
 logger = getLogger(__name__)
+
+PSF_RES_P_TARGET = 0.05
 
 # Define constants for various messages
 
@@ -53,6 +57,14 @@ class PsfResRequirementWriter(RequirementWriter):
     """
 
     value_name: str = PSF_RES_VAL_NAME
+    l_test_results: Optional[List[KstestResult]]
+
+    # Protected methods
+    def _interpret_test_results(self) -> None:
+        """Override to use the pvalue as the value and a constant target
+        """
+        self.l_val = [test_results.pvalue for test_results in self.l_test_results]
+        self.l_val_target = [PSF_RES_P_TARGET for _ in self.l_test_results]
 
     def _determine_results(self):
         """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
@@ -66,7 +78,7 @@ class PsfResRequirementWriter(RequirementWriter):
         self.l_good_data = np.logical_not(l_bad_val)
 
         # Make an array of test results
-        self.l_test_pass = np.logical_not(val_under_target(val = self.l_val, val_target = self.l_val_target))
+        self.l_test_pass = val_over_target(val = self.l_val, val_target = self.l_val_target)
 
 
 class PsfResAnalysisWriter(AnalysisWriter):
@@ -87,3 +99,13 @@ class PsfResTestCaseWriter(TestCaseWriter):
     # Types of child objects, overriding those in base class
     requirement_writer_type = PsfResRequirementWriter
     analysis_writer_type = PsfResAnalysisWriter
+
+
+class PsfResValidationResultsWriter(ValidationResultsWriter):
+    """ ValidationResultsWriter specialized for the PSF-Res validation test.
+    """
+
+    # Types of child classes
+    test_case_writer_type = PsfResTestCaseWriter
+    l_test_case_info = L_PSF_RES_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_PSF_RES_REQUIREMENT_INFO
