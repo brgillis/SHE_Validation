@@ -531,7 +531,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
 
 def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
-                                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
+                                 d_l_test_results: Dict[str, List[Dict[int, BiasMeasurements]]],
                                  pipeline_config: Dict[ConfigKeys, Any],
                                  d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                  workdir: str,
@@ -550,7 +550,7 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object = test_result_product,
                                                            workdir = workdir,
-                                                           d_l_test_results = d_l_d_bias_measurements,
+                                                           d_l_test_results = d_l_test_results,
                                                            d_l_bin_limits = d_l_bin_limits,
                                                            fail_sigma_calculator = fail_sigma_calculator,
                                                            mode = mode,

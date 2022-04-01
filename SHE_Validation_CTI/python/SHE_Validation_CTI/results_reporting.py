@@ -646,7 +646,7 @@ class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
-                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    d_l_test_results: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
@@ -668,7 +668,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
                                                         workdir = workdir,
                                                         regression_results_row_index = regression_results_row_index,
                                                         d_l_bin_limits = d_l_bin_limits,
-                                                        d_l_test_results = d_regression_results_tables,
+                                                        d_l_test_results = d_l_test_results,
                                                         fail_sigma_calculator = fail_sigma_calculator,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
@@ -677,7 +677,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
 
 def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestResults,
-                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    d_l_test_results: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
@@ -699,7 +699,7 @@ def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestRes
                                                         workdir = workdir,
                                                         regression_results_row_index = 0,
                                                         d_l_bin_limits = d_l_bin_limits,
-                                                        d_l_test_results = d_regression_results_tables,
+                                                        d_l_test_results = d_l_test_results,
                                                         fail_sigma_calculator = fail_sigma_calculator,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )

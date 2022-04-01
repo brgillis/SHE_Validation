@@ -107,7 +107,7 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
         # Fill in the product with results
         fill_cti_psf_validation_results(test_result_product = test_result_product,
                                         workdir = workdir,
-                                        d_regression_results_tables = d_regression_results_tables,
+                                        d_l_test_results = d_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits = d_l_bin_limits,
                                         dl_dl_figures = d_d_figures)

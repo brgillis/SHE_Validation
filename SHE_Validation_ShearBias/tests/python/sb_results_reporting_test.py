@@ -150,7 +150,7 @@ class TestCase:
             num_tests = NUM_SHEAR_BIAS_TEST_CASES)
 
         fill_shear_bias_test_results(test_result_product = sb_test_results_product,
-                                     d_l_d_bias_measurements = d_l_d_bias_measurements,
+                                     d_l_test_results = d_l_d_bias_measurements,
                                      pipeline_config = self.pipeline_config,
                                      d_l_bin_limits = self.d_bin_limits,
                                      workdir = self.workdir,

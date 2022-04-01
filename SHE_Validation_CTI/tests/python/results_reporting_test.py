@@ -368,7 +368,7 @@ class TestCtiResultsReporting(SheTestCase):
 
         fill_cti_gal_validation_results(test_result_product = obs_product,
                                         regression_results_row_index = 0,
-                                        d_regression_results_tables = d_obs_results_tables,
+                                        d_l_test_results = d_obs_results_tables,
                                         pipeline_config = self.pipeline_config,
                                         d_l_bin_limits = self.d_bin_limits,
                                         workdir = self.workdir,
@@ -439,7 +439,7 @@ class TestCtiResultsReporting(SheTestCase):
 
             fill_cti_gal_validation_results(test_result_product = exp_product,
                                             regression_results_row_index = exp_index,
-                                            d_regression_results_tables = d_exp_results_tables,
+                                            d_l_test_results = d_exp_results_tables,
                                             pipeline_config = self.pipeline_config,
                                             d_l_bin_limits = self.d_bin_limits,
                                             workdir = self.workdir,
