@@ -29,7 +29,7 @@ from SHE_PPT.products.she_validation_test_results import create_dpd_she_validati
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
-from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_PASS
+from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO, NUM_PSF_RES_TEST_CASES
 from SHE_Validation_PSF.results_reporting import PsfResValidationResultsWriter
@@ -106,3 +106,16 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue[0].Value.FloatValue == P_TOT
         assert requirement_object.ValidationResult == RESULT_PASS
+
+    def test_snr_results(self, test_result_product):
+        """ Test that the filled results are as expected
+        """
+
+        # Exposure 1 - slope fail and intercept pass
+        test_results = test_result_product.Data.ValidationTestList[1]
+        assert test_results.GlobalResult == RESULT_FAIL
+
+        requirement_object = test_results.ValidatedRequirements.Requirement[0]
+        assert requirement_object.Comment == INFO_MULTIPLE
+        assert requirement_object.MeasuredValue[0].Value.FloatValue == P_SNR_1
+        assert requirement_object.ValidationResult == RESULT_FAIL
