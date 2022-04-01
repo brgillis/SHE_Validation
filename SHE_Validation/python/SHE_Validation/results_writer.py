@@ -423,14 +423,17 @@ class RequirementWriter:
         self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
+                         measured_value: Optional[float] = None,
                          warning: bool = False,
                          l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                          ) -> None:
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
 
+        measured_value = default_value_if_none(measured_value, self.measured_value)
+
         # Report the maximum slope_z as the measured value for this test
-        self.requirement_object.MeasuredValue[0].Value.FloatValue = self.measured_value
+        self.requirement_object.MeasuredValue[0].Value.FloatValue = measured_value
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if warning:
@@ -567,9 +570,9 @@ class RequirementWriter:
         """ Interprets self.l_good_data and self.l_test_pass to fill in the rest of the result values.
         """
 
+        # Check if the user is following the standard implementation - if not, return without doing anything
         if self.l_good_data is None or self.l_test_pass is None:
-            raise Exception(
-                "self.l_good_data and self.l_test_pass must be set before calling _determine_overall_results")
+            return
 
         # Get the list of results for bins
         self.l_result = list(map(get_result_string, self.l_test_pass))
@@ -960,7 +963,11 @@ class TestCaseWriter:
         analysis_object: Any = test_case_object.AnalysisResult.AnalysisFiles
 
         l_bin_limits = d_l_bin_limits[self.test_case_info.bin_parameter]
-        l_test_results = d_l_test_results[self.test_case_info.name]
+        try:
+            l_test_results = d_l_test_results[self.test_case_info.name]
+        except KeyError:
+            # Data is missing for this test case, so pass an array of None
+            l_test_results = [None] * len(l_bin_limits[:-1])
 
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
