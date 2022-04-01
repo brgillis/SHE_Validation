@@ -1066,7 +1066,7 @@ class ValidationResultsWriter:
     """
 
     # Types of child classes, which can be overridden by derived classes
-    test_case_writer_type = TestCaseWriter
+    test_case_writer_type: Type[TestCaseWriter] = TestCaseWriter
 
     # Attributes set at init from arguments
     _test_object: dpdSheValidationTestResults
