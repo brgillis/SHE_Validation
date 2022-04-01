@@ -1077,8 +1077,6 @@ class ValidationResultsWriter:
     l_test_case_info: Optional[List[Optional[TestCaseInfo]]] = None
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
     dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
-    _dl_l_textfiles: Optional[StrDictOrList] = None
-    _dl_dl_figures: Optional[StrDictOrList] = None
 
     # Attributes determined at init
     _l_test_case_writers: List[Optional[TestCaseWriter]]
@@ -1133,7 +1131,7 @@ class ValidationResultsWriter:
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
     # Getters/setters for attrs set at init
-    
+
     @property
     def test_object(self) -> Any:
         return self._test_object
