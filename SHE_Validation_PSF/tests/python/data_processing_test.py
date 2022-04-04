@@ -28,7 +28,7 @@ from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStar
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.data_processing import (ESC_TF, SheExtStarCatalogFormat, run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
 
@@ -123,8 +123,8 @@ class TestPsfDataProcessing(SheTestCase):
         d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_good_starcat_table,
                                                   d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
 
-        tc_tot = L_PSF_RES_TEST_CASE_INFO[0]
-        tc_snr = L_PSF_RES_TEST_CASE_INFO[1]
+        tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
+        tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]
 
         # Compare the results for the test cases and bins
         tot_kstest_result = d_l_kstest_results[tc_tot.name][0]

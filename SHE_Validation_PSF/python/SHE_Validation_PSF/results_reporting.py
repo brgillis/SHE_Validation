@@ -29,17 +29,18 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
                                            TargetType, TestCaseWriter, ValidationResultsWriter, val_over_target, )
-from SHE_Validation_PSF.constants.psf_res_test_info import (D_L_PSF_RES_REQUIREMENT_INFO, L_PSF_RES_TEST_CASE_INFO,
-                                                            PSF_RES_VAL_NAME, )
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import (D_L_PSF_RES_SP_REQUIREMENT_INFO,
+                                                               L_PSF_RES_SP_TEST_CASE_INFO,
+                                                               PSF_RES_SP_VAL_NAME, )
 
 logger = getLogger(__name__)
 
-PSF_RES_P_TARGET = 0.05
+PSF_RES_SP_P_TARGET = 0.05
 
 # Define constants for various messages etc.
 
-PSF_RES_DIRECTORY_FILENAME = "ShePSFResResultsDirectory.txt"
-PSF_RES_DIRECTORY_HEADER = "### OU-SHE Shear Bias Analysis Results File Directory ###"
+PSF_RES_SP_DIRECTORY_FILENAME = "ShePSFResStarPosResultsDirectory.txt"
+PSF_RES_SP_DIRECTORY_HEADER = "### OU-SHE PSF-Res-star-pos Analysis Results File Directory ###"
 STR_KS_STAT = "KS Statistic"
 
 
@@ -49,7 +50,7 @@ class PsfResRequirementWriter(RequirementWriter):
 
     target_type = TargetType.MIN
 
-    value_name: str = PSF_RES_VAL_NAME
+    value_name: str = PSF_RES_SP_VAL_NAME
     l_test_results: Optional[List[KstestResult]]
     l_ks_statistic: Optional[List[float]] = None
 
@@ -59,7 +60,7 @@ class PsfResRequirementWriter(RequirementWriter):
         """
         self.l_val = [test_results.pvalue for test_results in self.l_test_results]
         self.l_ks_statistic = [test_results.statistic for test_results in self.l_test_results]
-        self.l_val_target = [PSF_RES_P_TARGET for _ in self.l_test_results]
+        self.l_val_target = [PSF_RES_SP_P_TARGET for _ in self.l_test_results]
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """ Override this method to also report the KS statistic before the p-value.
@@ -94,8 +95,8 @@ class PsfResAnalysisWriter(AnalysisWriter):
     """
 
     product_type = "PSF-RES-ANALYSIS-FILES"
-    _directory_filename: str = PSF_RES_DIRECTORY_FILENAME
-    directory_header: str = PSF_RES_DIRECTORY_HEADER
+    _directory_filename: str = PSF_RES_SP_DIRECTORY_FILENAME
+    directory_header: str = PSF_RES_SP_DIRECTORY_HEADER
 
 
 class PsfResTestCaseWriter(TestCaseWriter):
@@ -115,5 +116,5 @@ class PsfResValidationResultsWriter(ValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = PsfResTestCaseWriter
-    l_test_case_info = L_PSF_RES_TEST_CASE_INFO
-    dl_l_requirement_info = D_L_PSF_RES_REQUIREMENT_INFO
+    l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_PSF_RES_SP_REQUIREMENT_INFO

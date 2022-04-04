@@ -113,7 +113,7 @@ class TestPsfResRun(SheTestCase):
         # containing with in the filenames of all other files which were tarred up. We open this first, and use
         # it to guide us on the filenames of other files that were tarred up, and test for their existence.
 
-        qualified_directory_filename = os.path.join(workdir, PSF_RES_DIRECTORY_FILENAME)
+        qualified_directory_filename = os.path.join(workdir, PSF_RES_SP_DIRECTORY_FILENAME)
 
         # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
         plot_filename = None

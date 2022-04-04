@@ -39,7 +39,7 @@ from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 
 logger = log.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def run_psf_res_val_test(star_cat: Table,
     add_snr_column_to_star_cat(star_cat)
 
     # Get lists of IDs in each bin
-    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_TEST_CASE_INFO,
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
                                                         detections_table = star_cat,
                                                         bin_constraint_type = BinParameterBinConstraint)
@@ -105,7 +105,7 @@ def run_psf_res_val_test(star_cat: Table,
     d_l_psf_res_result_ps: Dict[str, List[KstestResult]] = {}
 
     # Loop over bin parameters first, then over bin limits, and test for each
-    for test_case in L_PSF_RES_TEST_CASE_INFO:
+    for test_case in L_PSF_RES_SP_TEST_CASE_INFO:
 
         bin_parameter = test_case.bin_parameter
 
