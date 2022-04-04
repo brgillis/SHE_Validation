@@ -30,7 +30,7 @@ from SHE_PPT.products.she_validation_test_results import create_dpd_she_validati
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
-from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
+from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, TargetType
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_test_info import (L_PSF_RES_TEST_CASE_INFO, NUM_PSF_RES_TEST_CASES,
                                                             PSF_RES_VAL_NAME, )
@@ -117,7 +117,7 @@ class TestCtiResultsReporting(SheTestCase):
 
         # Check for specific data in supplementary info
         assert f"{PSF_RES_VAL_NAME} = {P_TOT}\n" in supp_info_string
-        assert f"{PSF_RES_VAL_NAME}_target = {PSF_RES_P_TARGET}\n" in supp_info_string
+        assert f"{PSF_RES_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_P_TARGET}\n" in supp_info_string
 
     def test_snr_results(self, test_result_product):
         """ Test that the filled results are as expected
@@ -138,4 +138,4 @@ class TestCtiResultsReporting(SheTestCase):
         # Check for specific data in supplementary info
         assert f"{PSF_RES_VAL_NAME} = {P_SNR_0}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME} = {P_SNR_1}\n" in supp_info_string
-        assert f"{PSF_RES_VAL_NAME}_target = {PSF_RES_P_TARGET}\n" in supp_info_string
+        assert f"{PSF_RES_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_P_TARGET}\n" in supp_info_string

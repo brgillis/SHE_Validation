@@ -22,6 +22,7 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
+from enum import Enum
 from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Type, Union
 
 import numpy as np
@@ -87,6 +88,15 @@ DEFAULT_VAL_ERR = None
 DEFAULT_VAL_Z = None
 DEFAULT_VAL_TARGET = 0.
 DEFAULT_VAL_NAME = "value"
+
+
+# Enum to express whether the target value is to be interpreted as a maximum or minimum
+class TargetType(Enum):
+    MIN = "Minimum"
+    MAX = "Maximum"
+
+
+DEFAULT_TARGET_TYPE = TargetType.MAX
 
 
 # Utility functions
@@ -280,6 +290,7 @@ class RequirementWriter:
     supp_info_key: str = KEY_INFO
     supp_info_desc: str = DESC_INFO
     value_name: str = DEFAULT_VAL_NAME
+    target_type: TargetType = TargetType.MAX
 
     # Attrs set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
@@ -558,7 +569,7 @@ class RequirementWriter:
         """
         if self.l_val_target is None:
             return ""
-        return f"{self.value_name}_target = {self.l_val_target[bin_index]}\n"
+        return f"{self.value_name}_target ({self.target_type.value}) = {self.l_val_target[bin_index]}\n"
 
     def _get_result_message_for_bin(self, bin_index: int = 0) -> str:
         """ Overridable method to write the message in the SupplementaryInfo detailing the result.

@@ -28,7 +28,7 @@ from scipy.stats.stats import KstestResult
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import is_inf_or_nan
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
-                                           TestCaseWriter, ValidationResultsWriter, val_over_target, )
+                                           TargetType, TestCaseWriter, ValidationResultsWriter, val_over_target, )
 from SHE_Validation_PSF.constants.psf_res_test_info import (D_L_PSF_RES_REQUIREMENT_INFO, L_PSF_RES_TEST_CASE_INFO,
                                                             PSF_RES_VAL_NAME, )
 
@@ -55,6 +55,8 @@ ComponentDict = Dict[int, Number]
 class PsfResRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
     """
+
+    target_type = TargetType.MIN
 
     value_name: str = PSF_RES_VAL_NAME
     l_test_results: Optional[List[KstestResult]]
