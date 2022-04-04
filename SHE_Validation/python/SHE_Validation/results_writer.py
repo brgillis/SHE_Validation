@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Type,
 
 import numpy as np
 import scipy.stats
+from dataclasses import dataclass
 
 from SHE_PPT import file_io
 from SHE_PPT.constants.classes import ShearEstimationMethods
@@ -261,35 +262,14 @@ class FailSigmaCalculator:
         return -scipy.stats.norm.ppf((1 - p_good ** (1 / num_tries)) / 2)
 
 
+@dataclass
 class SupplementaryInfo:
     """ Data class for supplementary info for a test case.
     """
 
-    # Attrs set at init
-    _key: str = KEY_INFO
-    _description: str = DESC_INFO
-    _message: str = MSG_NO_INFO
-
-    def __init__(self,
-                 key: str = KEY_INFO,
-                 description: str = DESC_INFO,
-                 message: str = MSG_NO_INFO):
-        self._key = key
-        self._description = description
-        self._message = message
-
-    # Getters/setters for attrs set at init
-    @property
-    def key(self) -> str:
-        return self._key
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def message(self) -> str:
-        return self._message
+    key: str = KEY_INFO
+    description: str = DESC_INFO
+    message: str = MSG_NO_INFO
 
 
 class RequirementWriter:
