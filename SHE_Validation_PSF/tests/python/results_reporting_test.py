@@ -32,8 +32,9 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_TEST_CASE_INFO, NUM_PSF_RES_TEST_CASES
-from SHE_Validation_PSF.results_reporting import PsfResValidationResultsWriter
+from SHE_Validation_PSF.constants.psf_res_test_info import (L_PSF_RES_TEST_CASE_INFO, NUM_PSF_RES_TEST_CASES,
+                                                            PSF_RES_VAL_NAME, )
+from SHE_Validation_PSF.results_reporting import PSF_RES_P_TARGET, PsfResValidationResultsWriter
 
 logger = getLogger(__name__)
 
@@ -111,6 +112,13 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.MeasuredValue[0].Value.FloatValue == P_TOT
         assert requirement_object.ValidationResult == RESULT_PASS
 
+        supp_info = requirement_object.SupplementaryInformation
+        supp_info_string = supp_info.Parameter[0].StringValue
+
+        # Check for specific data in supplementary info
+        assert f"{PSF_RES_VAL_NAME} = {P_TOT}\n" in supp_info_string
+        assert f"{PSF_RES_VAL_NAME}_target = {PSF_RES_P_TARGET}\n" in supp_info_string
+
     def test_snr_results(self, test_result_product):
         """ Test that the filled results are as expected
         """
@@ -123,3 +131,11 @@ class TestCtiResultsReporting(SheTestCase):
         assert requirement_object.Comment == INFO_MULTIPLE
         assert requirement_object.MeasuredValue[0].Value.FloatValue == P_SNR_1
         assert requirement_object.ValidationResult == RESULT_FAIL
+
+        supp_info = requirement_object.SupplementaryInformation
+        supp_info_string = supp_info.Parameter[0].StringValue
+
+        # Check for specific data in supplementary info
+        assert f"{PSF_RES_VAL_NAME} = {P_SNR_0}\n" in supp_info_string
+        assert f"{PSF_RES_VAL_NAME} = {P_SNR_1}\n" in supp_info_string
+        assert f"{PSF_RES_VAL_NAME}_target = {PSF_RES_P_TARGET}\n" in supp_info_string
