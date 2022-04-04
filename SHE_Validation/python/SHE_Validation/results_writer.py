@@ -387,10 +387,6 @@ class RequirementWriter:
         # Silently coerce single item into list
         l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none = True)
 
-        # Use defaults if None provided
-        if l_supplementary_info is None:
-            l_supplementary_info = [SupplementaryInfo()]
-
         base_supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
 
         l_supplementary_info_parameter: List[str] = [""] * len(l_supplementary_info)
@@ -547,18 +543,49 @@ class RequirementWriter:
             bin_max = self.l_bin_limits[bin_index + 1]
             message += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
 
-        if self.l_val is not None:
-            message += f"{self.value_name} = {self.l_val[bin_index]}\n"
-        if self.l_val_err is not None:
-            message += f"{self.value_name}_err = {self.l_val_err[bin_index]}\n"
-        if self.l_val_z is not None:
-            message += f"{self.value_name}_z = {self.l_val_z[bin_index]}\n"
-        if self.l_val_target is not None:
-            message += f"{self.value_name}_target = {self.l_val_target[bin_index]}\n"
-        if self.l_result is not None:
-            message += f"Result: {self.l_result[bin_index]}"
+        # Add details for each parameter, using overridable methods to allow customization here
+        message += self._get_val_message_for_bin(bin_index)
+        message += self._get_val_err_message_for_bin(bin_index)
+        message += self._get_val_z_message_for_bin(bin_index)
+        message += self._get_val_target_message_for_bin(bin_index)
+        message += self._get_result_message_for_bin(bin_index)
 
         return message
+
+    def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value.
+        """
+        if self.l_val is None:
+            return ""
+        return f"{self.value_name} = {self.l_val[bin_index]}\n"
+
+    def _get_val_err_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value error.
+        """
+        if self.l_val_err is None:
+            return ""
+        return f"{self.value_name}_err = {self.l_val_err[bin_index]}\n"
+
+    def _get_val_z_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value Z.
+        """
+        if self.l_val_z is None:
+            return ""
+        return f"{self.value_name}_z = {self.l_val_z[bin_index]}\n"
+
+    def _get_val_target_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value target.
+        """
+        if self.l_val_target is None:
+            return ""
+        return f"{self.value_name}_target = {self.l_val_target[bin_index]}\n"
+
+    def _get_result_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the result.
+        """
+        if self.l_result is None:
+            return ""
+        return f"Result: {self.l_result[bin_index]}"
 
     def _determine_results(self) -> None:
         """ Overridable method which can be used to determine self.l_good_data, self.l_test_pass,
