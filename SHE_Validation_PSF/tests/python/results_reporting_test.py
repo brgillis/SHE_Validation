@@ -34,9 +34,13 @@ from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PAS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_test_info import (L_PSF_RES_TEST_CASE_INFO, NUM_PSF_RES_TEST_CASES,
                                                             PSF_RES_VAL_NAME, )
-from SHE_Validation_PSF.results_reporting import PSF_RES_P_TARGET, PsfResValidationResultsWriter
+from SHE_Validation_PSF.results_reporting import PSF_RES_P_TARGET, PsfResValidationResultsWriter, STR_KS_STAT
 
 logger = getLogger(__name__)
+
+KSS_TOT = 0.1
+KSS_SNR_0 = 0.5
+KSS_SNR_1 = 0.8
 
 P_TOT = 0.06
 P_SNR_0 = 0.94
@@ -64,9 +68,9 @@ class TestCtiResultsReporting(SheTestCase):
         self.mock_starcat_product = read_xml_product(mock_starcat_table_gen.product_filename, workdir = self.workdir, )
 
         # Make a dict of mock test results
-        self.d_l_test_results = {L_PSF_RES_TEST_CASE_INFO[0].name: [KstestResult(np.nan, P_TOT)],
-                                 L_PSF_RES_TEST_CASE_INFO[1].name: [KstestResult(np.nan, P_SNR_0),
-                                                                    KstestResult(np.nan, P_SNR_1),
+        self.d_l_test_results = {L_PSF_RES_TEST_CASE_INFO[0].name: [KstestResult(KSS_TOT, P_TOT)],
+                                 L_PSF_RES_TEST_CASE_INFO[1].name: [KstestResult(KSS_SNR_0, P_SNR_0),
+                                                                    KstestResult(KSS_SNR_1, P_SNR_1),
                                                                     KstestResult(np.nan, np.nan)]}
 
     @pytest.fixture(scope = 'class')
@@ -116,6 +120,7 @@ class TestCtiResultsReporting(SheTestCase):
         supp_info_string = supp_info.Parameter[0].StringValue
 
         # Check for specific data in supplementary info
+        assert f"{STR_KS_STAT} = {KSS_TOT}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME} = {P_TOT}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_P_TARGET}\n" in supp_info_string
 
@@ -136,6 +141,8 @@ class TestCtiResultsReporting(SheTestCase):
         supp_info_string = supp_info.Parameter[0].StringValue
 
         # Check for specific data in supplementary info
+        assert f"{STR_KS_STAT} = {KSS_SNR_0}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME} = {P_SNR_0}\n" in supp_info_string
+        assert f"{STR_KS_STAT} = {KSS_SNR_1}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME} = {P_SNR_1}\n" in supp_info_string
         assert f"{PSF_RES_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_P_TARGET}\n" in supp_info_string

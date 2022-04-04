@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List, Optional, TypeVar
+from typing import List, Optional
 
 import numpy as np
 from scipy.stats.stats import KstestResult
@@ -36,20 +36,11 @@ logger = getLogger(__name__)
 
 PSF_RES_P_TARGET = 0.05
 
-# Define constants for various messages
+# Define constants for various messages etc.
 
 PSF_RES_DIRECTORY_FILENAME = "ShePSFResResultsDirectory.txt"
 PSF_RES_DIRECTORY_HEADER = "### OU-SHE Shear Bias Analysis Results File Directory ###"
-
-REPORT_DIGITS = 8
-
-# Type definitions for types used here
-TK = TypeVar('TK')
-TV = TypeVar('TV')
-TIn = TypeVar('TIn')
-TOut = TypeVar('TOut')
-Number = TypeVar('Number', float, int)
-ComponentDict = Dict[int, Number]
+STR_KS_STAT = "KS Statistic"
 
 
 class PsfResRequirementWriter(RequirementWriter):
@@ -60,13 +51,25 @@ class PsfResRequirementWriter(RequirementWriter):
 
     value_name: str = PSF_RES_VAL_NAME
     l_test_results: Optional[List[KstestResult]]
+    l_ks_statistic: Optional[List[float]] = None
 
     # Protected methods
     def _interpret_test_results(self) -> None:
         """Override to use the pvalue as the value and a constant target
         """
         self.l_val = [test_results.pvalue for test_results in self.l_test_results]
+        self.l_ks_statistic = [test_results.statistic for test_results in self.l_test_results]
         self.l_val_target = [PSF_RES_P_TARGET for _ in self.l_test_results]
+
+    def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Override this method to also report the KS statistic before the p-value.
+        """
+        if self.l_ks_statistic is None:
+            message: str = ""
+        else:
+            message: str = f"{STR_KS_STAT} = {self.l_ks_statistic[bin_index]}\n"
+        message += super()._get_val_message_for_bin(bin_index)
+        return message
 
     def _determine_results(self):
         """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
