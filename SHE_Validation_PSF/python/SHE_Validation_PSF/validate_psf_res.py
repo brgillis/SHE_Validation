@@ -29,9 +29,13 @@ from typing import Any, Dict
 from SHE_PPT import logging as log
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT, CA_WORKDIR
 from SHE_PPT.constants.config import ConfigKeys
-from SHE_PPT.file_io import read_product_and_table
+from SHE_PPT.file_io import read_product_and_table, write_xml_product
+from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
+from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import NUM_PSF_RES_SP_TEST_CASES
 from SHE_Validation_PSF.data_processing import run_psf_res_val_test
+from SHE_Validation_PSF.results_reporting import PsfResValidationResultsWriter
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 
 logger = log.getLogger(__name__)
@@ -53,6 +57,19 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
     # Process the data, getting the results of the test
     d_l_psf_res_test_results = run_psf_res_val_test(star_cat = star_cat,
                                                     d_l_bin_limits = d_l_bin_limits)
+
+    # Create and fill the output data product to contain the results
+    test_result_product = create_dpd_she_validation_test_results(reference_product = star_cat,
+                                                                 num_tests = NUM_PSF_RES_SP_TEST_CASES)
+    test_results_writer = PsfResValidationResultsWriter(test_object = test_result_product,
+                                                        workdir = workdir,
+                                                        d_l_bin_limits = d_l_bin_limits,
+                                                        d_l_test_results = d_l_psf_res_test_results, )
+
+    test_results_writer.write()
+
+    # Output the results to the desired location
+    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir = workdir)
 
 
 def load_psf_res_input(d_args, workdir):
