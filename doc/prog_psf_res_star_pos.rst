@@ -1,9 +1,11 @@
-.. _SHE_Validation_ValidateCTIGal:
+.. _SHE_Validation_ValidatePSFResStarPos:
 
-SHE_Validation_ValidateCTIGal
-=============================
+SHE_Validation_ValidatePSFResStarPos
+====================================
 
-This program performs the CTI-Galaxy validation test, T-SHE-000010-CTI-gal, which validates requirement R-SHE-CAL-F-140. This tests checks if there is any statistically-significant correlation between measured shear and distance of galaxy image from the detector's readout register. It checks this both for all objects, and for various bins of objects.
+This program performs the PSF Residual at star positions validation test, T-SHE-000001-PSF-res-star-pos, which validates requirement R-SHE-PRD-F-100. This tests checks if the residuals of modelled PSFs compared to observed stars is consistent with the expectation from simulations.
+
+This program is presently under active development, and frequent changes are anticipated.
 
 
 Running the Program on EDEN/LODEEN
@@ -13,7 +15,7 @@ To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the foll
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --mdb <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir <dir> --star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."]
 
 with the following arguments:
 
@@ -58,20 +60,8 @@ Input Arguments
      - Description
      - Required
      - Default
-   * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure in an observation.
-     - yes
-     - N/A
-   * - ``--extended_catalog <filename>``
-     - ``.xml`` data product of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing a catalog of all objects in the observation, with all columns from the MER object catalogs plus extra columns for calculated data.
-     - yes
-     - N/A
-   * - ``--she_validated_measurements_product <filename>``
-     - ``.xml`` data product of type `DpdSheMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_measurements.html>`__, containing shear estimates of all detected objects in an observation.
-     - yes
-     - N/A
-   * - ``--mdb <filename>``
-     - ``.xml`` Mission DataBase file. See https://euclid.roe.ac.uk/projects/missiondatabase/wiki/Wiki for documentation of it.
+   * - ``--star_catalog_product <filename>``
+     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -91,12 +81,8 @@ Output Arguments
      - Description
      - Required
      - Default
-   * - ``--she_observation_cti_gal_validation_test_results_product``
-     - Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on the observation as a whole.
-     - yes
-     - N/A
-   * - ``--she_exposure_cti_gal_validation_test_results_listfile``
-     - Desired filename of output ``.json`` listfile which will contain the filenames of ``.xml`` data products of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on each exposure.
+   * - ``--she_validation_test_results_product``
+     - Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test
      - yes
      - N/A
 
@@ -123,22 +109,6 @@ Options
      - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
      - no
      - ``0 3.5 5 7 10 15 30 1e99``
-   * - ``--bg_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits in ADU for when binning by sky background level.
-     - no
-     - ``0 30 35 35.25 36 50 1e99``
-   * - ``--colour_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by colour.
-     - no
-     - ``-1e99 -2.5 -2 -1.5 -1 -0.6 1e99``
-   * - ``--size_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits in pixels for when binning by size.
-     - no
-     - ``0 30 45 75 140 300 1e99``
-   * - ``--epoch_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by epoch.
-     - no
-     - N/A - Not yet implemented
 
 See `the table here <prog_ccvd.html#outputs>`__ for the specific definitions of values used for binning.
 
@@ -365,7 +335,7 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --extended_catalog $EXC_PRODUCT --she_validated_measurements_product $SVM_PRODUCT --she_observation_cti_gal_validation_test_results_product she_observation_cti_gal_validation_test_results_product.xml --she_exposure_cti_gal_validation_test_results_listfile she_exposure_cti_gal_validation_test_results_listfile.json
+    E-Run SHE_Validation 8.3 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --extended_catalog $EXC_PRODUCT --she_validated_measurements_product $SVM_PRODUCT --she_observation_cti_gal_validation_test_results_product she_observation_cti_gal_validation_test_results_product.xml --she_exposure_cti_gal_validation_test_results_listfile she_exposure_cti_gal_validation_test_results_listfile.json
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$VCF_LISTFILE``, ``$EXC_PRODUCT``, and ``$SVM_PRODUCT`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
 
