@@ -193,30 +193,13 @@ Outputs
 
 .. _obs_test_results_product:
 
-``she_observation_cti_gal_validation_test_results_product``:
+``she_validation_test_results_product``:
 
-**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on the observation as a whole.
+**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test.
 
-**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case. For the purpose of results-reporting, a test case is a test on a single shear estimation algorithm, using either all data, or binned by one of signal-to-noise, sky background level, colour, size, or epoch. This results in a total of 24 (4 algorithms times 6 ways to bin) test case results reported.
+**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case. For this test, two test cases are reported: TC-SHE-100001-PSF-res-star-tot, which tests all data together, and TC-SHE-100002-PSF-res-star-SNR, which bins objects by signal-to-noise ratio (SNR).
 
-Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the measured slope, the error on the measurement, the number of standard deviations away from zero this is, and the threshold at which this triggers a failure. In the case of the tot test cases, this is presented for the full data set. In other cases, this is presented for each bin of data, and the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run the test (i.e. bins are ignored if they have fewer than three objects in them).
-
-Regression results are reported for each bin of data. In the case that a bin contains no data points with positive weight which aren't flagged as failed measurements, the results will be reported as ``NaN`` for slope and intercept, and ``Inf`` for errors. Unless another error is reported, the presence of these values should be taken to indicate that a bin is empty.
-
-Additionally, the data product contains to a tarball of ``.png`` figures illustrating the regressions for each bin of each test case. The filename of this tarball can most easily be obtained with a command such as ``grep \.tar\.gz she_observation_cti_gal_validation_test_results_product.xml``.
-
-For this particular product, the data points used are combined from all available exposures. For instance, if an object appears in four observations, four data points will be used in the analysis, for the four different distances to the readout register in each exposure it appears in. The single measured shear value will be attached to each data point, and they will all be binned similarly. Compared to `the test results on individual exposures <exp_test_results_listfile_>`_, this test has higher statistical power, but is more likely to miss issues that occur only in a single exposure.
-
-
-.. _exp_test_results_listfile:
-
-``she_exposure_cti_gal_validation_test_results_listfile``:
-
-**Description:** Desired filename of output ``.json`` listfile which will contain the filenames of ``.xml`` data products of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test on each exposure.
-
-**Details:** See `the above section <obs_test_results_product_>`_ for the description of the data product structure and contents.
-
-For these products, each exposure is tested separately. Each detected object appears once in the dataset for each exposure, with the readout register distance for that exposure and the single measured shear value. The regression tests are then performed independently on each exposure. Compared to `the test results on the observation as a whole <obs_test_results_product_>`_, this test has lower statistical power, but is more likely to catch issues that occur only in a single exposure.
+Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic, the p-value of this statistic, and the threshold at which this triggers a failure. In the case of the ``tot`` test case, this is presented for the full data set. For the ``SNR`` test case, this is presented for each bin of data, and the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run the test (i.e. bins are ignored if they have no objects in them).
 
 Example
 -------
