@@ -10,6 +10,7 @@ API Changes
   - Reading in of input data implemented
   - Processing of data implemented
   - Reporting of results to in-memory data product implemented
+  - Resulting data product output
 
 Dependency Changes
 ------------------
