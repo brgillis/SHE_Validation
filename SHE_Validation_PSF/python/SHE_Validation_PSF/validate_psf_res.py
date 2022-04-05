@@ -59,7 +59,7 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
                                                     d_l_bin_limits = d_l_bin_limits)
 
     # Create and fill the output data product to contain the results
-    test_result_product = create_dpd_she_validation_test_results(reference_product = star_cat,
+    test_result_product = create_dpd_she_validation_test_results(reference_product = p_star_cat,
                                                                  num_tests = NUM_PSF_RES_SP_TEST_CASES)
     test_results_writer = PsfResValidationResultsWriter(test_object = test_result_product,
                                                         workdir = workdir,
