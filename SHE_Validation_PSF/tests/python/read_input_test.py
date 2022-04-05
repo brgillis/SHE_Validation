@@ -32,8 +32,8 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions
-from SHE_Validation_PSF.validate_psf_res import load_psf_res_input
+from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
+from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
 
 
 class TestPsfResReadInput(SheTestCase):

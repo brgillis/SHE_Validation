@@ -1,4 +1,4 @@
-""" @file validate_psf_res.py
+""" @file validate_psf_res_star_pos.py
 
     Created 08 March 2022 by Bryan Gillis
 

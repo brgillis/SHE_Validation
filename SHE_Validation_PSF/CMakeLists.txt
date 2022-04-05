@@ -8,7 +8,7 @@ elements_depends_on_subdirs(ElementsKernel)
 elements_install_python_modules()
 
 # Instruction for creating a Python executable
-elements_add_python_program(SHE_Validation_ValidatePSFRes SHE_Validation_PSF.ValidatePSFRes)
+elements_add_python_program(SHE_Validation_ValidatePSFResStarPos SHE_Validation_PSF.ValidatePSFResStarPos)
 
 # Install the configuration files
 # elements_install_conf_files()
