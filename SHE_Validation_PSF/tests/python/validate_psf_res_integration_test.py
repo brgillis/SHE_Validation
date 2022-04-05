@@ -32,8 +32,8 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions, mainMethod
-
 # Output data filenames
+from SHE_Validation_PSF.results_reporting import PSF_RES_SP_DIRECTORY_FILENAME
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
 
@@ -78,9 +78,6 @@ class TestPsfResRun(SheTestCase):
 
         # Call to validation function, which was imported directly from the entry-point file
         mainMethod(self.args)
-
-        # TODO: Once output data is actually generated, let the code continue to test its presence
-        return
 
         # Check the resulting data product and plots exist in the expected locations
 
