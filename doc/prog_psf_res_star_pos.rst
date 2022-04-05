@@ -204,16 +204,14 @@ Each of these results objects lists the result of the test (``PASSED`` or ``FAIL
 Example
 -------
 
-Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``mer_final_catalog_listfile``, and ``she_validated_measurements_product`` data for a selected observation (in the case of the DpdMerFinalCatalog products, these must be downloaded for all tiles which overlap this observation), and then running the `SHE_Validation_CalcCommonValData <prog_ccvd.html#SHE_Validation_CalcCommonValData>`__ program to generate the ``extended_catalog`` data product.
+Prepare the required input data in the desired workdir. At the present stage of development, this is not possible. The instructions below are provided for when this will be possible.
 
 The program can then be run with the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.3 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --extended_catalog $EXC_PRODUCT --she_validated_measurements_product $SVM_PRODUCT --she_observation_cti_gal_validation_test_results_product she_observation_cti_gal_validation_test_results_product.xml --she_exposure_cti_gal_validation_test_results_listfile she_exposure_cti_gal_validation_test_results_listfile.json
+    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir $WORKDIR --star_catalog_product $SC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$VCF_LISTFILE``, ``$EXC_PRODUCT``, and ``$SVM_PRODUCT`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir and ``$SC_PRODUCT`` corresponds to the filenamet of the prepared star catalog product.
 
-This command will generate a new data product with the filename ``she_observation_cti_gal_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results. This will also point to a tarball of figures of the regression for each test case, the names of which you can find in the product either by manual inspection or through a command such as ``grep \.tar\.gz she_observation_cti_gal_validation_test_results_product.xml``. After extracting the contents of the tarball (e.g. through ``tar -xvf <filename>.tar.gz``), the figures can opened with your image viewer of choice to see the regression results.
-
-The same procedure can be used to analyse the data products pointed to by the newly-created listfile ``she_exposure_cti_gal_validation_test_results_listfile.json``.
+This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results.
