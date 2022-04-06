@@ -224,15 +224,10 @@ class TestCtiGalDataProcessing(SheTestCase):
         # Now test with a modified object data type, with multiple entries for each object
 
         num_exposures = 4
-        exp_x_offset = 0.
-        exp_0_x_offset = (num_exposures - 1) / 2 * exp_x_offset
 
         l_object_data_tables: List[Optional[Table]] = [None] * num_exposures
         for exp_i in range(num_exposures):
-            # Offset x differently for each exposure
-            x_offset = exp_0_x_offset + exp_i * exp_x_offset
             exp_object_data_table = deepcopy(object_data_table)
-            exp_object_data_table[CGOD_TF.readout_dist] += x_offset
 
             l_object_data_tables[exp_i] = exp_object_data_table
 
@@ -244,21 +239,12 @@ class TestCtiGalDataProcessing(SheTestCase):
                                                   method = ShearEstimationMethods.LENSMC,
                                                   product_type = "OBS",
                                                   bootstrap = True)
-        obs_rr_row_nb = calculate_regression_results(object_data_table = obs_object_data_table,
-                                                     l_ids_in_bin = detections_table[MFC_TF.ID],
-                                                     method = ShearEstimationMethods.LENSMC,
-                                                     product_type = "OBS",
-                                                     bootstrap = False)
 
-        # Check that the slope and intercept errors are significantly less than the exp case, but not sqrt(
-        # num_exposures) less
+        # Check that the slope and intercept errors from this are about the same as for the individual exposure (
+        # since there's no actual new data)
 
-        ind_err_factor = np.sqrt(1 / num_exposures)
-
-        assert (ind_err_factor * exp_rr_row[RR_TF.slope_err] < obs_rr_row[RR_TF.slope_err] <
-                exp_rr_row[RR_TF.slope_err])
-        assert (ind_err_factor * exp_rr_row[RR_TF.intercept_err] < obs_rr_row[RR_TF.intercept_err] <
-                exp_rr_row[RR_TF.intercept_err])
+        assert np.isclose(exp_rr_row[RR_TF.slope_err], obs_rr_row[RR_TF.slope_err], rtol = 0.1)
+        assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol = 0.1)
 
     @pytest.fixture(scope = "class")
     def mock_data(self, class_setup):
