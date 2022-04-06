@@ -24,12 +24,11 @@ from typing import Optional, Sequence
 
 import numpy as np
 from astropy import table
-from astropy.table import Table
 
 from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
-from SHE_PPT.math import DEFAULT_BOOTSTRAP_SEED, LinregressResults, linregress_with_errors_no_bootstrap
+from SHE_PPT.math import linregress_with_errors
 from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
@@ -136,12 +135,12 @@ def calculate_regression_results(object_data_table: table.Table,
 
     # Perform the regression
 
-    linregress_results = linregress_cti_gal(id = masked_id_data[~bad_data_mask],
-                                            x = masked_readout_dist_data[~bad_data_mask],
-                                            y = masked_g1_data[~bad_data_mask],
-                                            y_err = masked_g1_err_data[~bad_data_mask],
-                                            bootstrap = bootstrap,
-                                            n_bootstrap_samples = CTI_GAL_N_BOOTSTRAP_SAMPLES)
+    linregress_results = linregress_with_errors(x = masked_readout_dist_data[~bad_data_mask],
+                                                y = masked_g1_data[~bad_data_mask],
+                                                y_err = masked_g1_err_data[~bad_data_mask],
+                                                id = masked_id_data[~bad_data_mask],
+                                                bootstrap = bootstrap,
+                                                n_bootstrap_samples = CTI_GAL_N_BOOTSTRAP_SAMPLES)
 
     # Save the results in the output table
     rr_row[RR_TF.weight] = tot_weight
@@ -152,52 +151,3 @@ def calculate_regression_results(object_data_table: table.Table,
     rr_row[RR_TF.slope_intercept_covar] = linregress_results.slope_intercept_covar
 
     return rr_row
-
-
-def linregress_cti_gal(id: np.ndarray,
-                       x: np.ndarray,
-                       y: np.ndarray,
-                       y_err: np.ndarray,
-                       bootstrap: bool = False,
-                       n_bootstrap_samples: int = CTI_GAL_N_BOOTSTRAP_SAMPLES,
-                       bootstrap_seed: int = DEFAULT_BOOTSTRAP_SEED) -> LinregressResults:
-    if not bootstrap:
-        return linregress_with_errors_no_bootstrap(x, y, y_err)
-
-    # If we're bootstrapping, we'll need to use a custom implementation which samples based on object ID
-    s_oid = np.unique(id)
-    n_ids = len(s_oid)
-
-    xy_table = Table([id, x, y, y_err], names = ("id", "x", "y", "y_err"))
-
-    # Seed the random number generator
-    rng = np.random.default_rng(bootstrap_seed)
-
-    # Get a base object for the slope and intercept calculations
-    results = linregress_with_errors_no_bootstrap(x = xy_table["x"],
-                                                  y = xy_table["y"],
-                                                  y_err = xy_table["y_err"])
-
-    # Bootstrap to get errors on slope and intercept
-    n_values = len(xy_table)
-
-    slope_bs = np.empty(n_bootstrap_samples)
-    intercept_bs = np.empty(n_bootstrap_samples)
-    for b_i in range(n_bootstrap_samples):
-        # For each bootstrap sample, select a set of random rows, allowing duplication
-        u = rng.integers(0, n_values, n_values)
-
-        # Calculate a linear regression without bootstrapping on this sample of values
-        results_bs = linregress_with_errors_no_bootstrap(x = xy_table[u]["x"],
-                                                         y = xy_table[u]["y"],
-                                                         y_err = xy_table[u]["y_err"])
-
-        # Store the slope and intercept from this calculation
-        slope_bs[b_i] = results_bs.slope
-        intercept_bs[b_i] = results_bs.intercept
-
-    # Update the error measurements in the output object, using the standard deviation of the bootstrap results
-    results.slope_err = np.std(slope_bs)
-    results.intercept_err = np.std(intercept_bs)
-
-    return results
