@@ -23,6 +23,7 @@ from typing import Optional
 
 import numpy as np
 import pytest
+from astropy.table import Row
 from dataclasses import dataclass
 
 from SHE_PPT import mdb
@@ -131,6 +132,9 @@ class TestCtiGalDataProcessing(SheTestCase):
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
     def test_calc_regression_results(self, mock_data, object_data_table, detections_table, measurements_table):
+        """ Test that the calculate_regression_results calculates the expected slope, intercept, and errors (for the
+            non-bootstrap approach to errors).
+        """
 
         d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
 
@@ -138,23 +142,14 @@ class TestCtiGalDataProcessing(SheTestCase):
         rr_row = calculate_regression_results(object_data_table = object_data_table,
                                               l_ids_in_bin = detections_table[MFC_TF.ID],
                                               method = ShearEstimationMethods.LENSMC,
-                                              product_type = "EXP", )
+                                              product_type = "EXP",
+                                              bootstrap = False)
 
         # Check the results
 
         assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
-        readout_dist_mean = np.mean(mock_data.readout_dist_data[:self.l_good])
-        ex_slope_err = self.g1_err / np.sqrt(
-            np.sum((mock_data.readout_dist_data[:self.l_good] - readout_dist_mean) ** 2))
-        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data.readout_dist_data[:self.l_good] ** 2) / self.l_good)
-
-        assert rr_row[RR_TF.weight] == self.l_good / self.g1_err ** 2
-        assert np.isclose(rr_row[RR_TF.slope], self.m, atol = self.sigma_l_tol * ex_slope_err)
-        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol = 0.1)
-        assert np.isclose(rr_row[RR_TF.intercept], self.b, atol = self.sigma_l_tol * ex_intercept_err)
-        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol = 0.1)
-        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol = 5 * ex_slope_err * ex_intercept_err)
+        ex_slope_err = self._check_rr_row(rr_row, mock_data)
 
         # Test the calculation is sensible for each binning
 
@@ -184,6 +179,47 @@ class TestCtiGalDataProcessing(SheTestCase):
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
                 assert np.isclose(rr_row[RR_TF.slope], self.m, atol = np.sqrt(2.) * self.sigma_l_tol * ex_slope_err)
+
+    def _check_rr_row(self,
+                      rr_row: Row,
+                      mock_data: MockCtiData,
+                      err_rtol = 0.1) -> float:
+        """ Checks that the regression results row contains results matching what we expect from the mock data.
+
+            Returns the expected slope error, which is used for other calculations.
+        """
+        readout_dist_mean = np.mean(mock_data.readout_dist_data[:self.l_good])
+        ex_slope_err = self.g1_err / np.sqrt(
+            np.sum((mock_data.readout_dist_data[:self.l_good] - readout_dist_mean) ** 2))
+        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data.readout_dist_data[:self.l_good] ** 2) / self.l_good)
+
+        assert rr_row[RR_TF.weight] == self.l_good / self.g1_err ** 2
+        assert np.isclose(rr_row[RR_TF.slope], self.m, atol = self.sigma_l_tol * ex_slope_err)
+        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol = err_rtol)
+        assert np.isclose(rr_row[RR_TF.intercept], self.b, atol = self.sigma_l_tol * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol = err_rtol)
+        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol = 5 * ex_slope_err * ex_intercept_err)
+
+        return ex_slope_err
+
+    def test_calc_regression_results_bootstrap(self, mock_data, object_data_table, detections_table,
+                                               measurements_table):
+        """ Test that the calculate_regression_results calculates the expected slope, intercept, and errors (for the
+            bootstrap approach to errors).
+        """
+
+        # Run the function with bootstrap error calculation on the regular data
+        rr_row = calculate_regression_results(object_data_table = object_data_table,
+                                              l_ids_in_bin = detections_table[MFC_TF.ID],
+                                              method = ShearEstimationMethods.LENSMC,
+                                              product_type = "OBS",
+                                              bootstrap = True)
+
+        # Check the results
+
+        assert rr_row.meta[RR_TF.m.product_type] == "OBS"
+
+        self._check_rr_row(rr_row, mock_data)
 
     @pytest.fixture(scope = "class")
     def mock_data(self, class_setup):
