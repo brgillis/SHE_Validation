@@ -314,7 +314,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                                                l_ids_in_bin = l_test_case_object_ids,
                                                                                method = method,
                                                                                index = exp_index,
-                                                                               product_type = "EXP")
+                                                                               product_type = "EXP",
+                                                                               bootstrap = False)
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot for each exposure
@@ -334,7 +335,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             observation_regression_results_table = calculate_regression_results(object_data_table = merged_object_table,
                                                                                 l_ids_in_bin = l_test_case_object_ids,
                                                                                 method = method,
-                                                                                product_type = "OBS", )
+                                                                                product_type = "OBS",
+                                                                                bootstrap = True)
 
             # Make a plot for the observation
             make_and_save_cti_gal_plot(method = method,

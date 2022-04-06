@@ -74,7 +74,8 @@ def calculate_regression_results(object_data_table: table.Table,
                                  l_ids_in_bin: Sequence[int],
                                  method: Optional[ShearEstimationMethods] = None,
                                  index: int = 0,
-                                 product_type: str = "UNKNOWN", ) -> table.Row:
+                                 product_type: str = "UNKNOWN",
+                                 bootstrap: bool = False) -> table.Row:
     """ Performs a linear regression of g1 versus readout register distance for each shear estimation method,
         using data in the input object_data_table, and returns it as a one-row table of format regression_results.
     """
@@ -130,9 +131,10 @@ def calculate_regression_results(object_data_table: table.Table,
 
     # Perform the regression
 
-    linregress_results = linregress_with_errors(masked_readout_dist_data[~bad_data_mask],
-                                                masked_g1_data[~bad_data_mask],
-                                                masked_g1_err_data[~bad_data_mask])
+    linregress_results = linregress_with_errors(x = masked_readout_dist_data[~bad_data_mask],
+                                                y = masked_g1_data[~bad_data_mask],
+                                                y_err = masked_g1_err_data[~bad_data_mask],
+                                                bootstrap = bootstrap)
 
     # Save the results in the output table
     rr_row[RR_TF.weight] = tot_weight
