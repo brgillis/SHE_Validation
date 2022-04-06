@@ -98,7 +98,7 @@ class TestCtiGalDataProcessing(SheTestCase):
     def teardown_class(cls):
         return
 
-    def setup(self):
+    def post_setup(self):
 
         # Make some mock data
         self.m = 1e-5
@@ -149,7 +149,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
-        ex_slope_err = self._check_rr_row(rr_row, mock_data)
+        ex_slope_err = self._check_rr_row(rr_row, mock_data, err_rtol = 0.01)
 
         # Test the calculation is sensible for each binning
 
@@ -219,7 +219,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert rr_row.meta[RR_TF.m.product_type] == "OBS"
 
-        self._check_rr_row(rr_row, mock_data)
+        self._check_rr_row(rr_row, mock_data, err_rtol = 0.1)
 
     @pytest.fixture(scope = "class")
     def mock_data(self, class_setup):
