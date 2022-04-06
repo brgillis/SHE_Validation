@@ -19,11 +19,13 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from typing import Optional
+from copy import deepcopy
+from typing import List, Optional
 
 import numpy as np
 import pytest
-from astropy.table import Row
+from astropy import table
+from astropy.table import Row, Table
 from dataclasses import dataclass
 
 from SHE_PPT import mdb
@@ -209,17 +211,54 @@ class TestCtiGalDataProcessing(SheTestCase):
         """
 
         # Run the function with bootstrap error calculation on the regular data
-        rr_row = calculate_regression_results(object_data_table = object_data_table,
-                                              l_ids_in_bin = detections_table[MFC_TF.ID],
-                                              method = ShearEstimationMethods.LENSMC,
-                                              product_type = "OBS",
-                                              bootstrap = True)
+        exp_rr_row = calculate_regression_results(object_data_table = object_data_table,
+                                                  l_ids_in_bin = detections_table[MFC_TF.ID],
+                                                  method = ShearEstimationMethods.LENSMC,
+                                                  product_type = "OBS",
+                                                  bootstrap = True)
 
         # Check the results
 
-        assert rr_row.meta[RR_TF.m.product_type] == "OBS"
+        self._check_rr_row(exp_rr_row, mock_data, err_rtol = 0.1)
 
-        self._check_rr_row(rr_row, mock_data, err_rtol = 0.1)
+        # Now test with a modified object data type, with multiple entries for each object
+
+        num_exposures = 4
+        exp_x_offset = 0.
+        exp_0_x_offset = (num_exposures - 1) / 2 * exp_x_offset
+
+        l_object_data_tables: List[Optional[Table]] = [None] * num_exposures
+        for exp_i in range(num_exposures):
+            # Offset x differently for each exposure
+            x_offset = exp_0_x_offset + exp_i * exp_x_offset
+            exp_object_data_table = deepcopy(object_data_table)
+            exp_object_data_table[CGOD_TF.readout_dist] += x_offset
+
+            l_object_data_tables[exp_i] = exp_object_data_table
+
+        obs_object_data_table = table.vstack(l_object_data_tables)
+
+        # Run the function with bootstrap error calculation on the regular data
+        obs_rr_row = calculate_regression_results(object_data_table = obs_object_data_table,
+                                                  l_ids_in_bin = detections_table[MFC_TF.ID],
+                                                  method = ShearEstimationMethods.LENSMC,
+                                                  product_type = "OBS",
+                                                  bootstrap = True)
+        obs_rr_row_nb = calculate_regression_results(object_data_table = obs_object_data_table,
+                                                     l_ids_in_bin = detections_table[MFC_TF.ID],
+                                                     method = ShearEstimationMethods.LENSMC,
+                                                     product_type = "OBS",
+                                                     bootstrap = False)
+
+        # Check that the slope and intercept errors are significantly less than the exp case, but not sqrt(
+        # num_exposures) less
+
+        ind_err_factor = np.sqrt(1 / num_exposures)
+
+        assert (ind_err_factor * exp_rr_row[RR_TF.slope_err] < obs_rr_row[RR_TF.slope_err] <
+                exp_rr_row[RR_TF.slope_err])
+        assert (ind_err_factor * exp_rr_row[RR_TF.intercept_err] < obs_rr_row[RR_TF.intercept_err] <
+                exp_rr_row[RR_TF.intercept_err])
 
     @pytest.fixture(scope = "class")
     def mock_data(self, class_setup):

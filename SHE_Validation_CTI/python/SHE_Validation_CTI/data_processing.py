@@ -34,6 +34,8 @@ from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
 
+CTI_GAL_N_BOOTSTRAP_SAMPLES = 1000
+
 logger = getLogger(__name__)
 
 
@@ -134,7 +136,8 @@ def calculate_regression_results(object_data_table: table.Table,
     linregress_results = linregress_with_errors(x = masked_readout_dist_data[~bad_data_mask],
                                                 y = masked_g1_data[~bad_data_mask],
                                                 y_err = masked_g1_err_data[~bad_data_mask],
-                                                bootstrap = bootstrap)
+                                                bootstrap = bootstrap,
+                                                n_bootstrap_samples = CTI_GAL_N_BOOTSTRAP_SAMPLES)
 
     # Save the results in the output table
     rr_row[RR_TF.weight] = tot_weight
