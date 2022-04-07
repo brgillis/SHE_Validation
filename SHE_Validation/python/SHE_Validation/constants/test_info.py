@@ -22,7 +22,7 @@ __updated__ = "2021-08-26"
 
 from typing import Dict, List, Optional, Union
 
-from SHE_PPT.constants.classes import AllowedEnum
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 
@@ -35,18 +35,6 @@ SIZE_DEFINITION: str = "area of segmentation map"
 # Tags for replacement in test case ID strings
 ID_NUMBER_REPLACE_TAG = "$ID_NUMBER"
 NAME_REPLACE_TAG = "$NAME"
-
-
-class BinParameters(AllowedEnum):
-    """ Enum of possible binning parameters for test cases.
-    """
-    TOT = "tot"
-    SNR = "snr"
-    BG = "bg"
-    COLOUR = "colour"
-    SIZE = "size"
-    EPOCH = "epoch"
-
 
 NUM_BIN_PARAMETERS: int = len(BinParameters)
 NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_parameter in BinParameters
@@ -442,35 +430,37 @@ class TestCaseInfo:
 
     @property
     def name(self) -> Optional[str]:
-        if self._name is None:
+        if self._name is not None:
+            return self._name
 
-            self._name = f"{self.base_name}"
+        self._name = f"{self.base_name}"
 
-            if self.bins is not None:
-                name_replacement = D_BIN_PARAMETER_META[self.bins].id_tail
-            else:
-                name_replacement = ""
+        if self.bins is not None:
+            name_replacement = D_BIN_PARAMETER_META[self.bins].id_tail
+        else:
+            name_replacement = ""
 
-            if NAME_REPLACE_TAG in self._name:
-                self._name = self._name.replace(NAME_REPLACE_TAG, name_replacement)
-            else:
-                self._name += f"-{name_replacement}"
+        if NAME_REPLACE_TAG in self._name:
+            self._name = self._name.replace(NAME_REPLACE_TAG, name_replacement)
+        else:
+            self._name += f"-{name_replacement}"
 
-            if self.id_number is not None:
-                id_replacement = str(self.id_number)
-            else:
-                id_replacement = ""
+        if self.id_number is not None:
+            id_replacement = str(self.id_number)
+        else:
+            id_replacement = ""
 
-            if ID_NUMBER_REPLACE_TAG in self._name:
-                self._name = self._name.replace(ID_NUMBER_REPLACE_TAG, id_replacement)
-            else:
-                self._name += f"-{id_replacement}"
+        if ID_NUMBER_REPLACE_TAG in self._name:
+            self._name = self._name.replace(ID_NUMBER_REPLACE_TAG, id_replacement)
+        else:
+            self._name += f"-{id_replacement}"
 
-            if self.method is not None:
-                method_name = self.method.value
-                if len(method_name) > 6:
-                    method_name = method_name[:6]
-                self._name += f"-{method_name}"
+        if self.method is not None:
+            method_name = self.method.value
+            if len(method_name) > 6:
+                method_name = method_name[:6]
+            self._name += f"-{method_name}"
+
         return self._name
 
     @property

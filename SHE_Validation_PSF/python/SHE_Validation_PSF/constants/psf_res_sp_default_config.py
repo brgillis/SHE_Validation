@@ -1,4 +1,4 @@
-""" @file psf_res_default_config.py
+""" @file psf_res_sp_default_config.py
 
     Created 08 March 2022 by Bryan Gillis
 
@@ -26,17 +26,17 @@ from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_A
                                                      D_VALIDATION_CONFIG_TYPES, )
 
 # Create the default config dicts for this task by extending the tot default config dicts
-D_PSF_RES_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
+D_PSF_RES_SP_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
                              ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_DEFAULTS[
                                  ValidationConfigKeys.VAL_P_FAIL],
                              ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_DEFAULTS[
                                  ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
-D_PSF_RES_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
+D_PSF_RES_SP_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
                           ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_TYPES[
                               ValidationConfigKeys.VAL_P_FAIL],
                           ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_TYPES[
                               ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
-D_PSF_RES_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
+D_PSF_RES_SP_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
                                ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_CLINE_ARGS[
                                    ValidationConfigKeys.VAL_P_FAIL],
                                ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_CLINE_ARGS[

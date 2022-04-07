@@ -70,9 +70,6 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     # Test case name: bin index: component index: bias measurements
     d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]] = {}
 
-    # Keep track if we have valid data for any method
-    data_exists: bool = False
-
     # Make a data loader for each shear estimation method
     d_data_loaders: Dict[ShearEstimationMethods, ShearBiasDataLoader] = {}
     for method in ShearEstimationMethods:
@@ -137,8 +134,6 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
             logger.warning("Failsafe exception block triggered with exception: " + str(e) + ".\n"
                                                                                             "Traceback: " + "".join(
                 traceback.format_tb(e.__traceback__)))
-        else:
-            data_exists = True
 
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
@@ -154,12 +149,11 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     if not d_args[CA_DRY_RUN]:
         # And fill in the observation product
         fill_shear_bias_test_results(test_result_product = test_result_product,
-                                     d_l_d_bias_measurements = d_l_d_bias_measurements,
+                                     d_l_test_results = d_l_d_bias_measurements,
                                      pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                      d_l_bin_limits = d_l_bin_limits,
                                      workdir = workdir,
                                      dl_dl_plot_filenames = d_d_plot_filenames,
-                                     method_data_exists = data_exists,
                                      mode = mode)
 
     # Write out test results product

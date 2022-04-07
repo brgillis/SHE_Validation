@@ -21,7 +21,7 @@ __updated__ = "2022-04-08"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_Validation.argument_parser import ValidationArgumentParser
-from SHE_Validation_PSF.constants.psf_res_test_info import L_PSF_RES_BIN_PARAMETERS
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 
 
 class PsfResArgumentParser(ValidationArgumentParser):
@@ -41,4 +41,4 @@ class PsfResArgumentParser(ValidationArgumentParser):
 
         # Optional arguments
 
-        self.add_bin_parameter_args(l_bin_parameters = L_PSF_RES_BIN_PARAMETERS)
+        self.add_bin_parameter_args(l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
