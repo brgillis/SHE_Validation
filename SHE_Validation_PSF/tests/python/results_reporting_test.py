@@ -19,6 +19,7 @@ __updated__ = "2022-04-01"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import numpy as np
 import pytest
 from scipy.stats.stats import KstestResult
@@ -34,7 +35,7 @@ from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PAS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (L_PSF_RES_SP_TEST_CASE_INFO, NUM_PSF_RES_SP_TEST_CASES,
                                                                PSF_RES_SP_VAL_NAME, )
-from SHE_Validation_PSF.results_reporting import PSF_RES_SP_P_TARGET, PsfResValidationResultsWriter, STR_KS_STAT
+from SHE_Validation_PSF.results_reporting import PsfResValidationResultsWriter, STR_KS_STAT
 
 logger = getLogger(__name__)
 
@@ -45,6 +46,8 @@ KSS_SNR_1 = 0.8
 P_TOT = 0.06
 P_SNR_0 = 0.94
 P_SNR_1 = 0.03
+
+TEST_P_TARGET = 0.045
 
 
 class TestCtiResultsReporting(SheTestCase):
@@ -80,7 +83,8 @@ class TestCtiResultsReporting(SheTestCase):
         test_results_writer = PsfResValidationResultsWriter(test_object = test_result_product,
                                                             workdir = self.workdir,
                                                             d_l_bin_limits = self.d_l_bin_limits,
-                                                            d_l_test_results = self.d_l_test_results, )
+                                                            d_l_test_results = self.d_l_test_results,
+                                                            d_requirement_writer_kwargs = {"p_fail": TEST_P_TARGET})
 
         test_results_writer.write()
 
@@ -122,7 +126,7 @@ class TestCtiResultsReporting(SheTestCase):
         # Check for specific data in supplementary info
         assert f"{STR_KS_STAT} = {KSS_TOT}\n" in supp_info_string
         assert f"{PSF_RES_SP_VAL_NAME} = {P_TOT}\n" in supp_info_string
-        assert f"{PSF_RES_SP_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_SP_P_TARGET}\n" in supp_info_string
+        assert f"{PSF_RES_SP_VAL_NAME}_target ({TargetType.MIN.value}) = {TEST_P_TARGET}\n" in supp_info_string
 
     def test_snr_results(self, test_result_product):
         """ Test that the filled results are as expected
@@ -145,4 +149,4 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"{PSF_RES_SP_VAL_NAME} = {P_SNR_0}\n" in supp_info_string
         assert f"{STR_KS_STAT} = {KSS_SNR_1}\n" in supp_info_string
         assert f"{PSF_RES_SP_VAL_NAME} = {P_SNR_1}\n" in supp_info_string
-        assert f"{PSF_RES_SP_VAL_NAME}_target ({TargetType.MIN.value}) = {PSF_RES_SP_P_TARGET}\n" in supp_info_string
+        assert f"{PSF_RES_SP_VAL_NAME}_target ({TargetType.MIN.value}) = {TEST_P_TARGET}\n" in supp_info_string
