@@ -997,7 +997,8 @@ class TestCaseWriter:
             self._l_requirement_writers = [self.requirement_writer_type(requirement_object = requirement_object,
                                                                         requirement_info = l_requirement_info,
                                                                         l_bin_limits = l_bin_limits,
-                                                                        l_test_results = l_test_results)]
+                                                                        l_test_results = l_test_results,
+                                                                        **self.d_requirement_writer_kwargs)]
             self._l_requirement_objects = [requirement_object]
 
         else:

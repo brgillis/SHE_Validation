@@ -60,9 +60,9 @@ class PsfResRequirementWriter(RequirementWriter):
                  p_fail: Optional[float] = None,
                  **kwargs):
 
-        super().__init__(*args, **kwargs)
-
         self.p_fail = default_value_if_none(p_fail, self.p_fail)
+
+        super().__init__(*args, **kwargs)
 
     # Protected methods
     def _interpret_test_results(self) -> None:
