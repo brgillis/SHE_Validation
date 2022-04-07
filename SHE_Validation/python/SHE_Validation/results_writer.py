@@ -919,6 +919,7 @@ class TestCaseWriter:
     _test_case_info: Optional[TestCaseInfo] = None
     _l_requirement_writers: Optional[List[Optional[RequirementWriter]]] = None
     _l_requirement_objects: Optional[List[Any]] = None
+    d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None
 
     # Attributes determined at init
     _analysis_writer: Optional[AnalysisWriter] = None
@@ -958,6 +959,7 @@ class TestCaseWriter:
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
                  d_l_test_results: Optional[Dict[str, List[Any]]] = None,
+                 d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None,
                  ):
 
         if (num_requirements is None) == (l_requirement_info is None):
@@ -975,6 +977,8 @@ class TestCaseWriter:
         # Get attributes from arguments
         self._test_case_object = test_case_object
         self._test_case_info = default_value_if_none(test_case_info, self.test_case_info)
+
+        self.d_requirement_writer_kwargs = empty_dict_if_none(d_requirement_writer_kwargs)
 
         # Init l_requirement_writers etc. always as lists
         base_requirement_object: Any = test_case_object.ValidatedRequirements.Requirement[0]
@@ -1015,7 +1019,8 @@ class TestCaseWriter:
                 self.l_requirement_writers[i] = self.requirement_writer_type(requirement_object = requirement_object,
                                                                              requirement_info = requirement_info,
                                                                              l_bin_limits = l_bin_limits,
-                                                                             l_test_results = l_test_results)
+                                                                             l_test_results = l_test_results,
+                                                                             **self.d_requirement_writer_kwargs)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -1134,6 +1139,8 @@ class ValidationResultsWriter:
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
     dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
 
+    d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None
+
     # Attributes determined at init
     _l_test_case_writers: List[Optional[TestCaseWriter]]
     _l_test_case_objects: List[Any]
@@ -1150,7 +1157,8 @@ class ValidationResultsWriter:
                  l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
                  dl_num_requirements: Union[None, Dict[str, int], List[int]] = None,
                  dl_l_requirement_info: Union[None, Dict[str, List[RequirementInfo]],
-                                              List[List[RequirementInfo]]] = None) -> None:
+                                              List[List[RequirementInfo]]] = None,
+                 d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None) -> None:
 
         # Init attributes directly from arguments
         self._test_object = test_object
@@ -1168,6 +1176,8 @@ class ValidationResultsWriter:
 
         self.dl_num_requirements = default_value_if_none(dl_num_requirements, self.dl_num_requirements)
         self.dl_l_requirement_info = default_value_if_none(dl_l_requirement_info, self.dl_l_requirement_info)
+
+        self.d_requirement_writer_kwargs = empty_dict_if_none(d_requirement_writer_kwargs)
 
         # Check validity of input args and process them to calculate derivative values
 
@@ -1328,7 +1338,9 @@ class ValidationResultsWriter:
                                                                  num_requirements = num_requirements,
                                                                  l_requirement_info = l_requirement_info,
                                                                  d_l_bin_limits = self.d_l_bin_limits,
-                                                                 d_l_test_results = self.d_l_test_results)
+                                                                 d_l_test_results = self.d_l_test_results,
+                                                                 d_requirement_writer_kwargs =
+                                                                 self.d_requirement_writer_kwargs)
         self.l_test_case_objects[i] = test_case_object
 
     # Public methods
