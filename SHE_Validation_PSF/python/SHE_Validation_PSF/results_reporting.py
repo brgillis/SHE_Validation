@@ -26,7 +26,8 @@ import numpy as np
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import is_inf_or_nan
+from SHE_PPT.utility import default_value_if_none, is_inf_or_nan
+from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
                                            TargetType, TestCaseWriter, ValidationResultsWriter, val_over_target, )
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (D_L_PSF_RES_SP_REQUIREMENT_INFO,
@@ -34,8 +35,6 @@ from SHE_Validation_PSF.constants.psf_res_sp_test_info import (D_L_PSF_RES_SP_RE
                                                                PSF_RES_SP_VAL_NAME, )
 
 logger = getLogger(__name__)
-
-PSF_RES_SP_P_TARGET = 0.05
 
 # Define constants for various messages etc.
 
@@ -54,13 +53,24 @@ class PsfResRequirementWriter(RequirementWriter):
     l_test_results: Optional[List[KstestResult]]
     l_ks_statistic: Optional[List[float]] = None
 
+    p_fail: float = DEFAULT_P_FAIL
+
+    def __init__(self,
+                 *args,
+                 p_fail: Optional[float] = None,
+                 **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.p_fail = default_value_if_none(p_fail, self.p_fail)
+
     # Protected methods
     def _interpret_test_results(self) -> None:
         """Override to use the pvalue as the value and a constant target
         """
         self.l_val = [test_results.pvalue for test_results in self.l_test_results]
         self.l_ks_statistic = [test_results.statistic for test_results in self.l_test_results]
-        self.l_val_target = [PSF_RES_SP_P_TARGET for _ in self.l_test_results]
+        self.l_val_target = [self.p_fail for _ in self.l_test_results]
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """ Override this method to also report the KS statistic before the p-value.
