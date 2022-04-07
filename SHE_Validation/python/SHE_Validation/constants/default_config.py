@@ -75,7 +75,6 @@ DEFAULT_SIZE_BIN_LIMITS = "0 30 45 75 140 300 1e99"
 
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     **D_GLOBAL_CONFIG_DEFAULTS,
-    ValidationConfigKeys.VAL_P_FAIL            : DEFAULT_P_FAIL,
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : DEFAULT_GLOBAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : DEFAULT_LOCAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: DEFAULT_FAIL_SIGMA_SCALING,
@@ -89,7 +88,6 @@ D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
 # Types
 D_VALIDATION_CONFIG_TYPES: Dict[ConfigKeys, Union[Type, EnumMeta]] = {
     **D_GLOBAL_CONFIG_TYPES,
-    ValidationConfigKeys.VAL_P_FAIL            : float,
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : float,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : float,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling,
@@ -109,7 +107,6 @@ CA_FAIL_SIGMA_SCALING = "fail_sigma_scaling"
 
 D_VALIDATION_CONFIG_CLINE_ARGS: Dict[ConfigKeys, str] = {
     **D_GLOBAL_CONFIG_CLINE_ARGS,
-    ValidationConfigKeys.VAL_P_FAIL            : CA_P_FAIL,
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : CA_GLOBAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : CA_LOCAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: CA_FAIL_SIGMA_SCALING,

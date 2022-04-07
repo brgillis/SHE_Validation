@@ -21,23 +21,20 @@ __updated__ = "2022-04-08"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.constants.config import ValidationConfigKeys
-from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS,
+from SHE_Validation.constants.default_config import (CA_P_FAIL, DEFAULT_P_FAIL, D_VALIDATION_CONFIG_CLINE_ARGS,
                                                      D_VALIDATION_CONFIG_DEFAULTS,
                                                      D_VALIDATION_CONFIG_TYPES, )
 
 # Create the default config dicts for this task by extending the tot default config dicts
 D_PSF_RES_SP_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
-                             ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_DEFAULTS[
-                                 ValidationConfigKeys.VAL_P_FAIL],
-                             ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_DEFAULTS[
-                                 ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
+                                ValidationConfigKeys.PRSP_P_FAIL        : DEFAULT_P_FAIL,
+                                ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_DEFAULTS[
+                                    ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
 D_PSF_RES_SP_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
-                          ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_TYPES[
-                              ValidationConfigKeys.VAL_P_FAIL],
-                          ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_TYPES[
-                              ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
+                             ValidationConfigKeys.PRSP_P_FAIL        : float,
+                             ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_TYPES[
+                                 ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
 D_PSF_RES_SP_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
-                               ValidationConfigKeys.PRSP_P_FAIL        : D_VALIDATION_CONFIG_CLINE_ARGS[
-                                   ValidationConfigKeys.VAL_P_FAIL],
-                               ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_CLINE_ARGS[
-                                   ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
+                                  ValidationConfigKeys.PRSP_P_FAIL        : CA_P_FAIL,
+                                  ValidationConfigKeys.PRSP_SNR_BIN_LIMITS: D_VALIDATION_CONFIG_CLINE_ARGS[
+                                      ValidationConfigKeys.VAL_SNR_BIN_LIMITS]}
