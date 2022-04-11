@@ -64,15 +64,13 @@ class TestPsfResReadInput(SheTestCase):
 
         return
 
-    def test_read_input(self, local_setup):
+    def test_read_input_no_ref(self, local_setup):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
 
-        (d_l_bin_limits,
-         p_star_cat,
-         star_cat) = load_psf_res_input(self.d_args, self.workdir)
+        psf_res_sp_input = load_psf_res_input(self.d_args, self.workdir)
 
         # Check that the input is as expected
-        np.testing.assert_allclose(d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
-        assert self.mock_starcat_product.Header.ProductId == p_star_cat.Header.ProductId
-        assert (self.mock_starcat_table == star_cat).all()
+        np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+        assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
+        assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
