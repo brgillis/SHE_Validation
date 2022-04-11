@@ -26,6 +26,7 @@ __updated__ = "2022-04-08"
 #
 from typing import Any, Dict, Optional
 
+import numpy as np
 from astropy.table import Table
 from dataclasses import dataclass
 

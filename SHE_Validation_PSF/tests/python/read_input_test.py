@@ -20,6 +20,7 @@ __updated__ = "2022-04-10"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from argparse import Namespace
+from copy import deepcopy
 
 import numpy as np
 
@@ -33,6 +34,7 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
+from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
 
 
@@ -68,7 +70,11 @@ class TestPsfResReadInput(SheTestCase):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
 
-        psf_res_sp_input = load_psf_res_input(self.d_args, self.workdir)
+        # Make sure we're set to not load a reference star catalog
+        d_args = deepcopy(self.d_args)
+        d_args[CA_REF_SHE_STAR_CAT] = None
+
+        psf_res_sp_input = load_psf_res_input(d_args, self.workdir)
 
         # Check that the input is as expected
         np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
