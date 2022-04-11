@@ -41,7 +41,6 @@ from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 logger = log.getLogger(__name__)
 
 
-# Dummy run_from_args_function until it's properly set up
 def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
     """ Main function for running PSF Residual validation.
     """
