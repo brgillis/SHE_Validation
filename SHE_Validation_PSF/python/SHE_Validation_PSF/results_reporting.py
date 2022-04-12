@@ -23,7 +23,6 @@ __updated__ = "2021-08-27"
 from typing import List, Optional
 
 import numpy as np
-from scipy.stats.stats import KstestResult
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.utility import default_value_if_none, is_inf_or_nan
@@ -33,6 +32,7 @@ from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (D_L_PSF_RES_SP_REQUIREMENT_INFO,
                                                                L_PSF_RES_SP_TEST_CASE_INFO,
                                                                PSF_RES_SP_VAL_NAME, )
+from SHE_Validation_PSF.data_processing import KsResult
 
 logger = getLogger(__name__)
 
@@ -50,7 +50,7 @@ class PsfResRequirementWriter(RequirementWriter):
     target_type = TargetType.MIN
 
     value_name: str = PSF_RES_SP_VAL_NAME
-    l_test_results: Optional[List[KstestResult]]
+    l_test_results: Optional[List[KsResult]]
     l_ks_statistic: Optional[List[float]] = None
 
     p_fail: float = DEFAULT_P_FAIL
