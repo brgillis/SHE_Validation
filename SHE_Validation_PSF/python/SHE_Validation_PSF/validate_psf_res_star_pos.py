@@ -33,7 +33,6 @@ from dataclasses import dataclass
 from SHE_PPT import logging as log
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT, CA_WORKDIR
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.file_io import read_product_and_table, write_xml_product
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
@@ -56,7 +55,7 @@ class PsfResSPInputData():
     ref_star_cat: Optional[Table] = None
 
 
-def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
+def run_validate_psf_res_from_args(d_args: Dict[str, Any]) -> None:
     """ Main function for running PSF Residual validation.
     """
 
@@ -85,7 +84,7 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
     write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir = workdir)
 
 
-def load_psf_res_input(d_args: Dict[ConfigKeys, Any], workdir: str) -> PsfResSPInputData:
+def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputData:
     """Function to load in required input data for the PSF Residual validation test.
     """
 
