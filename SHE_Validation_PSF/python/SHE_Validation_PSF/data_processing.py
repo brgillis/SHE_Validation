@@ -249,7 +249,8 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         ks_test_result = kstest(rvs = l_ps_trimmed, cdf = uniform.cdf)
     else:
         # If a reference star catalog is provided, test that this catalog is consistent with it or better using a
-        # two-sample test
+        # two-sample test. Note, type checker disabled here due to a bug in scipy's documented types for cdf
+        # noinspection PyTypeChecker
         ks_test_result = kstest(rvs = l_ps_trimmed, cdf = l_ref_ps_trimmed,
                                 alternative = 'greater')
 
