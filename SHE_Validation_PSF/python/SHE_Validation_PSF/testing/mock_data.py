@@ -20,12 +20,39 @@ __updated__ = "2021-10-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator, STAR_CAT_SEED
+import numpy as np
+
+from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator, STAR_CAT_SEED
+from SHE_Validation_PSF.data_processing import ESC_TF, SheExtStarCatalogFormat
 from SHE_Validation_PSF.testing.constants import (REF_STAR_CAT_TABLE_FILENAME, REF_STAR_CAT_TABLE_LISTFILE_FILENAME,
                                                   REF_STAR_CAT_TABLE_PRODUCT_FILENAME, )
 
 
-class MockRefStarCatTableGenerator(MockStarCatTableGenerator):
+class MockValStarCatDataGenerator(MockStarCatDataGenerator):
+    """ Modified version of the data generator which adds bin columns in directly.
+    """
+
+    tf: SheExtStarCatalogFormat = ESC_TF
+
+    def _generate_unique_data(self):
+        super()._generate_unique_data()
+
+        # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating
+        factor = 4
+        self.data[self.tf.snr] = np.where(self._indices % factor < factor / 2,
+                                          self._ones,
+                                          self._zeros)
+
+
+class MockValStarCatTableGenerator(MockStarCatTableGenerator):
+    """ Modified version of the table generator which used the modified version of the data generator.
+    """
+
+    tf: SheExtStarCatalogFormat = ESC_TF
+    mock_data_generator_type = MockValStarCatDataGenerator
+
+
+class MockRefValStarCatTableGenerator(MockValStarCatTableGenerator):
     seed: int = STAR_CAT_SEED + 1
     table_filename: str = REF_STAR_CAT_TABLE_FILENAME
     product_filename: str = REF_STAR_CAT_TABLE_PRODUCT_FILENAME

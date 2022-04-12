@@ -25,10 +25,7 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
-from SHE_PPT.file_io import read_product_and_table
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 # Output data filenames
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
@@ -36,11 +33,11 @@ from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFac
 from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_TABLE_PRODUCT_FILENAME
-from SHE_Validation_PSF.testing.mock_data import MockRefStarCatTableGenerator
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
 
 
-class TestPsfResReadInput(SheTestCase):
+class TestPsfResReadInput(SheValPsfTestCase):
     """ Test case for PSF-Res validation test code.
     """
 
@@ -58,19 +55,9 @@ class TestPsfResReadInput(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        # Create a star catalog table and product
-        mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)
-        mock_starcat_product_filename = mock_starcat_table_gen.write_mock_product()
-        (self.mock_starcat_product,
-         self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
-                                                           workdir = self.workdir)
-
-        # Create a reference star catalog table and product
-        mock_ref_starcat_table_gen = MockRefStarCatTableGenerator(workdir = self.workdir)
-        mock_ref_starcat_product_filename = mock_ref_starcat_table_gen.write_mock_product()
-        (self.mock_ref_starcat_product,
-         self.mock_ref_starcat_table) = read_product_and_table(mock_ref_starcat_product_filename,
-                                                               workdir = self.workdir)
+        # Create a star catalog table and product, and a reference version
+        self._make_mock_starcat_product()
+        self._make_mock_ref_starcat_product()
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 

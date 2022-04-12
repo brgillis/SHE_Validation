@@ -24,43 +24,17 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.constants.config import ValidationConfigKeys
-from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.data_processing import (ESC_TF, SheExtStarCatalogFormat, run_psf_res_val_test,
+from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
-
-MIN_ALLOWED_P = 0.05
-
-
-class MockValStarCatDataGenerator(MockStarCatDataGenerator):
-    """ Modified version of the data generator which adds bin columns in directly.
-    """
-
-    tf: SheExtStarCatalogFormat = ESC_TF
-
-    def _generate_unique_data(self):
-        super()._generate_unique_data()
-
-        # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating
-        factor = 4
-        self.num_test_points = self.num_test_points
-        self.data[self.tf.snr] = np.where(self._indices % factor < factor / 2,
-                                          self._ones,
-                                          self._zeros)
+from SHE_Validation_PSF.testing.mock_data import MockValStarCatTableGenerator
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 
-class MockValStarCatTableGenerator(MockStarCatTableGenerator):
-    """ Modified version of the table generator which used the modified version of the data generator.
-    """
-
-    tf: SheExtStarCatalogFormat = ESC_TF
-    mock_data_generator_type = MockValStarCatDataGenerator
-
-
-class TestPsfDataProcessing(SheTestCase):
+class TestPsfDataProcessing(SheValPsfTestCase):
     """ Test case for PSF-Res validation test data processing code.
     """
 
@@ -102,8 +76,8 @@ class TestPsfDataProcessing(SheTestCase):
                                                            group_mode = True)
 
         # Check that the results are reasonable, and that the two modes are doing something different
-        assert 1 > star_kstest_result.pvalue > MIN_ALLOWED_P
-        assert 1 > group_kstest_result.pvalue > MIN_ALLOWED_P
+        assert 1 > star_kstest_result.pvalue > DEFAULT_P_FAIL
+        assert 1 > group_kstest_result.pvalue > DEFAULT_P_FAIL
 
         assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
 
@@ -131,9 +105,9 @@ class TestPsfDataProcessing(SheTestCase):
         l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
 
         # Make sure they all pass
-        assert 1 > tot_kstest_result.pvalue > MIN_ALLOWED_P
-        assert 1 > l_snr_kstest_results[0].pvalue > MIN_ALLOWED_P
-        assert 1 > l_snr_kstest_results[1].pvalue > MIN_ALLOWED_P
+        assert 1 > tot_kstest_result.pvalue > DEFAULT_P_FAIL
+        assert 1 > l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
+        assert 1 > l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
 
         # Make sure they aren't all the same
         assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)

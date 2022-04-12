@@ -24,22 +24,21 @@ import os
 import subprocess
 from argparse import Namespace
 
-from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions, mainMethod
-
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions, mainMethod
 # Output data filenames
 from SHE_Validation_PSF.results_reporting import PSF_RES_SP_DIRECTORY_FILENAME
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
 
 
-class TestPsfResRun(SheTestCase):
+class TestPsfResRun(SheValPsfTestCase):
     """ Test case for PSF-Res validation test code.
     """
 

@@ -29,13 +29,13 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, TargetType
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (L_PSF_RES_SP_TEST_CASE_INFO, NUM_PSF_RES_SP_TEST_CASES,
                                                                PSF_RES_SP_VAL_NAME, )
 from SHE_Validation_PSF.results_reporting import PsfResValidationResultsWriter, STR_KS_STAT
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 logger = getLogger(__name__)
 
@@ -50,7 +50,7 @@ P_SNR_1 = 0.03
 TEST_P_TARGET = 0.045
 
 
-class TestCtiResultsReporting(SheTestCase):
+class TestCtiResultsReporting(SheValPsfTestCase):
     """ Test case for CTI validation results reporting.
     """
 
