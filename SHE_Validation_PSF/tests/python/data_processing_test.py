@@ -95,6 +95,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         """
 
         d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_good_starcat_table,
+                                                  ref_star_cat = None,
                                                   d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
 
         tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
