@@ -29,8 +29,8 @@ from typing import Dict, List, Mapping, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
 from astropy.table import Row, Table
-from scipy.stats import chi2, kstest, uniform
-from scipy.stats.stats import Ks_2sampResult, KstestResult, ks_2samp
+from scipy.stats import chi2, ks_2samp, kstest, uniform
+from scipy.stats.stats import Ks_2sampResult, KstestResult
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
