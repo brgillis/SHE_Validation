@@ -211,6 +211,7 @@ def add_p_columns_to_star_cat(star_cat: Table) -> None:
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,
+                                 ref_star_cat: Optional[Table] = None,
                                  group_mode: bool = False) -> KstestResult:
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
 
@@ -219,7 +220,62 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         Returns log(p) for the set of tests (sum of log(p) for each group or individual star).
     """
 
-    # Select the ID column based on the mode
+    l_ps = calculate_p_values(star_cat, group_mode)
+    l_ref_ps = calculate_p_values(ref_star_cat, group_mode)
+
+    # Check if we have any valid data
+    l_ps_trimmed = [x for x in l_ps if not is_inf_or_nan(x)]
+    if l_ref_ps is not None:
+        l_ref_ps_trimmed = [x for x in l_ref_ps if not is_inf_or_nan(x)]
+    else:
+        l_ref_ps_trimmed = None
+
+    # Raise an exception of reference data is provided but it's invalid
+
+    # Warn if there's no valid test data for this bin and return a NaN result
+    if (log_if_no_valid_data(l_ref_ps, l_ref_ps_trimmed) or
+            log_if_no_valid_data(l_ps, l_ps_trimmed, )):
+
+        # Return a NaN test result
+        return KstestResult(np.nan, np.nan)
+
+    # Now, we take these various p values and test that this set of p values is reasonable to be obtained,
+    # using a KS test.
+
+    ks_test_result: KstestResult
+    if ref_star_cat is None:
+        # If no reference star catalog is provided, do a one-sample test comparing against a uniform distribution of
+        # p values
+        ks_test_result = kstest(rvs = l_ps_trimmed, cdf = uniform.cdf)
+    else:
+        # If a reference star catalog is provided, test that this catalog is consistent with it or better using a
+        # two-sample test
+        ks_test_result = kstest(rvs = l_ps_trimmed, cdf = l_ref_ps_trimmed,
+                                alternative = 'greater')
+
+    return ks_test_result
+
+
+def log_if_no_valid_data(l_ps: List[float], l_ps_trimmed: List[float]) -> bool:
+    """If the provided data is invalid, log a warning with the provided method
+    """
+    if l_ps_trimmed is not None and len(l_ps_trimmed) == 0:
+        logger.warning("No valid data present in execution of run_psf_res_val_test_for_bin. \n"
+                       f"Total data length: {len(l_ps)}\n"
+                       f"Number of NaN results: {np.sum(np.isnan(l_ps))}\n"
+                       f"Number of Inf results: {np.sum(np.isinf(l_ps))}\n")
+        return True
+    return False
+
+
+def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[float]]:
+    """ Calculates and returns p values for all objects or groups in a star catalog.
+    """
+
+    if cat is None:
+        return None
+
+    # Select the columns to use based on the mode
     if group_mode:
         id_colname = ESC_TF.group_id
         chisq_colname = ESC_TF.group_chisq
@@ -234,19 +290,22 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         p_colname = ESC_TF.star_p
 
     # Add a column to store p values if necessary (the function handles a check if it's already there)
-    add_p_columns_to_star_cat(star_cat)
+    add_p_columns_to_star_cat(cat)
 
     # We'll just use one row from each group, or each individual star, for the test
-    l_unique_ids: Sequence[int] = np.unique(star_cat[id_colname])
+    l_unique_ids: Sequence[int] = np.unique(cat[id_colname])
     num_groups = len(l_unique_ids)
 
     l_ps = np.ones(num_groups, dtype = float)
 
     # Run the test for each group
-    star_cat.add_index(id_colname)
+    cat.add_index(id_colname)
+
     for i, group_id in enumerate(l_unique_ids):
+
         # Extract just the first row of each group
-        table_or_row_in_group: Union[Table, Row] = star_cat.loc[group_id]
+        table_or_row_in_group: Union[Table, Row] = cat.loc[group_id]
+
         if isinstance(table_or_row_in_group, Table):
             # Multiple rows are in this group, so just get the first
             data_row: Row = table_or_row_in_group[0]
@@ -274,22 +333,4 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
         # Save this value in the initial data table
         table_or_row_in_group[p_colname] = l_ps[i]
 
-    # Check if we have any valid data
-    l_ps_trimmed = [x for x in l_ps if not is_inf_or_nan(x)]
-    if len(l_ps_trimmed) == 0:
-
-        logger.warning("No valid data present in execution of run_psf_res_val_test_for_bin. \n"
-                       f"Total data length: {len(l_ps)}\n"
-                       f"Number of NaN results: {np.sum(np.isnan(l_ps))}\n"
-                       f"Number of Inf results: {np.sum(np.isinf(l_ps))}\n")
-
-        # Return a NaN test result
-        ks_test_result: KstestResult = KstestResult(np.nan, np.nan)
-
-    else:
-
-        # Now, we take these various p values and test that this set of p values is reasonable to be obtained,
-        # using a KS test and assuming that ideally, these would come from a uniform distribution from 0 to 1.
-        ks_test_result: KstestResult = kstest(rvs = l_ps, cdf = uniform.cdf)
-
-    return ks_test_result
+    return l_ps
