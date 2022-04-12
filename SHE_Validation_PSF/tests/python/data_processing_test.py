@@ -81,8 +81,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                                group_mode = True)
 
             # Check that the results are reasonable, and that the two modes are doing something different
-            assert 1 > star_kstest_result.pvalue > DEFAULT_P_FAIL
-            assert 1 > group_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1.0 >= star_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1.0 >= group_kstest_result.pvalue > DEFAULT_P_FAIL
 
             assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
 
@@ -118,13 +118,9 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
 
             # Make sure they all pass
-            assert 1 > tot_kstest_result.pvalue > DEFAULT_P_FAIL
-            assert 1 > l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
-            assert 1 > l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
-
-            # Make sure they aren't all the same
-            assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
-            assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
+            assert 1.0 >= tot_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1.0 >= l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
+            assert 1.0 >= l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
 
             # Check that the empty bin at the end has a NaN p value, as expected
             assert np.isnan(l_snr_kstest_results[2].pvalue)
