@@ -28,16 +28,16 @@ class SheValPsfTestCase(SheValTestCase):
     """Test case base class which defines convenience methods to create test data.
     """
 
-    def _make_mock_ref_starcat_product(self):
-        mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir = self.workdir)
-        mock_ref_starcat_product_filename = mock_ref_starcat_table_gen.write_mock_product()
-        (self.mock_ref_starcat_product,
-         self.mock_ref_starcat_table) = read_product_and_table(mock_ref_starcat_product_filename,
-                                                               workdir = self.workdir)
-
     def _make_mock_starcat_product(self):
         mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir)
         mock_starcat_product_filename = mock_starcat_table_gen.write_mock_product()
         (self.mock_starcat_product,
          self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
                                                            workdir = self.workdir)
+
+    def _make_mock_ref_starcat_product(self):
+        mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir = self.workdir)
+        mock_ref_starcat_product_filename = mock_ref_starcat_table_gen.write_mock_product()
+        (self.mock_ref_starcat_product,
+         self.mock_ref_starcat_table) = read_product_and_table(mock_ref_starcat_product_filename,
+                                                               workdir = self.workdir)

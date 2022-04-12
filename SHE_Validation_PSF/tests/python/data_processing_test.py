@@ -28,9 +28,8 @@ from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
+from SHE_Validation_PSF.data_processing import (ESC_TF, run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
-from SHE_Validation_PSF.testing.mock_data import MockValStarCatTableGenerator
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 
@@ -51,68 +50,81 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
 
         # Generate a table with good chi2 data
-        mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir)
-        self.mock_good_starcat_table = mock_starcat_table_gen.get_mock_table()
-        tf = mock_starcat_table_gen.tf
+        self._make_mock_starcat_product()
+
+        # Make a reference table which is a bit worse than the test table
+        self.mock_ref_starcat_table = deepcopy(self.mock_starcat_table)
+        self.mock_ref_starcat_table[ESC_TF.star_chisq] += 2
 
         # And tables with bad chi2 data
-        self.mock_bad_starcat_table = deepcopy(self.mock_good_starcat_table)
-        self.mock_too_good_starcat_table = deepcopy(self.mock_good_starcat_table)
+        self.mock_bad_starcat_table = deepcopy(self.mock_starcat_table)
+        self.mock_too_good_starcat_table = deepcopy(self.mock_starcat_table)
 
         # Let's pretend chi2 for individual stars is too bad for the first table, and too good for the second
-        self.mock_bad_starcat_table[tf.star_chisq] += 2
-        self.mock_too_good_starcat_table[tf.star_chisq] -= 2
+        self.mock_bad_starcat_table[ESC_TF.star_chisq] += 4
+        self.mock_too_good_starcat_table[ESC_TF.star_chisq] -= 2
 
     def test_run_psf_res_val_test_for_bin(self):
         """ Test running the "test_psf_res_for_bin" function, using all data in the table.
         """
 
-        # Run a test for individual stars
-        star_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_good_starcat_table,
-                                                          group_mode = False)
+        for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-        # And for the group
-        group_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_good_starcat_table,
-                                                           group_mode = True)
-
-        # Check that the results are reasonable, and that the two modes are doing something different
-        assert 1 > star_kstest_result.pvalue > DEFAULT_P_FAIL
-        assert 1 > group_kstest_result.pvalue > DEFAULT_P_FAIL
-
-        assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
-
-        # Now try with the bad and too-good data, and check that the p-values for each are lower
-        star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
+            # Run a test for individual stars
+            star_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_starcat_table,
+                                                              ref_star_cat = ref_star_cat,
                                                               group_mode = False)
-        star_too_good_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_too_good_starcat_table,
-                                                                   group_mode = False)
 
-        assert star_bad_kstest_result.pvalue < star_kstest_result.pvalue
-        assert star_too_good_kstest_result.pvalue < star_kstest_result.pvalue
+            # And for the group
+            group_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_starcat_table,
+                                                               ref_star_cat = ref_star_cat,
+                                                               group_mode = True)
+
+            # Check that the results are reasonable, and that the two modes are doing something different
+            assert 1 > star_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1 > group_kstest_result.pvalue > DEFAULT_P_FAIL
+
+            assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
+
+            # Now try with the bad and too-good data, and check that the p-values for each are lower
+            star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
+                                                                  ref_star_cat = ref_star_cat,
+                                                                  group_mode = False)
+            star_too_good_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_too_good_starcat_table,
+                                                                       ref_star_cat = ref_star_cat,
+                                                                       group_mode = False)
+
+            assert star_bad_kstest_result.pvalue < star_kstest_result.pvalue
+            if ref_star_cat is None:
+                assert star_too_good_kstest_result.pvalue < star_kstest_result.pvalue
+            else:
+                assert star_too_good_kstest_result.pvalue > DEFAULT_P_FAIL
 
     def test_run_psf_res_val_test(self):
         """ Test that the function for testing across all bins works as expected.
         """
 
-        d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_good_starcat_table,
-                                                  ref_star_cat = None,
-                                                  d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
+        for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-        tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
-        tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]
+            d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
+                                                      ref_star_cat = ref_star_cat,
+                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
 
-        # Compare the results for the test cases and bins
-        tot_kstest_result = d_l_kstest_results[tc_tot.name][0]
-        l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
+            tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
+            tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]
 
-        # Make sure they all pass
-        assert 1 > tot_kstest_result.pvalue > DEFAULT_P_FAIL
-        assert 1 > l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
-        assert 1 > l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
+            # Compare the results for the test cases and bins
+            tot_kstest_result = d_l_kstest_results[tc_tot.name][0]
+            l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
 
-        # Make sure they aren't all the same
-        assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
-        assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
+            # Make sure they all pass
+            assert 1 > tot_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1 > l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
+            assert 1 > l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
 
-        # Check that the empty bin at the end has a NaN p value, as expected
-        assert np.isnan(l_snr_kstest_results[2].pvalue)
+            # Make sure they aren't all the same
+            assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
+            assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
+
+            # Check that the empty bin at the end has a NaN p value, as expected
+            assert np.isnan(l_snr_kstest_results[2].pvalue)

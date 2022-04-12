@@ -87,7 +87,7 @@ ESC_TF = SheExtStarCatalogFormat()
 
 
 def run_psf_res_val_test(star_cat: Table,
-                         ref_star_cat: Optional[Table],
+                         ref_star_cat: Optional[Table] = None,
                          d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[str, List[KsResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
