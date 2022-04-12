@@ -25,7 +25,7 @@ __updated__ = "2022-04-23"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 from copy import deepcopy
-from typing import Dict, List, Optional, Sequence, Type, Union
+from typing import Dict, List, Mapping, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
 from astropy.table import Row, Table
@@ -86,20 +86,32 @@ ESC_TF = SheExtStarCatalogFormat()
 
 
 def run_psf_res_val_test(star_cat: Table,
+                         ref_star_cat: Optional[Table],
                          d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[str, List[KstestResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
         Returns a Dict of Lists of log(p) values for each test case and bin.
     """
 
-    # Add the necessary SNR column to the star_cat so we can bin with it
+    # Add the necessary SNR column to the star_cat and ref_star_cat so we can bin with it
     add_snr_column_to_star_cat(star_cat)
+    if ref_star_cat is not None:
+        add_snr_column_to_star_cat(ref_star_cat)
 
-    # Get lists of IDs in each bin
+    # Get lists of IDs in each bin, in both the test and reference star catalogs
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
                                                         detections_table = star_cat,
                                                         bin_constraint_type = BinParameterBinConstraint)
+
+    d_l_l_ref_test_case_object_ids: Optional[Dict[str, List[Sequence[int]]]]
+    if ref_star_cat is not None:
+        d_l_l_ref_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
+                                                                d_bin_limits = d_l_bin_limits,
+                                                                detections_table = ref_star_cat,
+                                                                bin_constraint_type = BinParameterBinConstraint)
+    else:
+        d_l_l_ref_test_case_object_ids = None
 
     # Init a dict of list of results
     d_l_psf_res_result_ps: Dict[str, List[KstestResult]] = {}
@@ -111,6 +123,8 @@ def run_psf_res_val_test(star_cat: Table,
 
         # Get data for this bin parameter
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case.name]
+        l_l_ref_test_case_object_ids = getitem_or_none(d_l_l_ref_test_case_object_ids, test_case.name)
+
         l_bin_limits = d_l_bin_limits[bin_parameter]
         num_bins = len(l_bin_limits) - 1
 
@@ -121,23 +135,61 @@ def run_psf_res_val_test(star_cat: Table,
         for bin_index in range(num_bins):
             # Get data for these bin limits
             l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+            l_ref_test_case_object_ids = getitem_or_none(l_l_ref_test_case_object_ids, bin_index)
 
-            # Get a table with only data in this bin
-            table_in_bin = deepcopy(get_table_of_ids(star_cat, l_test_case_object_ids, id_colname = ESC_TF.id))
-
-            # Save the info about bin_parameter and bin_limits in the table's metadata
-            table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
-            table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
+            # Get tables with only data in this bin
+            table_in_bin = get_table_in_bin(cat = star_cat,
+                                            bin_parameter = bin_parameter,
+                                            bin_index = bin_index,
+                                            l_bin_limits = l_bin_limits,
+                                            l_test_case_object_ids = l_test_case_object_ids)
+            ref_table_in_bin = get_table_in_bin(cat = ref_star_cat,
+                                                bin_parameter = bin_parameter,
+                                                bin_index = bin_index,
+                                                l_bin_limits = l_bin_limits,
+                                                l_test_case_object_ids = l_ref_test_case_object_ids)
 
             # Run the test on this table and store the result
             l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin,
+                                                                          ref_star_cat = ref_table_in_bin,
                                                                           group_mode = (
                                                                                   bin_parameter == BinParameters.TOT))
 
-        # Add the list of results to the output dict
-        d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
+            # Add the list of results to the output dict
+            d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
 
     return d_l_psf_res_result_ps
+
+
+def get_table_in_bin(cat: Optional[Table],
+                     bin_parameter: BinParameters,
+                     bin_index: int,
+                     l_bin_limits: np.ndarray,
+                     l_test_case_object_ids: Optional[Sequence[int]]) -> Optional[Table]:
+    """Gets a table with only the rows within a given bin. Returns None if cat is None.
+    """
+    if cat is None:
+        return None
+
+    table_in_bin = deepcopy(get_table_of_ids(cat, l_test_case_object_ids, id_colname = ESC_TF.id))
+
+    # Save the info about bin_parameter and bin_limits in the table's metadata
+    table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
+    table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
+
+    return table_in_bin
+
+
+KeyType = TypeVar('KeyType')
+ItemType = TypeVar('ItemType')
+
+
+def getitem_or_none(a: Optional[Mapping[KeyType, ItemType]], i: KeyType) -> Optional[ItemType]:
+    """Utility function to either get an item of a list or dict if it's not None, or return None if it is None."""
+    if a is None:
+        return None
+    else:
+        return a[i]
 
 
 def add_snr_column_to_star_cat(star_cat: Table) -> None:

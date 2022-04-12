@@ -68,6 +68,7 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
 
     # Process the data, getting the results of the test
     d_l_psf_res_test_results = run_psf_res_val_test(star_cat = psf_res_sp_input.star_cat,
+                                                    ref_star_cat = psf_res_sp_input.ref_star_cat,
                                                     d_l_bin_limits = psf_res_sp_input.d_l_bin_limits)
 
     # Create and fill the output data product to contain the results
