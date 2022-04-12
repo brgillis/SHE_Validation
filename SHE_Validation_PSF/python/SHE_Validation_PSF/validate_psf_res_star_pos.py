@@ -84,7 +84,7 @@ def run_validate_psf_res_from_args(d_args: Dict[ConfigKeys, Any]) -> None:
     write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir = workdir)
 
 
-def load_psf_res_input(d_args, workdir):
+def load_psf_res_input(d_args: Dict[ConfigKeys, Any], workdir: str) -> PsfResSPInputData:
     """Function to load in required input data for the PSF Residual validation test.
     """
 
