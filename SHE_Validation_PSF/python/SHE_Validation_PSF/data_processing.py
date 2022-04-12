@@ -30,7 +30,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Type, TypeVar, Union
 import numpy as np
 from astropy.table import Row, Table
 from scipy.stats import chi2, kstest, uniform
-from scipy.stats.stats import KstestResult
+from scipy.stats.stats import Ks_2sampResult, KstestResult, ks_2samp
 
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
@@ -42,6 +42,7 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 
 logger = log.getLogger(__name__)
+KsResult = Union[KstestResult, Ks_2sampResult]
 
 
 # We'll be modifying the star catalog table a bit, so define an extended table format for the new columns
@@ -87,7 +88,7 @@ ESC_TF = SheExtStarCatalogFormat()
 
 def run_psf_res_val_test(star_cat: Table,
                          ref_star_cat: Optional[Table],
-                         d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[str, List[KstestResult]]:
+                         d_l_bin_limits = Dict[BinParameters, Sequence[float]]) -> Dict[str, List[KsResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
         Returns a Dict of Lists of log(p) values for each test case and bin.
@@ -114,7 +115,7 @@ def run_psf_res_val_test(star_cat: Table,
         d_l_l_ref_test_case_object_ids = None
 
     # Init a dict of list of results
-    d_l_psf_res_result_ps: Dict[str, List[KstestResult]] = {}
+    d_l_psf_res_result_ps: Dict[str, List[KsResult]] = {}
 
     # Loop over bin parameters first, then over bin limits, and test for each
     for test_case in L_PSF_RES_SP_TEST_CASE_INFO:
@@ -129,7 +130,7 @@ def run_psf_res_val_test(star_cat: Table,
         num_bins = len(l_bin_limits) - 1
 
         # Create a list for the results of each set of bin limits
-        l_psf_res_result_ps: List[KstestResult] = [KstestResult(np.nan, np.nan)] * num_bins
+        l_psf_res_result_ps: List[KsResult] = [KstestResult(np.nan, np.nan)] * num_bins
 
         # Loop over bins now
         for bin_index in range(num_bins):
@@ -212,7 +213,7 @@ def add_p_columns_to_star_cat(star_cat: Table) -> None:
 
 def run_psf_res_val_test_for_bin(star_cat: Table,
                                  ref_star_cat: Optional[Table] = None,
-                                 group_mode: bool = False) -> KstestResult:
+                                 group_mode: bool = False) -> KsResult:
     """ Runs the PSF Residual test, taking as input a table in format ExtSheStarCatalogFormat.
 
         If group_mode is set to True, will do the test on groups rather than individual stars
@@ -242,17 +243,17 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
     # Now, we take these various p values and test that this set of p values is reasonable to be obtained,
     # using a KS test.
 
-    ks_test_result: KstestResult
+    ks_test_result: KsResult
     if ref_star_cat is None:
         # If no reference star catalog is provided, do a one-sample test comparing against a uniform distribution of
         # p values
         ks_test_result = kstest(rvs = l_ps_trimmed, cdf = uniform.cdf)
     else:
         # If a reference star catalog is provided, test that this catalog is consistent with it or better using a
-        # two-sample test. Note, type checker disabled here due to a bug in scipy's documented types for cdf
-        # noinspection PyTypeChecker
-        ks_test_result = kstest(rvs = l_ps_trimmed, cdf = l_ref_ps_trimmed,
-                                alternative = 'greater')
+        # two-sample test.
+
+        ks_test_result = ks_2samp(data1 = l_ps_trimmed, data2 = l_ref_ps_trimmed,
+                                  alternative = 'greater')
 
     return ks_test_result
 
