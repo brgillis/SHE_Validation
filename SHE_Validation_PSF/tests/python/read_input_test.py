@@ -59,6 +59,7 @@ class TestPsfResReadInput(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
+        # Create a star catalog table and product
         mock_starcat_table_gen = MockStarCatTableGenerator(table_filename = STAR_CAT_TABLE_FILENAME,
                                                            product_filename = STAR_CAT_PRODUCT_FILENAME,
                                                            workdir = self.workdir)
@@ -67,6 +68,7 @@ class TestPsfResReadInput(SheTestCase):
          self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
                                                            workdir = self.workdir)
 
+        # Create a reference star catalog table and product
         mock_ref_starcat_table_gen = MockStarCatTableGenerator(seed = mock_starcat_table_gen.seed + 1,
                                                                table_filename = REF_STAR_CAT_TABLE_FILENAME,
                                                                product_filename = REF_STAR_CAT_PRODUCT_FILENAME,
@@ -92,8 +94,10 @@ class TestPsfResReadInput(SheTestCase):
 
         # Check that the input is as expected
         np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+
         assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
+
         assert psf_res_sp_input.p_ref_star_cat is None
         assert psf_res_sp_input.ref_star_cat is None
 
@@ -109,7 +113,9 @@ class TestPsfResReadInput(SheTestCase):
 
         # Check that the input is as expected
         np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+
         assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
+
         assert self.mock_ref_starcat_product.Header.ProductId == psf_res_sp_input.p_ref_star_cat.Header.ProductId
         assert (self.mock_ref_starcat_table == psf_res_sp_input.ref_star_cat).all()
