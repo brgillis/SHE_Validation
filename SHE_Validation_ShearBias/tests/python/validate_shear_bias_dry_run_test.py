@@ -22,6 +22,7 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
+from argparse import Namespace
 
 import pytest
 from py._path.local import LocalPath
@@ -48,15 +49,17 @@ class ShearBiasTestCase(SheTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    def _make_mock_args(self) -> None:
+    def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.
         """
         parser = defineSpecificProgramOptions()
-        self.args = parser.parse_args([])
+        args = parser.parse_args([])
 
-        setattr(self.args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
-        setattr(self.args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
-        setattr(self.args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
+        setattr(args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
+        setattr(args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
+        setattr(args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
+
+        return args
 
     @classmethod
     def setup_class(cls):

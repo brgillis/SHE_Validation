@@ -27,20 +27,15 @@ __updated__ = "2022-04-08"
 
 from argparse import ArgumentParser, Namespace
 
-from SHE_Validation_PSF.argument_parser import PsfResArgumentParser
-from SHE_Validation_PSF.executor import PsfResValExecutor
-
 from SHE_PPT import logging as log
 from SHE_Validation.executor import ValLogOptions
+from SHE_Validation_PSF.argument_parser import PsfResArgumentParser
+from SHE_Validation_PSF.executor import PsfResValExecutor
+from SHE_Validation_PSF.validate_psf_res import run_validate_psf_res_from_args
 
 EXEC_NAME = "SHE_Validation_ValidatePSFRes"
 
 logger = log.getLogger(__name__)
-
-
-# Dummy run_from_args_function until it's properly set up
-def run_validate_psf_res_from_args(args: Namespace) -> None:
-    return
 
 
 # noinspection PyPep8Naming
@@ -73,7 +68,8 @@ def mainMethod(args: Namespace) -> None:
     executor = PsfResValExecutor(run_from_args_function = run_validate_psf_res_from_args,
                                  log_options = ValLogOptions(executable_name = EXEC_NAME), )
 
-    executor.run(args, logger = logger)
+    executor.run(args, logger = logger,
+                 pass_args_as_dict = True)
 
 
 def main() -> None:

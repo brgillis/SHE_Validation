@@ -80,7 +80,7 @@ class TestCtiGalRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def setup_workdir(self):
         """ Override parent setup, downloading data to work with here.
         """
 

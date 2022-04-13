@@ -28,12 +28,14 @@ from astropy.table import Table
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
                                                         D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
-from SHE_PPT.file_io import try_remove_file, write_listfile, write_xml_product
+from SHE_PPT.file_io import try_remove_file, write_listfile, write_product_and_table, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
+from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
 from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
 from SHE_PPT.table_formats.mer_final_catalog import MerFinalCatalogFormat, mer_final_catalog_format
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat, she_measurements_table_format
+from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_PPT.testing.mock_tables import MockTableGenerator
@@ -41,9 +43,11 @@ from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, KSB_ME
                                               LENSMC_MATCHED_TABLE_FILENAME,
                                               LENSMC_MEASUREMENTS_TABLE_FILENAME, MATCHED_TABLE_PRODUCT_FILENAME,
                                               MEASUREMENTS_TABLE_PRODUCT_FILENAME, MFC_TABLE_FILENAME,
-                                              MFC_TABLE_LISTFILE_FILENAME, MFC_TABLE_PRODUCT_FILENAME, )
+                                              MFC_TABLE_LISTFILE_FILENAME, MFC_TABLE_PRODUCT_FILENAME,
+                                              STAR_CAT_PRODUCT_FILENAME, STAR_CAT_TABLE_FILENAME, )
 from SHE_Validation.testing.mock_data import (EST_SEED, MFC_SEED, MockMFCDataGenerator, MockShearEstimateDataGenerator,
-                                              MockTUGalaxyDataGenerator, MockTUMatchedDataGenerator, )
+                                              MockStarCatDataGenerator, MockTUGalaxyDataGenerator,
+                                              MockTUMatchedDataGenerator, STAR_CAT_SEED, )
 
 logger = getLogger(__name__)
 
@@ -61,27 +65,23 @@ def make_mock_mfc_table(seed: int = MFC_SEED, ) -> Table:
     """ Function to generate a mock matched table table.
     """
 
-    mock_mfc_data_generator = MockMFCDataGenerator(num_test_points = NUM_TEST_POINTS,
-                                                   seed = seed)
+    mock_data_generator = MockMFCDataGenerator(num_test_points = NUM_TEST_POINTS,
+                                               seed = seed)
 
-    mock_mfc_table_generator = MockMFCGalaxyTableGenerator(mock_data_generator =
-                                                           mock_mfc_data_generator)
+    mock_table_generator = MockMFCGalaxyTableGenerator(mock_data_generator =
+                                                       mock_data_generator)
 
-    return mock_mfc_table_generator.get_mock_table()
+    return mock_table_generator.get_mock_table()
 
 
 def write_mock_mfc_table(workdir: str) -> str:
     """ Returns filename of the matched table product.
     """
 
-    mfc_table = make_mock_mfc_table(seed = EST_SEED)
-
-    mfc_table.write(os.path.join(workdir, MFC_TABLE_FILENAME))
-
-    # Set up and write the data product
-    mfc_table_product = create_dpd_mer_final_catalog(MFC_TABLE_FILENAME)
-
-    write_xml_product(mfc_table_product, MFC_TABLE_PRODUCT_FILENAME, workdir = workdir)
+    write_product_and_table(product = create_dpd_mer_final_catalog(),
+                            product_filename = MFC_TABLE_PRODUCT_FILENAME,
+                            table = make_mock_mfc_table(seed = EST_SEED),
+                            table_filename = MFC_TABLE_FILENAME)
 
     # Write the listfile
     write_listfile(os.path.join(workdir, MFC_TABLE_LISTFILE_FILENAME), [MFC_TABLE_PRODUCT_FILENAME])
@@ -246,3 +246,46 @@ def cleanup_mock_matched_tables(workdir: str):
     try_remove_file(LENSMC_MATCHED_TABLE_FILENAME, workdir = workdir)
     try_remove_file(KSB_MATCHED_TABLE_FILENAME, workdir = workdir)
     try_remove_file(MATCHED_TABLE_PRODUCT_FILENAME, workdir = workdir)
+
+
+class MockStarCatTableGenerator(MockTableGenerator):
+    """ A class to handle the generation of mock galaxy tables.
+    """
+
+    # Attributes with overriding types
+    mock_data_generator: MockStarCatDataGenerator
+    tf: Optional[SheStarCatalogFormat] = SHE_STAR_CAT_TF
+
+
+def make_mock_starcat_table(seed: int = STAR_CAT_SEED, ) -> Table:
+    """ Function to generate a mock starcat table.
+    """
+
+    mock_data_generator = MockStarCatDataGenerator(num_test_points = NUM_TEST_POINTS,
+                                                   seed = seed)
+
+    mock_table_generator = MockStarCatTableGenerator(mock_data_generator =
+                                                     mock_data_generator)
+
+    return mock_table_generator.get_mock_table()
+
+
+def write_mock_starcat_table(workdir: str) -> str:
+    """ Returns filename of the starcat table product.
+    """
+
+    write_product_and_table(product = create_dpd_she_star_catalog(),
+                            product_filename = STAR_CAT_PRODUCT_FILENAME,
+                            table = make_mock_starcat_table(),
+                            table_filename = STAR_CAT_TABLE_FILENAME,
+                            workdir = workdir)
+
+    return STAR_CAT_PRODUCT_FILENAME
+
+
+def cleanup_mock_starcat_table(workdir: str):
+    """ To be called in cleanup, deletes starcat tables which have been written out.
+    """
+
+    try_remove_file(STAR_CAT_TABLE_FILENAME, workdir = workdir)
+    try_remove_file(STAR_CAT_PRODUCT_FILENAME, workdir = workdir)

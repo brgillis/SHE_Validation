@@ -25,12 +25,12 @@ import subprocess
 from argparse import Namespace
 
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
-from SHE_PPT.constants.test_data import (SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
-                                         )
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
+from SHE_Validation.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.mock_tables import write_mock_starcat_table
 from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions, mainMethod
 
 # Output data filenames
@@ -52,10 +52,9 @@ class TestPsfResRun(SheTestCase):
             is None (which it will be when the object is initialized). This means that in each test case,
             self.args will return the result of this method (cached so that it only runs once).
         """
-        parser = defineSpecificProgramOptions()
-        args = parser.parse_args([])
+        args = defineSpecificProgramOptions().parse_args([])
 
-        setattr(args, CA_SHE_STAR_CAT, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_STAR_CAT, STAR_CAT_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
@@ -64,11 +63,11 @@ class TestPsfResRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def post_setup(self) -> None:
         """ Override parent setup, setting up data to work with here.
-
-            TODO: Set up mock input data for testing.
         """
+
+        write_mock_starcat_table(workdir = self.workdir)
 
         return
 
