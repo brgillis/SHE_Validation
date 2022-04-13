@@ -21,7 +21,6 @@ __updated__ = "2021-10-05"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Optional
 
 from astropy.table import Table
 
@@ -31,11 +30,10 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
 from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
 from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
-from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateTableGenerator
 from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
-from SHE_PPT.testing.mock_tables import MockTableGenerator
+from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, KSB_MEASUREMENTS_TABLE_FILENAME,
                                               LENSMC_MATCHED_TABLE_FILENAME,
@@ -180,15 +178,6 @@ def cleanup_mock_matched_tables(workdir: str):
     try_remove_file(LENSMC_MATCHED_TABLE_FILENAME, workdir = workdir)
     try_remove_file(KSB_MATCHED_TABLE_FILENAME, workdir = workdir)
     try_remove_file(MATCHED_TABLE_PRODUCT_FILENAME, workdir = workdir)
-
-
-class MockStarCatTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock galaxy tables.
-    """
-
-    # Attributes with overriding types
-    mock_data_generator: MockStarCatDataGenerator
-    tf: Optional[SheStarCatalogFormat] = SHE_STAR_CAT_TF
 
 
 def make_mock_starcat_table(seed: int = STAR_CAT_SEED, ) -> Table:
