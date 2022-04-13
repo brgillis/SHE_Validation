@@ -25,20 +25,18 @@ from typing import Optional
 
 from astropy.table import Table
 
-from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS,
-                                                        D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
-                                                        ShearEstimationMethods, )
+from SHE_PPT.constants.shear_estimation_methods import (ShearEstimationMethods, )
 from SHE_PPT.file_io import try_remove_file, write_listfile, write_product_and_table, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
 from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
 from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
-from SHE_PPT.table_formats.mer_final_catalog import MerFinalCatalogFormat, mer_final_catalog_format
-from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat, she_measurements_table_format
 from SHE_PPT.table_formats.she_star_catalog import SHE_STAR_CAT_TF, SheStarCatalogFormat
-from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, she_tu_matched_table_format
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
+from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateTableGenerator
+from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
 from SHE_PPT.testing.mock_tables import MockTableGenerator
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedTableGenerator
 from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, KSB_MEASUREMENTS_TABLE_FILENAME,
                                               LENSMC_MATCHED_TABLE_FILENAME,
                                               LENSMC_MEASUREMENTS_TABLE_FILENAME, MATCHED_TABLE_PRODUCT_FILENAME,
@@ -50,15 +48,6 @@ from SHE_Validation.testing.mock_data import (EST_SEED, MFC_SEED, MockMFCDataGen
                                               MockTUMatchedDataGenerator, STAR_CAT_SEED, )
 
 logger = getLogger(__name__)
-
-
-class MockMFCGalaxyTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock galaxy tables.
-    """
-
-    # Attributes with overriding types
-    mock_data_generator: MockMFCDataGenerator
-    tf: Optional[MerFinalCatalogFormat] = mer_final_catalog_format
 
 
 def make_mock_mfc_table(seed: int = MFC_SEED, ) -> Table:
@@ -95,38 +84,6 @@ def cleanup_mock_mfc_table(workdir: str):
 
     try_remove_file(MFC_TABLE_FILENAME, workdir = workdir)
     try_remove_file(MFC_TABLE_PRODUCT_FILENAME, workdir = workdir)
-
-
-class MockTUGalaxyTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock galaxy tables.
-    """
-
-    # Attributes with overriding types
-    mock_data_generator: MockTUGalaxyDataGenerator
-    tf: Optional[SheTUMatchedFormat] = she_tu_matched_table_format
-
-
-class MockShearEstimateTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock shear measurement tables.
-    """
-
-    # Attributes with overriding types
-    mock_data_generator: MockShearEstimateDataGenerator
-    tf: Optional[SheMeasurementsFormat] = she_measurements_table_format
-
-    # New attributes for this subclass
-    method: ShearEstimationMethods
-
-    def __init__(self,
-                 method: ShearEstimationMethods,
-                 *args, **kwargs):
-        """ Override init so we can add an input argument for mock tu galaxy data generator.
-        """
-        super().__init__(*args, **kwargs)
-
-        # Init the method attribute and its table format
-        self.method = method
-        self.tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
 
 def make_mock_measurements_table(method = ShearEstimationMethods.LENSMC,
@@ -173,29 +130,6 @@ def cleanup_mock_measurements_tables(workdir: str):
     try_remove_file(LENSMC_MEASUREMENTS_TABLE_FILENAME, workdir = workdir)
     try_remove_file(KSB_MEASUREMENTS_TABLE_FILENAME, workdir = workdir)
     try_remove_file(MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir = workdir)
-
-
-class MockTUMatchedTableGenerator(MockTableGenerator):
-    """ A class to handle the generation of mock TUM galaxy tables.
-    """
-
-    # Attributes with overriding types
-    mock_data_generator: MockTUMatchedDataGenerator
-    tf: Optional[SheTUMatchedFormat] = she_tu_matched_table_format
-
-    # New attributes for this subclass
-    method: ShearEstimationMethods
-
-    def __init__(self,
-                 method: ShearEstimationMethods,
-                 *args, **kwargs):
-        """ Override init so we can add an input argument for mock tu galaxy data generator.
-        """
-        super().__init__(*args, **kwargs)
-
-        # Init the method attribute and its table format
-        self.method = method
-        self.tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
 
 def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
