@@ -77,7 +77,8 @@ class TestPsfResReadInput(SheValPsfTestCase):
         np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
 
         # Check that star catalog matches expectation
-        assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
+        assert (self.mock_starcat_product.Header.ProductId.value() ==
+                psf_res_sp_input.p_star_cat.Header.ProductId.value())
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
 
         # Check that we didn't load a reference star catalog
@@ -98,7 +99,8 @@ class TestPsfResReadInput(SheValPsfTestCase):
         np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
 
         # Check that star catalog matches expectation
-        assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
+        assert (self.mock_starcat_product.Header.ProductId.value() ==
+                psf_res_sp_input.p_star_cat.Header.ProductId.value())
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
 
         # Check that reference star catalog matches expectation
