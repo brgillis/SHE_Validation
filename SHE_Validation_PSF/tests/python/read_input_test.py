@@ -32,7 +32,7 @@ from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
-from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_TABLE_PRODUCT_FILENAME
+from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
 
@@ -90,7 +90,7 @@ class TestPsfResReadInput(SheValPsfTestCase):
 
         # Make sure we're set to not load a reference star catalog
         d_args = deepcopy(self.d_args)
-        d_args[CA_REF_SHE_STAR_CAT] = REF_STAR_CAT_TABLE_PRODUCT_FILENAME
+        d_args[CA_REF_SHE_STAR_CAT] = REF_STAR_CAT_PRODUCT_FILENAME
 
         psf_res_sp_input = load_psf_res_input(d_args, self.workdir)
 

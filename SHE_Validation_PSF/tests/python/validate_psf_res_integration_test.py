@@ -27,12 +27,13 @@ from argparse import Namespace
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions, mainMethod
 # Output data filenames
+from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.results_reporting import PSF_RES_SP_DIRECTORY_FILENAME
+from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
@@ -55,6 +56,7 @@ class TestPsfResRun(SheValPsfTestCase):
         args = defineSpecificProgramOptions().parse_args([])
 
         setattr(args, CA_SHE_STAR_CAT, STAR_CAT_PRODUCT_FILENAME)
+        setattr(args, CA_REF_SHE_STAR_CAT, REF_STAR_CAT_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
@@ -67,8 +69,8 @@ class TestPsfResRun(SheValPsfTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)
-        mock_starcat_table_gen.write_mock_product()
+        self._write_mock_starcat_product()
+        self._write_mock_ref_starcat_product()
 
         return
 

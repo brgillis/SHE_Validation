@@ -24,8 +24,8 @@ import numpy as np
 
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator, STAR_CAT_SEED
 from SHE_Validation_PSF.data_processing import ESC_TF, SheExtStarCatalogFormat
-from SHE_Validation_PSF.testing.constants import (REF_STAR_CAT_TABLE_FILENAME, REF_STAR_CAT_TABLE_LISTFILE_FILENAME,
-                                                  REF_STAR_CAT_TABLE_PRODUCT_FILENAME, )
+from SHE_Validation_PSF.testing.constants import (REF_STAR_CAT_LISTFILE_FILENAME, REF_STAR_CAT_PRODUCT_FILENAME,
+                                                  REF_STAR_CAT_TABLE_FILENAME, )
 
 
 class MockValStarCatDataGenerator(MockStarCatDataGenerator):
@@ -55,5 +55,5 @@ class MockValStarCatTableGenerator(MockStarCatTableGenerator):
 class MockRefValStarCatTableGenerator(MockValStarCatTableGenerator):
     seed: int = STAR_CAT_SEED + 1
     table_filename: str = REF_STAR_CAT_TABLE_FILENAME
-    product_filename: str = REF_STAR_CAT_TABLE_PRODUCT_FILENAME
-    listfile_filename: str = REF_STAR_CAT_TABLE_LISTFILE_FILENAME
+    product_filename: str = REF_STAR_CAT_PRODUCT_FILENAME
+    listfile_filename: str = REF_STAR_CAT_LISTFILE_FILENAME

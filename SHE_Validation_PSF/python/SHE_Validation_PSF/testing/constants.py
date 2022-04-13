@@ -20,6 +20,6 @@ __updated__ = "2021-10-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-REF_STAR_CAT_TABLE_LISTFILE_FILENAME = "reference_star_cat_listfile.json"
-REF_STAR_CAT_TABLE_PRODUCT_FILENAME = "reference_star_cat_product.xml"
+REF_STAR_CAT_LISTFILE_FILENAME = "reference_star_cat_listfile.json"
+REF_STAR_CAT_PRODUCT_FILENAME = "reference_star_cat_product.xml"
 REF_STAR_CAT_TABLE_FILENAME = "data/reference_star_cat_table.fits"
