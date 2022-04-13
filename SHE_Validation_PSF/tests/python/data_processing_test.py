@@ -54,15 +54,15 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         # Make a reference table which is a bit worse than the test table
         self.mock_ref_starcat_table = deepcopy(self.mock_starcat_table)
-        self.mock_ref_starcat_table[ESC_TF.star_chisq] += 2
+        self.mock_ref_starcat_table[ESC_TF.star_chisq] += 1
 
         # And tables with bad chi2 data
         self.mock_bad_starcat_table = deepcopy(self.mock_starcat_table)
         self.mock_too_good_starcat_table = deepcopy(self.mock_starcat_table)
 
         # Let's pretend chi2 for individual stars is too bad for the first table, and too good for the second
-        self.mock_bad_starcat_table[ESC_TF.star_chisq] += 4
-        self.mock_too_good_starcat_table[ESC_TF.star_chisq] -= 2
+        self.mock_bad_starcat_table[ESC_TF.star_chisq] += 2
+        self.mock_too_good_starcat_table[ESC_TF.star_chisq] -= 1
 
     def test_run_psf_res_val_test_for_bin(self):
         """ Test running the "test_psf_res_for_bin" function, using all data in the table.
@@ -81,8 +81,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                                group_mode = True)
 
             # Check that the results are reasonable, and that the two modes are doing something different
-            assert 1.0 >= star_kstest_result.pvalue > DEFAULT_P_FAIL
-            assert 1.0 >= group_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1.0 > star_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1.0 > group_kstest_result.pvalue > DEFAULT_P_FAIL
 
             assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
 
@@ -118,9 +118,13 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             l_snr_kstest_results = d_l_kstest_results[tc_snr.name]
 
             # Make sure they all pass
-            assert 1.0 >= tot_kstest_result.pvalue > DEFAULT_P_FAIL
-            assert 1.0 >= l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
-            assert 1.0 >= l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
+            assert 1 > tot_kstest_result.pvalue > DEFAULT_P_FAIL
+            assert 1 > l_snr_kstest_results[0].pvalue > DEFAULT_P_FAIL
+            assert 1 > l_snr_kstest_results[1].pvalue > DEFAULT_P_FAIL
+
+            # Make sure they aren't all the same
+            assert not np.isclose(tot_kstest_result.pvalue, l_snr_kstest_results[0].pvalue)
+            assert not np.isclose(l_snr_kstest_results[0].pvalue, l_snr_kstest_results[1].pvalue)
 
             # Check that the empty bin at the end has a NaN p value, as expected
             assert np.isnan(l_snr_kstest_results[2].pvalue)
