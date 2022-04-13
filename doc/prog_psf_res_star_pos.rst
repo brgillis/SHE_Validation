@@ -61,9 +61,13 @@ Input Arguments
      - Required
      - Default
    * - ``--star_catalog_product <filename>``
-     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program
+     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program on the observation to be tested
      - yes
      - N/A
+   * - ``--ref_star_catalog_product <filename>``
+     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing reference star information based on the results of PF-SHE's PSF Fitting program on simulations
+     - no
+     - None (will test for an ideal probability distribution instead of comparing with this)
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
@@ -118,13 +122,29 @@ Inputs
 
 ``star_catalog_product``:
 
-**Description:** The filename of a ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__ in the workdir. This data product points to a ``.fits`` data table in the workdir with information on stars in a single observation, based on the processing performed by SHE's PSF Fitting program. This table contains the relevant information:
+**Description:** The filename of a ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__ in the workdir. This data product points to a ``.fits`` data table in the workdir with information on stars in the single observation to be tested, based on the processing performed by SHE's PSF Fitting program. This table contains the relevant information:
 
 * Object ID
 * Updated best-fit positions
 * Fit quality information
 
 See the data product information linked above for a detailed description of the data product.
+
+**Source:** At the present stage of development, this product is not yet being produced by PF-SHE's PSF Fitting program. When that program is updated to produce it, instructions for running it will be provided here.
+
+``ref_star_catalog_product``:
+
+**Description:** If provided, the filename of a ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__ in the workdir. This data product points to a ``.fits`` data table in the workdir with information on stars in a simulated observation, based on the processing performed by SHE's PSF Fitting program. This table contains the relevant information:
+
+* Object ID
+* Updated best-fit positions
+* Fit quality information
+
+See the data product information linked above for a detailed description of the data product.
+
+This reference product should be selected to be the star catalog with the worst chi-square statistics found in all simulations. The provided ``star_catalog_product`` will be tested against this, and the test will pass if either the ``star_catalog_product`` contains better chi-square statistics than this products, or the two are consistent in a two-sample Kolmogorov-Smirnov test.
+
+If this input port is not provided, instead the chi-square statistics in the ``star_catalog_product`` will be compared against an ideal distribution, by comparing the distribution of p-values to a uniform distribution.
 
 **Source:** At the present stage of development, this product is not yet being produced by PF-SHE's PSF Fitting program. When that program is updated to produce it, instructions for running it will be provided here.
 
@@ -199,7 +219,7 @@ Outputs
 
 **Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case. For this test, two test cases are reported: TC-SHE-100001-PSF-res-star-tot, which tests all data together, and TC-SHE-100002-PSF-res-star-SNR, which bins objects by signal-to-noise ratio (SNR).
 
-Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic, the p-value of this statistic, and the threshold at which this triggers a failure. In the case of the ``tot`` test case, this is presented for the full data set. For the ``SNR`` test case, this is presented for each bin of data, and the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run the test (i.e. bins are ignored if they have no objects in them).
+Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic (either from a one-tailed two-sample test, if a ``ref_star_catalog_product`` is provided, or a two-tailed one-sample test if not), the p-value of this statistic, and the threshold at which this triggers a failure. In the case of the ``tot`` test case, this is presented for the full data set. For the ``SNR`` test case, this is presented for each bin of data, and the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run the test (i.e. bins are ignored if they have no objects in them).
 
 Example
 -------
@@ -210,8 +230,8 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir $WORKDIR --star_catalog_product $SC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir $WORKDIR --star_catalog_product $SC_PRODUCT --star_catalog_product $RSC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir and ``$SC_PRODUCT`` corresponds to the filenamet of the prepared star catalog product.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$SC_PRODUCT`` and ``$RSC_PRODUCT`` correspond to the filenames of the prepared star catalog and reference star catalog products.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results.
