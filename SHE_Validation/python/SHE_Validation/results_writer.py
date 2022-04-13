@@ -22,16 +22,20 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
-from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Union
+from enum import Enum
+from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Type, Union
 
 import numpy as np
 import scipy.stats
+from dataclasses import dataclass
 
 from SHE_PPT import file_io
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.product_utility import coerce_no_include_data_subdir
-from SHE_PPT.utility import any_is_inf_or_nan, coerce_to_list
+from SHE_PPT.utility import (any_is_inf_or_nan, coerce_to_list, default_value_if_none, empty_dict_if_none,
+                             empty_list_if_none, )
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
@@ -79,27 +83,66 @@ MSG_NO_INFO: str = "No supplementary information available."
 
 MEASURED_VAL_BAD_DATA = 1e99
 
+DEFAULT_VAL = 0.
+DEFAULT_VAL_ERR = None
+DEFAULT_VAL_Z = None
+DEFAULT_VAL_TARGET = 0.
+DEFAULT_VAL_NAME = "value"
+
+
+# Enum to express whether the target value is to be interpreted as a maximum or minimum
+class TargetType(Enum):
+    MIN = "Minimum"
+    MAX = "Maximum"
+
+
+DEFAULT_TARGET_TYPE = TargetType.MAX
+
 
 # Utility functions
 
 
-def check_test_pass(val: float, val_err: float, val_z: float, val_target: float) -> bool:
+# Functions for different ways a test will be deemed to fail - return True on success
+def z_under_target(val_z: Union[float, np.ndarray],
+                   val_target: Union[float, np.ndarray],
+                   *_args, **_kwargs) -> bool:
+    return np.asarray(val_z) <= np.asarray(val_target)
+
+
+def val_over_target(val: Union[float, np.ndarray],
+                    val_target: Union[float, np.ndarray],
+                    *_args, **_kwargs) -> Union[bool, List[bool]]:
+    return np.asarray(val) >= np.asarray(val_target)
+
+
+DEFAULT_VALUE_TEST = z_under_target
+
+
+def check_test_pass(val: float,
+                    val_err: Optional[float],
+                    val_z: Optional[float],
+                    val_target: float,
+                    test: Callable = DEFAULT_VALUE_TEST) -> bool:
     """ Check if a given test has good data and passes.
     """
-    if ((val_err == 0.) or
-            (any_is_inf_or_nan([val, val_err])) or
-            (val_z > val_target)):
+    if (val_err == 0.) or (any_is_inf_or_nan([val, val_err])):
+        return False
+    if not test(val = val, val_err = val_err, val_z = val_z, val_target = val_target):
         return False
     return True
 
 
-def check_test_pass_if_data(val: float, val_err: float, val_z: float, val_target: float,
-                            good_data: bool) -> bool:
+def check_test_pass_if_data(val: float,
+                            val_err: float,
+                            val_z: float,
+                            val_target: float,
+                            good_data: bool,
+                            test: Callable = DEFAULT_VALUE_TEST) -> bool:
     """ Check if a test either doesn't have good data, or does and passes.
     """
     if not good_data:
         return True
-    return check_test_pass(val, val_err, val_z, val_target)
+    return check_test_pass(val, val_err, val_z, val_target, test)
 
 
 def get_result_string(test_pass: bool):
@@ -229,54 +272,79 @@ class FailSigmaCalculator:
         return -scipy.stats.norm.ppf((1 - p_good ** (1 / num_tries)) / 2)
 
 
+@dataclass
 class SupplementaryInfo:
     """ Data class for supplementary info for a test case.
     """
 
-    # Attrs set at init
-    _key: str = KEY_INFO
-    _description: str = DESC_INFO
-    _message: str = MSG_NO_INFO
-
-    def __init__(self,
-                 key: str = KEY_INFO,
-                 description: str = DESC_INFO,
-                 message: str = MSG_NO_INFO):
-        self._key = key
-        self._description = description
-        self._message = message
-
-    # Getters/setters for attrs set at init
-    @property
-    def key(self) -> str:
-        return self._key
-
-    @property
-    def description(self) -> str:
-        return self._description
-
-    @property
-    def message(self) -> str:
-        return self._message
+    key: str = KEY_INFO
+    description: str = DESC_INFO
+    message: str = MSG_NO_INFO
 
 
 class RequirementWriter:
     """ Class for managing reporting of results for a single test case.
     """
 
+    # Class-level constants
+    supp_info_key: str = KEY_INFO
+    supp_info_desc: str = DESC_INFO
+    value_name: str = DEFAULT_VAL_NAME
+    target_type: TargetType = TargetType.MAX
+
     # Attrs set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
     _requirement_object: Optional[Any] = None
     _requirement_info: Optional[RequirementInfo] = None
 
+    # Attrs set when writing
+
+    fail_sigma: Optional[float] = None
+
+    method: Optional[ShearEstimationMethods] = None
+
+    bin_parameter: Optional[BinParameters] = None
+    l_bin_limits: Sequence[float]
+    num_bins: int = 0
+
+    measured_value: Optional[float] = None
+
+    # Data for each bin
+    l_bin_limits: Optional[List[float]] = None
+    l_test_results: Optional[List[Any]] = None
+    l_val: Optional[List[float]] = None
+    l_val_err: Optional[List[float]] = None
+    l_val_z: Optional[List[float]] = None
+    l_val_target: Optional[List[float]] = None
+
+    # Results values to be filled in
+
+    # Which bin(s) have at least some good data / pass / result?
+    l_good_data: Optional[List[bool]] = None
+    l_test_pass: Optional[List[bool]] = None
+    l_result: Optional[List[str]] = None
+
+    # Overall results
+    good_data: Optional[bool] = None
+    test_pass: Optional[bool] = None
+    result: Optional[str] = None
+
     def __init__(self,
                  parent_test_case_writer: Optional["TestCaseWriter"] = None,
                  requirement_object = None,
-                 requirement_info: RequirementInfo = None):
+                 requirement_info: RequirementInfo = None,
+                 l_bin_limits: Optional[List[float]] = None,
+                 l_test_results: Optional[List[Any]] = None):
 
         self._parent_test_case_writer = parent_test_case_writer
+
         self._requirement_object = requirement_object
-        self._requirement_info = requirement_info
+        self._requirement_info = default_value_if_none(requirement_info, self.requirement_info)
+
+        self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
+        self.l_test_results = default_value_if_none(l_test_results, self.l_test_results)
+
+        self._interpret_test_results()
 
     # Getters/setters for attrs set at init
     @property
@@ -287,20 +355,28 @@ class RequirementWriter:
     def requirement_info(self) -> Optional[RequirementInfo]:
         return self._requirement_info
 
+    # Protected methods
+    def _interpret_test_results(self) -> None:
+        """Overridable method which takes self.l_test results and determine self.l_val, self.l_val_err etc. from it.
+        """
+        return
+
     # Public methods
     def add_supplementary_info(self,
-                               l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
+                               *args,
+                               l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None,
+                               **kwargs,
                                ) -> None:
         """ Fills out supplementary information in the data model object for one or more items,
             modifying self._requirement_object.
         """
 
+        # Generate supplementary_info if necessary
+        if l_supplementary_info is None:
+            l_supplementary_info = self._get_supplementary_info(*args, **kwargs)
+
         # Silently coerce single item into list
         l_supplementary_info = coerce_to_list(l_supplementary_info, keep_none = True)
-
-        # Use defaults if None provided
-        if l_supplementary_info is None:
-            l_supplementary_info = [SupplementaryInfo()]
 
         base_supplementary_info_parameter: Any = self.requirement_object.SupplementaryInformation.Parameter[0]
 
@@ -334,12 +410,14 @@ class RequirementWriter:
         self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
-                         measured_value: float = -99.,
+                         measured_value: Optional[float] = None,
                          warning: bool = False,
                          l_supplementary_info: Union[None, SupplementaryInfo, Sequence[SupplementaryInfo]] = None
                          ) -> None:
         """ Reports good data in the data model object for one or more items, modifying self._requirement_object.
         """
+
+        measured_value = default_value_if_none(measured_value, self.measured_value)
 
         # Report the maximum slope_z as the measured value for this test
         self.requirement_object.MeasuredValue[0].Value.FloatValue = measured_value
@@ -374,32 +452,173 @@ class RequirementWriter:
     def write(self,
               result: str = RESULT_PASS,
               report_method: Callable[[Any], None] = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+              report_kwargs: Dict[str, Any] = None,
+              l_val: Optional[List[float]] = None,
+              l_val_err: Optional[List[float]] = None,
+              l_val_target: Optional[List[float]] = None,
+              l_val_z: Optional[List[float]] = None,
+              fail_sigma: Optional[float] = None,
+              method: Optional[ShearEstimationMethods] = None,
+              bin_parameter: Optional[BinParameters] = None,
+              l_bin_limits: Optional[Sequence[float]] = None,
+              ) -> str:
         """ Reports data in the data model object for one or more items, modifying self._requirement_object.
 
             report_method is called as report_method(self, *args, **kwargs) to handle the data reporting.
         """
 
-        # Default to report good data method
-        if report_method is None:
-            report_method = self.report_good_data
+        # Store values passed to this function, using defaults if not supplied
+        self.l_val = default_value_if_none(l_val, self.l_val)
+        self.l_val_err = default_value_if_none(l_val_err, self.l_val_err)
+        self.l_val_target = default_value_if_none(l_val_target, self.l_val_target)
+        self.l_val_z = default_value_if_none(l_val_z, self.l_val_z)
+        self.fail_sigma = default_value_if_none(fail_sigma, self.fail_sigma)
+        self.method = default_value_if_none(method, self.method)
+        self.bin_parameter = default_value_if_none(bin_parameter, self.bin_parameter)
+        self.l_bin_limits = default_value_if_none(l_bin_limits, self.l_bin_limits)
+        self.result = result
 
-        # Default to empty dict for report_kwargs
-        if report_kwargs is None:
-            report_kwargs = {}
+        report_kwargs = empty_dict_if_none(report_kwargs)
+
+        if self.l_bin_limits is not None:
+            self.num_bins = len(self.l_bin_limits) - 1
+        else:
+            self.num_bins = 1
+
+        self._determine_results()
+        self._determine_overall_results()
+
+        # If report method isn't specified, determine it based on if we have any good data
+        if report_method is None:
+            if self.good_data:
+                report_method = self.report_good_data
+            else:
+                report_method = self.report_bad_data
 
         # Report the result
         self.requirement_object.Id = self.requirement_info.id
-        self.requirement_object.ValidationResult = result
+        self.requirement_object.ValidationResult = self.result
         self.requirement_object.MeasuredValue[0].Parameter = self.requirement_info.parameter
         report_method(**report_kwargs)
 
-        return result
+        return self.result
+
+    # Protected methods
+    def _get_supplementary_info(self, *args,
+                                extra_message: str = "",
+                                **kwargs) -> Optional[List[SupplementaryInfo]]:
+        """ Overridable method to create supplementary info objects based on currently-stored data."""
+
+        # Check the extra message and make sure it ends in a linebreak
+        if extra_message != "" and extra_message[-1:] != "\n":
+            extra_message = extra_message + "\n"
+
+        # Set up result message for each bin
+        message = extra_message
+        for bin_index in range(self.num_bins):
+
+            message = self._append_message_for_bin(bin_index, message)
+
+        supplementary_info = SupplementaryInfo(key = self.supp_info_key,
+                                               description = self.supp_info_desc,
+                                               message = message)
+
+        return [supplementary_info]
+
+    def _append_message_for_bin(self, bin_index, message) -> str:
+        """ Overridable method which appends supplementary info for each bin.
+        """
+
+        if self.l_bin_limits is not None:
+            bin_min = self.l_bin_limits[bin_index]
+            bin_max = self.l_bin_limits[bin_index + 1]
+            message += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+
+        # Add details for each parameter, using overridable methods to allow customization here
+        message += self._get_val_message_for_bin(bin_index)
+        message += self._get_val_err_message_for_bin(bin_index)
+        message += self._get_val_z_message_for_bin(bin_index)
+        message += self._get_val_target_message_for_bin(bin_index)
+        message += self._get_result_message_for_bin(bin_index)
+
+        return message
+
+    def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value.
+        """
+        if self.l_val is None:
+            return ""
+        return f"{self.value_name} = {self.l_val[bin_index]}\n"
+
+    def _get_val_err_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value error.
+        """
+        if self.l_val_err is None:
+            return ""
+        return f"{self.value_name}_err = {self.l_val_err[bin_index]}\n"
+
+    def _get_val_z_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value Z.
+        """
+        if self.l_val_z is None:
+            return ""
+        return f"{self.value_name}_z = {self.l_val_z[bin_index]}\n"
+
+    def _get_val_target_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the test value target.
+        """
+        if self.l_val_target is None:
+            return ""
+        return f"{self.value_name}_target ({self.target_type.value}) = {self.l_val_target[bin_index]}\n"
+
+    def _get_result_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the result.
+        """
+        if self.l_result is None:
+            return ""
+        return f"Result: {self.l_result[bin_index]}"
+
+    def _determine_results(self) -> None:
+        """ Overridable method which can be used to determine self.l_good_data, self.l_test_pass,
+            and self.measured_value
+        """
+        return
+
+    def _determine_overall_results(self):
+        """ Interprets self.l_good_data and self.l_test_pass to fill in the rest of the result values.
+        """
+
+        # Check if the user is following the standard implementation - if not, return without doing anything
+        if self.l_good_data is None or self.l_test_pass is None:
+            return
+
+        # Get the list of results for bins
+        self.l_result = list(map(get_result_string, self.l_test_pass))
+
+        # Make sure all lists we're working with exist, so we can map across them all
+        default_list: List[float] = [0.] * self.num_bins
+        l_val = default_value_if_none(self.l_val, default_list)
+        l_val_err = default_value_if_none(self.l_val_err, default_list)
+        l_val_z = default_value_if_none(self.l_val_z, default_list)
+        l_val_target = default_value_if_none(self.l_val_target, default_list)
+
+        # Get the overall results
+        self.good_data = np.any(self.l_good_data)
+
+        l_test_pass_if_data = np.logical_or(self.l_test_pass, np.logical_not(self.good_data))
+        self.test_pass = np.all(l_test_pass_if_data)
+
+        self.result = get_result_string(self.test_pass)
 
 
 class AnalysisWriter:
     """ Class for managing writing of analysis data for a single test case
     """
+
+    # Class level attributes
+    _directory_filename: str = DEFAULT_DIRECTORY_FILENAME
+    _qualified_directory_filename: Optional[str] = None
+    directory_header: str = DEFAULT_DIRECTORY_HEADER
 
     # Attributes set at init
     _parent_test_case_writer: Optional["TestCaseWriter"] = None
@@ -418,29 +637,20 @@ class AnalysisWriter:
     _figures_filename: Optional[str] = None
     _qualified_figures_filename: Optional[str] = None
 
-    # Attributes set when write is called
-    _directory_filename: Optional[str] = None
-    _qualified_directory_filename: Optional[str] = None
-
     def __init__(self,
+                 workdir: str,
                  parent_test_case_writer: "TestCaseWriter" = None,
-                 product_type: str = "UNKNOWN-TYPE",
+                 product_type: Optional[str] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  filename_tag: Optional[str] = None):
 
         # Set attrs from kwargs
-        self._product_type = product_type
-        if dl_l_textfiles is not None:
-            self._dl_l_textfiles = dl_l_textfiles
-        else:
-            self._dl_l_textfiles = []
-        if dl_dl_figures is not None:
-            self._dl_dl_figures = dl_dl_figures
-        else:
-            self._dl_dl_figures = []
-        if filename_tag is not None:
-            self.filename_tag = filename_tag
+        self.workdir = workdir
+        self._product_type = default_value_if_none(product_type, self.product_type)
+        self._dl_l_textfiles = empty_list_if_none(dl_l_textfiles)
+        self._dl_dl_figures = empty_list_if_none(dl_dl_figures)
+        self.filename_tag = default_value_if_none(filename_tag, self.filename_tag)
 
         # Get info from parent
         self._parent_test_case_writer = parent_test_case_writer
@@ -557,16 +767,6 @@ class AnalysisWriter:
 
     # Private and protected methods
 
-    def _generate_directory_filename(self) -> None:
-        """ Overridable method to generate a filename for a directory file.
-        """
-        self.directory_filename = DEFAULT_DIRECTORY_FILENAME
-
-    def _get_directory_header(self) -> str:
-        """ Overridable method to get the desired header for a directory file.
-        """
-        return DEFAULT_DIRECTORY_HEADER
-
     @staticmethod
     def _write_filenames_to_directory(fo: IO,
                                       filenames: Optional[StrDictOrList]) -> None:
@@ -587,15 +787,10 @@ class AnalysisWriter:
                          dl_l_textfiles: Optional[StrDictOrList],
                          dl_dl_figures: Optional[StrDictOrList]) -> None:
 
-        # Generate a filename for the directory if needed
-        if self._directory_filename is None:
-            self._generate_directory_filename()
-
         # Write out the directory file
         with open(self.qualified_directory_filename, "w") as fo:
-
             # Write the header using the possible-overloaded method self._get_directory_header()
-            fo.write(f"{self._get_directory_header()}\n")
+            fo.write(f"{self.directory_header}\n")
 
             # Write a comment for the start of the textfiles section, then write out the textfile filenames
             fo.write(f"{TEXTFILES_SECTION_HEADER}\n")
@@ -715,8 +910,8 @@ class TestCaseWriter:
     """
 
     # Types of child objects, which can be overridden by derived classes
-    requirement_writer_type = RequirementWriter
-    analysis_writer_type = AnalysisWriter
+    requirement_writer_type: Type[RequirementWriter] = RequirementWriter
+    analysis_writer_type: Type[AnalysisWriter] = AnalysisWriter
 
     # Attributes set from kwargs at init
     _parent_val_results_writer: Optional["ValidationResultsWriter"] = None
@@ -724,6 +919,7 @@ class TestCaseWriter:
     _test_case_info: Optional[TestCaseInfo] = None
     _l_requirement_writers: Optional[List[Optional[RequirementWriter]]] = None
     _l_requirement_objects: Optional[List[Any]] = None
+    d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None
 
     # Attributes determined at init
     _analysis_writer: Optional[AnalysisWriter] = None
@@ -747,9 +943,11 @@ class TestCaseWriter:
         self._analysis_object = analysis_object
         filename_tag = self.test_case_info.name.upper().replace("SHE-", "").replace("CTI-GAL", "").replace("CTI-PSF",
                                                                                                            "")
-        self._analysis_writer = self._make_analysis_writer(dl_l_textfiles = dl_l_textfiles,
-                                                           dl_dl_figures = dl_dl_figures,
-                                                           filename_tag = filename_tag)
+        self._analysis_writer = self.analysis_writer_type(workdir = self.workdir,
+                                                          parent_test_case_writer = self,
+                                                          dl_l_textfiles = dl_l_textfiles,
+                                                          dl_dl_figures = dl_dl_figures,
+                                                          filename_tag = filename_tag)
 
     def __init__(self,
                  parent_val_results_writer: Optional["ValidationResultsWriter"] = None,
@@ -758,7 +956,11 @@ class TestCaseWriter:
                  num_requirements: int = None,
                  l_requirement_info: Union[None, RequirementInfo, List[RequirementInfo]] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
-                 dl_dl_figures: Optional[StrDictOrList] = None):
+                 dl_dl_figures: Optional[StrDictOrList] = None,
+                 d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
+                 d_l_test_results: Optional[Dict[str, List[Any]]] = None,
+                 d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None,
+                 ):
 
         if (num_requirements is None) == (l_requirement_info is None):
             raise ValueError("Exactly one of num_requirements or l_requirement_info must be provided " +
@@ -774,17 +976,29 @@ class TestCaseWriter:
 
         # Get attributes from arguments
         self._test_case_object = test_case_object
-        self._test_case_info = test_case_info
+        self._test_case_info = default_value_if_none(test_case_info, self.test_case_info)
+
+        self.d_requirement_writer_kwargs = empty_dict_if_none(d_requirement_writer_kwargs)
 
         # Init l_requirement_writers etc. always as lists
         base_requirement_object: Any = test_case_object.ValidatedRequirements.Requirement[0]
         analysis_object: Any = test_case_object.AnalysisResult.AnalysisFiles
 
+        l_bin_limits = d_l_bin_limits[self.test_case_info.bin_parameter]
+        try:
+            l_test_results = d_l_test_results[self.test_case_info.name]
+        except KeyError:
+            # Data is missing for this test case, so pass an array of None
+            l_test_results = [None] * len(l_bin_limits[:-1])
+
         if isinstance(l_requirement_info, RequirementInfo):
             # Init writer using the pre-existing requirement object in the product
             requirement_object: Any = base_requirement_object
-            self._l_requirement_writers = [self._make_requirement_writer(requirement_object = requirement_object,
-                                                                         requirement_info = l_requirement_info)]
+            self._l_requirement_writers = [self.requirement_writer_type(requirement_object = requirement_object,
+                                                                        requirement_info = l_requirement_info,
+                                                                        l_bin_limits = l_bin_limits,
+                                                                        l_test_results = l_test_results,
+                                                                        **self.d_requirement_writer_kwargs)]
             self._l_requirement_objects = [requirement_object]
 
         else:
@@ -803,8 +1017,11 @@ class TestCaseWriter:
 
                 requirement_object = deepcopy(base_requirement_object)
                 self.l_requirement_objects[i] = requirement_object
-                self.l_requirement_writers[i] = self._make_requirement_writer(requirement_object = requirement_object,
-                                                                              requirement_info = requirement_info)
+                self.l_requirement_writers[i] = self.requirement_writer_type(requirement_object = requirement_object,
+                                                                             requirement_info = requirement_info,
+                                                                             l_bin_limits = l_bin_limits,
+                                                                             l_test_results = l_test_results,
+                                                                             **self.d_requirement_writer_kwargs)
 
             test_case_object.ValidatedRequirements.Requirement = self.l_requirement_objects
 
@@ -849,20 +1066,6 @@ class TestCaseWriter:
     @property
     def analysis_object(self) -> Any:
         return self._analysis_object
-
-    # Private and protected methods
-    def _make_requirement_writer(self, **kwargs) -> RequirementWriter:
-        """ Method to initialize a requirement writer, which we use to allow inherited classes to override this
-            in case they need to alter the kwargs in any way..
-        """
-        return self.requirement_writer_type(self, **kwargs)
-
-    def _make_analysis_writer(self, **kwargs) -> AnalysisWriter:
-        """ Method to initialize an analysis writer, which we use to allow inherited classes to override this
-            in case they need to alter the kwargs in any way..
-        """
-        return self.analysis_writer_type(self,
-                                         **kwargs)
 
     # Public methods
     def write_meta(self) -> None:
@@ -922,19 +1125,22 @@ class ValidationResultsWriter:
     """
 
     # Types of child classes, which can be overridden by derived classes
-    test_case_writer_type = TestCaseWriter
+    test_case_writer_type: Type[TestCaseWriter] = TestCaseWriter
 
     # Attributes set at init from arguments
     _test_object: dpdSheValidationTestResults
     _workdir: str
+    d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None
+    d_l_test_results: Optional[Dict[str, List[Any]]] = None
+
     dl_l_textfiles: Optional[StrDictOrList] = None
     dl_dl_figures: Optional[StrDictOrList] = None
     num_test_cases: Optional[int] = None
     l_test_case_info: Optional[List[Optional[TestCaseInfo]]] = None
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None
     dl_l_requirement_info: Union[None, Dict[str, int], List[int]] = None
-    _dl_l_textfiles: Optional[StrDictOrList] = None
-    _dl_dl_figures: Optional[StrDictOrList] = None
+
+    d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None
 
     # Attributes determined at init
     _l_test_case_writers: List[Optional[TestCaseWriter]]
@@ -944,23 +1150,35 @@ class ValidationResultsWriter:
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
+                 d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
+                 d_l_test_results: Optional[Dict[str, List[Any]]] = None,
                  dl_l_textfiles: Optional[StrDictOrList] = None,
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  num_test_cases: Optional[int] = None,
                  l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
                  dl_num_requirements: Union[None, Dict[str, int], List[int]] = None,
                  dl_l_requirement_info: Union[None, Dict[str, List[RequirementInfo]],
-                                              List[List[RequirementInfo]]] = None) -> None:
+                                              List[List[RequirementInfo]]] = None,
+                 d_requirement_writer_kwargs: Optional[Dict[str, Any]] = None) -> None:
 
         # Init attributes directly from arguments
-        self.dl_l_textfiles = dl_l_textfiles
-        self.dl_dl_figures = dl_dl_figures
-        self.num_test_cases = num_test_cases
-        self.l_test_case_info = coerce_to_list(l_test_case_info, keep_none = True)
-        self.dl_num_requirements = dl_num_requirements
-        self.dl_l_requirement_info = dl_l_requirement_info
         self._test_object = test_object
         self._workdir = workdir
+        self.d_l_bin_limits = default_value_if_none(d_l_bin_limits, self.d_l_bin_limits)
+        self.d_l_test_results = default_value_if_none(d_l_test_results, self.d_l_test_results)
+
+        self.dl_l_textfiles = default_value_if_none(dl_l_textfiles, self.dl_l_textfiles)
+        self.dl_dl_figures = default_value_if_none(dl_dl_figures, self.dl_dl_figures)
+
+        self.num_test_cases = default_value_if_none(num_test_cases, self.num_test_cases)
+
+        self.l_test_case_info = coerce_to_list(default_value_if_none(l_test_case_info, self.l_test_case_info),
+                                               keep_none = True)
+
+        self.dl_num_requirements = default_value_if_none(dl_num_requirements, self.dl_num_requirements)
+        self.dl_l_requirement_info = default_value_if_none(dl_l_requirement_info, self.dl_l_requirement_info)
+
+        self.d_requirement_writer_kwargs = empty_dict_if_none(d_requirement_writer_kwargs)
 
         # Check validity of input args and process them to calculate derivative values
 
@@ -984,6 +1202,7 @@ class ValidationResultsWriter:
         self.test_object.Data.ValidationTestList = self.l_test_case_objects
 
     # Getters/setters for attrs set at init
+
     @property
     def test_object(self) -> Any:
         return self._test_object
@@ -1112,19 +1331,18 @@ class ValidationResultsWriter:
 
         # Create a test case writer and keep it in the list of writers
         test_case_object = deepcopy(base_test_case_object)
-        self.l_test_case_writers[i] = self._make_test_case_writer(test_case_object = test_case_object,
-                                                                  test_case_info = test_case_info,
-                                                                  dl_l_textfiles = test_case_textfiles,
-                                                                  dl_dl_figures = test_case_figures,
-                                                                  num_requirements = num_requirements,
-                                                                  l_requirement_info = l_requirement_info)
+        self.l_test_case_writers[i] = self.test_case_writer_type(parent_val_results_writer = self,
+                                                                 test_case_object = test_case_object,
+                                                                 test_case_info = test_case_info,
+                                                                 dl_l_textfiles = test_case_textfiles,
+                                                                 dl_dl_figures = test_case_figures,
+                                                                 num_requirements = num_requirements,
+                                                                 l_requirement_info = l_requirement_info,
+                                                                 d_l_bin_limits = self.d_l_bin_limits,
+                                                                 d_l_test_results = self.d_l_test_results,
+                                                                 d_requirement_writer_kwargs =
+                                                                 self.d_requirement_writer_kwargs)
         self.l_test_case_objects[i] = test_case_object
-
-    def _make_test_case_writer(self, **kwargs) -> TestCaseWriter:
-        """ Method to initialize a test case writer, which we use to allow inherited classes to override this,
-            in case they need to change the kwargs in any way.
-        """
-        return self.test_case_writer_type(self, **kwargs)
 
     # Public methods
     def add_test_case_writer(self,

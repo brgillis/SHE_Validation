@@ -1,9 +1,11 @@
-""" @file __init__.py
+""" @file constants.py
 
-    Created 8 March 2022 by Bryan Gillis
+    Created 12 April 2022 by Bryan Gillis
+
+    Constant values used in PSF testing.
 """
 
-__updated__ = "2022-03-08"
+__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -16,17 +18,8 @@ __updated__ = "2022-03-08"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glob
-from os.path import basename, dirname, isfile
-
-modules = glob.glob(dirname(__file__) + "/*.py")
-__all__ = [basename(f)[:-3]
-           for f in modules if isfile(f) and not f.endswith('__init__.py')]
-
-# noinspection PyPep8
-from . import *
-
-del modules, dirname, basename, isfile, glob
+REF_STAR_CAT_LISTFILE_FILENAME = "reference_star_cat_listfile.json"
+REF_STAR_CAT_PRODUCT_FILENAME = "reference_star_cat_product.xml"
+REF_STAR_CAT_TABLE_FILENAME = "data/reference_star_cat_table.fits"

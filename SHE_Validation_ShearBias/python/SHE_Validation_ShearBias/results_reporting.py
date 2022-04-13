@@ -20,7 +20,7 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, TypeVar, Union
 
 import numpy as np
 
@@ -175,10 +175,15 @@ class ShearBiasRequirementWriter(RequirementWriter):
     result: Optional[str] = None
 
     def _get_supplementary_info(self,
+                                *args,
+                                extra_message: str = "",
                                 extra_g1_message: str = "",
-                                extra_g2_message: str = "", ) -> Sequence[SupplementaryInfo]:
+                                extra_g2_message: str = "",
+                                **kwargs) -> Sequence[SupplementaryInfo]:
 
         # Check the extra messages and make sure they end in a linebreak
+        if extra_message != "" and extra_message[-1:] != "\n":
+            extra_message = extra_message + "\n"
         if extra_g1_message != "" and extra_g1_message[-1:] != "\n":
             extra_g1_message = extra_g1_message + "\n"
         if extra_g2_message != "" and extra_g2_message[-1:] != "\n":
@@ -188,8 +193,8 @@ class ShearBiasRequirementWriter(RequirementWriter):
                                    f"bins.\n")
 
         # Set up result messages for each component
-        d_messages: Dict[int, str] = {1: method_bin_message + extra_g1_message + "\n",
-                                      2: method_bin_message + extra_g2_message + "\n"}
+        d_messages: Dict[int, str] = {1: method_bin_message + extra_message + extra_g1_message + "\n",
+                                      2: method_bin_message + extra_message + extra_g2_message + "\n"}
 
         # Report results for each bin of each component
 
@@ -409,29 +414,16 @@ class ShearBiasAnalysisWriter(AnalysisWriter):
     """
 
     method: ShearEstimationMethods
+    product_type = "SHEAR-BIAS-ANALYSIS-FILES"
+    _directory_filename: str = SHEAR_BIAS_DIRECTORY_FILENAME
+    directory_header: str = SHEAR_BIAS_DIRECTORY_HEADER
 
     def __init__(self,
                  *args, **kwargs):
-        super().__init__(product_type = "SHEAR-BIAS-ANALYSIS-FILES",
-                         *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Get the shear estimation method from the parent's test case info
         self.method = self.parent_test_case_writer.test_case_info.method
-
-    def _get_filename_tag(self):
-        """ Overriding method to get a tag to add to figure/textfile filenames with method name.
-        """
-        return self.method.value
-
-    def _generate_directory_filename(self):
-        """ Overriding method to generate a filename for a directory file.
-        """
-        self.directory_filename = SHEAR_BIAS_DIRECTORY_FILENAME
-
-    def _get_directory_header(self):
-        """ Overriding method to get the desired header for a directory file.
-        """
-        return SHEAR_BIAS_DIRECTORY_HEADER
 
 
 class ShearBiasTestCaseWriter(TestCaseWriter):
@@ -440,32 +432,33 @@ class ShearBiasTestCaseWriter(TestCaseWriter):
     # Class members
 
     # Types of child objects, overriding those in base class
-    requirement_writer_type: Type = ShearBiasRequirementWriter
-    analysis_writer_type: Type = ShearBiasAnalysisWriter
+    requirement_writer_type = ShearBiasRequirementWriter
+    analysis_writer_type = ShearBiasAnalysisWriter
 
 
 class ShearBiasValidationResultsWriter(ValidationResultsWriter):
     """TODO: Add a docstring to this class."""
 
-    # Types of child classes
+    # Override some class-level attributes
     test_case_writer_type = ShearBiasTestCaseWriter
+    l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO
+    d_l_test_results: Dict[str, List[Dict[int, BiasMeasurements]]]
 
-    def __init__(self, test_object: dpdSheValidationTestResults, workdir: str,
-                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
-                 d_l_bin_limits: Dict[BinParameters, np.ndarray],
-                 fail_sigma_calculator: FailSigmaCalculator, method_data_exists: bool = True,
-                 mode: ExecutionMode = ExecutionMode, *args, **kwargs):
+    def __init__(self,
+                 test_object: dpdSheValidationTestResults,
+                 workdir: str,
+                 *args,
+                 fail_sigma_calculator: FailSigmaCalculator,
+                 mode: ExecutionMode = ExecutionMode.LOCAL,
+                 **kwargs):
 
-        super().__init__(test_object = test_object,
+        super().__init__(*args,
+                         test_object = test_object,
                          workdir = workdir,
-                         l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO,
-                         dl_l_requirement_info = D_L_SHEAR_BIAS_REQUIREMENT_INFO,
-                         *args, **kwargs)
+                         **kwargs)
 
-        self.d_l_d_bias_measurements = d_l_d_bias_measurements
-        self.d_l_bin_limits = d_l_bin_limits
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.method_data_exists = method_data_exists
         self.mode = mode
 
     def write_test_case_objects(self):
@@ -488,8 +481,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if (self.method_data_exists and test_case_info.bins != BinParameters.EPOCH and
-                    test_case_name in self.d_l_d_bias_measurements):
+            if (test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_test_results):
 
                 num_bins = len(l_bin_limits) - 1
 
@@ -498,7 +490,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                 l_d_val_target: List[Optional[Dict[int, float]]] = [None] * num_bins
                 l_d_val_z: List[Optional[Dict[int, float]]] = [None] * num_bins
 
-                l_d_bias_measurements = self.d_l_d_bias_measurements[test_case_name]
+                l_d_bias_measurements = self.d_l_test_results[test_case_name]
 
                 for bin_index in range(num_bins):
 
@@ -539,12 +531,13 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
 
 def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
-                                 d_l_d_bias_measurements: Dict[str, List[Dict[int, BiasMeasurements]]],
+                                 d_l_test_results: Dict[str, List[Dict[int, BiasMeasurements]]],
                                  pipeline_config: Dict[ConfigKeys, Any],
-                                 d_l_bin_limits: Dict[BinParameters, np.ndarray], workdir: str,
+                                 d_l_bin_limits: Dict[BinParameters, np.ndarray],
+                                 workdir: str,
                                  dl_dl_plot_filenames: Union[Dict[str, Union[Dict[str, str], List[str]]],
                                                              List[Union[Dict[str, str], List[str]]]] = None,
-                                 method_data_exists: bool = True, mode: ExecutionMode = ExecutionMode.LOCAL):
+                                 mode: ExecutionMode = ExecutionMode.LOCAL):
     """ Interprets the bias measurements and writes out the results of the test and figures to the data product.
     """
 
@@ -557,10 +550,9 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
     # Initialize a test results writer
     test_results_writer = ShearBiasValidationResultsWriter(test_object = test_result_product,
                                                            workdir = workdir,
-                                                           d_l_d_bias_measurements = d_l_d_bias_measurements,
+                                                           d_l_test_results = d_l_test_results,
                                                            d_l_bin_limits = d_l_bin_limits,
                                                            fail_sigma_calculator = fail_sigma_calculator,
-                                                           method_data_exists = method_data_exists,
                                                            mode = mode,
                                                            dl_dl_figures = dl_dl_plot_filenames)
 

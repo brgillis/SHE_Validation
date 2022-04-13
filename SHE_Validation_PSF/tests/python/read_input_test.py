@@ -20,23 +20,24 @@ __updated__ = "2022-04-10"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from argparse import Namespace
+from copy import deepcopy
 
 import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
-from SHE_PPT.file_io import write_product_and_table
-from SHE_PPT.products.she_star_catalog import create_dpd_she_star_catalog
-from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 # Output data filenames
 from SHE_Validation.constants.test_info import BinParameters
-from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS, STAR_CAT_PRODUCT_FILENAME, STAR_CAT_TABLE_FILENAME
+from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import make_mock_starcat_table
-from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions
-from SHE_Validation_PSF.validate_psf_res import load_psf_res_input
+from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
+from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
+from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
+from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
 
 
-class TestPsfResReadInput(SheTestCase):
+class TestPsfResReadInput(SheValPsfTestCase):
     """ Test case for PSF-Res validation test code.
     """
 
@@ -54,28 +55,55 @@ class TestPsfResReadInput(SheTestCase):
         """ Override parent setup, setting up data to work with here.
         """
 
-        self.mock_starcat_table = make_mock_starcat_table()
-        self.mock_starcat_product = create_dpd_she_star_catalog()
-
-        write_product_and_table(product = self.mock_starcat_product,
-                                product_filename = STAR_CAT_PRODUCT_FILENAME,
-                                table = make_mock_starcat_table(),
-                                table_filename = STAR_CAT_TABLE_FILENAME,
-                                workdir = self.workdir)
+        # Create a star catalog table and product, and a reference version
+        self._write_mock_starcat_product()
+        self._write_mock_ref_starcat_product()
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 
         return
 
-    def test_read_input(self, local_setup):
-        """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
+    def test_read_input_no_ref(self, local_setup):
+        """ Test of reading in just a star catalog
         """
 
-        (d_l_bin_limits,
-         p_star_cat,
-         star_cat) = load_psf_res_input(self.d_args, self.workdir)
+        # Make sure we're set to not load a reference star catalog
+        d_args = deepcopy(self.d_args)
+        d_args[CA_REF_SHE_STAR_CAT] = None
+
+        psf_res_sp_input = load_psf_res_input(d_args, self.workdir)
 
         # Check that the input is as expected
-        np.testing.assert_allclose(d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
-        assert self.mock_starcat_product.Header.ProductId == p_star_cat.Header.ProductId
-        assert (self.mock_starcat_table == star_cat).all()
+        np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+
+        # Check that star catalog matches expectation
+        assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
+        assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
+
+        # Check that we didn't load a reference star catalog
+        assert psf_res_sp_input.p_ref_star_cat is None
+        assert psf_res_sp_input.ref_star_cat is None
+
+    def test_read_input_with_ref(self, local_setup):
+        """ Test of reading in both a star catalog and a reference star catalog
+        """
+
+        # Make sure we're set to not load a reference star catalog
+        d_args = deepcopy(self.d_args)
+        d_args[CA_REF_SHE_STAR_CAT] = REF_STAR_CAT_PRODUCT_FILENAME
+
+        psf_res_sp_input = load_psf_res_input(d_args, self.workdir)
+
+        # Check that the input is as expected
+        np.testing.assert_allclose(psf_res_sp_input.d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
+
+        # Check that star catalog matches expectation
+        assert self.mock_starcat_product.Header.ProductId == psf_res_sp_input.p_star_cat.Header.ProductId
+        assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
+
+        # Check that reference star catalog matches expectation
+        assert self.mock_ref_starcat_product.Header.ProductId == psf_res_sp_input.p_ref_star_cat.Header.ProductId
+        assert (self.mock_ref_starcat_table == psf_res_sp_input.ref_star_cat).all()
+
+        # Check that the star catalog and reference star catalog don't match
+        assert np.all(psf_res_sp_input.star_cat != psf_res_sp_input.ref_star_cat)
