@@ -104,7 +104,8 @@ class TestPsfResReadInput(SheValPsfTestCase):
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
 
         # Check that reference star catalog matches expectation
-        assert self.mock_ref_starcat_product.Header.ProductId == psf_res_sp_input.p_ref_star_cat.Header.ProductId
+        assert (self.mock_ref_starcat_product.Header.ProductId.value() ==
+                psf_res_sp_input.p_ref_star_cat.Header.ProductId.value())
         assert (self.mock_ref_starcat_table == psf_res_sp_input.ref_star_cat).all()
 
         # Check that the star catalog and reference star catalog don't match
