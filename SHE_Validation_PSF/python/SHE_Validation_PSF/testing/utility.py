@@ -19,25 +19,123 @@ __updated__ = "2021-10-05"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from typing import Optional
+
+from astropy.table import Table
+
 from SHE_PPT.file_io import read_product_and_table
+from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_PSF.testing.mock_data import MockRefValStarCatTableGenerator, MockValStarCatTableGenerator
 
 
 class SheValPsfTestCase(SheValTestCase):
-    """Test case base class which defines convenience methods to create test data.
+    """ Test case base class which defines attribute getters and setters to automatically generate needed data
+        on-demand.
     """
 
-    def _make_mock_starcat_product(self):
-        mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir)
-        mock_starcat_product_filename = mock_starcat_table_gen.write_mock_product()
+    _workdir: Optional[str] = None
+
+    _NUM_TEST_POINTS: int = NUM_TEST_POINTS
+
+    _mock_starcat_table_gen: Optional[MockValStarCatTableGenerator] = None
+    _mock_ref_starcat_table_gen: Optional[MockRefValStarCatTableGenerator] = None
+
+    _mock_starcat_table: Optional[Table] = None
+    _mock_ref_starcat_table: Optional[Table] = None
+
+    # Attribute getters and setters
+
+    @property
+    def workdir(self) -> Optional[str]:
+        """ Basic getter for workdir.
+        """
+        return self._workdir
+
+    @workdir.setter
+    def workdir(self, workdir: Optional[str]) -> None:
+        """ Setter for workdir, which passes the set value to the table_gen attrs, as long as it isn't None (which
+            they aren't set up to handle).
+        """
+        self._workdir = workdir
+        if workdir is not None:
+            self.mock_starcat_table_gen.workdir = workdir
+            self.mock_ref_starcat_table_gen.workdir = workdir
+
+    @property
+    def mock_starcat_table_gen(self) -> MockValStarCatTableGenerator:
+        """ Getter for mock_starcat_table_gen which generates it on-demand.
+        """
+        if self._mock_starcat_table_gen is None:
+            self._mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir,
+                                                                        num_test_points = self._NUM_TEST_POINTS)
+        return self._mock_starcat_table_gen
+
+    @mock_starcat_table_gen.setter
+    def mock_starcat_table_gen(self, mock_starcat_table_gen: MockValStarCatTableGenerator) -> None:
+        """ Basic setter for mock_starcat_table_gen.
+        """
+        self._mock_starcat_table_gen = mock_starcat_table_gen
+
+    @property
+    def mock_ref_starcat_table_gen(self) -> MockRefValStarCatTableGenerator:
+        """ Getter for mock_ref_starcat_table_gen which generates it on-demand.
+        """
+        if self._mock_ref_starcat_table_gen is None:
+            self._mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir = self.workdir,
+                                                                               num_test_points = self._NUM_TEST_POINTS)
+        return self._mock_ref_starcat_table_gen
+
+    @mock_ref_starcat_table_gen.setter
+    def mock_ref_starcat_table_gen(self, mock_ref_starcat_table_gen: MockRefValStarCatTableGenerator) -> None:
+        """ Basic setter for mock_ref_starcat_table_gen.
+        """
+        self._mock_ref_starcat_table_gen = mock_ref_starcat_table_gen
+
+    @property
+    def mock_starcat_table(self) -> Table:
+        """ Getter for mock_starcat_table which generates it on-demand.
+        """
+        if self._mock_starcat_table is None:
+            self._mock_starcat_table = self.mock_starcat_table_gen.get_mock_table()
+        return self._mock_starcat_table
+
+    @mock_starcat_table.setter
+    def mock_starcat_table(self, mock_starcat_table: Table) -> None:
+        """ Basic setter for mock_starcat_table.
+        """
+        self._mock_starcat_table = mock_starcat_table
+
+    @property
+    def mock_ref_starcat_table(self) -> Table:
+        """ Getter for mock_ref_starcat_table which generates it on-demand.
+        """
+        if self._mock_ref_starcat_table is None:
+            self._mock_ref_starcat_table = self.mock_ref_starcat_table_gen.get_mock_table()
+        return self._mock_ref_starcat_table
+
+    @mock_ref_starcat_table.setter
+    def mock_ref_starcat_table(self, mock_ref_starcat_table: Table) -> None:
+        """ Basic setter for mock_ref_starcat_table.
+        """
+        self._mock_ref_starcat_table = mock_ref_starcat_table
+
+    # Convenience methods
+
+    def _write_mock_starcat_product(self):
+        """ Convenience method to write out a mock star catalog product, and set the mock product and table to their
+            respective attributes.
+        """
+        mock_starcat_product_filename = self.mock_starcat_table_gen.write_mock_product()
         (self.mock_starcat_product,
          self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
                                                            workdir = self.workdir)
 
-    def _make_mock_ref_starcat_product(self):
-        mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir = self.workdir)
-        mock_ref_starcat_product_filename = mock_ref_starcat_table_gen.write_mock_product()
+    def _write_mock_ref_starcat_product(self):
+        """ Convenience method to write out a mock reference star catalog product, and set the mock product and table
+            to their respective attributes.
+        """
+        mock_ref_starcat_product_filename = self.mock_ref_starcat_table_gen.write_mock_product()
         (self.mock_ref_starcat_product,
          self.mock_ref_starcat_table) = read_product_and_table(mock_ref_starcat_product_filename,
                                                                workdir = self.workdir)

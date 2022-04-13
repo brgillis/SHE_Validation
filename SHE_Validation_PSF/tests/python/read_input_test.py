@@ -56,8 +56,8 @@ class TestPsfResReadInput(SheValPsfTestCase):
         """
 
         # Create a star catalog table and product, and a reference version
-        self._make_mock_starcat_product()
-        self._make_mock_ref_starcat_product()
+        self._write_mock_starcat_product()
+        self._write_mock_ref_starcat_product()
 
         setattr(self._args, CA_PIPELINE_CONFIG, self.mock_pipeline_config_factory.pipeline_config)
 

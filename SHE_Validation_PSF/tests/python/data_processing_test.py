@@ -49,8 +49,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         base_snr_bin_limits = pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
         pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
 
-        # Generate a table with good chi2 data
-        self._make_mock_starcat_product()
+        # self.mock_starcat_table is generated when the attributed is accessed
 
         # Make a reference table which is a bit worse than the test table
         self.mock_ref_starcat_table = deepcopy(self.mock_starcat_table)
