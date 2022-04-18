@@ -13,7 +13,7 @@ Internal Euclid Dependencies
 External Euclid Dependencies
 ----------------------------
 
--  `EL\_Utils 1.1.0 <https://gitlab.euclid-sgs.uk/EuclidLibs/EL_Utils>`__
+-  `EL\_Utils 1.2.0 <https://gitlab.euclid-sgs.uk/EuclidLibs/EL_Utils>`__
 -  `ST\_DataModelTools 9.0.0 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModelTools>`__
 -  `ST\_DataModel 9.0.0 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel>`__
 -  `Elements 6.0.1 <https://gitlab.euclid-sgs.uk/ST-TOOLS/Elements>`__
