@@ -28,7 +28,7 @@ from astropy import table
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list
+from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list, is_inf_nan_or_masked, is_nan_or_masked
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MEASURED_VAL_BAD_DATA,
@@ -299,8 +299,8 @@ class CtiRequirementWriter(RequirementWriter):
                                   l_prop_result: np.ndarray):
         # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
         # first bin
-        if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
+        if (is_nan_or_masked(getattr(self, f"l_{prop}")[bin_index]) or
+                is_nan_or_masked(getattr(self, f"l_{prop}_err")[bin_index]) or
                 (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index <= 0)):
             self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
 
@@ -413,10 +413,8 @@ class CtiRequirementWriter(RequirementWriter):
         if np.all(self.l_slope_err == 0.):
             report_method = self.report_zero_slope_err
             extra_report_kwargs = {}
-        elif np.logical_or.reduce((np.isnan(self.l_slope),
-                                   np.isinf(self.l_slope),
-                                   np.isnan(self.l_slope_err),
-                                   np.isinf(self.l_slope_err),
+        elif np.logical_or.reduce((is_inf_nan_or_masked(self.l_slope),
+                                   is_inf_nan_or_masked(self.l_slope_err),
                                    self.l_slope_err == 0.)).all():
             report_method = self.report_bad_data
             extra_report_kwargs = {}

@@ -34,6 +34,7 @@ from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS
 from SHE_PPT.testing.mock_tables import MockDataGeneratorType
 from SHE_PPT.testing.mock_tum_cat import MockTUMatchedDataGenerator, MockTUMatchedTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.utility import is_inf, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -336,9 +337,9 @@ class TestShearBias(SheTestCase):
 
             # Try loading all data, and check that NaN values were read in
             data_loader.load_all()
-            assert np.isnan(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
-            assert np.isinf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
-                                                       NUM_ZERO_WEIGHT_TEST_POINTS - 1])
+            assert is_nan_or_masked(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
+            assert is_inf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
+                                                     NUM_ZERO_WEIGHT_TEST_POINTS - 1])
 
         # Test loading, binned on the mock SNR data
         bin_test_method = ShearEstimationMethods.KSB

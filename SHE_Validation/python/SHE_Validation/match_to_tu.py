@@ -40,6 +40,7 @@ from SHE_PPT.file_io import read_d_method_tables, read_listfile, read_table
 from SHE_PPT.logging import getLogger
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_data import (add_binning_data, )
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 
@@ -433,8 +434,8 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
     sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
     # Prune any rows with NaN for R.A. or Dec. from the shear table
-    good_rows = ~np.logical_or(np.isnan(unpruned_shear_table[sem_tf.ra]),
-                               np.isnan(unpruned_shear_table[sem_tf.dec]))
+    good_rows = ~np.logical_or(is_nan_or_masked(unpruned_shear_table[sem_tf.ra]),
+                               is_nan_or_masked(unpruned_shear_table[sem_tf.dec]))
     shear_table = unpruned_shear_table[good_rows]
 
     if len(shear_table) == 0:

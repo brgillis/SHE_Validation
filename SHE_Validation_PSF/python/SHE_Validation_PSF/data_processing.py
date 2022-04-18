@@ -35,7 +35,7 @@ from scipy.stats.stats import Ks_2sampResult, KstestResult
 from SHE_PPT import logging as log
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
-from SHE_PPT.utility import is_inf_or_nan
+from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
@@ -264,7 +264,7 @@ def log_if_no_valid_data(l_ps: List[float], l_ps_trimmed: List[float]) -> bool:
     if l_ps_trimmed is not None and len(l_ps_trimmed) == 0:
         logger.warning("No valid data present in execution of run_psf_res_val_test_for_bin. \n"
                        f"Total data length: {len(l_ps)}\n"
-                       f"Number of NaN results: {np.sum(np.isnan(l_ps))}\n"
+                       f"Number of NaN results: {np.sum(is_nan_or_masked(l_ps))}\n"
                        f"Number of Inf results: {np.sum(np.isinf(l_ps))}\n")
         return True
     return False
@@ -317,7 +317,7 @@ def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[
             raise TypeError(f"Type of object returned by Table.loc is not recognized: {type(table_or_row_in_group)}")
 
         # Check if the p value has already been calculated, and use that if so
-        if not np.isnan(data_row[p_colname]):
+        if not is_nan_or_masked(data_row[p_colname]):
             l_ps[i] = data_row[p_colname]
             continue
 

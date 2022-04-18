@@ -30,6 +30,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
 from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
@@ -123,7 +124,7 @@ def calculate_regression_results(object_data_table: table.Table,
         return rr_row
 
     # Get a mask for the data where the weight is > 0 and not NaN
-    bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
+    bad_data_mask = np.logical_or(is_nan_or_masked(weight_data), weight_data <= 0)
 
     masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask = bad_data_mask)
     masked_g1_data = np.ma.masked_array(g1_data, mask = bad_data_mask)

@@ -34,6 +34,7 @@ from scipy.interpolate import interpn
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
+from SHE_PPT.utility import is_nan_or_masked
 from .file_io import SheValFileNamer
 
 logger = getLogger(__name__)
@@ -150,7 +151,7 @@ class ValidationPlotter(abc.ABC):
             raise ValueError(f"Input arrays must be the same length: len(l_x)={len(l_x)}, len(l_y)={len(l_y)}")
 
         # Prune any NaN values from l_x and l_y
-        nan_values = np.logical_or(np.isnan(l_x), np.isnan(l_y))
+        nan_values = np.logical_or(is_nan_or_masked(l_x), is_nan_or_masked(l_y))
 
         l_x = l_x[~nan_values]
         l_y = l_y[~nan_values]
@@ -160,7 +161,7 @@ class ValidationPlotter(abc.ABC):
                                   np.vstack([l_x, l_y]).T, method = "splinef2d", bounds_error = False)
 
         # To be sure to plot all data
-        l_z[np.where(np.isnan(l_z))] = 0.0
+        l_z[np.where(is_nan_or_masked(l_z))] = 0.0
 
         # Sort the points by density, so that the densest points are plotted last
         if sort:
