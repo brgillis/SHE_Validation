@@ -15,7 +15,7 @@ To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the foll
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir <dir> --star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePSFResStarPos --workdir <dir> --star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."]
 
 with the following arguments:
 
@@ -230,7 +230,7 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.3 SHE_Validation_ValidatePSFResStarPos --workdir $WORKDIR --star_catalog_product $SC_PRODUCT --star_catalog_product $RSC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePSFResStarPos --workdir $WORKDIR --star_catalog_product $SC_PRODUCT --star_catalog_product $RSC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$SC_PRODUCT`` and ``$RSC_PRODUCT`` correspond to the filenames of the prepared star catalog and reference star catalog products.
 
