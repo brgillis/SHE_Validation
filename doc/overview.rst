@@ -12,7 +12,7 @@ Software identification
 -  Processing Element Name: PF-SHE
 -  Project Name: SHE\_Validation
 -  Profile: develop
--  Version: 9,1 (05/04/2022)
+-  Version: 9.1 (18/04/2022)
 
 
 Contributors

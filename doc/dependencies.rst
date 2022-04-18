@@ -7,29 +7,28 @@ Dependencies
 Internal Euclid Dependencies
 ----------------------------
 
--  `SHE\_PPT 8.11 <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PPT>`__
+-  `SHE\_PPT 9.1 <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PPT>`__
 
 
 External Euclid Dependencies
 ----------------------------
 
 -  `EL\_Utils 1.1.0 <https://gitlab.euclid-sgs.uk/EuclidLibs/EL_Utils>`__
--  `ST\_DataModelTools 8.0.5 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModelTools>`__
--  `ST\_DataModelBindings 8.0.5 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModelBindings>`__
--  `ST\_DataModel 8.0.5 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel>`__
--  `Elements 5.15 <https://gitlab.euclid-sgs.uk/ST-TOOLS/Elements>`__
+-  `ST\_DataModelTools 9.0.0 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModelTools>`__
+-  `ST\_DataModel 9.0.0 <https://gitlab.euclid-sgs.uk/ST-DM/ST_DataModel>`__
+-  `Elements 6.0.1 <https://gitlab.euclid-sgs.uk/ST-TOOLS/Elements>`__
 
 Configuration
 -------------
 
-**EDEN 2.1**
+**EDEN 3.0**
 
 ::
 
-    - astropy 3.2.1
-    - scipy 1.3.2
-    - numpy 1.17.2
-    - python 3.6.7
+    - astropy 5.0
+    - scipy 1.7.1
+    - numpy 1.20.3
+    - python 3.9.9
 
 Dependant Projects
 ------------------
