@@ -88,7 +88,8 @@ def get_auto_bin_limits_from_table(bin_parameter: BinParameters,
     return l_quantiles
 
 
-def get_auto_bin_limits_from_data(l_data: np.ndarray, num_quantiles: int) -> np.ndarray:
+def get_auto_bin_limits_from_data(l_data: np.ndarray,
+                                  num_quantiles: int = DEFAULT_N_BIN_LIMITS_QUANTILES) -> np.ndarray:
     """ Determines bin limits from an array of data and the desired number of quantiles to split the data into.
     """
 
