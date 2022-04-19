@@ -39,6 +39,7 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
                                                     get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids, )
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_colour_column, add_epoch_column,
                                              add_size_column, add_snr_column, )
+from SHE_Validation.config_utility import get_auto_bin_limits_from_data
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
@@ -348,6 +349,9 @@ class TestBinData(SheValTestCase):
         self.mfc_t = Table.read(os.path.join(self.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
         self.lmc_t = Table.read(os.path.join(self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
+        # Setup a random-number generator
+        self.rng = np.random.default_rng(seed = 754)
+
     def test_table_format(self):
         """ Runs tests of the bin data table format.
         """
@@ -377,3 +381,31 @@ class TestBinData(SheValTestCase):
 
         add_epoch_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.epoch], 0.)
+
+    def test_get_auto_bin_limits_from_data(self):
+        """ Unit test of determining bin limits automatically from a data array.
+        """
+
+        num_test_points = 100
+
+        # Make some mock data
+        l_data = self.rng.uniform(size = num_test_points)
+
+        # Test with a couple different numbers of quantiles
+        for num_quantiles in (4, 5):
+            ex_n_per_bin = num_test_points // num_quantiles
+            l_bin_limits = get_auto_bin_limits_from_data(l_data = l_data,
+                                                         num_quantiles = num_quantiles)
+
+            # Check the bin limits for validity
+            assert len(l_bin_limits) == num_quantiles + 1
+            assert np.isclose(l_bin_limits[0], -1e99)
+            assert np.isclose(l_bin_limits[-1], 1e99)
+
+            # Try binning the data with these bin limits, and check that we have the right amount of data in each bin
+            for bin_index in range(num_quantiles):
+                bin_lo: float = l_bin_limits[bin_index]
+                bin_hi: float = l_bin_limits[bin_index + 1]
+
+                l_data_in_bin = l_data[np.logical_and(l_data > bin_lo, l_data <= bin_hi)]
+                assert len(l_data_in_bin) == ex_n_per_bin
