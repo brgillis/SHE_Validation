@@ -83,8 +83,17 @@ def get_auto_bin_limits_from_table(bin_parameter: BinParameters,
     # Get the data we'll be binning from the provided data table
     l_data = bin_data_table[getattr(BIN_TF, bin_parameter.value)]
 
+    l_quantiles = get_auto_bin_limits_from_data(l_data, num_quantiles)
+
+    return l_quantiles
+
+
+def get_auto_bin_limits_from_data(l_data: np.ndarray, num_quantiles: int) -> np.ndarray:
+    """ Determines bin limits from an array of data and the desired number of quantiles to split the data into.
+    """
+
     # Use scipy to calculate bin limits via empirical qunatiles
-    l_prob = np.linspace(0, 1, num_quantiles + 1, endpoint = True)
+    l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint = True)
     l_quantiles: np.ndarray = mquantiles(l_data, prob = l_prob, alphap = 0, betap = 1)
 
     # Override the first and last limit with -1e99 and 1e99 respectively
