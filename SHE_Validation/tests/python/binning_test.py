@@ -28,12 +28,8 @@ from typing import Dict
 import numpy as np
 from astropy.table import Column, Row, Table
 
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         MER_FINAL_CATALOG_TABLE_FILENAME, SYNC_CONF, TEST_DATA_LOCATION,
-                                         TEST_FILES_DATA_STACK, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_TABLE_FILENAME, )
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from SHE_PPT.table_utility import is_in_format
@@ -46,6 +42,7 @@ from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_co
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+from SHE_Validation.testing.utility import SheValTestCase
 
 ID_COLNAME = LMC_TF.ID
 
@@ -332,46 +329,24 @@ class TestBinConstraints:
         assert len(get_table_of_ids(self.t_mfc, some_ids_in)) == 2
 
 
-class TestBinData:
+class TestBinData(SheValTestCase):
     """ Class to perform tests on bin data tables and adding columns.
     """
 
-    workdir: str
-    logdir: str
-    data_stack: SHEFrameStack
     mfc_t: Table
     lmc_t: Table
 
     # Set up some expected values
     EX_BG_LEVEL = 45.71
 
-    @classmethod
-    def setup_class(cls):
+    def setup_workdir(self):
         # Download the data stack files from WebDAV
-        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
-        sync_datastack.download()
-        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
-        assert os.path.isfile(
-            qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
+        self._download_datastack()
 
-        # Get the workdir based on where the data images listfile is
-        cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
-        cls.logdir = os.path.join(cls.workdir, "logs")
-
-        # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                            detections_listfile_filename = MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                            workdir = cls.workdir,
-                                            clean_detections = False,
-                                            memmap = True,
-                                            mode = 'denywrite')
-        cls.mfc_t = Table.read(os.path.join(cls.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
-        cls.lmc_t = Table.read(os.path.join(cls.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
-
-    @classmethod
-    def teardown_class(cls):
-        return
+    def post_setup(self):
+        # Read in the needed tables
+        self.mfc_t = Table.read(os.path.join(self.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
+        self.lmc_t = Table.read(os.path.join(self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
     def test_table_format(self):
         """ Runs tests of the bin data table format.
