@@ -9,7 +9,9 @@ API Changes
 
 Dependency Changes
 ------------------
-- Now depends on SHE_PPT 9.1
+- Now depends on EDEN 3.0 environment
+- Now depends on SHE_PPT 9.1, and implicitly on EL_Utils 1.2.2, ST_DataModelTools 9.0.2, ST_DataModel 9.0.2, and
+  Elements 6.0.1
 
 Deprecated Features
 -------------------
