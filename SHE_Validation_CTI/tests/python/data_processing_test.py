@@ -20,13 +20,12 @@ __updated__ = "2021-08-27"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from copy import deepcopy
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pytest
 from astropy import table
 from astropy.table import Row, Table
-from dataclasses import dataclass
 
 from SHE_PPT import mdb
 from SHE_PPT.constants.classes import ShearEstimationMethods
@@ -186,25 +185,25 @@ class TestCtiGalDataProcessing(SheTestCase):
                                                       product_type = "OBS", )
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
-                assert np.isclose(rr_row[RR_TF.slope], self.m, atol = np.sqrt(2.) * self.sigma_l_tol * ex_slope_err)
+                assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol = np.sqrt(2.) * TEST_SIGMA_L_TOL * ex_slope_err)
 
     def _check_rr_row(self,
                       rr_row: Row,
-                      mock_data: MockCtiData,
+                      mock_data: Dict[str, Any],
                       err_rtol = 0.1) -> float:
         """ Checks that the regression results row contains results matching what we expect from the mock data.
 
             Returns the expected slope error, which is used for other calculations.
         """
-        readout_dist_mean = np.mean(mock_data.readout_dist_data[:self.l_good])
-        ex_slope_err = self.g1_err / np.sqrt(
-            np.sum((mock_data.readout_dist_data[:self.l_good] - readout_dist_mean) ** 2))
-        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data.readout_dist_data[:self.l_good] ** 2) / self.l_good)
+        readout_dist_mean = np.mean(mock_data.readout_dist_data[:TEST_L_GOOD])
+        ex_slope_err = TEST_G1_ERR / np.sqrt(
+            np.sum((mock_data.readout_dist_data[:TEST_L_GOOD] - readout_dist_mean) ** 2))
+        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data.readout_dist_data[:TEST_L_GOOD] ** 2) / TEST_L_GOOD)
 
-        assert rr_row[RR_TF.weight] == self.l_good / self.g1_err ** 2
-        assert np.isclose(rr_row[RR_TF.slope], self.m, atol = self.sigma_l_tol * ex_slope_err)
+        assert rr_row[RR_TF.weight] == TEST_L_GOOD / TEST_G1_ERR ** 2
+        assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol = TEST_SIGMA_L_TOL * ex_slope_err)
         assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol = err_rtol)
-        assert np.isclose(rr_row[RR_TF.intercept], self.b, atol = self.sigma_l_tol * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept], TEST_B, atol = TEST_SIGMA_L_TOL * ex_intercept_err)
         assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol = err_rtol)
         assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol = 5 * ex_slope_err * ex_intercept_err)
 
@@ -253,35 +252,6 @@ class TestCtiGalDataProcessing(SheTestCase):
         assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol = 0.1)
 
     @pytest.fixture(scope = "class")
-    def mock_data(self, class_setup):
-
-        mock_data = MockCtiData(self.l_tot)
-
-        mock_data.g1_err_data = self.g1_err * np.ones(self.l_tot, dtype = '>f4')
-        mock_data.weight_data = np.power(mock_data.g1_err_data, -2)
-        mock_data.readout_dist_data = np.linspace(0, 2100, self.l_good + self.l_nan + self.l_zero, dtype = '>f4')
-
-        mock_data.rng = np.random.default_rng(seed = 12345)
-
-        mock_data.g1_data = (self.m * mock_data.readout_dist_data + self.b + mock_data.g1_err_data *
-                             mock_data.rng.standard_normal(size = self.l_tot)).astype('>f4')
-
-        # Set mock snr, bg, colour, and size values to test different bins
-
-        mock_data.snr_data = np.where(mock_data.indices % 2 < 1, mock_data.ones, mock_data.zeros)
-        mock_data.bg_data = np.where(mock_data.indices % 4 < 2, mock_data.ones, mock_data.zeros)
-        mock_data.colour_data = np.where(mock_data.indices % 8 < 4, mock_data.ones, mock_data.zeros)
-        mock_data.size_data = np.where(mock_data.indices % 16 < 8, mock_data.ones, mock_data.zeros)
-
-        # Make the last bit of data bad or zero weight
-        mock_data.weight_data[-self.l_nan - self.l_zero:-self.l_zero] = np.NaN
-        mock_data.readout_dist_data[-self.l_nan - self.l_zero:-self.l_zero] = np.NaN
-        mock_data.g1_data[-self.l_nan - self.l_zero:-self.l_zero] = np.NaN
-        mock_data.weight_data[-self.l_zero:] = 0
-
-        return mock_data
-
-    @pytest.fixture(scope = "class")
     def measurements_table(self, class_setup, mock_data):
         measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: mock_data.indices})
         return measurements_table
@@ -296,9 +266,9 @@ class TestCtiGalDataProcessing(SheTestCase):
         return detections_table
 
     @pytest.fixture(scope = "class")
-    def object_data_table(self, class_setup, mock_data):
-        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : mock_data.indices,
-                                                            CGOD_TF.weight_LensMC  : mock_data.weight_data,
-                                                            CGOD_TF.readout_dist   : mock_data.readout_dist_data,
-                                                            CGOD_TF.g1_image_LensMC: mock_data.g1_data})
+    def object_data_table(self, class_setup):
+        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.mock_data.indices,
+                                                            CGOD_TF.weight_LensMC  : self.mock_data.weight_data,
+                                                            CGOD_TF.readout_dist   : self.mock_data.readout_dist_data,
+                                                            CGOD_TF.g1_image_LensMC: self.mock_data.g1_data})
         return object_data_table
