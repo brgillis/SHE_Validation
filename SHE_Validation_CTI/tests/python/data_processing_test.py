@@ -195,10 +195,10 @@ class TestCtiGalDataProcessing(SheTestCase):
 
             Returns the expected slope error, which is used for other calculations.
         """
-        readout_dist_mean = np.mean(mock_data.readout_dist_data[:TEST_L_GOOD])
+        readout_dist_mean = np.mean(mock_data["readout_dist"][:TEST_L_GOOD])
         ex_slope_err = TEST_G1_ERR / np.sqrt(
-            np.sum((mock_data.readout_dist_data[:TEST_L_GOOD] - readout_dist_mean) ** 2))
-        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data.readout_dist_data[:TEST_L_GOOD] ** 2) / TEST_L_GOOD)
+            np.sum((mock_data["readout_dist"][:TEST_L_GOOD] - readout_dist_mean) ** 2))
+        ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data["readout_dist"][:TEST_L_GOOD] ** 2) / TEST_L_GOOD)
 
         assert rr_row[RR_TF.weight] == TEST_L_GOOD / TEST_G1_ERR ** 2
         assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol = TEST_SIGMA_L_TOL * ex_slope_err)
@@ -209,8 +209,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         return ex_slope_err
 
-    def test_calc_regression_results_bootstrap(self, mock_data, object_data_table, detections_table,
-                                               measurements_table):
+    def test_calc_regression_results_bootstrap(self, object_data_table, detections_table, measurements_table):
         """ Test that the calculate_regression_results calculates the expected slope, intercept, and errors (for the
             bootstrap approach to errors).
         """
@@ -224,7 +223,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         # Check the results
 
-        self._check_rr_row(exp_rr_row, mock_data, err_rtol = 0.1)
+        self._check_rr_row(exp_rr_row, self.mock_data, err_rtol = 0.1)
 
         # Now test with a modified object data type, with multiple entries for each object
 
@@ -252,23 +251,23 @@ class TestCtiGalDataProcessing(SheTestCase):
         assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol = 0.1)
 
     @pytest.fixture(scope = "class")
-    def measurements_table(self, class_setup, mock_data):
-        measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: mock_data.indices})
+    def measurements_table(self, class_setup):
+        measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: self.indices})
         return measurements_table
 
     @pytest.fixture(scope = "class")
-    def detections_table(self, class_setup, mock_data):
-        detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: mock_data.indices})
-        detections_table[BIN_TF.snr] = mock_data.snr_data
-        detections_table[BIN_TF.bg] = mock_data.bg_data
-        detections_table[BIN_TF.colour] = mock_data.colour_data
-        detections_table[BIN_TF.size] = mock_data.size_data
+    def detections_table(self, class_setup):
+        detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: self.indices})
+        detections_table[BIN_TF.snr] = self.mock_data["snr"]
+        detections_table[BIN_TF.bg] = self.mock_data["bg"]
+        detections_table[BIN_TF.colour] = self.mock_data["colour"]
+        detections_table[BIN_TF.size] = self.mock_data["size"]
         return detections_table
 
     @pytest.fixture(scope = "class")
     def object_data_table(self, class_setup):
-        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.mock_data.indices,
-                                                            CGOD_TF.weight_LensMC  : self.mock_data.weight_data,
-                                                            CGOD_TF.readout_dist   : self.mock_data.readout_dist_data,
-                                                            CGOD_TF.g1_image_LensMC: self.mock_data.g1_data})
+        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.indices,
+                                                            CGOD_TF.weight_LensMC  : self.mock_data["weight"],
+                                                            CGOD_TF.readout_dist   : self.mock_data["readout_dist"],
+                                                            CGOD_TF.g1_image_LensMC: self.mock_data["g1"]})
         return object_data_table
