@@ -22,22 +22,22 @@ __updated__ = "2021-08-31"
 
 import os
 import subprocess
-
-import pytest
-from py._path.local import LocalPath
+from argparse import Namespace
 
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
+from SHE_PPT.testing.constants import MATCHED_TABLE_PRODUCT_FILENAME, PIPELINE_CONFIG_FILENAME
+from SHE_PPT.testing.mock_tum_cat import write_mock_tum_tables
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESULTS
-from SHE_Validation.testing.constants import PIPELINE_CONFIG_FILENAME, SHE_BIAS_TEST_RESULT_FILENAME
+from SHE_Validation.testing.constants import SHE_BIAS_TEST_RESULT_FILENAME
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import (MATCHED_TABLE_PRODUCT_FILENAME, cleanup_mock_matched_tables,
-                                                write_mock_matched_tables, )
 from SHE_Validation_ShearBias.ValidateShearBias import (defineSpecificProgramOptions,
                                                         mainMethod, )
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
+
+# noinspection PyProtectedMember
 
 logger = getLogger(__name__)
 
@@ -48,34 +48,22 @@ class ShearBiasTestCase(SheTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    def _make_mock_args(self) -> None:
+    def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.
         """
         parser = defineSpecificProgramOptions()
-        self.args = parser.parse_args([])
+        args = parser.parse_args([])
 
-        setattr(self.args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
-        setattr(self.args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
-        setattr(self.args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
+        setattr(args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
+        setattr(args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
+        setattr(args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
 
-    @classmethod
-    def setup_class(cls):
-        pass
+        return args
 
-    @classmethod
-    def teardown_class(cls):
-
-        super().teardown_class()
-        if cls.workdir:
-            cleanup_mock_matched_tables(cls.workdir)
-
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir: LocalPath):
-
-        self._setup(tmpdir)
+    def post_setup(self):
 
         # Write the matched catalog we'll be using and its data product
-        write_mock_matched_tables(self.workdir)
+        write_mock_tum_tables(self.workdir)
 
     def test_shear_bias_dry_run(self):
 

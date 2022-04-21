@@ -154,7 +154,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
             fill_cti_gal_validation_results(test_result_product = exp_test_result_product,
                                             workdir = workdir,
                                             regression_results_row_index = product_index,
-                                            d_regression_results_tables = d_exposure_regression_results_tables,
+                                            d_l_test_results = d_exposure_regression_results_tables,
                                             pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                             d_l_bin_limits = d_l_bin_limits,
                                             method_data_exists = method_data_exists)
@@ -163,7 +163,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
         fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
                                         workdir = workdir,
                                         regression_results_row_index = 0,
-                                        d_regression_results_tables = d_observation_regression_results_tables,
+                                        d_l_test_results = d_observation_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits = d_l_bin_limits,
                                         dl_dl_figures = plot_filenames,

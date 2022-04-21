@@ -13,7 +13,7 @@ To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the foll
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --mdb <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 9,1 SHE_Validation_ValidateCTIGal --workdir <dir> --vis_calibrated_frame_listfile <filename> --extended_catalog <filename> --she_validated_measurements_product <filename> --mdb <filename> --she_observation_cti_gal_validation_test_results_product <filename> --she_exposure_cti_gal_validation_test_results_listfile <filename>  [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."]
 
 with the following arguments:
 
@@ -42,7 +42,7 @@ Common Elements Arguments
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -307,7 +307,7 @@ optionally any of the following which apply to this executable:
      - List of quoted, space-separated values listing the bin limits for when binning by epoch.
      - Will use default bin limits, as listed above in the `Options`_ section above.
 
-See `Bin Definitions <bin_definitions>`_ for the spefic definitions of values used for binning.
+See `Bin Definitions <bin_definitions>`_ for the specific definitions of values used for binning.
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
@@ -365,7 +365,7 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --extended_catalog $EXC_PRODUCT --she_validated_measurements_product $SVM_PRODUCT --she_observation_cti_gal_validation_test_results_product she_observation_cti_gal_validation_test_results_product.xml --she_exposure_cti_gal_validation_test_results_listfile she_exposure_cti_gal_validation_test_results_listfile.json
+    E-Run SHE_Validation 9,1 SHE_Validation_ValidateCTIGal --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --extended_catalog $EXC_PRODUCT --she_validated_measurements_product $SVM_PRODUCT --she_observation_cti_gal_validation_test_results_product she_observation_cti_gal_validation_test_results_product.xml --she_exposure_cti_gal_validation_test_results_listfile she_exposure_cti_gal_validation_test_results_listfile.json
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$VCF_LISTFILE``, ``$EXC_PRODUCT``, and ``$SVM_PRODUCT`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
 

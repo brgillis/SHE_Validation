@@ -1,11 +1,11 @@
-""" @file __init__.py
+""" @file constants.py
 
-    Created 24 April 2020
+    Created 12 April 2022 by Bryan Gillis
 
-    SHE_Validation package, for general-purpose code within the SHE_Validation project.
+    Constant values used in PSF testing.
 """
 
-__updated__ = "2021-08-19"
+__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,19 +20,6 @@ __updated__ = "2021-08-19"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-__all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__version__", "__maintainer__", "__email__",
-           "__status__", "__url__"]
-
-BG = "Bryan Gillis"
-
-__authors__ = ["Rob Blake", BG]
-__copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
-__credits__ = ["Rob Blake", BG]
-__license__ = "GNU LGPL 3.0"
-__version__ = "9.1"
-__maintainer__ = BG
-__email__ = "b.gillis@roe.ac.uk"
-__status__ = 'Development'
-
-__description__ = 'Elements project for validation tests within PF-SHE.'
-__url__ = 'https://gitlab.euclid-sgs.uk/PF-SHE/SHE_Validation'
+REF_STAR_CAT_LISTFILE_FILENAME = "reference_star_cat_listfile.json"
+REF_STAR_CAT_PRODUCT_FILENAME = "reference_star_cat_product.xml"
+REF_STAR_CAT_TABLE_FILENAME = "data/reference_star_cat_table.fits"

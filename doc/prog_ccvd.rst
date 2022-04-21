@@ -13,7 +13,7 @@ To run the ``SHE_Validation_CalcCommonValData`` program with Elements, use the f
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir <dir> --vis_calibrated_frame_listfile <filename> --mer_final_catalog_listfile <filename> --she_validated_measurements_product <filename> --extended_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 9,1 SHE_Validation_CalcCommonValData --workdir <dir> --vis_calibrated_frame_listfile <filename> --mer_final_catalog_listfile <filename> --she_validated_measurements_product <filename> --extended_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
 
 with the arguments and options as defined in the following sections:
 
@@ -42,7 +42,7 @@ Common Elements Arguments
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -308,7 +308,7 @@ Download the required input data into the desired workdir. The program can then 
 
 .. code:: bash
 
-    E-Run SHE_Validation 8.2 SHE_Validation_CalcCommonValData --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --mer_final_catalog_listfile $MFC_LISTFILE --she_validated_measurements_product $SVM_PRODUCT --extended_catalog extended_catalog.xml
+    E-Run SHE_Validation 9,1 SHE_Validation_CalcCommonValData --workdir $WORKDIR  --vis_calibrated_frame_listfile $VCF_LISTFILE --mer_final_catalog_listfile $MFC_LISTFILE --she_validated_measurements_product $SVM_PRODUCT --extended_catalog extended_catalog.xml
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$VCF_LISTFILE``, ``$MFC_LISTFILE``, and ``$SVM_PRODUCT`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
 

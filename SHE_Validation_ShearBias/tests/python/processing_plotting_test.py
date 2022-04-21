@@ -21,10 +21,9 @@ __updated__ = "2021-08-31"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from typing import Any, Dict, List, NamedTuple, Sequence
+from typing import Any, Dict, List, NamedTuple, Sequence, Type
 
 import numpy as np
-import pytest
 from astropy.table import Table
 
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
@@ -32,18 +31,23 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
+from SHE_PPT.testing.mock_tables import MockDataGeneratorType
+from SHE_PPT.testing.mock_tum_cat import MockTUMatchedDataGenerator, MockTUMatchedTableGenerator
+from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.utility import is_inf, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
-from SHE_Validation.testing.mock_data import (EST_SEED, make_mock_bin_limits, )
-from SHE_Validation.testing.mock_tables import cleanup_mock_matched_tables, make_mock_matched_table
+from SHE_Validation.testing.mock_data import make_mock_bin_limits
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      )
 from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,
                                                       ShearBiasTestCaseDataProcessor, )
 from SHE_Validation_ShearBias.plotting import ShearBiasPlotter
+
+TEST_TABLE_FILENAME = "tu_matched_table.fits"
 
 
 class MockDataLoader(NamedTuple):
@@ -79,12 +83,36 @@ class MockDataProcessor(NamedTuple):
         pass
 
 
-class TestShearBias:
-    """ Unit tests for plotting shear bias results
+class MockValTUMatchedDataGenerator(MockTUMatchedDataGenerator):
+    """ Subclass of MockTUMatchedDataGenerator which also generates data for columns used for binning.
     """
 
-    workdir: str = ""
-    logdir: str = ""
+    def _generate_unique_data(self):
+        """ Inherit data generation, and also add columns for binning data.
+        """
+
+        super()._generate_unique_data()
+
+        i: int
+        bin_parameter: BinParameters
+        for i, bin_parameter in enumerate(BinParameters):
+            if bin_parameter == BinParameters.TOT:
+                continue
+            colname = getattr(self.tf, bin_parameter.value)
+            factor = 2 ** i
+            self.data[colname] = np.where(self._indices % factor < factor / 2, self._ones, self._zeros)
+
+
+class MockValTUMatchedTableGenerator(MockTUMatchedTableGenerator):
+    """ Subclass of MockTUMatchedTableGenerator which uses the MockValTUMatchedDataGenerator data generator.
+    """
+
+    mock_data_generator_type: Type[MockDataGeneratorType] = MockValTUMatchedDataGenerator
+
+
+class TestShearBias(SheTestCase):
+    """ Unit tests for plotting shear bias results
+    """
 
     rng: Any
 
@@ -103,30 +131,9 @@ class TestShearBias:
     d_d_m_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
     d_d_c_test_case_info: Dict[ShearEstimationMethods, Dict[BinParameters, TestCaseInfo]]
 
-    @classmethod
-    def setup_class(cls):
-        """ Setup is handled in setup method due to use of tmpdir fixture.
-        """
-        pass
-
-    @classmethod
-    def teardown_class(cls):
-        """ Necessary presence alongside setup_class.
-        """
-
-        # Delete the created data
-        if cls.workdir:
-            cleanup_mock_matched_tables(cls.workdir)
-
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir):
+    def post_setup(self):
         """ Sets up workdir and data for our use.
         """
-
-        # Set up workdir
-        self.workdir = tmpdir.strpath
-        self.logdir = os.path.join(tmpdir.strpath, "logs")
-        os.makedirs(os.path.join(self.workdir, "data"), exist_ok = True)
 
         # Set up the data we'll be processing
 
@@ -148,9 +155,13 @@ class TestShearBias:
                                                ShearEstimationMethods.KSB]):
             tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
-            matched_table = make_mock_matched_table(method = method,
-                                                    seed = EST_SEED + method_index)
+            matched_table_gen = MockValTUMatchedTableGenerator(method = method,
+                                                               workdir = self.workdir)
+
+            matched_table = matched_table_gen.get_mock_table()
             self.d_matched_tables[method] = matched_table
+
+            # TODO: Tables need to have binning columns added back in here
 
             l_good_g1_in: Sequence[float] = -matched_table[tf.tu_gamma1][:NUM_GOOD_TEST_POINTS]
             l_good_g2_in: Sequence[float] = matched_table[tf.tu_gamma2][:NUM_GOOD_TEST_POINTS]
@@ -295,13 +306,12 @@ class TestShearBias:
             np.testing.assert_allclose(data_loader.d_g_out[i], mock_data_loader.d_g_out[i])
             np.testing.assert_allclose(data_loader.d_g_out_err[i], mock_data_loader.d_g_out_err[i])
 
-    def test_data_loader(self):
+    def test_data_loader(self, local_setup):
         """ Tests loading in shear bias data.
         """
 
         # Set up filenames
-        tu_matched_table_filename = "tu_matched_table.fits"
-        qualified_tu_matched_table_filename = os.path.join(self.workdir, tu_matched_table_filename)
+        qualified_tu_matched_table_filename = os.path.join(self.workdir, TEST_TABLE_FILENAME)
 
         for method in TEST_METHODS:
 
@@ -310,7 +320,7 @@ class TestShearBias:
                                                 overwrite = True)
 
             # Create a data loader object and load in the data
-            data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+            data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
                                               workdir = self.workdir,
                                               method = method)
             data_loader.load_ids(self.good_ids)
@@ -327,9 +337,9 @@ class TestShearBias:
 
             # Try loading all data, and check that NaN values were read in
             data_loader.load_all()
-            assert np.isnan(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
-            assert np.isinf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
-                                                       NUM_ZERO_WEIGHT_TEST_POINTS - 1])
+            assert is_nan_or_masked(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
+            assert is_inf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
+                                                     NUM_ZERO_WEIGHT_TEST_POINTS - 1])
 
         # Test loading, binned on the mock SNR data
         bin_test_method = ShearEstimationMethods.KSB
@@ -339,7 +349,7 @@ class TestShearBias:
                                                      overwrite = True)
 
         # Create a data loader object and load in the data
-        data_loader = ShearBiasDataLoader(l_filenames = [tu_matched_table_filename],
+        data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
                                           workdir = self.workdir,
                                           method = bin_test_method)
 

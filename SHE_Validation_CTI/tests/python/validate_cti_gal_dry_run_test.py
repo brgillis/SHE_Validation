@@ -80,7 +80,7 @@ class TestCtiGalRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def setup_workdir(self):
         """ Override parent setup, downloading data to work with here.
         """
 
@@ -139,10 +139,11 @@ class TestCtiGalRun(SheTestCase):
 
         qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
 
+        # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
+        obs_plot_filename = None
         l_exp_plot_filenames: List[Optional[str]] = [None] * EX_NUM_EXPOSURES
 
         # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
-        plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:
                 if line[0] == "#":

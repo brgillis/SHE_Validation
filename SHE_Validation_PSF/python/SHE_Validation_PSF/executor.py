@@ -25,8 +25,8 @@ from typing import Type
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_PPT.utility import default_value_if_none
 from SHE_Validation.executor import SheValExecutor, ValReadConfigArgs
-from .constants.psf_res_default_config import (D_PSF_RES_CONFIG_CLINE_ARGS, D_PSF_RES_CONFIG_DEFAULTS,
-                                               D_PSF_RES_CONFIG_TYPES, )
+from .constants.psf_res_sp_default_config import (D_PSF_RES_SP_CONFIG_CLINE_ARGS, D_PSF_RES_SP_CONFIG_DEFAULTS,
+                                                  D_PSF_RES_SP_CONFIG_TYPES, )
 
 
 # ReadConfigArgs and Executor class for CTI-Gal validation
@@ -40,11 +40,11 @@ class PsfResReadConfigArgs(ValReadConfigArgs):
         """
 
         self.d_config_defaults = default_value_if_none(self.d_config_defaults,
-                                                       D_PSF_RES_CONFIG_DEFAULTS)
+                                                       D_PSF_RES_SP_CONFIG_DEFAULTS)
         self.d_config_types = default_value_if_none(self.d_config_types,
-                                                    D_PSF_RES_CONFIG_TYPES)
+                                                    D_PSF_RES_SP_CONFIG_TYPES)
         self.d_config_cline_args = default_value_if_none(self.d_config_cline_args,
-                                                         D_PSF_RES_CONFIG_CLINE_ARGS)
+                                                         D_PSF_RES_SP_CONFIG_CLINE_ARGS)
         self.s_config_keys_types = default_value_if_none(self.s_config_keys_types,
                                                          {AnalysisConfigKeys,
                                                           ValidationConfigKeys})

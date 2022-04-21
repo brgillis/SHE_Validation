@@ -29,7 +29,8 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import linregress_with_errors
-from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
+from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 from .table_formats.regression_results import TF as RR_TF
@@ -63,7 +64,8 @@ def add_readout_register_distance(object_data_table: table.Table,
 
 
 def _set_row_empty(rr_row: table.Row, ):
-    """TODO: Add docstring for this function."""
+    """ Fills in a row of a Regression Results table with `empty` data as appropriate.
+    """
     rr_row[RR_TF.weight] = 0.
     rr_row[RR_TF.slope] = np.NaN
     rr_row[RR_TF.intercept] = np.NaN
@@ -90,7 +92,7 @@ def calculate_regression_results(object_data_table: table.Table,
     else:
         method_name = None
         method_tail = ""
-        odt_tf = SC_TF
+        odt_tf = SHE_STAR_CAT_TF
 
     # Initialize a table for the output data
     regression_results_table = RR_TF.init_table(product_type = product_type, size = 1)
@@ -126,7 +128,7 @@ def calculate_regression_results(object_data_table: table.Table,
         return rr_row
 
     # Get a mask for the data where the weight is > 0 and not NaN
-    bad_data_mask = np.logical_or(np.isnan(weight_data), weight_data <= 0)
+    bad_data_mask = np.logical_or(is_nan_or_masked(weight_data), weight_data <= 0)
 
     masked_id_data = np.ma.masked_array(id_data, mask = bad_data_mask)
     masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask = bad_data_mask)

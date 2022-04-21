@@ -32,6 +32,7 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
+from SHE_PPT.testing.mock_data import MockDataGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import TF as BIN_TF
@@ -41,78 +42,83 @@ from SHE_Validation_CTI.data_processing import add_readout_register_distance, ca
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
+# Constants to describe mock data used here
+TEST_M = 1e-5
+TEST_B = -0.2
+TEST_G1_ERR = 0.25
 
-@dataclass
-class MockData:
-    """Dataclass for mock data used in testing."""
+TEST_SIGMA_L_TOL = 5  # Pass test if calculations are within 5 sigma
 
-    l_tot: int = 0
-    l_good: int = 0
-    l_bad: int = 0
-
-    # Meta arrays
-    zeros: Optional[np.ndarray] = None
-    indices: Optional[np.ndarray] = None
-    ones: Optional[np.ndarray] = None
-
-    def __post_init__(self):
-        self.make_meta_arrays()
-
-    def make_meta_arrays(self, l_tot: Optional[int] = None):
-        if l_tot is not None:
-            self.l_tot = l_tot
-
-        if self.l_tot is not None:
-            self.zeros = np.zeros(self.l_tot, dtype = '>f4')
-            self.indices = np.indices((self.l_tot,), dtype = int, )[0]
-            self.ones = np.ones(self.l_tot, dtype = '>f4')
-        else:
-            self.zeros = None
-            self.indices = None
-            self.ones = None
+TEST_L_GOOD = 200  # Length of good data
+TEST_L_NAN = 5  # Length of bad data
+TEST_L_ZERO = 5  # Length of zero-weight data
 
 
-@dataclass
-class MockCtiData(MockData):
-    # Input data
-    snr_data: Optional[np.ndarray] = None
-    bg_data: Optional[np.ndarray] = None
-    colour_data: Optional[np.ndarray] = None
-    size_data: Optional[np.ndarray] = None
+class MockCtiDataGenerator(MockDataGenerator):
+    # Overriding base class default values
+    seed: int = 1245
+    num_test_points = TEST_L_GOOD + TEST_L_NAN + TEST_L_ZERO
 
-    # Output data
-    weight_data: Optional[np.ndarray] = None
-    readout_dist_data: Optional[np.ndarray] = None
-    g1_data: Optional[np.ndarray] = None
-    g1_err_data: Optional[np.ndarray] = None
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate galaxy data.
+        """
+
+        self.data["indices"] = self._indices
+
+        self.data["g1_err"] = TEST_G1_ERR * self._ones
+        self.data["weight"] = np.power(self.data["g1_err"], -2)
+        self.data["readout_dist"] = np.linspace(0, 2100, self.num_test_points, dtype = '>f4')
+
+        self.data["g1"] = (TEST_M * self.data["readout_dist"] + TEST_B + self.data["g1_err"] *
+                           self._rng.standard_normal(size = self.num_test_points)).astype('>f4')
+
+        # Set mock snr, bg, colour, and size values to test different bins
+
+        self.data["snr"] = np.where(self._indices % 2 < 1, self._ones, self._zeros)
+        self.data["bg"] = np.where(self._indices % 4 < 2, self._ones, self._zeros)
+        self.data["colour"] = np.where(self._indices % 8 < 4, self._ones, self._zeros)
+        self.data["size"] = np.where(self._indices % 16 < 8, self._ones, self._zeros)
+
+        # Make the last bit of data bad or zero weight
+        self.data["weight"][-TEST_L_NAN - TEST_L_ZERO:-TEST_L_ZERO] = np.NaN
+        self.data["readout_dist"][-TEST_L_NAN - TEST_L_ZERO:-TEST_L_ZERO] = np.NaN
+        self.data["g1"][-TEST_L_NAN - TEST_L_ZERO:-TEST_L_ZERO] = np.NaN
+        self.data["weight"][-TEST_L_ZERO:] = 0
 
 
 class TestCtiGalDataProcessing(SheTestCase):
     """ Unit tests for CTI validation data processing.
     """
 
-    @classmethod
-    def setup_class(cls):
+    def setup_workdir(self) -> None:
 
-        cls._download_mdb()
+        self._download_mdb()
 
-    @classmethod
-    def teardown_class(cls):
-        return
+        self.mock_data = MockCtiDataGenerator().get_data()
+        self.indices = self.mock_data["indices"]
 
-    def post_setup(self):
+    @pytest.fixture(scope = "class")
+    def measurements_table(self, class_setup):
+        measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: self.indices})
+        return measurements_table
 
-        # Make some mock data
-        self.m = 1e-5
-        self.b = -0.2
-        self.g1_err = 0.25
+    @pytest.fixture(scope = "class")
+    def detections_table(self, class_setup):
+        detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: self.indices})
+        detections_table[BIN_TF.snr] = self.mock_data["snr"]
+        detections_table[BIN_TF.bg] = self.mock_data["bg"]
+        detections_table[BIN_TF.colour] = self.mock_data["colour"]
+        detections_table[BIN_TF.size] = self.mock_data["size"]
+        return detections_table
 
-        self.sigma_l_tol = 5  # Pass test if calculations are within 5 sigma
-
-        self.l_good = 200  # Length of good data
-        self.l_nan = 5  # Length of bad data
-        self.l_zero = 5  # Length of zero-weight data
-        self.l_tot = self.l_good + self.l_nan + self.l_zero
+    @pytest.fixture(scope = "class")
+    def object_data_table(self, class_setup):
+        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.indices,
+                                                            CGOD_TF.weight_LensMC  : self.mock_data["weight"],
+                                                            CGOD_TF.readout_dist   : self.mock_data["readout_dist"],
+                                                            CGOD_TF.g1_image_LensMC: self.mock_data["g1"]})
+        return object_data_table
 
     def test_add_rr_distance(self):
 
@@ -133,7 +139,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert np.allclose(ro_dist, np.array([-100., 0., 500., 1000., 2000., 1136., 136., -864.]))
 
-    def test_calc_regression_results(self, mock_data, object_data_table, detections_table, measurements_table):
+    def test_calc_regression_results(self, object_data_table, detections_table, measurements_table):
         """ Test that the calculate_regression_results calculates the expected slope, intercept, and errors (for the
             non-bootstrap approach to errors).
         """
@@ -151,7 +157,7 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
-        ex_slope_err = self._check_rr_row(rr_row, mock_data, err_rtol = 0.01)
+        ex_slope_err = self._check_rr_row(rr_row, self.mock_data, err_rtol = 0.01)
 
         # Test the calculation is sensible for each binning
 

@@ -25,20 +25,21 @@ import subprocess
 from argparse import Namespace
 
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
-from SHE_PPT.constants.test_data import (SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
-                                         )
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
-from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.ValidatePSFRes import defineSpecificProgramOptions, mainMethod
-
+from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions, mainMethod
 # Output data filenames
+from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
+from SHE_Validation_PSF.results_reporting import PSF_RES_SP_DIRECTORY_FILENAME
+from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
+from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
 
 
-class TestPsfResRun(SheTestCase):
+class TestPsfResRun(SheValPsfTestCase):
     """ Test case for PSF-Res validation test code.
     """
 
@@ -52,10 +53,10 @@ class TestPsfResRun(SheTestCase):
             is None (which it will be when the object is initialized). This means that in each test case,
             self.args will return the result of this method (cached so that it only runs once).
         """
-        parser = defineSpecificProgramOptions()
-        args = parser.parse_args([])
+        args = defineSpecificProgramOptions().parse_args([])
 
-        setattr(args, CA_SHE_STAR_CAT, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_STAR_CAT, STAR_CAT_PRODUCT_FILENAME)
+        setattr(args, CA_REF_SHE_STAR_CAT, REF_STAR_CAT_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
@@ -64,23 +65,21 @@ class TestPsfResRun(SheTestCase):
 
         return args
 
-    def setup(self):
+    def post_setup(self) -> None:
         """ Override parent setup, setting up data to work with here.
-
-            TODO: Set up mock input data for testing.
         """
+
+        self._write_mock_starcat_product()
+        self._write_mock_ref_starcat_product()
 
         return
 
-    def test_psf_res_integration(self, local_setup):
+    def test_psf_res_integration(self):
         """ "Integration" test of the full executable, using the unit-testing framework so it can be run automatically.
         """
 
         # Call to validation function, which was imported directly from the entry-point file
         mainMethod(self.args)
-
-        # TODO: Once output data is actually generated, let the code continue to test its presence
-        return
 
         # Check the resulting data product and plots exist in the expected locations
 
@@ -105,6 +104,9 @@ class TestPsfResRun(SheTestCase):
         assert textfiles_tarball_filename
         assert figures_tarball_filename
 
+        # Exit here for now - no textfiles or figures are created at present, so we can't test for them yet
+        return
+
         # Unpack the tarballs containing both the textfiles and the figures
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
             subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell = True)
@@ -113,9 +115,9 @@ class TestPsfResRun(SheTestCase):
         # containing with in the filenames of all other files which were tarred up. We open this first, and use
         # it to guide us on the filenames of other files that were tarred up, and test for their existence.
 
-        qualified_directory_filename = os.path.join(workdir, PSF_RES_DIRECTORY_FILENAME)
+        qualified_directory_filename = os.path.join(workdir, PSF_RES_SP_DIRECTORY_FILENAME)
 
-        # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
+        # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
         plot_filename = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:
