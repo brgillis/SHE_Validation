@@ -30,7 +30,7 @@ from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from .binning.bin_data import BIN_TF
-from .constants.default_config import FailSigmaScaling, TOT_BIN_LIMITS
+from .constants.default_config import FailSigmaScaling
 from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)
@@ -47,6 +47,10 @@ STR_AUTO_BIN_LIMITS_HEAD = "auto"
 DEFAULT_N_BIN_LIMITS_QUANTILES = 4
 DEFAULT_AUTO_BIN_LIMITS = f"{STR_AUTO_BIN_LIMITS_HEAD}-{DEFAULT_N_BIN_LIMITS_QUANTILES}"
 
+MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
+                            f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
+                            f"integer giving the desired number of quantiles to use as bin limits.")
+
 
 def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
                        bin_data_table: Optional[Table] = None) -> Dict[BinParameters, np.ndarray]:
@@ -58,11 +62,16 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
         bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
         if bin_limits_key is None or bin_limits_key not in pipeline_config:
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in case
-            bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
+            bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
         else:
             bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
 
         if isinstance(bin_limits_value, str):
+
+            # Raise an exception if no table was provided
+            if bin_data_table is None:
+                raise ValueError(f"'{STR_AUTO_BIN_LIMITS_HEAD}' bin limits were requested, but no bin_data_table was "
+                                 f"provided.")
             d_bin_limits[bin_parameter] = get_auto_bin_limits_from_table(bin_parameter = bin_parameter,
                                                                          bin_limits_value = bin_limits_value,
                                                                          bin_data_table = bin_data_table)
@@ -74,9 +83,10 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
 
 def get_auto_bin_limits_from_table(bin_parameter: BinParameters,
                                    bin_data_table: Table,
-                                   bin_limits_value = DEFAULT_AUTO_BIN_LIMITS) -> np.ndarray:
+                                   bin_limits_value: str = DEFAULT_AUTO_BIN_LIMITS) -> np.ndarray:
     """ Determines bin limits automatically from data for the relevant bin parameter in the provided data table.
     """
+
     # Interpret the provided value to get the number of quantiles
     num_quantiles = _get_n_quantiles(bin_limits_value)
 
@@ -102,11 +112,6 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     l_quantiles[-1] = 1e99
 
     return l_quantiles
-
-
-MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
-                            "bin limits, or a string of the format 'auto-N', where N is an integer giving the desired "
-                            "number of quantiles to use as bin limits.")
 
 
 def _get_n_quantiles(bin_limits_value: str) -> int:
