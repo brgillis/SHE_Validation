@@ -26,6 +26,8 @@ import numpy as np
 
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.logging import getLogger
+from SHE_PPT.testing.mock_data import MockDataGenerator
+from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
 from SHE_Validation.constants.default_config import (TOT_BIN_LIMITS)
 
 logger = getLogger(__name__)
@@ -43,3 +45,29 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
             d_l_bin_limits[bin_parameter] = np.array(TOT_BIN_LIMITS)
 
     return d_l_bin_limits
+
+
+TEST_L_GOOD = 200  # Length of good data
+TEST_L_NAN = 5  # Length of bad data
+TEST_L_ZERO = 5  # Length of zero-weight data
+
+
+class MockBinDataGenerator(MockDataGenerator):
+    """ Data generator which generates data suitable for binning with various bin parameters.
+    """
+    tf: SheBinDataFormat = BIN_TF
+    seed: int = 1245
+    num_test_points = TEST_L_GOOD + TEST_L_NAN + TEST_L_ZERO
+
+    # Implement abstract methods
+    def _generate_unique_data(self):
+        """ Generate galaxy data.
+        """
+
+        # Set mock snr, bg, colour, and size values to test different bins
+
+        self.data[self.tf.snr] = np.where(self._indices % 2 < 1, self._ones, self._zeros)
+        self.data[self.tf.bg] = np.where(self._indices % 4 < 2, self._ones, self._zeros)
+        self.data[self.tf.colour] = np.where(self._indices % 8 < 4, self._ones, self._zeros)
+        self.data[self.tf.size] = np.where(self._indices % 16 < 8, self._ones, self._zeros)
+        self.data[self.tf.epoch] = np.where(self._indices % 32 < 16, self._ones, self._zeros)
