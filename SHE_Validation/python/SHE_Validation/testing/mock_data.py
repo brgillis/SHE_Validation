@@ -27,6 +27,7 @@ import numpy as np
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_data import MockDataGenerator
+from SHE_PPT.testing.mock_tables import MockTableGenerator
 from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
 from SHE_Validation.constants.default_config import (TOT_BIN_LIMITS)
 
@@ -71,3 +72,18 @@ class MockBinDataGenerator(MockDataGenerator):
         self.data[self.tf.colour] = np.where(self._indices % 8 < 4, self._ones, self._zeros)
         self.data[self.tf.size] = np.where(self._indices % 16 < 8, self._ones, self._zeros)
         self.data[self.tf.epoch] = np.where(self._indices % 32 < 16, self._ones, self._zeros)
+
+
+class MockBinTableGenerator(MockTableGenerator):
+    """ Table generator for a binning data table.
+    """
+    mock_data_generator_type = MockBinDataGenerator
+    tf = MockBinDataGenerator.tf
+    seed = MockBinDataGenerator.seed
+    num_test_points = MockBinDataGenerator.num_test_points
+
+    def create_product(self):
+        """ Dummy instantiation - this doesn't correspond to any particular product type, and so none should be
+            written out.
+        """
+        return None

@@ -66,6 +66,8 @@ class SheBinDataFormat(SheTableFormat):
     def __init__(self):
         super().__init__(SheBinDataMeta())
 
+        self.id = self.set_column_properties(name = "OBJECT_ID", dtype = ">i8", fits_dtype = "K", unlabelled = True)
+
         # Set a column for each bin parameter
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             setattr(self, bin_parameter.value, self.set_column_properties(name = bin_parameter.name, is_optional = True,

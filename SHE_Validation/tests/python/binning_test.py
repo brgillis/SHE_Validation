@@ -29,7 +29,7 @@ import numpy as np
 from astropy.table import Column, Row, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_TABLE_FILENAME, )
+from SHE_PPT.constants.test_data import (MER_FINAL_CATALOG_TABLE_FILENAME, )
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from SHE_PPT.table_utility import is_in_format
@@ -39,10 +39,12 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
                                                     get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids, )
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_colour_column, add_epoch_column,
                                              add_size_column, add_snr_column, )
-from SHE_Validation.binning.utility import get_auto_bin_limits_from_data
+from SHE_Validation.binning.utility import (STR_AUTO_BIN_LIMITS_HEAD, get_auto_bin_limits_from_data,
+                                            get_auto_bin_limits_from_table, )
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+from SHE_Validation.testing.mock_data import MockBinTableGenerator
 from SHE_Validation.testing.utility import SheValTestCase
 
 ID_COLNAME = LMC_TF.ID
@@ -335,7 +337,6 @@ class TestBinData(SheValTestCase):
     """
 
     mfc_t: Table
-    lmc_t: Table
 
     # Set up some expected values
     EX_BG_LEVEL = 45.71
@@ -347,10 +348,12 @@ class TestBinData(SheValTestCase):
     def post_setup(self):
         # Read in the needed tables
         self.mfc_t = Table.read(os.path.join(self.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
-        self.lmc_t = Table.read(os.path.join(self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
         # Setup a random-number generator
         self.rng = np.random.default_rng(seed = 754)
+
+        # Create a table of binning data
+        self.bin_t = MockBinTableGenerator(workdir = self.workdir).get_mock_table()
 
     def test_table_format(self):
         """ Runs tests of the bin data table format.
@@ -413,3 +416,16 @@ class TestBinData(SheValTestCase):
     def test_get_auto_bin_limits_from_table(self):
         """ Unit test of determining bin limits automatically from a data table.
         """
+
+        # Test splitting into 2 quantiles on size
+        num_quantiles = 2
+        bin_limits_value = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_quantiles}"
+
+        l_bin_limits = get_auto_bin_limits_from_table(bin_parameter = BinParameters.SIZE,
+                                                      bin_data_table = self.bin_t,
+                                                      bin_limits_value = bin_limits_value)
+
+        assert len(l_bin_limits) == num_quantiles + 1
+        assert np.isclose(l_bin_limits[0], -1e99)
+        assert np.isclose(l_bin_limits[1], 0.5)
+        assert np.isclose(l_bin_limits[2], 1e99)
