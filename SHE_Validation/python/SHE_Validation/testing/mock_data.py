@@ -48,7 +48,7 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
     return d_l_bin_limits
 
 
-TEST_L_GOOD = 200  # Length of good data
+TEST_L_GOOD = 256  # Length of good data
 TEST_L_NAN = 5  # Length of bad data
 TEST_L_ZERO = 5  # Length of zero-weight data
 

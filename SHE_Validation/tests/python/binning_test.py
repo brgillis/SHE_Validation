@@ -410,7 +410,7 @@ class TestBinData(SheValTestCase):
                 bin_lo: float = l_bin_limits[bin_index]
                 bin_hi: float = l_bin_limits[bin_index + 1]
 
-                l_data_in_bin = l_data[np.logical_and(l_data > bin_lo, l_data <= bin_hi)]
+                l_data_in_bin = l_data[np.logical_and(l_data >= bin_lo, l_data < bin_hi)]
                 assert len(l_data_in_bin) == ex_n_per_bin
 
     def test_get_auto_bin_limits_from_table(self):
@@ -428,10 +428,17 @@ class TestBinData(SheValTestCase):
         # Check that the bin limits we get make sense
         assert len(l_bin_limits) == num_quantiles + 1
         assert np.isclose(l_bin_limits[0], -1e99)
-        assert 0 <= l_bin_limits[1] < 1
+        assert 0 < l_bin_limits[1] <= 1
         assert np.isclose(l_bin_limits[2], 1e99)
 
         # Check that these bin limits split the data as expected
+        l_data = self.bin_t[BIN_TF.size]
+        for bin_index in range(num_quantiles):
+            bin_lo: float = l_bin_limits[bin_index]
+            bin_hi: float = l_bin_limits[bin_index + 1]
+
+            l_data_in_bin = l_data[np.logical_and(l_data >= bin_lo, l_data < bin_hi)]
+            assert len(l_data_in_bin) == TEST_L_GOOD // 2
 
         d_l_l_bin_ids = get_ids_for_bins(d_bin_limits = {BinParameters.SIZE: l_bin_limits},
                                          detections_table = self.bin_t,

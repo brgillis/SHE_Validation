@@ -98,6 +98,20 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     l_quantiles[0] = -1e99
     l_quantiles[-1] = 1e99
 
+    # Check if any of the bin limits exactly equal a value in the data, and if so, slightly decrease that bin limit
+    num_bins = num_quantiles - 1
+    for i in range(num_bins - 1):
+
+        bin_max = l_quantiles[i + 1]
+
+        if np.any(bin_max == l_data):
+            # Find the value closest to this limit, but below it
+            dist_below: np.ndarray = np.where(l_data < bin_max, bin_max - l_data, 1e99)
+            closest_value_below: float = bin_max - np.min(dist_below)
+
+            # Place the bin limit between this and where it was
+            l_quantiles[i + 1] = (closest_value_below + bin_max) / 2
+
     return l_quantiles
 
 
