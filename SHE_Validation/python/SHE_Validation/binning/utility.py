@@ -19,7 +19,7 @@ __updated__ = "2021-08-06"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
+from copy import deepcopy
 from typing import Any, Dict, Optional, Union
 
 import numpy as np
@@ -99,20 +99,56 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     l_quantiles[-1] = 1e99
 
     # Check if any of the bin limits exactly equal a value in the data, and if so, slightly decrease that bin limit
-    num_bins = num_quantiles - 1
-    for i in range(num_bins - 1):
-
-        bin_max = l_quantiles[i + 1]
-
+    test_shifting: bool = False
+    for bin_index in range(num_quantiles - 1):
+        bin_max = l_quantiles[bin_index + 1]
         if np.any(bin_max == l_data):
-            # Find the value closest to this limit, but below it
-            dist_below: np.ndarray = np.where(l_data < bin_max, bin_max - l_data, 1e99)
-            closest_value_below: float = bin_max - np.min(dist_below)
+            test_shifting = True
 
-            # Place the bin limit between this and where it was
-            l_quantiles[i + 1] = (closest_value_below + bin_max) / 2
+    # If no bin limits match data values, we can return here
+    if not test_shifting:
+        return l_quantiles
 
-    return l_quantiles
+    # Since the mquantiles isn't consistent with how it sets quantiles, we have to test both shifting up and down, to
+    # see which gives the better distribution of bin limits
+
+    # Create lists of bin limits, shifted in each direction
+    l_quantiles_down = deepcopy(l_quantiles)
+    l_quantiles_up = deepcopy(l_quantiles)
+    for bin_index in range(num_quantiles - 1):
+        bin_max = l_quantiles[bin_index + 1]
+
+        # Find the value closest to this limit, but below it
+        dist_below: np.ndarray = np.where(l_data < bin_max, bin_max - l_data, 1e99)
+        closest_value_below: float = bin_max - np.min(dist_below)
+
+        # Find the value closest to this limit, but above it
+        dist_above: np.ndarray = np.where(l_data > bin_max, l_data - bin_max, 1e99)
+        closest_value_above: float = bin_max + np.min(dist_above)
+
+        # Place the bin limit between this and where it was
+        l_quantiles_down[bin_index + 1] = (closest_value_below + bin_max) / 2
+        l_quantiles_up[bin_index + 1] = (closest_value_above + bin_max) / 2
+
+    # Count the number in each bin, for each way to set quantiles
+    l_num_in_bin_down = np.zeros(num_quantiles, dtype = int)
+    l_num_in_bin_up = np.zeros(num_quantiles, dtype = int)
+    for bin_index in range(num_quantiles):
+        bin_down_lo: float = l_quantiles_down[bin_index]
+        bin_down_hi: float = l_quantiles_down[bin_index + 1]
+
+        l_num_in_bin_down[bin_index] = np.sum(np.logical_and(l_data >= bin_down_lo, l_data < bin_down_hi))
+
+        bin_up_lo: float = l_quantiles_up[bin_index]
+        bin_up_hi: float = l_quantiles_up[bin_index + 1]
+
+        l_num_in_bin_up[bin_index] = np.sum(np.logical_and(l_data >= bin_up_lo, l_data < bin_up_hi))
+
+    # Determine which is better, by having lower standard deviation in number, and use that
+    if np.std(l_num_in_bin_down) < np.std(l_num_in_bin_up):
+        return l_quantiles_down
+    else:
+        return l_quantiles_up
 
 
 def _get_n_quantiles(bin_limits_value: str) -> int:
