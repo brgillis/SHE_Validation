@@ -24,7 +24,7 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.constants.config import ValidationConfigKeys
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO

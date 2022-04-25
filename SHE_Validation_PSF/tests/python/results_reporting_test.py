@@ -29,7 +29,7 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatTableGenerator
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, TargetType
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (L_PSF_RES_SP_TEST_CASE_INFO, NUM_PSF_RES_SP_TEST_CASES,

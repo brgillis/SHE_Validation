@@ -33,7 +33,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_MATCHED_CAT_LIST, CA_SHE_TEST_RESULTS
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO, L_SHEAR_BIAS_TEST_CASE_M_INFO,

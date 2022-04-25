@@ -39,7 +39,7 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
                                                     get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids, )
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_colour_column, add_epoch_column,
                                              add_size_column, add_snr_column, )
-from SHE_Validation.config_utility import get_auto_bin_limits_from_data
+from SHE_Validation.binning.utility import get_auto_bin_limits_from_data
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins

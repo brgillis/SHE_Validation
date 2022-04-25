@@ -7,6 +7,7 @@
 
 __updated__ = "2022-04-08"
 
+from dataclasses import dataclass
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,7 +29,6 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 from astropy.table import Table
-from dataclasses import dataclass
 
 from SHE_PPT import logging as log
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT, CA_WORKDIR
@@ -36,7 +36,7 @@ from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.file_io import read_product_and_table, write_xml_product
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import NUM_PSF_RES_SP_TEST_CASES
 from SHE_Validation_PSF.data_processing import run_psf_res_val_test

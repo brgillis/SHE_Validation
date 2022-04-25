@@ -40,7 +40,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.utility import join_without_none
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
