@@ -368,10 +368,10 @@ class TestBinData(SheValTestCase):
 
         # Try adding columns for each bin parameter
         add_snr_column(mfc_t_copy, self.data_stack)
-        is_nan_or_masked(mfc_t_copy[BIN_TF.snr]).all()
+        assert is_nan_or_masked(mfc_t_copy[BIN_TF.snr]).all()
 
         add_colour_column(mfc_t_copy, self.data_stack)
-        is_nan_or_masked(mfc_t_copy[BIN_TF.colour]).all()
+        assert is_nan_or_masked(mfc_t_copy[BIN_TF.colour]).all()
 
         add_size_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.size], mfc_t_copy[MFC_TF.SEGMENTATION_AREA].data)
@@ -409,3 +409,7 @@ class TestBinData(SheValTestCase):
 
                 l_data_in_bin = l_data[np.logical_and(l_data > bin_lo, l_data <= bin_hi)]
                 assert len(l_data_in_bin) == ex_n_per_bin
+
+    def test_get_auto_bin_limits_from_table(self):
+        """ Unit test of determining bin limits automatically from a data table.
+        """
