@@ -26,7 +26,7 @@ import numpy as np
 
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.logging import getLogger
-from SHE_Validation.constants.default_config import (DEFAULT_BIN_LIMITS)
+from SHE_Validation.constants.default_config import (TOT_BIN_LIMITS)
 
 logger = getLogger(__name__)
 
@@ -40,6 +40,6 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
         if bin_parameter == BinParameters.SNR:
             d_l_bin_limits[bin_parameter] = np.array([-0.5, 0.5, 1.5])
         else:
-            d_l_bin_limits[bin_parameter] = np.array(DEFAULT_BIN_LIMITS)
+            d_l_bin_limits[bin_parameter] = np.array(TOT_BIN_LIMITS)
 
     return d_l_bin_limits

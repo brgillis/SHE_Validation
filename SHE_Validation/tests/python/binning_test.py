@@ -40,7 +40,7 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_colour_column, add_epoch_column,
                                              add_size_column, add_snr_column, )
 from SHE_Validation.config_utility import get_auto_bin_limits_from_data
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 from SHE_Validation.testing.utility import SheValTestCase
@@ -107,7 +107,7 @@ class TestBinConstraints:
         cls.t_lmc[LMC_TF.fit_flags] = fitflags_data
 
         # Set up d_bin_limits
-        cls.d_l_bin_limits = {BinParameters.TOT: DEFAULT_BIN_LIMITS}
+        cls.d_l_bin_limits = {BinParameters.TOT: TOT_BIN_LIMITS}
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             cls.d_l_bin_limits[bin_parameter] = np.linspace(start = cls.D_PAR_OFFSETS[bin_parameter],
                                                             stop = cls.D_PAR_OFFSETS[bin_parameter] + cls.TABLE_SIZE,

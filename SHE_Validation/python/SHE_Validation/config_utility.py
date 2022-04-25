@@ -30,7 +30,7 @@ from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from .binning.bin_data import BIN_TF
-from .constants.default_config import DEFAULT_BIN_LIMITS, FailSigmaScaling
+from .constants.default_config import FailSigmaScaling, TOT_BIN_LIMITS
 from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)
@@ -58,7 +58,7 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
         bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
         if bin_limits_key is None or bin_limits_key not in pipeline_config:
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in case
-            bin_limits_value: Union[np.ndarray, str] = DEFAULT_BIN_LIMITS
+            bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
         else:
             bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
 

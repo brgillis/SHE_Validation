@@ -36,7 +36,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
 from .bin_data import D_COLUMN_ADDING_METHODS, TF as BIN_TF
-from ..constants.default_config import DEFAULT_BIN_LIMITS
+from ..constants.default_config import TOT_BIN_LIMITS
 from ..constants.test_info import BinParameters, TestCaseInfo
 
 POSSIBLE_BIN_TFS = (BIN_TF, *D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.values(),
@@ -399,7 +399,7 @@ class GlobalBinConstraint(RangeBinConstraint):
 
     bin_parameter: BinParameters = BinParameters.TOT
     bin_colname: Optional[str] = None
-    bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS
+    bin_limits: Sequence[float] = TOT_BIN_LIMITS
 
 
 class BinParameterBinConstraint(RangeBinConstraint):
@@ -413,7 +413,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
 
         super().__init__(bin_limits = bin_limits)
 
@@ -538,7 +538,7 @@ class VisDetBinParameterBinConstraint(MultiBinConstraint):
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
         vis_det_bc = VisDetBinConstraint()
         bin_parameter_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
@@ -578,7 +578,7 @@ class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
                  method: Optional[ShearEstimationMethods] = None,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
 
         det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                bin_parameter = bin_parameter,
@@ -599,7 +599,7 @@ class GoodBinnedGalaxyMeasurementBinConstraint(MultiBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                bin_parameter = bin_parameter,
                                                bin_limits = bin_limits)
@@ -619,7 +619,7 @@ class GoodBinnedMeasurementHBC(HeteroBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
                                                      bin_limits = bin_limits)
@@ -636,7 +636,7 @@ class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
                                                      bin_limits = bin_limits)

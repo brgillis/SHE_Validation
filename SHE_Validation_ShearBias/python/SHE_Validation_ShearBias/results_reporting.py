@@ -29,7 +29,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.utility import is_inf_or_nan, is_zero
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode
+from SHE_Validation.constants.default_config import ExecutionMode, TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MSG_NO_DATA, RESULT_PASS,
                                            RequirementWriter, SupplementaryInfo, TestCaseWriter,
@@ -316,7 +316,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
                 raise ValueError(f"Too few bins in bin limits: {self.l_bin_limits}.")
         else:
             self.num_bins = 1
-            self.l_bin_limits = DEFAULT_BIN_LIMITS
+            self.l_bin_limits = TOT_BIN_LIMITS
 
         # Check the number of bins is right for all input data, if it's not None
         def none_or_match_len(l_x: Optional[List[Any]]):
