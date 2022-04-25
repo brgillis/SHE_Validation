@@ -44,7 +44,7 @@ from SHE_Validation.binning.utility import (STR_AUTO_BIN_LIMITS_HEAD, get_auto_b
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
-from SHE_Validation.testing.mock_data import MockBinTableGenerator
+from SHE_Validation.testing.mock_data import MockBinTableGenerator, TEST_L_GOOD
 from SHE_Validation.testing.utility import SheValTestCase
 
 ID_COLNAME = LMC_TF.ID
@@ -425,7 +425,20 @@ class TestBinData(SheValTestCase):
                                                       bin_data_table = self.bin_t,
                                                       bin_limits_value = bin_limits_value)
 
+        # Check that the bin limits we get make sense
         assert len(l_bin_limits) == num_quantiles + 1
         assert np.isclose(l_bin_limits[0], -1e99)
-        assert np.isclose(l_bin_limits[1], 0.5)
+        assert 0 <= l_bin_limits[1] < 1
         assert np.isclose(l_bin_limits[2], 1e99)
+
+        # Check that these bin limits split the data as expected
+
+        d_l_l_bin_ids = get_ids_for_bins(d_bin_limits = {BinParameters.SIZE: l_bin_limits},
+                                         detections_table = self.bin_t,
+                                         l_bin_parameters = [BinParameters.SIZE],
+                                         bin_constraint_type = BinParameterBinConstraint)
+
+        l_l_bin_ids = d_l_l_bin_ids[BinParameters.SIZE]
+
+        assert len(l_l_bin_ids[0]) == TEST_L_GOOD // 2
+        assert len(l_l_bin_ids[1]) == TEST_L_GOOD // 2
