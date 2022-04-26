@@ -40,6 +40,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.utility import join_without_none
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
+from SHE_Validation.binning.bin_data import add_bin_columns
 from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.utility import get_object_id_list_from_se_tables
@@ -76,9 +77,6 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
     logger.info(MSG_COMPLETE)
 
-    # Get the bin limits dictionary from the config
-    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG])
-
     # Load the shear measurements
 
     logger.info("Loading validated shear measurements.")
@@ -99,6 +97,14 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                     prune_images = False,
                                     mode = 'denywrite')
     logger.info(MSG_COMPLETE)
+
+    # Make sure the detections catalogue contains all information necessary for binning
+    add_bin_columns(data_stack.detections_catalogue,
+                    data_stack)
+
+    # Get the bin limits dictionary from the config
+    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
+                                        bin_data_table = data_stack.detections_catalogue)
 
     # TODO: Use products from the frame stack
     # Load the exposure products, to get needed metadata for output
