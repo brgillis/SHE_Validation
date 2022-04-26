@@ -29,6 +29,7 @@ from scipy.stats.mstats_basic import mquantiles
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
+from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
 STR_AUTO_BIN_LIMITS_HEAD = "auto"
@@ -50,7 +51,10 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
         bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
         if bin_limits_key is None or bin_limits_key not in pipeline_config:
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in case
-            bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
+            if bin_parameter == BinParameters.TOT:
+                bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
+            else:
+                bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
         else:
             bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
 
@@ -64,7 +68,7 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
                                                                          bin_limits_value = bin_limits_value,
                                                                          bin_data_table = bin_data_table)
         else:
-            d_bin_limits[bin_parameter] = pipeline_config[bin_limits_key]
+            d_bin_limits[bin_parameter] = bin_limits_value
 
     return d_bin_limits
 
