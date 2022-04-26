@@ -29,12 +29,11 @@ from scipy.stats.mstats_basic import mquantiles
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
-from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
+from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
+                                                     STR_AUTO_BIN_LIMITS_HEAD,
+                                                     TOT_BIN_LIMITS, )
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
-STR_AUTO_BIN_LIMITS_HEAD = "auto"
-DEFAULT_N_BIN_LIMITS_QUANTILES = 4
-DEFAULT_AUTO_BIN_LIMITS = f"{STR_AUTO_BIN_LIMITS_HEAD}-{DEFAULT_N_BIN_LIMITS_QUANTILES}"
 MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
                             f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
                             f"integer giving the desired number of quantiles to use as bin limits.")

@@ -28,7 +28,6 @@ import numpy as np
 from SHE_PPT.constants.classes import AllowedEnum
 from SHE_PPT.constants.config import D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS, D_GLOBAL_CONFIG_TYPES
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
-from ..binning.utility import DEFAULT_AUTO_BIN_LIMITS
 from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 
@@ -68,6 +67,10 @@ DEFAULT_BIN_LIMIT_MIN: float = -1e99
 DEFAULT_BIN_LIMIT_MAX: float = 1e99
 TOT_BIN_LIMITS: Tuple[float, float] = (DEFAULT_BIN_LIMIT_MIN, DEFAULT_BIN_LIMIT_MAX)
 TOT_BIN_LIMITS_STR: str = f"{DEFAULT_BIN_LIMIT_MIN} {DEFAULT_BIN_LIMIT_MAX}"
+
+STR_AUTO_BIN_LIMITS_HEAD = "auto"
+DEFAULT_N_BIN_LIMITS_QUANTILES = 4
+DEFAULT_AUTO_BIN_LIMITS = f"{STR_AUTO_BIN_LIMITS_HEAD}-{DEFAULT_N_BIN_LIMITS_QUANTILES}"
 
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     **D_GLOBAL_CONFIG_DEFAULTS,
