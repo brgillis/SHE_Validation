@@ -49,8 +49,9 @@ def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
 
 
 TEST_L_GOOD = 256  # Length of good data
-TEST_L_NAN = 5  # Length of bad data
-TEST_L_ZERO = 5  # Length of zero-weight data
+TEST_L_NAN = 32  # Length of bad data
+TEST_L_ZERO = 32  # Length of zero-weight data
+TEST_L_TOT = TEST_L_GOOD + TEST_L_NAN + TEST_L_ZERO
 
 
 class MockBinDataGenerator(MockDataGenerator):
@@ -58,7 +59,7 @@ class MockBinDataGenerator(MockDataGenerator):
     """
     tf: SheBinDataFormat = BIN_TF
     seed: int = 1245
-    num_test_points = TEST_L_GOOD + TEST_L_NAN + TEST_L_ZERO
+    num_test_points = TEST_L_TOT
 
     # Implement abstract methods
     def _generate_unique_data(self):

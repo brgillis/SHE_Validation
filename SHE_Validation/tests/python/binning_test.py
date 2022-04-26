@@ -44,7 +44,7 @@ from SHE_Validation.binning.utility import (STR_AUTO_BIN_LIMITS_HEAD, get_auto_b
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
-from SHE_Validation.testing.mock_data import MockBinTableGenerator, TEST_L_GOOD
+from SHE_Validation.testing.mock_data import MockBinTableGenerator, TEST_L_TOT
 from SHE_Validation.testing.utility import SheValTestCase
 
 ID_COLNAME = LMC_TF.ID
@@ -438,8 +438,9 @@ class TestBinData(SheValTestCase):
             bin_hi: float = l_bin_limits[bin_index + 1]
 
             l_data_in_bin = l_data[np.logical_and(l_data >= bin_lo, l_data < bin_hi)]
-            assert len(l_data_in_bin) == TEST_L_GOOD // 2
+            assert len(l_data_in_bin) == TEST_L_TOT // 2
 
+        # And test by applying the bin constraint object, which should have the same result as the manual binning above
         d_l_l_bin_ids = get_ids_for_bins(d_bin_limits = {BinParameters.SIZE: l_bin_limits},
                                          detections_table = self.bin_t,
                                          l_bin_parameters = [BinParameters.SIZE],
@@ -447,5 +448,5 @@ class TestBinData(SheValTestCase):
 
         l_l_bin_ids = d_l_l_bin_ids[BinParameters.SIZE]
 
-        assert len(l_l_bin_ids[0]) == TEST_L_GOOD // 2
-        assert len(l_l_bin_ids[1]) == TEST_L_GOOD // 2
+        assert len(l_l_bin_ids[0]) == TEST_L_TOT // 2
+        assert len(l_l_bin_ids[1]) == TEST_L_TOT // 2
