@@ -19,7 +19,8 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.constants.default_config import FailSigmaScaling, TOT_BIN_LIMITS_STR
+from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_FIXED_DEFAULTS, FailSigmaScaling,
+                                                     TOT_BIN_LIMITS_STR, )
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, KEY_REASON, MEASURED_VAL_BAD_DATA,
                                            MSG_NOT_IMPLEMENTED,
@@ -79,7 +80,7 @@ class TestCtiResultsReporting(SheTestCase):
             if bins_config_key is None:
                 bin_limits_string = TOT_BIN_LIMITS_STR
             else:
-                bin_limits_string = D_CTI_GAL_CONFIG_DEFAULTS[bins_config_key]
+                bin_limits_string = D_VALIDATION_CONFIG_FIXED_DEFAULTS[bins_config_key]
 
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
             bin_limits_array = np.array(bin_limits_list, dtype = float)

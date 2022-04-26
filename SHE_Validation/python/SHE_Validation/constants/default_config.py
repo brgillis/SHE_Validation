@@ -72,16 +72,35 @@ STR_AUTO_BIN_LIMITS_HEAD = "auto"
 DEFAULT_N_BIN_LIMITS_QUANTILES = 4
 DEFAULT_AUTO_BIN_LIMITS = f"{STR_AUTO_BIN_LIMITS_HEAD}-{DEFAULT_N_BIN_LIMITS_QUANTILES}"
 
+DEFAULT_SNR_BIN_LIMITS = "0 3.5 5 7 10 15 30 1e99"
+DEFAULT_BG_BIN_LIMITS = "0 30 35 35.25 36 50 1e99"
+DEFAULT_COLOUR_BIN_LIMITS = "-1e99 -2.5 -2 -1.5 -1 -0.6 1e99"
+DEFAULT_SIZE_BIN_LIMITS = "0 30 45 75 140 300 1e99"
+
+# Separate default dicts to allow choice of using fixed or auto defaults relatively easily
+D_VALIDATION_CONFIG_FIXED_DEFAULTS: Dict[ConfigKeys, Any] = {
+    **D_GLOBAL_CONFIG_DEFAULTS,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS   : DEFAULT_SNR_BIN_LIMITS,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS    : DEFAULT_BG_BIN_LIMITS,
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: DEFAULT_COLOUR_BIN_LIMITS,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS  : DEFAULT_SIZE_BIN_LIMITS,
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS : TOT_BIN_LIMITS_STR,
+    }
+
+D_VALIDATION_CONFIG_AUTO_DEFAULTS: Dict[ConfigKeys, Any] = {
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS   : DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS    : DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS  : DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS : DEFAULT_AUTO_BIN_LIMITS,
+    }
+
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     **D_GLOBAL_CONFIG_DEFAULTS,
+    **D_VALIDATION_CONFIG_AUTO_DEFAULTS,
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : DEFAULT_GLOBAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : DEFAULT_LOCAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: DEFAULT_FAIL_SIGMA_SCALING,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS  : DEFAULT_AUTO_BIN_LIMITS,
     }
 
 # Types
@@ -90,11 +109,11 @@ D_VALIDATION_CONFIG_TYPES: Dict[ConfigKeys, Union[Type, EnumMeta]] = {
     ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : float,
     ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : float,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : np.ndarray,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : np.ndarray,
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : np.ndarray,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : np.ndarray,
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS  : np.ndarray,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : (np.ndarray, str),
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : (np.ndarray, str),
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : (np.ndarray, str),
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : (np.ndarray, str),
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS  : (np.ndarray, str),
     }
 
 # Command-line arguments

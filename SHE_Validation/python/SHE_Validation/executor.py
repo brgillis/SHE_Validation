@@ -20,9 +20,8 @@ __updated__ = "2021-10-14"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Type
-
 from dataclasses import dataclass
+from typing import Type
 
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.executor import LogOptions, ReadConfigArgs, SheExecutor
