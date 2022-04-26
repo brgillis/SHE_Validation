@@ -138,15 +138,15 @@ class TestBinConstraints:
             ids_in_bin = bin_constraint.get_ids_in_bin(self.t_mfc)
 
             # Check the outputs are consistent
-            assert (self.t_mfc[l_is_row_in_bin] == rows_in_bin).all()
+            assert np.all(self.t_mfc[l_is_row_in_bin] == rows_in_bin)
             # noinspection PyUnresolvedReferences
-            assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+            assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
             # Check the outputs are as expected
             assert l_is_row_in_bin.sum() == self.NUM_ROWS_IN_BIN
             assert len(rows_in_bin) == self.NUM_ROWS_IN_BIN
-            assert (ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET).all()
-            assert (self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN).all()
+            assert np.all(ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET)
+            assert np.all(self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN)
 
         # Special check for TOT test case
         bin_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.TOT)
@@ -157,13 +157,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_mfc)
 
         # Check the outputs are consistent
-        assert (self.t_mfc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_mfc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected
         assert l_is_row_in_bin.sum() == self.TABLE_SIZE
         assert len(rows_in_bin) == self.TABLE_SIZE
-        assert (ids_in_bin == self.t_mfc[ID_COLNAME]).all()
+        assert np.all(ids_in_bin == self.t_mfc[ID_COLNAME])
 
     def test_fitclass_zero_bin(self):
         """ Test applying a bin constraint of fitclass == zero.
@@ -178,13 +178,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every three should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 3))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 3))
-        assert (ids_in_bin % 3 == self.ID_OFFSET % 3).all()
+        assert np.all(ids_in_bin % 3 == self.ID_OFFSET % 3)
 
     def test_bit_flags_bins(self):
         """ Test applying a bin constraint on fit_flags
@@ -199,13 +199,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 4))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 4))
-        assert (ids_in_bin % 4 == self.ID_OFFSET % 4).all()
+        assert np.all(ids_in_bin % 4 == self.ID_OFFSET % 4)
 
     def test_combine_flags(self):
 
@@ -229,13 +229,13 @@ class TestBinConstraints:
         ids_in_bin = fit_multi_bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 12))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 12))
-        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+        assert np.all(ids_in_bin % 12 == self.ID_OFFSET % 12)
 
         # Apply the full constraint
         ids_in_bin = full_bin_constraint.get_ids_in_bin([self.t_mfc, self.t_lmc, self.t_lmc])
@@ -243,7 +243,7 @@ class TestBinConstraints:
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert len(ids_in_bin) == int(ceil(self.NUM_ROWS_IN_BIN / 12))
         # noinspection PyTypeChecker
-        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+        assert np.all(ids_in_bin % 12 == self.ID_OFFSET % 12)
 
     def test_get_ids_for_bins(self):
         """ Tests the get_ids_for_bins function.
@@ -371,10 +371,10 @@ class TestBinData(SheValTestCase):
 
         # Try adding columns for each bin parameter
         add_snr_column(mfc_t_copy, self.data_stack)
-        assert is_nan_or_masked(mfc_t_copy[BIN_TF.snr]).all()
+        assert np.all(is_nan_or_masked(mfc_t_copy[BIN_TF.snr]))
 
         add_colour_column(mfc_t_copy, self.data_stack)
-        assert is_nan_or_masked(mfc_t_copy[BIN_TF.colour]).all()
+        assert np.all(is_nan_or_masked(mfc_t_copy[BIN_TF.colour]))
 
         add_size_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.size], mfc_t_copy[MFC_TF.SEGMENTATION_AREA].data)
