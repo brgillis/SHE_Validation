@@ -25,7 +25,9 @@ from astropy.table import Table
 
 from SHE_PPT.file_io import read_product_and_table
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
+from SHE_Validation.binning.bin_data import add_bin_columns
 from SHE_Validation.testing.utility import SheValTestCase
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.mock_data import MockRefValStarCatTableGenerator, MockValStarCatTableGenerator
 
 
@@ -98,6 +100,9 @@ class SheValPsfTestCase(SheValTestCase):
         """
         if self._mock_starcat_table is None:
             self._mock_starcat_table = self.mock_starcat_table_gen.get_mock_table()
+            add_bin_columns(self._mock_starcat_table,
+                            data_stack = None,
+                            l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
         return self._mock_starcat_table
 
     @mock_starcat_table.setter

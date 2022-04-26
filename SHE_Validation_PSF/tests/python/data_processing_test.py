@@ -27,7 +27,7 @@ from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS, L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.data_processing import (ESC_TF, run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
@@ -105,9 +105,13 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
+            d_l_bin_limits = get_d_l_bin_limits(pipeline_config = self.pipeline_config,
+                                                bin_data_table = self.mock_starcat_table,
+                                                l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+
             d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
                                                       ref_star_cat = ref_star_cat,
-                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
+                                                      d_l_bin_limits = d_l_bin_limits)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]

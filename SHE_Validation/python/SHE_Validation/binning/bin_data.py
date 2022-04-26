@@ -21,7 +21,7 @@ __updated__ = "2021-08-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-from typing import Iterable, Sequence
+from typing import Iterable, Optional, Sequence
 
 import numpy as np
 from astropy.table import Column, Table
@@ -236,7 +236,7 @@ d_bin_column_adding_functions = {BinParameters.TOT   : add_tot_column,
 
 
 def add_bin_columns(t: Table,
-                    data_stack: SHEFrameStack,
+                    data_stack: Optional[SHEFrameStack],
                     l_bin_parameters: Iterable[BinParameters] = BinParameters) -> None:
     """ Calculates data for all parameters to be binned on and adds columns for each of them to the provided table if
         not already present.

@@ -20,7 +20,7 @@ __updated__ = "2021-08-06"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from copy import deepcopy
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Union
 
 import numpy as np
 from astropy.table import Table
@@ -40,12 +40,13 @@ MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized
 
 
 def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
-                       bin_data_table: Optional[Table] = None) -> Dict[BinParameters, np.ndarray]:
+                       bin_data_table: Optional[Table] = None,
+                       l_bin_parameters: Iterable[BinParameters] = BinParameters) -> Dict[BinParameters, np.ndarray]:
     """ Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
     """
 
     d_bin_limits = {}
-    for bin_parameter in BinParameters:
+    for bin_parameter in l_bin_parameters:
         bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
         if bin_limits_key is None or bin_limits_key not in pipeline_config:
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in case
