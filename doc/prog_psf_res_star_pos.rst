@@ -109,10 +109,12 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * - ``--snr_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+   * - ``--snr_bin_limits "<value> <value> ..."`` OR ``--snr_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
+       ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
+       data into.
      - no
-     - ``0 3.5 5 7 10 15 30 1e99``
+     - ``auto-4``
 
 See `the table here <prog_ccvd.html#outputs>`__ for the specific definitions of values used for binning.
 
@@ -186,7 +188,9 @@ optionally any of the following which apply to this executable:
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
    * - SHE_Validation_snr_bin_limits
-     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
+       ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
+       data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
 
 See `Bin Definitions <bin_definitions>`_ for the spefic definitions of values used for binning.
