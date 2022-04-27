@@ -19,6 +19,7 @@ __updated__ = "2021-08-06"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from copy import deepcopy
 from typing import Any, Dict, Iterable, Optional, Union
 
@@ -27,49 +28,82 @@ from astropy.table import Table
 from scipy.stats.mstats_basic import mquantiles
 
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.constants.config import ConfigKeys
+from SHE_PPT.constants.config import ConfigKeys, ValidationConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
                                                      STR_AUTO_BIN_LIMITS_HEAD,
                                                      TOT_BIN_LIMITS, )
-from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
 MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
                             f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
                             f"integer giving the desired number of quantiles to use as bin limits.")
 
 
-def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
-                       bin_data_table: Optional[Table] = None,
-                       l_bin_parameters: Iterable[BinParameters] = BinParameters) -> Dict[BinParameters, np.ndarray]:
-    """ Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
-    """
+class ConfigBinInterpreter:
+    # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
+    # bin limits if no overriding local key is provided.
+    d_global_bin_keys = {BinParameters.TOT   : None,
+                         BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                         BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
+                         BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
+                         BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
+                         BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS}
 
-    d_bin_limits = {}
-    for bin_parameter in l_bin_parameters:
-        bin_limits_key = D_BIN_PARAMETER_META[bin_parameter].config_key
-        if bin_limits_key is None or bin_limits_key not in pipeline_config:
-            # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in case
-            if bin_parameter == BinParameters.TOT:
-                bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
+    # Dict relating the "local" config key for each bin parameter - that is, the key for providing a value specifically
+    # for an individual validation test. This should be overridden by any subclass of this with specific keys.
+    d_local_bin_keys = {BinParameters.TOT   : None,
+                        BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                        BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
+                        BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
+                        BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
+                        BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS}
+
+    @classmethod
+    def get_d_l_bin_limits(cls,
+                           pipeline_config: Dict[ConfigKeys, Any],
+                           bin_data_table: Optional[Table] = None,
+                           l_bin_parameters: Iterable[BinParameters] = BinParameters) -> Dict[
+        BinParameters, np.ndarray]:
+        """ Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
+        """
+
+        d_bin_limits = {}
+        for bin_parameter in l_bin_parameters:
+            global_bin_limits_key = cls.d_global_bin_keys[bin_parameter]
+            local_bin_limits_key = cls.d_local_bin_keys[bin_parameter]
+
+            # Determine if we should use the global or local key. If the local key is available and used, use that,
+            # otherwise use the global key.
+            if (local_bin_limits_key is not None and local_bin_limits_key in pipeline_config and
+                    pipeline_config[local_bin_limits_key] is not None):
+                bin_limits_key = local_bin_limits_key
             else:
-                bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
-        else:
-            bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
+                bin_limits_key = global_bin_limits_key
 
-        if isinstance(bin_limits_value, str):
+            if bin_limits_key is None or bin_limits_key not in pipeline_config:
+                # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in
+                # case
+                if bin_parameter == BinParameters.TOT:
+                    bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
+                else:
+                    bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
+            else:
+                bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
 
-            # Raise an exception if no table was provided
-            if bin_data_table is None:
-                raise ValueError(f"'{STR_AUTO_BIN_LIMITS_HEAD}' bin limits were requested, but no bin_data_table was "
-                                 f"provided.")
-            d_bin_limits[bin_parameter] = get_auto_bin_limits_from_table(bin_parameter = bin_parameter,
-                                                                         bin_limits_value = bin_limits_value,
-                                                                         bin_data_table = bin_data_table)
-        else:
-            d_bin_limits[bin_parameter] = bin_limits_value
+            if isinstance(bin_limits_value, str):
 
-    return d_bin_limits
+                # Raise an exception if no table was provided
+                if bin_data_table is None:
+                    raise ValueError(
+                        f"'{STR_AUTO_BIN_LIMITS_HEAD}' bin limits were requested, but no bin_data_table was "
+                        f"provided.")
+                d_bin_limits[bin_parameter] = get_auto_bin_limits_from_table(bin_parameter = bin_parameter,
+                                                                             bin_limits_value = bin_limits_value,
+                                                                             bin_data_table = bin_data_table)
+            else:
+                d_bin_limits[bin_parameter] = bin_limits_value
+
+        return d_bin_limits
 
 
 def get_auto_bin_limits_from_table(bin_parameter: BinParameters,
