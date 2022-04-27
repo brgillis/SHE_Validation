@@ -28,11 +28,12 @@ from astropy.table import Table
 from scipy.stats.mstats_basic import mquantiles
 
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.constants.config import ConfigKeys, ValidationConfigKeys
+from SHE_PPT.constants.config import ConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
                                                      STR_AUTO_BIN_LIMITS_HEAD,
                                                      TOT_BIN_LIMITS, )
+from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
 MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
                             f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
@@ -42,21 +43,21 @@ MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized
 class ConfigBinInterpreter:
     # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
     # bin limits if no overriding local key is provided.
-    d_global_bin_keys = {BinParameters.TOT   : None,
-                         BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
-                         BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
-                         BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
-                         BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
-                         BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS}
+    d_global_bin_keys = {BinParameters.TOT   : D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
+                         BinParameters.SNR   : D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
+                         BinParameters.BG    : D_BIN_PARAMETER_META[BinParameters.BG].config_key,
+                         BinParameters.COLOUR: D_BIN_PARAMETER_META[BinParameters.COLOUR].config_key,
+                         BinParameters.SIZE  : D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
+                         BinParameters.EPOCH : D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
 
     # Dict relating the "local" config key for each bin parameter - that is, the key for providing a value specifically
     # for an individual validation test. This should be overridden by any subclass of this with specific keys.
-    d_local_bin_keys = {BinParameters.TOT   : None,
-                        BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
-                        BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
-                        BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
-                        BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
-                        BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS}
+    d_local_bin_keys = {BinParameters.TOT   : D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
+                        BinParameters.SNR   : D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
+                        BinParameters.BG    : D_BIN_PARAMETER_META[BinParameters.BG].config_key,
+                        BinParameters.COLOUR: D_BIN_PARAMETER_META[BinParameters.COLOUR].config_key,
+                        BinParameters.SIZE  : D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
+                        BinParameters.EPOCH : D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
 
     @classmethod
     def get_d_l_bin_limits(cls,
