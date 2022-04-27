@@ -27,6 +27,7 @@ import numpy as np
 
 from SHE_PPT import file_io
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG, CA_WORKDIR
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.file_io import read_d_l_method_table_filenames
 from SHE_PPT.logging import getLogger
@@ -45,15 +46,24 @@ from .results_reporting import fill_shear_bias_test_results
 logger = getLogger(__name__)
 
 
+class ShearBiasConfigBinInterpreter(ConfigBinInterpreter):
+    """ Child class of ConfigBinInterpreter, set up with the executable-specific keys for Shear Bias Validation.
+
+        TODO: Once config keys are available for bin limits specific to this executable, use them here
+    """
+    d_local_bin_keys = {BinParameters.TOT   : None,
+                        BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                        BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
+                        BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
+                        BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
+                        BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS, }
+
+
 def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -> None:
     """ Main function for performing shear bias validation
     """
 
     workdir = d_args[CA_WORKDIR]
-
-    # Get the bin limits from the pipeline_config
-    d_l_bin_limits: Dict[BinParameters, np.ndarray] = ConfigBinInterpreter.get_d_l_bin_limits(
-        d_args[CA_PIPELINE_CONFIG])
 
     # Get the list of matched catalog products to be read in, depending on mode
     l_matched_catalog_product_filenames = read_l_matched_catalog_filenames(d_args, mode)
@@ -77,6 +87,11 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
         d_data_loaders[method] = ShearBiasDataLoader(l_filenames = d_method_l_table_filenames[method],
                                                      workdir = workdir,
                                                      method = method)
+
+    # Get the bin limits from the pipeline_config
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = ShearBiasConfigBinInterpreter.get_d_l_bin_limits(
+        d_args[CA_PIPELINE_CONFIG])
+    # TODO: Figure out a bin data table here to use
 
     # Perform validation for each shear estimation method
     for test_case_index, test_case_info in enumerate(L_SHEAR_BIAS_TEST_CASE_M_INFO):
