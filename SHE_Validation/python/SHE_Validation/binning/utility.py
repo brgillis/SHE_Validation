@@ -2,7 +2,7 @@
 
     Created 18 Oct 2021
 
-    Utility functions related to requirement, test, and test case info.
+    Utility functions related to binning.
 """
 
 __updated__ = "2021-08-06"
