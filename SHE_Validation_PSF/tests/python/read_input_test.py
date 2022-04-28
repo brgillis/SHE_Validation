@@ -26,7 +26,6 @@ import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-# Output data filenames
 from SHE_Validation.binning.bin_data import add_bin_columns
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
