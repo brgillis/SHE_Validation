@@ -148,13 +148,13 @@ class TestPsfResReadInput(SheValPsfTestCase):
 
             if set_global:
                 pipeline_config_cpy[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = test_global_val
-            else:
-                pipeline_config_cpy[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = None
+            elif ValidationConfigKeys.VAL_SNR_BIN_LIMITS in pipeline_config_cpy:
+                del pipeline_config_cpy[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
 
             if set_local:
                 pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS] = test_local_val
-            else:
-                pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS] = None
+            elif ValidationConfigKeys.PRSP_SNR_BIN_LIMITS in pipeline_config_cpy:
+                del pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS]
 
             # Generate a dict of bin limits
             d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(pipeline_config_cpy,
@@ -164,6 +164,6 @@ class TestPsfResReadInput(SheValPsfTestCase):
                                                                              L_PSF_RES_SP_BIN_PARAMETERS)
 
             l_snr_bin_limits = d_l_bin_limits[BinParameters.SNR]
-            
+
             # Check that we got the right limits by testing the length
             assert len(l_snr_bin_limits) == ex_num_bins + 1
