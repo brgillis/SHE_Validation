@@ -41,6 +41,15 @@ MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized
 
 
 class ConfigBinInterpreter:
+    """ Class tasked with interpreting bin limits keys in a pipeline config dict, and converting them into
+        np.ndarrays of bin limits.
+
+        The class structure is used here to allow this to be subclassed, with the class attribute `d_local_bin_keys`
+        overridden by subclasses with a dict defining the bin limits keys specific to a given executable. When the
+        class method `get_d_l_bin_limits` is called, it will use the class attribute `d_local_bin_keys` of the subclass
+        which calls it.
+    """
+    
     # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
     # bin limits if no overriding local key is provided.
     d_global_bin_keys = {BinParameters.TOT   : D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
