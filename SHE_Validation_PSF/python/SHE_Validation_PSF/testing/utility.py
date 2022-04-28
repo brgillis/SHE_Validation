@@ -69,7 +69,7 @@ class SheValPsfTestCase(SheValTestCase):
             self.mock_starcat_table_gen.workdir = workdir
             self.mock_ref_starcat_table_gen.workdir = workdir
 
-    def get_d_l_bin_limits(self) -> Dict[BinParameters, np.ndarray]:
+    def make_d_l_bin_limits(self) -> Dict[BinParameters, np.ndarray]:
         """ Getter for d_l_bin_limits, which generates it from self.pipeline_config and self.mock_starcat_table.
         """
 

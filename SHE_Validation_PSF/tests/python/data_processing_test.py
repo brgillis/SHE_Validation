@@ -103,7 +103,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         """
 
         # Get a dict of bin limits
-        d_l_bin_limits = self.get_d_l_bin_limits()
+        d_l_bin_limits = self.make_d_l_bin_limits()
 
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
