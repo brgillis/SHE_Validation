@@ -192,6 +192,10 @@ optionally any of the following which apply to this executable:
        ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
        data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidatePSFResStarPos_snr_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_snr_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
 
 See `Bin Definitions <bin_definitions>`_ for the spefic definitions of values used for binning.
 
