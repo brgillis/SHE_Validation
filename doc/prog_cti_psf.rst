@@ -249,16 +249,6 @@ optionally any of the following which apply to this executable:
    * - SHE_Pipeline_profile
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
-   * - SHE_Pipeline_profile
-     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
-     - Profiling will not be enabled
-
-   * - Option
-     - Description
-     - Default Behaviour
-   * - SHE_Pipeline_profile
-     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
-     - Profiling will not be enabled
    * - SHE_Validation_snr_bin_limits
      - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
        ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
