@@ -60,8 +60,8 @@ class TestCtiResultsReporting(SheValPsfTestCase):
         base_snr_bin_limits = self.pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
         self.pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
 
-        # Decache bin limits due to change in pipeline config
-        self._d_l_bin_limits = None
+        # Get the dict of bin limits based on the updated pipeline config
+        self.d_l_bin_limits = self.get_d_l_bin_limits()
 
         # Make a mock star cataolog product
         mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)

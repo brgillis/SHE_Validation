@@ -69,26 +69,13 @@ class SheValPsfTestCase(SheValTestCase):
             self.mock_starcat_table_gen.workdir = workdir
             self.mock_ref_starcat_table_gen.workdir = workdir
 
-    @property
-    def d_l_bin_limits(self) -> Optional[Dict[BinParameters, np.ndarray]]:
-        """ Getter for d_l_bin_limits, which generates it from self.pipeline_config and self.mock_starcat_table if it
-            doesn't already exist.
+    def get_d_l_bin_limits(self) -> Dict[BinParameters, np.ndarray]:
+        """ Getter for d_l_bin_limits, which generates it from self.pipeline_config and self.mock_starcat_table.
         """
 
-        if self._d_l_bin_limits is None:
-            # Make a dictionary of bin limits
-            self._d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(self.pipeline_config,
-                                                                                   bin_data_table =
-                                                                                   self.mock_starcat_table,
-                                                                                   l_bin_parameters =
-                                                                                   L_PSF_RES_SP_BIN_PARAMETERS)
-        return self._d_l_bin_limits
-
-    @d_l_bin_limits.setter
-    def d_l_bin_limits(self, d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]]) -> None:
-        """ Basic setter for d_l_bin_limits
-        """
-        self._d_l_bin_limits = d_l_bin_limits
+        return PsfResSPConfigBinInterpreter.get_d_l_bin_limits(self.pipeline_config,
+                                                               bin_data_table = self.mock_starcat_table,
+                                                               l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
 
     @property
     def mock_starcat_table_gen(self) -> MockValStarCatTableGenerator:
