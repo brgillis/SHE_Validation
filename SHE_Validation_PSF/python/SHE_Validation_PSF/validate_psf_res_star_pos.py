@@ -126,9 +126,9 @@ def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputDat
 
     # Get the bin limits dictionary from the config, generating based on the star cat
     add_bin_columns(ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
-    d_l_bin_limits = ConfigBinInterpreter.get_d_l_bin_limits(pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                                             bin_data_table = ref_star_cat,
-                                                             l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+    d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(pipeline_config = d_args[CA_PIPELINE_CONFIG],
+                                                                     bin_data_table = ref_star_cat,
+                                                                     l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
 
     return PsfResSPInputData(d_l_bin_limits = d_l_bin_limits,
                              p_star_cat = p_star_cat,
