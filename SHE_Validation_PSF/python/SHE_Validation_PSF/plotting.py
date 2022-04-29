@@ -29,11 +29,27 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT import logging
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.utility import coerce_to_list, is_inf_nan_or_masked
+from SHE_PPT.utility import coerce_to_list, default_value_if_none, is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
 from SHE_Validation_PSF.data_processing import ESC_TF, KsResult
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+
+STR_KS_P_LABEL = r"$p_{\mathrm{KS}}$: "
+
+STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,\mathrm(d.o.f.))$: "
+
+STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
+
+STR_HIST_Y_LABEL_BASE = r"$N/N_{\mathrm{tot}}$"
+
+STR_HIST_X_LABEL = r"$\mathrm{log}_{10}(p(\chi^2,\mathrm(d.o.f.)))$"
+
+TEST_CAT_LEGEND_NAME = "Test Catalogue"
+
+HIST_TYPE = 'step'
+
+HIST_NUM_BINS = 20
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +57,11 @@ TITLE_FONTSIZE = 12
 AXISLABEL_FONTSIZE = 12
 TEXT_SIZE = 12
 PLOT_FORMAT = "png"
+
+MSG_INSUFFICIENT_DATA_TOT = ("Insufficient valid data to plot for %s test case, but making "
+                             "plot anyway for testing purposes.")
+MSG_INSUFFICIENT_DATA = "Insufficient valid valid data to plot for %s test case, bin " \
+                        "%s, so skipping plot."
 
 
 class PsfResSPPlotter(ValidationPlotter, abc.ABC):
@@ -55,7 +76,7 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
                  file_namer: PsfResSPPlotFileNamer,
                  bin_limits: Sequence[float],
                  l_ids_in_bin: Sequence[int],
-                 ks_test_result: Optional[KsResult] = None):
+                 ks_test_result: KsResult):
         super().__init__(file_namer = file_namer)
 
         # Set attrs directly
@@ -71,9 +92,25 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
+    """ Plotter for a histogram of PSF Residual (Star Pos) log10(p_chisq) values.
+    """
+
+    cumulative: bool = False
+
+    def __init__(self,
+                 *args,
+                 cumulative: Optional[bool] = None,
+                 **kwargs):
+        """ Init that allows the user to specify here whether to plot a cumulative hist or not, or else go with the
+            default.
+        """
+
+        super().__init__(*args, **kwargs)
+
+        self.cumulative = default_value_if_none(cumulative, self.cumulative)
 
     def plot(self):
-        """ Plot histograms of p values
+        """ Plot histograms of log10(p_chisq) values.
         """
 
         # Get the data we want to plot
@@ -87,42 +124,53 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         if len(l_logp) <= 1:
             # We'll always make the tot plot for testing purposes, but log a warning if no data
             if self.bin_parameter == BinParameters.TOT:
-                logger.warning(f"Insufficient valid data to plot for {self.bin_parameter.value} test case, but making "
-                               f"plot anyway for testing purposes.")
+                logger.warning(MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
             else:
-                logger.debug(f"Insufficient valid valid data to plot for {self.bin_parameter.value} test case, bin "
-                             f"{self.bin_limits}, so skipping plot.")
+                logger.debug(MSG_INSUFFICIENT_DATA, self.bin_parameter.value, self.bin_limits)
                 return
 
-        # Set up the plot title
+        # Make a histogram of the data
+
+        # Set up the figure
+        self.subplots_adjust()
+
+        # Plot the histogram
+        plt.hist(l_logp,
+                 bins = HIST_NUM_BINS,
+                 density = True,
+                 cumulative = self.cumulative,
+                 histtype = HIST_TYPE,
+                 label = TEST_CAT_LEGEND_NAME,
+                 linestyle = '-')
+
+        # Set the plot title
         plot_title: str = f"PSF Res. (Star Pos.) log(p) - {self.bin_parameter}"
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
 
-        # Make a histogram of the data
-
-        # Set up the figure
-
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
-
-        # TODO: Plot the histogram here
-        self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
-
         plt.title(plot_title, fontsize = TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(r"$\mathrm{log}_{10}(p(\chi^2,\mathrm(d.o.f.)))$", fontsize = AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"N", fontsize = AXISLABEL_FONTSIZE)
+        y_label = STR_HIST_Y_LABEL_BASE
+        if self.cumulative:
+            y_label += STR_HIST_Y_LABEL_CUMULATIVE_TAIL
+
+        self.ax.set_xlabel(STR_HIST_X_LABEL, fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(y_label, fontsize = AXISLABEL_FONTSIZE)
 
         # Write some summary statistics
         logp_median = np.median(l_logp)
         p_median = 10 ** logp_median
-        self.ax.text(0.02, 0.98, r"Median $p(\chi^2,\mathrm(d.o.f.))$: " + f"{p_median}", horizontalalignment = 'left',
+        self.ax.text(0.02, 0.98, STR_HIST_TEST_P_MED_LABEL + str(p_median),
+                     horizontalalignment = 'left',
                      verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-        self.ax.text(0.02, 0.93, r"$p_{\mathrm{KS}}$: " + f"{self.ks_test_result.pvalue}", horizontalalignment = 'left',
+                     transform = self.ax.transAxes,
+                     fontsize = TEXT_SIZE)
+        self.ax.text(0.02, 0.93, STR_KS_P_LABEL + str(self.ks_test_result.pvalue),
+                     horizontalalignment = 'left',
                      verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
+                     transform = self.ax.transAxes,
+                     fontsize = TEXT_SIZE)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
