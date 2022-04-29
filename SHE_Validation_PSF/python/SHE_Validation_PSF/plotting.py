@@ -21,16 +21,26 @@ __updated__ = "2022-04-28"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 import abc
-from typing import Sequence
+from typing import Optional, Sequence
 
 import numpy as np
 from astropy.table import Table
+from matplotlib import pyplot as plt
 
+from SHE_PPT import logging
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.utility import coerce_to_list, is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_PSF.data_processing import ESC_TF
+from SHE_Validation_PSF.data_processing import ESC_TF, KsResult
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+
+logger = logging.getLogger(__name__)
+
+TITLE_FONTSIZE = 12
+AXISLABEL_FONTSIZE = 12
+TEXT_SIZE = 12
+PLOT_FORMAT = "png"
 
 
 class PsfResSPPlotter(ValidationPlotter, abc.ABC):
@@ -44,13 +54,15 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
                  star_cat: Table,
                  file_namer: PsfResSPPlotFileNamer,
                  bin_limits: Sequence[float],
-                 l_ids_in_bin: Sequence[int], ):
+                 l_ids_in_bin: Sequence[int],
+                 ks_test_result: Optional[KsResult] = None):
         super().__init__(file_namer = file_namer)
 
         # Set attrs directly
         self.star_cat = star_cat
         self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
+        self.ks_test_result = ks_test_result
 
         # Determine attrs from kwargs
 
@@ -71,87 +83,50 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Remove any bad values from the data
         l_logp = np.array([x for x in l_logp if not is_inf_nan_or_masked(x)])
 
-        # TODO: Start editing from here
-
-        if self.g1_err_colname is not None:
-            l_g1_err: Sequence[float] = np.array(coerce_to_list(self.g1_err_colname))
-        else:
-            l_g1_err: Sequence[float] = np.array(coerce_to_list(1 / np.sqrt(self.t_good[self.weight_colname])))
-
-        if self.method_name is None:
-            opt_method_str: str = ""
-            plot_title: str = f"CTI-PSF Validation - {self.bin_parameter.value}"
-        else:
-            opt_method_str = f"method {self.method_name}, "
-            plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
-
-        # Append note of exposure or observation
-        exp_index = self.file_namer.exp_index
-        if exp_index is None:
-            plot_title += "- Full Observation"
-        else:
-            plot_title += f"- Exposure {exp_index}"
-
         # Check if there's any valid data for this bin
-        if len(l_rr_dist) <= 1:
+        if len(l_logp) <= 1:
             # We'll always make the tot plot for testing purposes, but log a warning if no data
             if self.bin_parameter == BinParameters.TOT:
-                logger.warning(f"Insufficient valid data to plot for {opt_method_str}and test case "
-                               f"{self.bin_parameter.value}, but making plot anyway for testing purposes.")
+                logger.warning(f"Insufficient valid data to plot for {self.bin_parameter.value} test case, but making "
+                               f"plot anyway for testing purposes.")
             else:
-                logger.debug(f"Insufficient valid valid data to plot for {opt_method_str}test case "
-                             f"{self.bin_parameter.value}, bin {self.bin_limits}, so skipping plot.")
+                logger.debug(f"Insufficient valid valid data to plot for {self.bin_parameter.value} test case, bin "
+                             f"{self.bin_limits}, so skipping plot.")
                 return
 
-        # Perform the linear regression, calculate bias, and save it in the bias dict
-        linregress_results: LinregressResults = linregress_with_errors(x = l_rr_dist,
-                                                                       y = l_g1,
-                                                                       y_err = l_g1_err)
-
-        # Log the bias measurements, and save these strings for the plot
-        logger.info(f"Linear regression for {opt_method_str}test case {self.bin_parameter.value}, "
-                    f"bin {self.bin_limits}:")
-        d_linregress_strings: Dict[str, str] = {}
-        for a, d in ("slope", SLOPE_DIGITS), ("intercept", INTERCEPT_DIGITS):
-            d_linregress_strings[f"{a}"] = (f"{a} = {getattr(linregress_results, a):.{d}f} +/- "
-                                            f"{getattr(linregress_results, f'{a}_err'):.{d}f} "
-                                            f"({getattr(linregress_results, f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
-            logger.info(d_linregress_strings[f"{a}"])
-
-        # Make a plot of the data and bestfit line
-
-        # Set up the figure, with a density scatter as a base
-
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
-
-        self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
+        # Set up the plot title
+        plot_title: str = f"PSF Res. (Star Pos.) log(p) - {self.bin_parameter}"
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
+
+        # Make a histogram of the data
+
+        # Set up the figure
+
+        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+
+        # TODO: Plot the histogram here
+        self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
+
         plt.title(plot_title, fontsize = TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize = AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"e1 (detector coordinates)", fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(r"$\mathrm{log}_{10}(p(\chi^2,\mathrm(d.o.f.)))$", fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(f"N", fontsize = AXISLABEL_FONTSIZE)
 
-        # Draw the x axis
-        self.draw_x_axis()
-
-        # Draw the line of best-fit
-        self.draw_bestfit_line(linregress_results)
-
-        # Reset the axes
-        self.reset_axes()
-
-        # Write the bias
-        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"], horizontalalignment = 'left',
+        # Write some summary statistics
+        logp_median = np.median(l_logp)
+        p_median = 10 ** logp_median
+        self.ax.text(0.02, 0.98, r"Median $p(\chi^2,\mathrm(d.o.f.))$: " + f"{p_median}", horizontalalignment = 'left',
                      verticalalignment = 'top',
                      transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"], horizontalalignment = 'left',
+        self.ax.text(0.02, 0.93, r"$p_{\mathrm{KS}}$: " + f"{self.ks_test_result.pvalue}", horizontalalignment = 'left',
                      verticalalignment = 'top',
                      transform = self.ax.transAxes, fontsize = TEXT_SIZE)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
-        logger.info(f"Saved {self.method_name} CTI plot to {self.qualified_plot_filename}")
+        logger.info(f"Saved {self.bin_parameter} {self.bin_limits} PSF Res (Star Pos.) histogram to"
+                    f" {self.qualified_plot_filename}")
 
         plt.close()
