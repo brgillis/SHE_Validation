@@ -193,20 +193,11 @@ class CtiPlotter(ValidationPlotter):
         # Draw the line of best-fit
         self.draw_bestfit_line(linregress_results)
 
-        # Reset the axes
+        # Reset the axes, in case they changed after drawing the axes or bestfit line
         self.reset_axes()
 
-        # Write the bias
-        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"],
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"],
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
+        # Write the m and c bias on the plot
+        self.summary_text([d_linregress_strings[f"slope"], d_linregress_strings[f"intercept"]])
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()

@@ -138,20 +138,11 @@ class ShearBiasPlotter(ValidationPlotter):
         # Draw the line of best-fit
         self.draw_bestfit_line(linregress_results)
 
-        # Reset the axes
+        # Reset the axes, in case they changed after drawing the axes or bestfit line
         self.reset_axes()
 
-        # Write the bias
-        self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"],
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
+        # Write the m and c bias on the plot
+        self.summary_text([d_bias_strings[f"c{i}"], d_bias_strings[f"m{i}"]])
 
         # Save the plot
         self._save_component_plot(i)

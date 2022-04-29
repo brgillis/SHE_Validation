@@ -23,7 +23,7 @@ __updated__ = "2021-08-30"
 
 import abc
 from copy import deepcopy
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
 from matplotlib import cm, pyplot as plt
@@ -47,10 +47,13 @@ class ValidationPlotter(abc.ABC):
     # Class constants
     TITLE_FONTSIZE = 12
     AXISLABEL_FONTSIZE = 12
-    TEXT_SIZE = 12
 
     SUM_TXT_HALIGN = 'left'
     SUM_TXT_VALIGN = 'top'
+    SUM_TXT_X_ORIGIN = 0.02
+    SUM_TXT_Y_ORIGIN = 0.98
+    SUM_TXT_Y_STEP = -0.05
+    SUM_TEXT_FONTSIZE = 12
 
     MSG_INSUFFICIENT_DATA_TOT = ("Insufficient valid data to plot for %s test case, but making "
                                  "plot anyway for testing purposes.")
@@ -248,3 +251,31 @@ class ValidationPlotter(abc.ABC):
         """ Set up the figure with a single subplot in a standard format.
         """
         self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+
+    def summary_text(self,
+                     l_s: Union[str, Iterable[str]]):
+        """ Writes summary text on the plot. If provided as a list of strings, each will be written on a separate
+            line.
+        """
+
+        # If just one string, write it directly and return
+        if isinstance(l_s, str):
+            self._summary_text_line(l_s)
+
+        # Write each string on a separate line
+        for line_num, s in enumerate(l_s):
+            self._summary_text_line(s, line_num = line_num)
+
+    def _summary_text_line(self,
+                           s: str,
+                           line_num: int = 0):
+        """ Writes a single line of summary text on the plot.
+        """
+
+        self.ax.text(s = s,
+                     x = self.SUM_TXT_X_ORIGIN,
+                     y = self.SUM_TXT_Y_ORIGIN + line_num * self.SUM_TXT_Y_STEP,
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.SUM_TEXT_FONTSIZE)

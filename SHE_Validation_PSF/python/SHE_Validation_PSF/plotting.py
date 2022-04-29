@@ -151,16 +151,10 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Write some summary statistics
         logp_median = np.median(l_logp)
         p_median = 10 ** logp_median
-        self.ax.text(0.02, 0.98, self.STR_HIST_TEST_P_MED_LABEL + str(p_median),
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
-        self.ax.text(0.02, 0.93, self.STR_KS_P_LABEL + str(self.ks_test_result.pvalue),
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.TEXT_SIZE)
+
+        # Write the summary p values on the plot
+        self.summary_text([self.STR_HIST_TEST_P_MED_LABEL + str(p_median),
+                           self.STR_KS_P_LABEL + str(self.ks_test_result.pvalue)])
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
