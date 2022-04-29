@@ -41,7 +41,21 @@ logger = getLogger(__name__)
 
 
 class ValidationPlotter(abc.ABC):
-    """TODO: Add a docstring for this class."""
+    """Abstract base class for plotters for various types of plots made in the SHE_Validation project.
+    """
+
+    # Class constants
+    TITLE_FONTSIZE = 12
+    AXISLABEL_FONTSIZE = 12
+    TEXT_SIZE = 12
+
+    SUM_TXT_HALIGN = 'left'
+    SUM_TXT_VALIGN = 'top'
+
+    MSG_INSUFFICIENT_DATA_TOT = ("Insufficient valid data to plot for %s test case, but making "
+                                 "plot anyway for testing purposes.")
+    MSG_INSUFFICIENT_DATA = ("Insufficient valid valid data to plot for %s test case, bin "
+                             "%s, so skipping plot.")
 
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
