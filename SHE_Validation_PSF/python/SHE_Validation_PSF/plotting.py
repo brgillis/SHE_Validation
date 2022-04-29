@@ -126,11 +126,11 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         # Plot the histogram
         plt.hist(l_logp,
-                 bins = HIST_NUM_BINS,
+                 bins = self.HIST_NUM_BINS,
                  density = True,
                  cumulative = self.cumulative,
-                 histtype = HIST_TYPE,
-                 label = TEST_CAT_LEGEND_NAME,
+                 histtype = self.HIST_TYPE,
+                 label = self.TEST_CAT_LEGEND_NAME,
                  linestyle = '-')
 
         # Set the plot title
@@ -141,22 +141,22 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-        y_label = STR_HIST_Y_LABEL_BASE
+        y_label = self.STR_HIST_Y_LABEL_BASE
         if self.cumulative:
-            y_label += STR_HIST_Y_LABEL_CUMULATIVE_TAIL
+            y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
 
-        self.ax.set_xlabel(STR_HIST_X_LABEL, fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(self.STR_HIST_X_LABEL, fontsize = self.AXISLABEL_FONTSIZE)
         self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
 
         # Write some summary statistics
         logp_median = np.median(l_logp)
         p_median = 10 ** logp_median
-        self.ax.text(0.02, 0.98, STR_HIST_TEST_P_MED_LABEL + str(p_median),
+        self.ax.text(0.02, 0.98, self.STR_HIST_TEST_P_MED_LABEL + str(p_median),
                      horizontalalignment = self.SUM_TXT_HALIGN,
                      verticalalignment = self.SUM_TXT_VALIGN,
                      transform = self.ax.transAxes,
                      fontsize = self.TEXT_SIZE)
-        self.ax.text(0.02, 0.93, STR_KS_P_LABEL + str(self.ks_test_result.pvalue),
+        self.ax.text(0.02, 0.93, self.STR_KS_P_LABEL + str(self.ks_test_result.pvalue),
                      horizontalalignment = self.SUM_TXT_HALIGN,
                      verticalalignment = self.SUM_TXT_VALIGN,
                      transform = self.ax.transAxes,
