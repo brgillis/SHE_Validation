@@ -22,8 +22,6 @@ __updated__ = "2021-08-31"
 
 from typing import Dict, Sequence
 
-from matplotlib import pyplot as plt
-
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
@@ -127,10 +125,10 @@ class ShearBiasPlotter(ValidationPlotter):
         self.density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
 
         plot_title = f"{self.method} Shear Estimates: g{i}"
-        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
+        self.set_title(plot_title)
 
-        self.ax.set_xlabel(f"True g{i}", fontsize = self.AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"Estimated g{i}", fontsize = self.AXISLABEL_FONTSIZE)
+        self.set_xy_labels(x_label = f"True g{i}",
+                           y_label = f"Estimated g{i}")
 
         # Draw the zero-axes
         self.draw_axes()

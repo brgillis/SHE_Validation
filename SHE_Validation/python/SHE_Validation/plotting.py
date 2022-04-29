@@ -279,3 +279,10 @@ class ValidationPlotter(abc.ABC):
                      verticalalignment = self.SUM_TXT_VALIGN,
                      transform = self.ax.transAxes,
                      fontsize = self.SUM_TEXT_FONTSIZE)
+
+    def set_xy_labels(self, x_label, y_label):
+        self.ax.set_xlabel(x_label, fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
+
+    def set_title(self, plot_title):
+        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)

@@ -182,10 +182,10 @@ class CtiPlotter(ValidationPlotter):
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
-        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
+        self.set_title(plot_title)
 
-        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize = self.AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"e1 (detector coordinates)", fontsize = self.AXISLABEL_FONTSIZE)
+        self.set_xy_labels(x_label = f"Readout Register Distance (pix)",
+                           y_label = f"e1 (detector coordinates)")
 
         # Draw the x axis
         self.draw_x_axis()

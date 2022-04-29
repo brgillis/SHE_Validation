@@ -139,14 +139,13 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
 
-        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
+        self.set_title(plot_title)
 
         y_label = self.STR_HIST_Y_LABEL_BASE
         if self.cumulative:
             y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
 
-        self.ax.set_xlabel(self.STR_HIST_X_LABEL, fontsize = self.AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
+        self.set_xy_labels(self.STR_HIST_X_LABEL, y_label)
 
         # Write some summary statistics
         logp_median = np.median(l_logp)
