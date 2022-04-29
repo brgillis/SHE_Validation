@@ -38,18 +38,16 @@ from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 logger = getLogger(__name__)
 
-TITLE_FONTSIZE = 12
-AXISLABEL_FONTSIZE = 12
-TEXT_SIZE = 12
-PLOT_FORMAT = "png"
-SLOPE_DIGITS = 7
-INTERCEPT_DIGITS = 5
-SIGMA_DIGITS = 1
-
 
 class CtiPlotter(ValidationPlotter):
     """ Class to handle plotting for CTI-related validation tests (CTI-Gal and CTI-PSF).
     """
+
+    # Class constants
+
+    SLOPE_DIGITS = 7
+    INTERCEPT_DIGITS = 5
+    SIGMA_DIGITS = 1
 
     # Attributes set directly at init
     _object_table: Table
@@ -162,10 +160,16 @@ class CtiPlotter(ValidationPlotter):
         logger.info(f"Linear regression for {opt_method_str}test case {self.bin_parameter.value}, "
                     f"bin {self.bin_limits}:")
         d_linregress_strings: Dict[str, str] = {}
-        for a, d in ("slope", SLOPE_DIGITS), ("intercept", INTERCEPT_DIGITS):
-            d_linregress_strings[f"{a}"] = (f"{a} = {getattr(linregress_results, a):.{d}f} +/- "
-                                            f"{getattr(linregress_results, f'{a}_err'):.{d}f} "
-                                            f"({getattr(linregress_results, f'{a}_sigma'):.{SIGMA_DIGITS}f}$\\sigma$)")
+        for a, d in (("slope", self.SLOPE_DIGITS),
+                     ("intercept", self.INTERCEPT_DIGITS)):
+
+            val = getattr(linregress_results, a)
+            val_err = getattr(linregress_results, f'{a}_err')
+            val_sigma = getattr(linregress_results, f'{a}_sigma')
+
+            d_linregress_strings[f"{a}"] = (f"{a} = {val:.{d}f} +/- "
+                                            f"{val_err:.{d}f} "
+                                            f"({val_sigma:.{self.SIGMA_DIGITS}f}$\\sigma$)")
             logger.info(d_linregress_strings[f"{a}"])
 
         # Make a plot of the data and bestfit line
@@ -178,10 +182,10 @@ class CtiPlotter(ValidationPlotter):
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
-        plt.title(plot_title, fontsize = TITLE_FONTSIZE)
+        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize = AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"e1 (detector coordinates)", fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(f"Readout Register Distance (pix)", fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(f"e1 (detector coordinates)", fontsize = self.AXISLABEL_FONTSIZE)
 
         # Draw the x axis
         self.draw_x_axis()
@@ -193,12 +197,16 @@ class CtiPlotter(ValidationPlotter):
         self.reset_axes()
 
         # Write the bias
-        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"], horizontalalignment = 'left',
-                     verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"], horizontalalignment = 'left',
-                     verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
+        self.ax.text(0.02, 0.98, d_linregress_strings[f"slope"],
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.TEXT_SIZE)
+        self.ax.text(0.02, 0.93, d_linregress_strings[f"intercept"],
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.TEXT_SIZE)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
