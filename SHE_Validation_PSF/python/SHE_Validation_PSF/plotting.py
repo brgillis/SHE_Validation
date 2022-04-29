@@ -69,7 +69,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         l_logp: Sequence[float] = np.log10(l_p)
 
         # Remove any bad values from the data
-        l_logp = [x for x in l_logp if not is_inf_nan_or_masked(x)]
+        l_logp = np.array([x for x in l_logp if not is_inf_nan_or_masked(x)])
 
         # TODO: Start editing from here
 
