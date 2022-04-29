@@ -241,12 +241,6 @@ class ValidationPlotter(abc.ABC):
         self.ax = None
         self.fig = None
 
-    @abc.abstractmethod
-    def plot(self, *args, **kwargs):
-        """ Makes and saves the plot(s).
-        """
-        pass
-
     def subplots_adjust(self):
         """ Set up the figure with a single subplot in a standard format.
         """
@@ -286,3 +280,9 @@ class ValidationPlotter(abc.ABC):
 
     def set_title(self, plot_title):
         plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
+
+    @abc.abstractmethod
+    def plot(self, *args, **kwargs):
+        """ Makes and saves the plot(s).
+        """
+        pass
