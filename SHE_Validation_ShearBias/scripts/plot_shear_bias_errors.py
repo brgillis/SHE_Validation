@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ @file plot_shear_bias_errors.py
 
     Script to generate a plot of shear bias errors compared to requirements.
