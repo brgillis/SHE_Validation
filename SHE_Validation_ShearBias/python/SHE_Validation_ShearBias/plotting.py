@@ -127,7 +127,7 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Set up the figure, with a density scatter as a base
 
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+        self.subplots_adjust()
 
         self.density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
 

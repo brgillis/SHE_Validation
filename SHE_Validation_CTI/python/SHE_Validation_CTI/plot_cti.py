@@ -172,7 +172,7 @@ class CtiPlotter(ValidationPlotter):
 
         # Set up the figure, with a density scatter as a base
 
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+        self.subplots_adjust()
 
         self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
 

@@ -229,3 +229,8 @@ class ValidationPlotter(abc.ABC):
         """ Makes and saves the plot(s).
         """
         pass
+
+    def subplots_adjust(self):
+        """ Set up the figure with a single subplot in a standard format.
+        """
+        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
