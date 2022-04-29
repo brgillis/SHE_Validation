@@ -34,15 +34,10 @@ from .file_io import ShearBiasPlotFileNamer
 
 logger = getLogger(__name__)
 
-# Plotting constants
-TITLE_FONTSIZE: float = 12
-AXISLABEL_FONTSIZE: float = 12
-TEXT_SIZE: float = 12
-PLOT_FORMAT: str = "png"
-
 
 class ShearBiasPlotter(ValidationPlotter):
-    """TODO: Add a docstring to this class."""
+    """ Class to handle plotting for Shear Bias validation tests.
+    """
 
     # Attributes set directly at init
     data_processor: ShearBiasTestCaseDataProcessor
@@ -132,10 +127,10 @@ class ShearBiasPlotter(ValidationPlotter):
         self.density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
 
         plot_title = f"{self.method} Shear Estimates: g{i}"
-        plt.title(plot_title, fontsize = TITLE_FONTSIZE)
+        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-        self.ax.set_xlabel(f"True g{i}", fontsize = AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"Estimated g{i}", fontsize = AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(f"True g{i}", fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(f"Estimated g{i}", fontsize = self.AXISLABEL_FONTSIZE)
 
         # Draw the zero-axes
         self.draw_axes()
@@ -147,10 +142,16 @@ class ShearBiasPlotter(ValidationPlotter):
         self.reset_axes()
 
         # Write the bias
-        self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment = 'left', verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_bias_strings[f"m{i}"], horizontalalignment = 'left', verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
+        self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"],
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.TEXT_SIZE)
+        self.ax.text(0.02, 0.93, d_bias_strings[f"m{i}"],
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.TEXT_SIZE)
 
         # Save the plot
         self._save_component_plot(i)
