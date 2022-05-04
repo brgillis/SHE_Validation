@@ -11,7 +11,7 @@ This program is presently under active development, and frequent changes are ant
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_ValidatePSFResStarPos`` program with Elements, use the following command in an EDEN 2.1 environment:
 
 .. code:: bash
 
