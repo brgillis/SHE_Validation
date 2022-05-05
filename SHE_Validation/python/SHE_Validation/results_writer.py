@@ -359,7 +359,7 @@ class RequirementWriter:
     def _interpret_test_results(self) -> None:
         """Overridable method which takes self.l_test results and determine self.l_val, self.l_val_err etc. from it.
         """
-        return
+        pass
 
     # Public methods
     def add_supplementary_info(self,
@@ -582,7 +582,7 @@ class RequirementWriter:
         """ Overridable method which can be used to determine self.l_good_data, self.l_test_pass,
             and self.measured_value
         """
-        return
+        pass
 
     def _determine_overall_results(self):
         """ Interprets self.l_good_data and self.l_test_pass to fill in the rest of the result values.
