@@ -171,8 +171,9 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
 
         # Check the object isn't flagged as a failure
         object_weight: float
-        if ((not is_flagged_failure(object_row[sem_tf.fit_flags])) and not
-        (is_inf_nan_or_masked(object_row[sem_tf.g1_err]) or is_inf_nan_or_masked(object_row[sem_tf.g2_err]))):
+        if ((not is_flagged_failure(object_row[sem_tf.fit_flags])) and
+                not (is_inf_nan_or_masked(object_row[sem_tf.g1_err]) or
+                     is_inf_nan_or_masked(object_row[sem_tf.g2_err]))):
             object_weight = object_row[sem_tf.weight]
         else:
             object_weight = 0
