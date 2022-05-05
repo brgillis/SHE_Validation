@@ -22,12 +22,12 @@ __updated__ = "2021-08-27"
 
 import os
 from copy import deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, IO, List, Optional, Sequence, Set, Type, Union
 
 import numpy as np
 import scipy.stats
-from dataclasses import dataclass
 
 from SHE_PPT import file_io
 from SHE_PPT.constants.classes import ShearEstimationMethods
@@ -596,11 +596,10 @@ class RequirementWriter:
         self.l_result = list(map(get_result_string, self.l_test_pass))
 
         # Make sure all lists we're working with exist, so we can map across them all
-        default_list: List[float] = [0.] * self.num_bins
-        l_val = default_value_if_none(self.l_val, default_list)
-        l_val_err = default_value_if_none(self.l_val_err, default_list)
-        l_val_z = default_value_if_none(self.l_val_z, default_list)
-        l_val_target = default_value_if_none(self.l_val_target, default_list)
+        self.l_val = (self.l_val if self.l_val is not None else np.zeros(self.num_bins))
+        self.l_val_err = (self.l_val_err if self.l_val_err is not None else np.zeros(self.num_bins))
+        self.l_val_z = (self.l_val_z if self.l_val_z is not None else np.zeros(self.num_bins))
+        self.l_val_target = (self.l_val_target if self.l_val_target is not None else np.zeros(self.num_bins))
 
         # Get the overall results
         self.good_data = np.any(self.l_good_data)
