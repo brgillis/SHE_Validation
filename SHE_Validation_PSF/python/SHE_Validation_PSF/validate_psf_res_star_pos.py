@@ -7,6 +7,7 @@
 
 __updated__ = "2022-04-08"
 
+from dataclasses import dataclass
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -28,7 +29,6 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 from astropy.table import Table
-from dataclasses import dataclass
 
 from SHE_PPT import logging as log
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT, CA_WORKDIR
@@ -47,7 +47,7 @@ logger = log.getLogger(__name__)
 
 
 @dataclass
-class PsfResSPInputData():
+class PsfResSPInputData:
     d_l_bin_limits: Dict[BinParameters, np.ndarray]
     p_star_cat: Any
     star_cat: Table
