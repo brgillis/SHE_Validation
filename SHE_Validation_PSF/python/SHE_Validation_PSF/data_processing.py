@@ -36,7 +36,7 @@ from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+from SHE_Validation_PSF.file_io import PsfResSPHistFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
 from SHE_Validation_PSF.utility import (KsResult, add_snr_column_to_star_cat, calculate_p_values,
                                         get_table_in_bin, getitem_or_none, )
@@ -117,7 +117,7 @@ def run_psf_res_val_test(star_cat: Table,
 
             # Create plots for this bin
             hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
-                                               file_namer = PsfResSPPlotFileNamer(bin_parameter = bin_parameter,
+                                               file_namer = PsfResSPHistFileNamer(bin_parameter = bin_parameter,
                                                                                   bin_index = bin_index),
                                                bin_limits = l_bin_limits[bin_index:bin_index + 1],
                                                l_ids_in_bin = l_test_case_object_ids,

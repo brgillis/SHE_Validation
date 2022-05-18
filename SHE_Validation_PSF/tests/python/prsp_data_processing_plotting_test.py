@@ -34,7 +34,7 @@ from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFac
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
-from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+from SHE_Validation_PSF.file_io import PsfResSPHistFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 from SHE_Validation_PSF.utility import ESC_TF
@@ -131,7 +131,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                 l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
 
                 hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
-                                                   file_namer = PsfResSPPlotFileNamer(
+                                                   file_namer = PsfResSPHistFileNamer(
                                                        bin_parameter = self.bin_parameter,
                                                        bin_index = bin_index),
                                                    bin_limits = self.l_bin_limits[bin_index:bin_index + 1],
