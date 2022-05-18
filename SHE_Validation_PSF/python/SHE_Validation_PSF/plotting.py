@@ -45,7 +45,7 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
     # Class constants
     TEST_CAT_LEGEND_NAME = "Test Catalogue"
-    STR_KS_P_LABEL = r"$p_{\mathrm{KS}}$: "
+    STR_KS_P_LABEL = r"$p_{\rm KS}$: "
 
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
@@ -82,10 +82,10 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
 
-    STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,\mathrm(d.o.f.))$: "
+    STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,{\rm d.o.f.})$: "
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
-    STR_HIST_Y_LABEL_BASE = r"$N/N_{\mathrm{tot}}$"
-    STR_HIST_X_LABEL = r"$\mathrm{log}_{10}(p(\chi^2,\mathrm(d.o.f.)))$"
+    STR_HIST_Y_LABEL_BASE = r"$N/N_{\rm tot}$"
+    STR_HIST_X_LABEL = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
 
     # Class attributes
 
