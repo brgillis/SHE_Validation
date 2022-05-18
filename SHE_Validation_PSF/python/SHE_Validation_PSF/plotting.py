@@ -45,7 +45,9 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
     # Class constants
     TEST_CAT_LEGEND_NAME = "Test Catalogue"
+
     STR_KS_P_LABEL = r"$p_{\rm KS}$: "
+    KS_P_DIGITS = 2
 
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
@@ -57,6 +59,8 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
                  bin_limits: Sequence[float],
                  l_ids_in_bin: Sequence[int],
                  ks_test_result: KsResult,
+                 ref_star_cat: Optional[Table] = None,
+                 l_ref_ids_in_bin: Optional[Sequence[int]] = None,
                  group_mode: Optional[bool] = None, ):
         super().__init__(file_namer = file_namer)
 
@@ -65,12 +69,16 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
         self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
         self.ks_test_result = ks_test_result
+        self.ref_star_cat = ref_star_cat
+        self.l_ref_ids_in_bin = l_ref_ids_in_bin
         self.group_mode = group_mode if group_mode is not None else self.group_mode
 
         # Determine attrs from kwargs
 
         self.t_good = get_table_of_ids(t = self.star_cat,
                                        l_ids = self.l_ids_in_bin, )
+        self.ref_t_good = None if self.ref_star_cat is None else get_table_of_ids(t = self.ref_star_cat,
+                                                                                  l_ids = self.l_ref_ids_in_bin, )
 
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
@@ -79,10 +87,12 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
     # Class constants
 
+    STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,{\rm d.o.f.})$: "
+    TEST_P_MED_DIGITS = 2
+
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
 
-    STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,{\rm d.o.f.})$: "
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
     STR_HIST_Y_LABEL_BASE = r"$N/N_{\rm tot}$"
     STR_HIST_X_LABEL = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
@@ -155,8 +165,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         p_median = np.median(l_p_trimmed)
 
         # Write the summary p values on the plot
-        self.summary_text([self.STR_HIST_TEST_P_MED_LABEL + str(p_median),
-                           self.STR_KS_P_LABEL + str(self.ks_test_result.pvalue)])
+        self.summary_text([self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.TEST_P_MED_DIGITS}e}",
+                           self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}"])
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
