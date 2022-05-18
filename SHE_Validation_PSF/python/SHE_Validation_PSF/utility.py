@@ -20,7 +20,8 @@ __updated__ = "2022-04-28"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-from typing import List, Optional, Sequence, Type, Union
+from copy import deepcopy
+from typing import List, Mapping, Optional, Sequence, Type, TypeVar, Union
 
 import numpy as np
 from astropy.table import Row, Table
@@ -28,11 +29,12 @@ from scipy.stats import chi2
 from scipy.stats.stats import Ks_2sampResult, KstestResult
 
 from SHE_PPT import logging
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
 from SHE_PPT.utility import is_nan_or_masked
+from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.binning.bin_data import BIN_TF
-from SHE_Validation_PSF.data_processing import add_p_columns_to_star_cat
 
 logger = logging.getLogger(__name__)
 
@@ -146,3 +148,52 @@ def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[
         table_or_row_in_group[p_colname] = l_ps[i]
 
     return l_ps
+
+
+def get_table_in_bin(cat: Optional[Table],
+                     bin_parameter: BinParameters,
+                     bin_index: int,
+                     l_bin_limits: np.ndarray,
+                     l_test_case_object_ids: Optional[Sequence[int]]) -> Optional[Table]:
+    """Gets a table with only the rows within a given bin. Returns None if cat is None.
+    """
+    if cat is None:
+        return None
+
+    table_in_bin = deepcopy(get_table_of_ids(cat, l_test_case_object_ids, id_colname = ESC_TF.id))
+
+    # Save the info about bin_parameter and bin_limits in the table's metadata
+    table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
+    table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
+
+    return table_in_bin
+
+
+KeyType = TypeVar('KeyType')
+ItemType = TypeVar('ItemType')
+
+
+def getitem_or_none(a: Optional[Mapping[KeyType, ItemType]], i: KeyType) -> Optional[ItemType]:
+    """Utility function to either get an item of a list or dict if it's not None, or return None if it is None."""
+    if a is None:
+        return None
+    else:
+        return a[i]
+
+
+def add_snr_column_to_star_cat(star_cat: Table) -> None:
+    """Adds the SNR column to the star catalog if not already present.
+    """
+    if ESC_TF.snr not in star_cat.colnames:
+        star_cat[ESC_TF.snr] = star_cat[ESC_TF.flux] / star_cat[ESC_TF.flux_err]
+
+
+def add_p_columns_to_star_cat(star_cat: Table) -> None:
+    """ Adds columns for star and group p-values to the table if not already present. The new columns will initially
+        be filled with np.NaN to indicate it has not yet been calculated.
+    """
+    len_star_cat = len(star_cat)
+    if ESC_TF.group_p not in star_cat.colnames:
+        star_cat[ESC_TF.group_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.group_p])
+    if ESC_TF.star_p not in star_cat.colnames:
+        star_cat[ESC_TF.star_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.star_p])

@@ -24,8 +24,7 @@ __updated__ = "2022-04-23"
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-from copy import deepcopy
-from typing import Dict, List, Mapping, Optional, Sequence, TypeVar
+from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 from astropy.table import Table
@@ -34,12 +33,13 @@ from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
 from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
-from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
-from SHE_Validation_PSF.utility import ESC_TF, KsResult, calculate_p_values
+from SHE_Validation_PSF.utility import (KsResult, add_snr_column_to_star_cat, calculate_p_values,
+                                        get_table_in_bin, getitem_or_none, )
 
 logger = log.getLogger(__name__)
 
@@ -129,55 +129,6 @@ def run_psf_res_val_test(star_cat: Table,
             d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
 
     return d_l_psf_res_result_ps
-
-
-def get_table_in_bin(cat: Optional[Table],
-                     bin_parameter: BinParameters,
-                     bin_index: int,
-                     l_bin_limits: np.ndarray,
-                     l_test_case_object_ids: Optional[Sequence[int]]) -> Optional[Table]:
-    """Gets a table with only the rows within a given bin. Returns None if cat is None.
-    """
-    if cat is None:
-        return None
-
-    table_in_bin = deepcopy(get_table_of_ids(cat, l_test_case_object_ids, id_colname = ESC_TF.id))
-
-    # Save the info about bin_parameter and bin_limits in the table's metadata
-    table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
-    table_in_bin.meta[ESC_TF.m.bin_limits] = str(l_bin_limits[bin_index:bin_index + 2])
-
-    return table_in_bin
-
-
-KeyType = TypeVar('KeyType')
-ItemType = TypeVar('ItemType')
-
-
-def getitem_or_none(a: Optional[Mapping[KeyType, ItemType]], i: KeyType) -> Optional[ItemType]:
-    """Utility function to either get an item of a list or dict if it's not None, or return None if it is None."""
-    if a is None:
-        return None
-    else:
-        return a[i]
-
-
-def add_snr_column_to_star_cat(star_cat: Table) -> None:
-    """Adds the SNR column to the star catalog if not already present.
-    """
-    if ESC_TF.snr not in star_cat.colnames:
-        star_cat[ESC_TF.snr] = star_cat[ESC_TF.flux] / star_cat[ESC_TF.flux_err]
-
-
-def add_p_columns_to_star_cat(star_cat: Table) -> None:
-    """ Adds columns for star and group p-values to the table if not already present. The new columns will initially
-        be filled with np.NaN to indicate it has not yet been calculated.
-    """
-    len_star_cat = len(star_cat)
-    if ESC_TF.group_p not in star_cat.colnames:
-        star_cat[ESC_TF.group_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.group_p])
-    if ESC_TF.star_p not in star_cat.colnames:
-        star_cat[ESC_TF.star_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.star_p])
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,
