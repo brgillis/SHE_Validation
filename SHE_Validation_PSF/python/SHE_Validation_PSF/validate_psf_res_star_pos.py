@@ -68,7 +68,8 @@ def run_validate_psf_res_from_args(d_args: Dict[str, Any]) -> None:
     # Process the data, getting the results of the test
     d_l_psf_res_test_results = run_psf_res_val_test(star_cat = psf_res_sp_input.star_cat,
                                                     ref_star_cat = psf_res_sp_input.ref_star_cat,
-                                                    d_l_bin_limits = psf_res_sp_input.d_l_bin_limits)
+                                                    d_l_bin_limits = psf_res_sp_input.d_l_bin_limits,
+                                                    workdir = workdir)
 
     # Create and fill the output data product to contain the results
     test_result_product = create_dpd_she_validation_test_results(reference_product = psf_res_sp_input.p_star_cat,

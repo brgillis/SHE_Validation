@@ -133,7 +133,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                 hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
                                                    file_namer = PsfResSPHistFileNamer(
                                                        bin_parameter = self.bin_parameter,
-                                                       bin_index = bin_index),
+                                                       bin_index = bin_index,
+                                                       workdir = self.workdir),
                                                    bin_limits = self.l_bin_limits[bin_index:bin_index + 1],
                                                    l_ids_in_bin = l_test_case_object_ids,
                                                    ks_test_result = KstestResult(0.1, 0.2),
@@ -148,7 +149,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
             d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
                                                       ref_star_cat = ref_star_cat,
-                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
+                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config),
+                                                      workdir = self.workdir)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]

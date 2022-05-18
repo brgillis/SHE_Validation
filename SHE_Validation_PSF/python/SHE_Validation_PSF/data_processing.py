@@ -46,6 +46,7 @@ logger = log.getLogger(__name__)
 
 def run_psf_res_val_test(star_cat: Table,
                          d_l_bin_limits: Dict[BinParameters, Sequence[float]],
+                         workdir: str,
                          ref_star_cat: Optional[Table] = None) -> Dict[str, List[KsResult]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
@@ -118,7 +119,8 @@ def run_psf_res_val_test(star_cat: Table,
             # Create plots for this bin
             hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
                                                file_namer = PsfResSPHistFileNamer(bin_parameter = bin_parameter,
-                                                                                  bin_index = bin_index),
+                                                                                  bin_index = bin_index,
+                                                                                  workdir = workdir),
                                                bin_limits = l_bin_limits[bin_index:bin_index + 1],
                                                l_ids_in_bin = l_test_case_object_ids,
                                                ks_test_result = l_psf_res_result_ps[bin_index],
