@@ -33,8 +33,8 @@ from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.utility import coerce_to_list, default_value_if_none, is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_PSF.data_processing import ESC_TF, KsResult
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+from SHE_Validation_PSF.utility import ESC_TF, KsResult
 
 logger = logging.getLogger(__name__)
 

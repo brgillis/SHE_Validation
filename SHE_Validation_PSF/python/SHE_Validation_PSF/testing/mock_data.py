@@ -23,9 +23,9 @@ __updated__ = "2021-10-05"
 import numpy as np
 
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator, STAR_CAT_SEED
-from SHE_Validation_PSF.data_processing import ESC_TF, SheExtStarCatalogFormat
 from SHE_Validation_PSF.testing.constants import (REF_STAR_CAT_LISTFILE_FILENAME, REF_STAR_CAT_PRODUCT_FILENAME,
                                                   REF_STAR_CAT_TABLE_FILENAME, )
+from SHE_Validation_PSF.utility import ESC_TF, SheExtStarCatalogFormat
 
 
 class MockValStarCatDataGenerator(MockStarCatDataGenerator):

@@ -32,11 +32,12 @@ from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.data_processing import (ESC_TF, run_psf_res_val_test,
+from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
+from SHE_Validation_PSF.utility import ESC_TF
 
 
 class TestPsfDataProcessing(SheValPsfTestCase):

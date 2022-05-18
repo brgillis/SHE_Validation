@@ -25,67 +25,23 @@ __updated__ = "2022-04-23"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 from copy import deepcopy
-from typing import Dict, List, Mapping, Optional, Sequence, Type, TypeVar, Union
+from typing import Dict, List, Mapping, Optional, Sequence, TypeVar, Union
 
 import numpy as np
 from astropy.table import Row, Table
 from scipy.stats import chi2, ks_2samp, kstest, uniform
-from scipy.stats.stats import Ks_2sampResult, KstestResult
+from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
-from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
-from SHE_PPT.table_utility import SheTableMeta
 from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases, get_table_of_ids
-from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
+from SHE_Validation_PSF.utility import ESC_TF, KsResult
 
 logger = log.getLogger(__name__)
-KsResult = Union[KstestResult, Ks_2sampResult]
-
-
-# We'll be modifying the star catalog table a bit, so define an extended table format for the new columns
-
-class SheExtStarCatalogMeta(SheStarCatalogMeta):
-    """ Modified star catalog metadata format which adds some meta values.
-    """
-
-    def __init__(self):
-        super().__init__()
-
-        self.bin_parameter = "BIN_PAR"
-        self.bin_limits = "BIN_LIMS"
-
-
-class SheExtStarCatalogFormat(SheStarCatalogFormat):
-    """ Modified star catalog table format which adds a few extra columns and some metadata values.
-    """
-    meta_type: Type[SheTableMeta] = SheExtStarCatalogMeta
-    meta: SheExtStarCatalogMeta
-    m: SheExtStarCatalogMeta
-
-    def __init__(self):
-        super().__init__()
-
-        self.snr = self.set_column_properties(BIN_TF.snr, dtype = BIN_TF.dtypes[BIN_TF.snr],
-                                              fits_dtype = BIN_TF.fits_dtypes[BIN_TF.snr],
-                                              is_optional = True)
-
-        self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype = ">f4", fits_dtype = "E",
-                                                  comment = "p-value for a Chi-squared test on this group",
-                                                  is_optional = True)
-
-        self.star_p = self.set_column_properties("SHE_STARCAT_STAR_P", dtype = ">f4", fits_dtype = "E",
-                                                 comment = "p-value for a Chi-squared test on this star",
-                                                 is_optional = True)
-
-        self._finalize_init()
-
-
-ESC_TF = SheExtStarCatalogFormat()
 
 
 def run_psf_res_val_test(star_cat: Table,
