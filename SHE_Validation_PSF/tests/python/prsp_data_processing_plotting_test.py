@@ -113,13 +113,14 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         """ Test that a figure is properly generated for data in individual bins.
         """
 
-        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
+        snr_test_case_info = find_test_case_info(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
+                                                 bin_parameters = BinParameters.SNR,
+                                                 return_one = True)
+
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = [snr_test_case_info],
                                                             d_bin_limits = {BinParameters.SNR: self.l_bin_limits},
                                                             detections_table = self.mock_starcat_table,
                                                             bin_constraint_type = BinParameterBinConstraint)
-
-        snr_test_case_info = find_test_case_info(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
-                                                 bin_parameters = BinParameters.SNR)
 
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[snr_test_case_info.name]
 
