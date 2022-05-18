@@ -40,6 +40,8 @@ from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, ge
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
+from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
+from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
 
 logger = log.getLogger(__name__)
 KsResult = Union[KstestResult, Ks_2sampResult]
@@ -155,6 +157,15 @@ def run_psf_res_val_test(star_cat: Table,
                                                                           ref_star_cat = ref_table_in_bin,
                                                                           group_mode = (
                                                                                   bin_parameter == BinParameters.TOT))
+
+            # Create plots for this bin
+            hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
+                                               file_namer = PsfResSPPlotFileNamer(bin_parameter = bin_parameter,
+                                                                                  bin_index = bin_index),
+                                               bin_limits = l_bin_limits[bin_index:bin_index + 1],
+                                               l_ids_in_bin = l_test_case_object_ids,
+                                               ks_test_result = l_psf_res_result_ps[bin_index])
+            hist_plotter.plot()
 
             # Add the list of results to the output dict
             d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
