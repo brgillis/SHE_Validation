@@ -30,11 +30,11 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT import logging
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.utility import coerce_to_list, default_value_if_none, is_inf_nan_or_masked
+from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
-from SHE_Validation_PSF.utility import ESC_TF, KsResult
+from SHE_Validation_PSF.utility import KsResult, calculate_p_values
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +49,15 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
+    group_mode: bool = False
 
     def __init__(self,
                  star_cat: Table,
                  file_namer: PsfResSPPlotFileNamer,
                  bin_limits: Sequence[float],
                  l_ids_in_bin: Sequence[int],
-                 ks_test_result: KsResult):
+                 ks_test_result: KsResult,
+                 group_mode: Optional[bool] = None, ):
         super().__init__(file_namer = file_namer)
 
         # Set attrs directly
@@ -63,6 +65,7 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
         self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
         self.ks_test_result = ks_test_result
+        self.group_mode = group_mode if group_mode is not None else self.group_mode
 
         # Determine attrs from kwargs
 
@@ -98,14 +101,15 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         super().__init__(*args, **kwargs)
 
-        self.cumulative = default_value_if_none(cumulative, self.cumulative)
+        self.cumulative = cumulative if cumulative is not None else self.cumulative
 
     def plot(self):
         """ Plot histograms of log10(p_chisq) values.
         """
 
         # Get the data we want to plot
-        l_p: Sequence[float] = np.array(coerce_to_list(self.t_good[ESC_TF.p]))
+        l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
+                                                  group_mode = self.group_mode)
 
         # Remove any bad values from the data
         l_p_trimmed = np.array([x for x in l_p if x > 0 and not is_inf_nan_or_masked(x)])

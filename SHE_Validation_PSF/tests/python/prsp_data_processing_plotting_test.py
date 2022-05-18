@@ -136,7 +136,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                        bin_index = bin_index),
                                                    bin_limits = self.l_bin_limits[bin_index:bin_index + 1],
                                                    l_ids_in_bin = l_test_case_object_ids,
-                                                   ks_test_result = KstestResult(0.1, 0.2))
+                                                   ks_test_result = KstestResult(0.1, 0.2),
+                                                   group_mode = False)
                 hist_plotter.plot()
 
     def test_run_psf_res_val_test(self):

@@ -20,14 +20,19 @@ __updated__ = "2022-04-28"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-from typing import Type, Union
+from typing import List, Optional, Sequence, Type, Union
 
+import numpy as np
+from astropy.table import Row, Table
+from scipy.stats import chi2
 from scipy.stats.stats import Ks_2sampResult, KstestResult
 
 from SHE_PPT import logging
 from SHE_PPT.table_formats.she_star_catalog import SheStarCatalogFormat, SheStarCatalogMeta
 from SHE_PPT.table_utility import SheTableMeta
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_data import BIN_TF
+from SHE_Validation_PSF.data_processing import add_p_columns_to_star_cat
 
 logger = logging.getLogger(__name__)
 
@@ -73,3 +78,71 @@ class SheExtStarCatalogFormat(SheStarCatalogFormat):
 
 
 ESC_TF = SheExtStarCatalogFormat()
+
+
+def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[float]]:
+    """ Calculates and returns p values for all objects or groups in a star catalog.
+    """
+
+    if cat is None:
+        return None
+
+    # Select the columns to use based on the mode
+    if group_mode:
+        id_colname = ESC_TF.group_id
+        chisq_colname = ESC_TF.group_chisq
+        num_pix_colname = ESC_TF.group_unmasked_pix
+        num_fitted_params_colname: Optional[str] = ESC_TF.group_num_fitted_params
+        p_colname = ESC_TF.group_p
+    else:
+        id_colname = ESC_TF.id
+        chisq_colname = ESC_TF.star_chisq
+        num_pix_colname = ESC_TF.star_unmasked_pix
+        num_fitted_params_colname: Optional[str] = None
+        p_colname = ESC_TF.star_p
+
+    # Add a column to store p values if necessary (the function handles a check if it's already there)
+    add_p_columns_to_star_cat(cat)
+
+    # We'll just use one row from each group, or each individual star, for the test
+    l_unique_ids: Sequence[int] = np.unique(cat[id_colname])
+    num_groups = len(l_unique_ids)
+
+    l_ps = np.ones(num_groups, dtype = float)
+
+    # Run the test for each group
+    cat.add_index(id_colname)
+
+    for i, group_id in enumerate(l_unique_ids):
+
+        # Extract just the first row of each group
+        table_or_row_in_group: Union[Table, Row] = cat.loc[group_id]
+
+        if isinstance(table_or_row_in_group, Table):
+            # Multiple rows are in this group, so just get the first
+            data_row: Row = table_or_row_in_group[0]
+        elif isinstance(table_or_row_in_group, Row):
+            data_row: Row = table_or_row_in_group
+        else:
+            raise TypeError(f"Type of object returned by Table.loc is not recognized: {type(table_or_row_in_group)}")
+
+        # Check if the p value has already been calculated, and use that if so
+        if not is_nan_or_masked(data_row[p_colname]):
+            l_ps[i] = data_row[p_colname]
+            continue
+
+        # Run the test on this row
+
+        # Get the number of fitted params - if the colname is None, that means we have 0 fitted params
+        if num_fitted_params_colname is not None:
+            num_fitted_params = data_row[num_fitted_params_colname]
+        else:
+            num_fitted_params = 0
+
+        l_ps[i] = chi2.sf(x = data_row[chisq_colname],
+                          df = data_row[num_pix_colname] - num_fitted_params)
+
+        # Save this value in the initial data table
+        table_or_row_in_group[p_colname] = l_ps[i]
+
+    return l_ps

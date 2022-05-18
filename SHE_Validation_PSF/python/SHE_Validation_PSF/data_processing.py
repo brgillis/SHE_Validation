@@ -25,11 +25,11 @@ __updated__ = "2022-04-23"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 from copy import deepcopy
-from typing import Dict, List, Mapping, Optional, Sequence, TypeVar, Union
+from typing import Dict, List, Mapping, Optional, Sequence, TypeVar
 
 import numpy as np
-from astropy.table import Row, Table
-from scipy.stats import chi2, ks_2samp, kstest, uniform
+from astropy.table import Table
+from scipy.stats import ks_2samp, kstest, uniform
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
@@ -39,7 +39,7 @@ from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
-from SHE_Validation_PSF.utility import ESC_TF, KsResult
+from SHE_Validation_PSF.utility import ESC_TF, KsResult, calculate_p_values
 
 logger = log.getLogger(__name__)
 
@@ -80,6 +80,8 @@ def run_psf_res_val_test(star_cat: Table,
 
         bin_parameter = test_case.bin_parameter
 
+        group_mode = (bin_parameter == BinParameters.TOT)
+
         # Get data for this bin parameter
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case.name]
         l_l_ref_test_case_object_ids = getitem_or_none(d_l_l_ref_test_case_object_ids, test_case.name)
@@ -111,8 +113,7 @@ def run_psf_res_val_test(star_cat: Table,
             # Run the test on this table and store the result
             l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin,
                                                                           ref_star_cat = ref_table_in_bin,
-                                                                          group_mode = (
-                                                                                  bin_parameter == BinParameters.TOT))
+                                                                          group_mode = group_mode)
 
             # Create plots for this bin
             hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
@@ -120,7 +121,8 @@ def run_psf_res_val_test(star_cat: Table,
                                                                                   bin_index = bin_index),
                                                bin_limits = l_bin_limits[bin_index:bin_index + 1],
                                                l_ids_in_bin = l_test_case_object_ids,
-                                               ks_test_result = l_psf_res_result_ps[bin_index])
+                                               ks_test_result = l_psf_res_result_ps[bin_index],
+                                               group_mode = group_mode)
             hist_plotter.plot()
 
             # Add the list of results to the output dict
@@ -235,71 +237,3 @@ def log_if_no_valid_data(l_ps: List[float], l_ps_trimmed: List[float]) -> bool:
                        f"Number of Inf results: {np.sum(np.isinf(l_ps))}\n")
         return True
     return False
-
-
-def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[float]]:
-    """ Calculates and returns p values for all objects or groups in a star catalog.
-    """
-
-    if cat is None:
-        return None
-
-    # Select the columns to use based on the mode
-    if group_mode:
-        id_colname = ESC_TF.group_id
-        chisq_colname = ESC_TF.group_chisq
-        num_pix_colname = ESC_TF.group_unmasked_pix
-        num_fitted_params_colname: Optional[str] = ESC_TF.group_num_fitted_params
-        p_colname = ESC_TF.group_p
-    else:
-        id_colname = ESC_TF.id
-        chisq_colname = ESC_TF.star_chisq
-        num_pix_colname = ESC_TF.star_unmasked_pix
-        num_fitted_params_colname: Optional[str] = None
-        p_colname = ESC_TF.star_p
-
-    # Add a column to store p values if necessary (the function handles a check if it's already there)
-    add_p_columns_to_star_cat(cat)
-
-    # We'll just use one row from each group, or each individual star, for the test
-    l_unique_ids: Sequence[int] = np.unique(cat[id_colname])
-    num_groups = len(l_unique_ids)
-
-    l_ps = np.ones(num_groups, dtype = float)
-
-    # Run the test for each group
-    cat.add_index(id_colname)
-
-    for i, group_id in enumerate(l_unique_ids):
-
-        # Extract just the first row of each group
-        table_or_row_in_group: Union[Table, Row] = cat.loc[group_id]
-
-        if isinstance(table_or_row_in_group, Table):
-            # Multiple rows are in this group, so just get the first
-            data_row: Row = table_or_row_in_group[0]
-        elif isinstance(table_or_row_in_group, Row):
-            data_row: Row = table_or_row_in_group
-        else:
-            raise TypeError(f"Type of object returned by Table.loc is not recognized: {type(table_or_row_in_group)}")
-
-        # Check if the p value has already been calculated, and use that if so
-        if not is_nan_or_masked(data_row[p_colname]):
-            l_ps[i] = data_row[p_colname]
-            continue
-
-        # Run the test on this row
-
-        # Get the number of fitted params - if the colname is None, that means we have 0 fitted params
-        if num_fitted_params_colname is not None:
-            num_fitted_params = data_row[num_fitted_params_colname]
-        else:
-            num_fitted_params = 0
-
-        l_ps[i] = chi2.sf(x = data_row[chisq_colname],
-                          df = data_row[num_pix_colname] - num_fitted_params)
-
-        # Save this value in the initial data table
-        table_or_row_in_group[p_colname] = l_ps[i]
-
-    return l_ps
