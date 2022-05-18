@@ -77,8 +77,13 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
         self.t_good = get_table_of_ids(t = self.star_cat,
                                        l_ids = self.l_ids_in_bin, )
-        self.ref_t_good = None if self.ref_star_cat is None else get_table_of_ids(t = self.ref_star_cat,
-                                                                                  l_ids = self.l_ref_ids_in_bin, )
+        if self.ref_star_cat is not None:
+            self.two_sample_mode = True
+            self.ref_t_good = get_table_of_ids(t = self.ref_star_cat,
+                                               l_ids = self.l_ref_ids_in_bin, )
+        else:
+            self.two_sample_mode = False
+            self.ref_t_good = None
 
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
@@ -93,9 +98,14 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
 
+    STR_HIST_BASE_TITLE = "PSF Res. (Star Pos.) p"
+    STR_HIST_BASE_TITLE_LOG = "PSF Res. (Star Pos.) log(p)"
+
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
     STR_HIST_Y_LABEL_BASE = r"$N/N_{\rm tot}$"
-    STR_HIST_X_LABEL = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
+
+    STR_HIST_X_LABEL = r"$p(\chi^2,{\rm d.o.f.})$"
+    STR_HIST_X_LABEL_LOG = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
 
     # Class attributes
 
@@ -124,8 +134,10 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Remove any bad values from the data
         l_p_trimmed = np.array([x for x in l_p if x > 0 and not is_inf_nan_or_masked(x)])
 
+        l_logp = np.log10(l_p_trimmed)
+
         # Check if there's any valid data for this bin
-        if len(l_p_trimmed) <= 1:
+        if len(l_logp) <= 1:
             # We'll always make the tot plot for testing purposes, but log a warning if no data
             if self.bin_parameter == BinParameters.TOT:
                 logger.warning(self.MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
@@ -138,8 +150,18 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Set up the figure
         self.subplots_adjust()
 
+        # Determine whether we'll plot log or not depending on comparison mode
+        if self.two_sample_mode:
+            l_p_to_plot = l_logp
+            x_label = self.STR_HIST_X_LABEL_LOG
+            base_plot_title = self.STR_HIST_BASE_TITLE_LOG
+        else:
+            l_p_to_plot = l_p_trimmed
+            x_label = self.STR_HIST_X_LABEL
+            base_plot_title = self.STR_HIST_BASE_TITLE
+
         # Plot the histogram
-        plt.hist(l_p_trimmed,
+        plt.hist(l_p_to_plot,
                  bins = self.HIST_NUM_BINS,
                  density = True,
                  cumulative = self.cumulative,
@@ -148,7 +170,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                  linestyle = '-')
 
         # Set the plot title
-        plot_title: str = f"PSF Res. (Star Pos.) p - {self.bin_parameter}"
+        plot_title: str = f"{base_plot_title} - {self.bin_parameter.name}"
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
@@ -159,7 +181,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         if self.cumulative:
             y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
 
-        self.set_xy_labels(self.STR_HIST_X_LABEL, y_label)
+        self.set_xy_labels(x_label, y_label)
 
         # Write some summary statistics
         p_median = np.median(l_p_trimmed)
