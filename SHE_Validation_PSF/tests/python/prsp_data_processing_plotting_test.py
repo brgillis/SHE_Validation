@@ -46,6 +46,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
+    _NUM_TEST_POINTS: int = 1000
+
     def post_setup(self):
         """ Override parent setup, setting up data to work with here.
         """
@@ -93,7 +95,9 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             assert 1.0 >= star_kstest_result.pvalue > DEFAULT_P_FAIL
             assert 1.0 >= group_kstest_result.pvalue > DEFAULT_P_FAIL
 
-            assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
+            # Check both are different (unless both are close to 1.0)
+            assert ((np.isclose(star_kstest_result.pvalue, 1.0) and np.isclose(group_kstest_result.pvalue, 1.0)) or
+                    (not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)))
 
             # Now try with the bad and too-good data, and check that the p-values for each are lower
             star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
@@ -135,7 +139,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                        bin_parameter = self.bin_parameter,
                                                        bin_index = bin_index,
                                                        workdir = self.workdir),
-                                                   bin_limits = self.l_bin_limits[bin_index:bin_index + 1],
+                                                   bin_limits = self.l_bin_limits[bin_index:bin_index + 2],
                                                    l_ids_in_bin = l_test_case_object_ids,
                                                    ks_test_result = KstestResult(0.1, 0.2),
                                                    group_mode = False)

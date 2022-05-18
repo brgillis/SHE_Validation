@@ -121,7 +121,7 @@ def run_psf_res_val_test(star_cat: Table,
                                                file_namer = PsfResSPHistFileNamer(bin_parameter = bin_parameter,
                                                                                   bin_index = bin_index,
                                                                                   workdir = workdir),
-                                               bin_limits = l_bin_limits[bin_index:bin_index + 1],
+                                               bin_limits = l_bin_limits[bin_index:bin_index + 2],
                                                l_ids_in_bin = l_test_case_object_ids,
                                                ks_test_result = l_psf_res_result_ps[bin_index],
                                                group_mode = group_mode)

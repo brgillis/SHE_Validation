@@ -130,7 +130,6 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         # Plot the histogram
         plt.hist(l_p_trimmed,
-                 log = True,
                  bins = self.HIST_NUM_BINS,
                  density = True,
                  cumulative = self.cumulative,
@@ -139,7 +138,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                  linestyle = '-')
 
         # Set the plot title
-        plot_title: str = f"PSF Res. (Star Pos.) log(p) - {self.bin_parameter}"
+        plot_title: str = f"PSF Res. (Star Pos.) p - {self.bin_parameter}"
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
