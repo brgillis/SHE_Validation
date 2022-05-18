@@ -20,6 +20,7 @@ __updated__ = "2022-04-28"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
+
 import abc
 from typing import Optional, Sequence
 
@@ -105,13 +106,12 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         # Get the data we want to plot
         l_p: Sequence[float] = np.array(coerce_to_list(self.t_good[ESC_TF.p]))
-        l_logp: Sequence[float] = np.log10(l_p)
 
         # Remove any bad values from the data
-        l_logp = np.array([x for x in l_logp if not is_inf_nan_or_masked(x)])
+        l_p_trimmed = np.array([x for x in l_p if x > 0 and not is_inf_nan_or_masked(x)])
 
         # Check if there's any valid data for this bin
-        if len(l_logp) <= 1:
+        if len(l_p_trimmed) <= 1:
             # We'll always make the tot plot for testing purposes, but log a warning if no data
             if self.bin_parameter == BinParameters.TOT:
                 logger.warning(self.MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
@@ -125,7 +125,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         self.subplots_adjust()
 
         # Plot the histogram
-        plt.hist(l_logp,
+        plt.hist(l_p_trimmed,
+                 log = True,
                  bins = self.HIST_NUM_BINS,
                  density = True,
                  cumulative = self.cumulative,
@@ -148,8 +149,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         self.set_xy_labels(self.STR_HIST_X_LABEL, y_label)
 
         # Write some summary statistics
-        logp_median = np.median(l_logp)
-        p_median = 10 ** logp_median
+        p_median = np.median(l_p_trimmed)
 
         # Write the summary p values on the plot
         self.summary_text([self.STR_HIST_TEST_P_MED_LABEL + str(p_median),
