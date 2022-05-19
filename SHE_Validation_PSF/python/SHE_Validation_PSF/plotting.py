@@ -44,7 +44,8 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     """
 
     # Class constants
-    TEST_CAT_LEGEND_NAME = "Test Catalogue"
+    TEST_CAT_LEGEND_NAME = "Test Catalog"
+    REF_CAT_LEGEND_NAME = "Reference Catalog"
 
     STR_KS_P_LABEL = r"$p_{\rm KS}$: "
     KS_P_DIGITS = 2
@@ -92,8 +93,9 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
     # Class constants
 
-    STR_HIST_TEST_P_MED_LABEL = r"Median $p(\chi^2,{\rm d.o.f.})$: "
-    TEST_P_MED_DIGITS = 2
+    STR_HIST_TEST_P_MED_LABEL = r"Median test $p(\chi^2,{\rm d.o.f.})$: "
+    STR_HIST_REF_P_MED_LABEL = r"Median reference $p(\chi^2,{\rm d.o.f.})$: "
+    P_MED_DIGITS = 2
 
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
@@ -155,12 +157,22 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
             l_p_to_plot = l_logp
             x_label = self.STR_HIST_X_LABEL_LOG
             base_plot_title = self.STR_HIST_BASE_TITLE_LOG
+
+            # Get data for the reference catalog here
+            l_ref_p = calculate_p_values(cat = self.ref_t_good,
+                                         group_mode = self.group_mode)
+            l_ref_p_trimmed = np.array([x for x in l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
+
+            l_ref_logp = np.log10(l_ref_p_trimmed)
         else:
             l_p_to_plot = l_p_trimmed
             x_label = self.STR_HIST_X_LABEL
             base_plot_title = self.STR_HIST_BASE_TITLE
+            l_ref_p = None
+            l_ref_p_trimmed = None
+            l_ref_logp = None
 
-        # Plot the histogram
+        # Plot the histogram for both test and reference catalogs
         plt.hist(l_p_to_plot,
                  bins = self.HIST_NUM_BINS,
                  density = True,
@@ -168,6 +180,18 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                  histtype = self.HIST_TYPE,
                  label = self.TEST_CAT_LEGEND_NAME,
                  linestyle = '-')
+
+        if self.two_sample_mode:
+            # Add the other histogram, plus a legend to differentiate them
+            plt.hist(l_ref_logp,
+                     bins = self.HIST_NUM_BINS,
+                     density = True,
+                     cumulative = self.cumulative,
+                     histtype = self.HIST_TYPE,
+                     label = self.REF_CAT_LEGEND_NAME,
+                     linestyle = '--')
+
+            plt.legend(loc = "upper right")
 
         # Set the plot title
         plot_title: str = f"{base_plot_title} - {self.bin_parameter.name}"
@@ -186,9 +210,16 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Write some summary statistics
         p_median = np.median(l_p_trimmed)
 
+        l_summary_text = [self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.P_MED_DIGITS}e}"]
+
+        if self.two_sample_mode:
+            ref_p_median = np.median(l_ref_p_trimmed)
+            l_summary_text.append(self.STR_HIST_REF_P_MED_LABEL + f"{ref_p_median:.{self.P_MED_DIGITS}e}")
+
+        l_summary_text.append(self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}")
+
         # Write the summary p values on the plot
-        self.summary_text([self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.TEST_P_MED_DIGITS}e}",
-                           self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}"])
+        self.summary_text(l_summary_text)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
