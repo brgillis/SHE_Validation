@@ -133,7 +133,7 @@ def run_psf_res_val_test(star_cat: Table,
                                                    ks_test_result = l_psf_res_result_ps[bin_index],
                                                    group_mode = group_mode,
                                                    cumulative = cumulative)
-            hist_plotter.plot()
+                hist_plotter.plot()
 
             # Add the list of results to the output dict
             d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
