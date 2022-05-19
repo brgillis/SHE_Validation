@@ -23,7 +23,7 @@ __updated__ = "2021-08-30"
 
 import abc
 from copy import deepcopy
-from typing import Iterable, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from matplotlib import cm, pyplot as plt
@@ -82,6 +82,14 @@ class ValidationPlotter(abc.ABC):
 
         if file_namer is not None:
             self.file_namer = file_namer
+
+        # Declare instance attributes which will be calculated later
+        self.x_label: Optional[str] = None
+        self.y_label: Optional[str] = None
+
+        self.plot_title: Optional[str] = None
+
+        self.l_summary_text: Optional[List[str]] = None
 
     @property
     def method(self) -> Optional[ShearEstimationMethods]:

@@ -81,13 +81,16 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
         if self.ref_star_cat is not None:
             # Ensure we have reference IDs supplied
             if self.l_ref_ids_in_bin is None:
-                raise ValueError("l_ref_ids_in_bin must be supplied if ref_star_cat is supplied.")
+                raise ValueError("self.l_ref_ids_in_bin must be supplied if ref_star_cat is supplied.")
             self.two_sample_mode = True
             self.ref_t_good = get_table_of_ids(t = self.ref_star_cat,
                                                l_ids = self.l_ref_ids_in_bin, )
         else:
             self.two_sample_mode = False
             self.ref_t_good = None
+
+        # Declare instance attributes which will be calculated later
+        self.base_plot_title: Optional[str] = None
 
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
@@ -128,18 +131,26 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         self.cumulative = cumulative if cumulative is not None else self.cumulative
 
+        # Declare instance attributes which will be calculated later
+        self.l_p: Optional[np.ndarray] = None
+        self.l_p_trimmed: Optional[np.ndarray] = None
+        self.l_p_to_plot: Optional[np.ndarray] = None
+        self.l_ref_p: Optional[np.ndarray] = None
+        self.l_ref_p_trimmed: Optional[np.ndarray] = None
+        self.l_ref_logp: Optional[np.ndarray] = None
+
     def plot(self):
         """ Plot histograms of log10(p_chisq) values.
         """
 
         # Get the data we want to plot
-        l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
-                                                  group_mode = self.group_mode)
+        self.l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
+                                                       group_mode = self.group_mode)
 
         # Remove any bad values from the data
-        l_p_trimmed = np.array([x for x in l_p if x > 0 and not is_inf_nan_or_masked(x)])
+        self.l_p_trimmed = np.array([x for x in self.l_p if x > 0 and not is_inf_nan_or_masked(x)])
 
-        l_logp = np.log10(l_p_trimmed)
+        l_logp = np.log10(self.l_p_trimmed)
 
         # Check if there's any valid data for this bin
         if len(l_logp) <= 1:
@@ -157,26 +168,26 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
-            l_p_to_plot = l_logp
-            x_label = self.STR_HIST_X_LABEL_LOG
-            base_plot_title = self.STR_HIST_BASE_TITLE_LOG
+            self.l_p_to_plot = l_logp
+            self.x_label = self.STR_HIST_X_LABEL_LOG
+            self.base_plot_title = self.STR_HIST_BASE_TITLE_LOG
 
             # Get data for the reference catalog here
-            l_ref_p = calculate_p_values(cat = self.ref_t_good,
-                                         group_mode = self.group_mode)
-            l_ref_p_trimmed = np.array([x for x in l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
+            self.l_ref_p = calculate_p_values(cat = self.ref_t_good,
+                                              group_mode = self.group_mode)
+            self.l_ref_p_trimmed = np.array([x for x in self.l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
 
-            l_ref_logp = np.log10(l_ref_p_trimmed)
+            self.l_ref_logp = np.log10(self.l_ref_p_trimmed)
         else:
-            l_p_to_plot = l_p_trimmed
-            x_label = self.STR_HIST_X_LABEL
-            base_plot_title = self.STR_HIST_BASE_TITLE
-            l_ref_p = None
-            l_ref_p_trimmed = None
-            l_ref_logp = None
+            self.l_p_to_plot = self.l_p_trimmed
+            self.x_label = self.STR_HIST_X_LABEL
+            self.base_plot_title = self.STR_HIST_BASE_TITLE
+            self.l_ref_p = None
+            self.l_ref_p_trimmed = None
+            self.l_ref_logp = None
 
         # Plot the histogram for both test and reference catalogs
-        plt.hist(l_p_to_plot,
+        plt.hist(self.l_p_to_plot,
                  bins = self.HIST_NUM_BINS,
                  density = True,
                  cumulative = self.cumulative,
@@ -186,7 +197,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         if self.two_sample_mode:
             # Add the other histogram, plus a legend to differentiate them
-            plt.hist(l_ref_logp,
+            plt.hist(self.l_ref_logp,
                      bins = self.HIST_NUM_BINS,
                      density = True,
                      cumulative = self.cumulative,
@@ -197,32 +208,32 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
             plt.legend(loc = "upper right")
 
         # Set the plot title
-        plot_title: str = f"{base_plot_title} - {self.bin_parameter.name}"
+        self.plot_title: str = f"{self.base_plot_title} - {self.bin_parameter.name}"
 
         if self.bin_parameter != BinParameters.TOT:
-            plot_title += f" {self.bin_limits}"
+            self.plot_title += f" {self.bin_limits}"
 
-        self.set_title(plot_title)
+        self.set_title(self.plot_title)
 
-        y_label = self.STR_HIST_Y_LABEL_BASE
+        self.y_label = self.STR_HIST_Y_LABEL_BASE
         if self.cumulative:
-            y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
+            self.y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
 
-        self.set_xy_labels(x_label, y_label)
+        self.set_xy_labels(self.x_label, self.y_label)
 
         # Write some summary statistics
-        p_median = np.median(l_p_trimmed)
+        p_median = np.median(self.l_p_trimmed)
 
-        l_summary_text = [self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.P_MED_DIGITS}e}"]
+        self.l_summary_text = [self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.P_MED_DIGITS}e}"]
 
         if self.two_sample_mode:
-            ref_p_median = np.median(l_ref_p_trimmed)
-            l_summary_text.append(self.STR_HIST_REF_P_MED_LABEL + f"{ref_p_median:.{self.P_MED_DIGITS}e}")
+            ref_p_median = np.median(self.l_ref_p_trimmed)
+            self.l_summary_text.append(self.STR_HIST_REF_P_MED_LABEL + f"{ref_p_median:.{self.P_MED_DIGITS}e}")
 
-        l_summary_text.append(self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}")
+        self.l_summary_text.append(self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}")
 
         # Write the summary p values on the plot
-        self.summary_text(l_summary_text)
+        self.summary_text(self.l_summary_text)
 
         # Save the plot (which generates a filename) and log it
         super()._save_plot()
