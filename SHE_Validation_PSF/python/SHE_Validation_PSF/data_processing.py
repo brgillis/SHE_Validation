@@ -36,7 +36,7 @@ from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.file_io import PsfResSPHistFileNamer
+from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
 from SHE_Validation_PSF.utility import (KsResult, add_snr_column_to_star_cat, calculate_p_values,
                                         get_table_in_bin, getitem_or_none, )
@@ -117,14 +117,22 @@ def run_psf_res_val_test(star_cat: Table,
                                                                           group_mode = group_mode)
 
             # Create plots for this bin
-            hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
-                                               file_namer = PsfResSPHistFileNamer(bin_parameter = bin_parameter,
-                                                                                  bin_index = bin_index,
-                                                                                  workdir = workdir),
-                                               bin_limits = l_bin_limits[bin_index:bin_index + 2],
-                                               l_ids_in_bin = l_test_case_object_ids,
-                                               ks_test_result = l_psf_res_result_ps[bin_index],
-                                               group_mode = group_mode)
+            for (cumulative, file_namer_type) in ((False, PsfResSPHistFileNamer),
+                                                  (True, PsfResSPCumHistFileNamer)):
+
+                file_namer = file_namer_type(bin_parameter = bin_parameter,
+                                             bin_index = bin_index,
+                                             workdir = workdir)
+
+                hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
+                                                   ref_star_cat = ref_star_cat,
+                                                   file_namer = file_namer,
+                                                   bin_limits = l_bin_limits[bin_index:bin_index + 2],
+                                                   l_ids_in_bin = l_test_case_object_ids,
+                                                   l_ref_ids_in_bin = l_ref_test_case_object_ids,
+                                                   ks_test_result = l_psf_res_result_ps[bin_index],
+                                                   group_mode = group_mode,
+                                                   cumulative = cumulative)
             hist_plotter.plot()
 
             # Add the list of results to the output dict
