@@ -23,13 +23,16 @@ __updated__ = "2021-08-19"
 __all__ = ["__authors__", "__copyright__", "__credits__", "__license__", "__version__", "__maintainer__", "__email__",
            "__status__", "__url__"]
 
+# Get the version from the compiled file created by Elements
+from SHE_VALIDATION_VERSION import SHE_VALIDATION_VERSION_STRING
+
 BG = "Bryan Gillis"
 
 __authors__ = ["Rob Blake", BG]
 __copyright__ = 'Copyright (C) 2012-2021 Euclid Science Ground Segment'
 __credits__ = ["Rob Blake", BG]
 __license__ = "GNU LGPL 3.0"
-__version__ = "8.3"
+__version__ = SHE_VALIDATION_VERSION_STRING
 __maintainer__ = BG
 __email__ = "b.gillis@roe.ac.uk"
 __status__ = 'Development'
