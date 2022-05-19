@@ -79,6 +79,9 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
         self.t_good = get_table_of_ids(t = self.star_cat,
                                        l_ids = self.l_ids_in_bin, )
         if self.ref_star_cat is not None:
+            # Ensure we have reference IDs supplied
+            if self.l_ref_ids_in_bin is None:
+                raise ValueError("l_ref_ids_in_bin must be supplied if ref_star_cat is supplied.")
             self.two_sample_mode = True
             self.ref_t_good = get_table_of_ids(t = self.ref_star_cat,
                                                l_ids = self.l_ref_ids_in_bin, )
@@ -94,7 +97,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     # Class constants
 
     STR_HIST_TEST_P_MED_LABEL = r"Median test $p(\chi^2,{\rm d.o.f.})$: "
-    STR_HIST_REF_P_MED_LABEL = r"Median reference $p(\chi^2,{\rm d.o.f.})$: "
+    STR_HIST_REF_P_MED_LABEL = r"Median ref. $p(\chi^2,{\rm d.o.f.})$: "
     P_MED_DIGITS = 2
 
     HIST_TYPE = 'step'
@@ -104,7 +107,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     STR_HIST_BASE_TITLE_LOG = "PSF Res. (Star Pos.) log(p)"
 
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
-    STR_HIST_Y_LABEL_BASE = r"$N/N_{\rm tot}$"
+    STR_HIST_Y_LABEL_BASE = r"$n$"
 
     STR_HIST_X_LABEL = r"$p(\chi^2,{\rm d.o.f.})$"
     STR_HIST_X_LABEL_LOG = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"

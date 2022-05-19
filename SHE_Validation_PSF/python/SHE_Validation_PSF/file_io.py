@@ -32,15 +32,23 @@ class PsfResSPPlotFileNamer(SheValFileNamer):
 
 
 class PsfResSPHistFileNamer(PsfResSPPlotFileNamer):
-    """ SheFileNamer specialized for Shear Bias test cases.
+    """ SheFileNamer specialized for PSF-Res (Star Pos) histogram plotting.
     """
 
     # Attributes from the base class we're overriding
     _type_name_body: str = "PRSP-HIST"
 
 
+class PsfResSPCumHistFileNamer(PsfResSPHistFileNamer):
+    """ SheFileNamer specialized for PSF-Res (Star Pos) cumulative histogram plotting.
+    """
+
+    # Attributes from the base class we're overriding
+    _type_name_tail: str = "CUM"
+
+
 class PsfResSPScatterFileNamer(PsfResSPPlotFileNamer):
-    """ SheFileNamer specialized for Shear Bias test cases.
+    """ SheFileNamer specialized for PSF-Res (Star Pos) scatterplot plotting.
     """
 
     # Attributes from the base class we're overriding
