@@ -71,6 +71,9 @@ class ValidationPlotter(abc.ABC):
     _ax: Optional[Axes] = None
     _xlim: Optional[Tuple[float, float]] = None
     _ylim: Optional[Tuple[float, float]] = None
+    _x_label: Optional[str] = None
+    _y_label: Optional[str] = None
+    _plot_title: Optional[str] = None
 
     # Output values from plotting
     plot_filename: Optional[str] = None
@@ -84,10 +87,6 @@ class ValidationPlotter(abc.ABC):
             self.file_namer = file_namer
 
         # Declare instance attributes which will be calculated later
-        self.x_label: Optional[str] = None
-        self.y_label: Optional[str] = None
-
-        self.plot_title: Optional[str] = None
 
         self.l_summary_text: Optional[List[str]] = None
 
@@ -155,7 +154,37 @@ class ValidationPlotter(abc.ABC):
         self.ax.set_ylim(ylim[0], ylim[1])
         self._ylim = ylim
 
-    # Public methods
+    @property
+    def x_label(self) -> str:
+        if self._x_label is None:
+            self._x_label = self._get_x_label()
+        return self._x_label
+
+    @x_label.setter
+    def x_label(self, x_label: str) -> None:
+        self._x_label = x_label
+
+    @property
+    def y_label(self) -> str:
+        if self._y_label is None:
+            self._y_label = self._get_y_label()
+        return self._y_label
+
+    @y_label.setter
+    def y_label(self, y_label: str) -> None:
+        self._y_label = y_label
+
+    @property
+    def plot_title(self) -> str:
+        if self._plot_title is None:
+            self._plot_title = self._get_plot_title()
+        return self._plot_title
+
+    @plot_title.setter
+    def plot_title(self, plot_title: str) -> None:
+        self._plot_title = plot_title
+
+    # Private methods
 
     def _save_plot(self) -> str:
 
@@ -170,6 +199,26 @@ class ValidationPlotter(abc.ABC):
                     f"{self.qualified_plot_filename}")
 
         return self.plot_filename
+
+    @staticmethod
+    def _get_x_label() -> str:
+        """ Overridable method to get the label for the X axis.
+        """
+        return ""
+
+    @staticmethod
+    def _get_y_label() -> str:
+        """ Overridable method to get the label for the Y axis.
+        """
+        return ""
+
+    @staticmethod
+    def _get_plot_title() -> str:
+        """ Overridable method to get the plot title
+        """
+        return ""
+
+    # Public methods
 
     def density_scatter(self,
                         l_x: np.ndarray,

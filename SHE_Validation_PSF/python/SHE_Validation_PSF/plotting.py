@@ -108,6 +108,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
     STR_HIST_BASE_TITLE = "PSF Res. (Star Pos.) p"
     STR_HIST_BASE_TITLE_LOG = "PSF Res. (Star Pos.) log(p)"
+    STR_HIST_TITLE_CUMULATIVE_TAIL = " (cumulative)"
 
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
     STR_HIST_Y_LABEL_BASE = r"$n$"
@@ -139,6 +140,44 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         self.l_ref_p_trimmed: Optional[np.ndarray] = None
         self.l_ref_logp: Optional[np.ndarray] = None
 
+    # Private method overrides
+
+    def _get_x_label(self) -> str:
+        """ Override parent method to get the label for the X axis.
+        """
+        if self.two_sample_mode:
+            return self.STR_HIST_X_LABEL_LOG
+        else:
+            return self.STR_HIST_X_LABEL
+
+    def _get_y_label(self) -> str:
+        """ Override parent method to get the label for the Y axis.
+        """
+
+        y_label = self.STR_HIST_Y_LABEL_BASE
+        if self.cumulative:
+            y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
+
+        return y_label
+
+    def _get_plot_title(self) -> str:
+        """ Overridable method to get the plot title
+        """
+        if self.two_sample_mode:
+            plot_title = self.STR_HIST_BASE_TITLE_LOG
+        else:
+            plot_title = self.STR_HIST_BASE_TITLE
+
+        if self.cumulative:
+            plot_title += self.STR_HIST_TITLE_CUMULATIVE_TAIL
+
+        plot_title += self.bin_parameter.name
+
+        if self.bin_parameter != BinParameters.TOT:
+            plot_title += f" {self.bin_limits}"
+
+        return plot_title
+
     def plot(self):
         """ Plot histograms of log10(p_chisq) values.
         """
@@ -169,8 +208,6 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
             self.l_p_to_plot = l_logp
-            self.x_label = self.STR_HIST_X_LABEL_LOG
-            self.base_plot_title = self.STR_HIST_BASE_TITLE_LOG
 
             # Get data for the reference catalog here
             self.l_ref_p = calculate_p_values(cat = self.ref_t_good,
@@ -180,8 +217,6 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
             self.l_ref_logp = np.log10(self.l_ref_p_trimmed)
         else:
             self.l_p_to_plot = self.l_p_trimmed
-            self.x_label = self.STR_HIST_X_LABEL
-            self.base_plot_title = self.STR_HIST_BASE_TITLE
             self.l_ref_p = None
             self.l_ref_p_trimmed = None
             self.l_ref_logp = None
@@ -208,16 +243,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
             plt.legend(loc = "upper right")
 
         # Set the plot title
-        self.plot_title: str = f"{self.base_plot_title} - {self.bin_parameter.name}"
-
-        if self.bin_parameter != BinParameters.TOT:
-            self.plot_title += f" {self.bin_limits}"
 
         self.set_title(self.plot_title)
-
-        self.y_label = self.STR_HIST_Y_LABEL_BASE
-        if self.cumulative:
-            self.y_label += self.STR_HIST_Y_LABEL_CUMULATIVE_TAIL
 
         self.set_xy_labels(self.x_label, self.y_label)
 
