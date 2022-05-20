@@ -71,9 +71,12 @@ class ValidationPlotter(abc.ABC):
     _ax: Optional[Axes] = None
     _xlim: Optional[Tuple[float, float]] = None
     _ylim: Optional[Tuple[float, float]] = None
+    _legend_loc: Optional[str] = None
+    _plot_title: Optional[str] = None
     _x_label: Optional[str] = None
     _y_label: Optional[str] = None
-    _plot_title: Optional[str] = None
+    _l_summary_text: Optional[List[str]] = None
+    _msg_plot_saved: Optional[str] = None
 
     # Output values from plotting
     plot_filename: Optional[str] = None
@@ -85,10 +88,6 @@ class ValidationPlotter(abc.ABC):
 
         if file_namer is not None:
             self.file_namer = file_namer
-
-        # Declare instance attributes which will be calculated later
-
-        self.l_summary_text: Optional[List[str]] = None
 
     @property
     def method(self) -> Optional[ShearEstimationMethods]:
@@ -184,21 +183,49 @@ class ValidationPlotter(abc.ABC):
     def plot_title(self, plot_title: str) -> None:
         self._plot_title = plot_title
 
-    # Private methods
+    @property
+    def legend_loc(self) -> str:
+        if self._legend_loc is None:
+            self._legend_loc = self._get_legend_loc()
+        return self._legend_loc
 
-    def _save_plot(self) -> str:
+    @legend_loc.setter
+    def legend_loc(self, legend_loc: str) -> None:
+        self._legend_loc = legend_loc
 
-        # Get the filename to save to
-        self.plot_filename = self.file_namer.filename
-        self.qualified_plot_filename = self.file_namer.qualified_filename
+    @property
+    def l_summary_text(self) -> List[str]:
+        if self._l_summary_text is None:
+            self._l_summary_text = self._get_l_summary_text()
+        return self._l_summary_text
 
-        # Save the figure and close it
-        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
-                    bbox_inches = "tight", pad_inches = 0.05)
-        logger.info(f"Saved {self.file_namer.type_name} plot {self.file_namer.instance_id} to "
-                    f"{self.qualified_plot_filename}")
+    @l_summary_text.setter
+    def l_summary_text(self, l_summary_text: List[str]) -> None:
+        self._l_summary_text = l_summary_text
 
-        return self.plot_filename
+    @property
+    def msg_plot_saved(self) -> str:
+        if self._msg_plot_saved is None:
+            self._msg_plot_saved = self._get_msg_plot_saved()
+        return self._msg_plot_saved
+
+    @msg_plot_saved.setter
+    def msg_plot_saved(self, msg_plot_saved: str) -> None:
+        self._msg_plot_saved = msg_plot_saved
+
+    # Protected methods intended to be overridden as needed by child classes
+
+    @staticmethod
+    def _get_legend_loc() -> Optional[str]:
+        """ Overridable method to get location of the legend (None = don't display legend)
+        """
+        return None
+
+    @staticmethod
+    def _get_plot_title() -> str:
+        """ Overridable method to get the plot title
+        """
+        return ""
 
     @staticmethod
     def _get_x_label() -> str:
@@ -213,12 +240,27 @@ class ValidationPlotter(abc.ABC):
         return ""
 
     @staticmethod
-    def _get_plot_title() -> str:
-        """ Overridable method to get the plot title
+    def _get_l_summary_text() -> List[str]:
+        """ Overridable method to get the summary text to be printed on the plot
         """
-        return ""
+        return []
 
-    # Public methods
+    def _get_msg_plot_saved(self) -> str:
+        """ Overridable method to get the method to print to log that a plot has been saved
+        """
+        return f"Saved plot to {self.qualified_plot_filename}"
+
+    def _calc_plotting_data(self):
+        """ Overridable method to get all the data we want to plot
+        """
+        pass
+
+    def _draw_plot(self):
+        """ Overridable method for drawing the plot
+        """
+        pass
+
+    # Protected methods for use as needed by child classes
 
     def density_scatter(self,
                         l_x: np.ndarray,
@@ -293,6 +335,21 @@ class ValidationPlotter(abc.ABC):
         bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
         self.ax.plot(bestfit_x, bestfit_y, label = label, color = color, linestyle = linestyle)
 
+    # Private methods
+
+    def _save_plot(self) -> str:
+
+        # Get the filename to save to
+        self.plot_filename = self.file_namer.filename
+        self.qualified_plot_filename = self.file_namer.qualified_filename
+
+        # Save the figure and close it
+        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
+                    bbox_inches = "tight", pad_inches = 0.05)
+        logger.info(self.msg_plot_saved)
+
+        return self.plot_filename
+
     def reset_axes(self):
         """ Resets the axes to saved xlim/ylim from when they were first accessed.
         """
@@ -348,8 +405,40 @@ class ValidationPlotter(abc.ABC):
     def set_title(self, plot_title):
         plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-    @abc.abstractmethod
+    def _draw_legend(self):
+        if self.legend_loc is not None:
+            plt.legend(loc = self.legend_loc)
+
+    # Public methods
+
     def plot(self, *args, **kwargs):
         """ Makes and saves the plot(s).
         """
-        pass
+
+        cancel_plotting = self._calc_plotting_data()
+        if cancel_plotting:
+            # We've received a signal to cancel plotting without raising an error, so return here
+            return
+
+        # Set up the figure
+        self.subplots_adjust()
+
+        # Draw the figure
+        self._draw_plot()
+
+        # Add the legend to the figure
+        self._draw_legend()
+
+        # Set the plot title and labels
+        self.set_title(self.plot_title)
+        self.set_xy_labels(self.x_label, self.y_label)
+
+        # Write the text on the plot
+        self.summary_text(self.l_summary_text)
+
+        # Save the plot (which generates a filename) and log it
+        self._save_plot()
+
+        logger.info(self.msg_plot_saved)
+
+        plt.close()

@@ -22,7 +22,7 @@ __updated__ = "2022-04-28"
 # Boston, MA 02110-1301 USA
 
 import abc
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence
 
 import numpy as np
 from astropy.table import Table
@@ -178,17 +178,46 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
         return plot_title
 
-    def plot(self):
-        """ Plot histograms of log10(p_chisq) values.
+    def _get_legend_loc(self) -> Optional[str]:
+        """ Override parent method to get location of the legend (None = don't display legend)
+        """
+        if self.two_sample_mode:
+            return "lower right"
+        return None
+
+    def _get_l_summary_text(self) -> List[str]:
+        """ Override parent method to get summary text.
         """
 
-        # Get the data we want to plot
+        # Add a line for the median p value of test data
+        p_median = np.median(self.l_p_trimmed)
+        l_summary_text = [self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.P_MED_DIGITS}e}"]
+
+        # Optionally add a line for the median p value of reference data
+        if self.two_sample_mode:
+            ref_p_median = np.median(self.l_ref_p_trimmed)
+            l_summary_text.append(self.STR_HIST_REF_P_MED_LABEL + f"{ref_p_median:.{self.P_MED_DIGITS}e}")
+
+        # Add a line for the p value from the KS test
+        l_summary_text.append(self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}")
+
+        return l_summary_text
+
+    def _get_msg_plot_saved(self) -> str:
+        """ Override parent method to get the method to print to log that a plot has been saved
+        """
+        return (f"Saved {self.bin_parameter} {self.bin_limits} PSF Res (Star Pos.) histogram to"
+                f" {self.qualified_plot_filename}")
+
+    def _calc_plotting_data(self):
+        """ Override parent method to get all the data we want to plot.
+        """
+
         self.l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
                                                        group_mode = self.group_mode)
 
         # Remove any bad values from the data
         self.l_p_trimmed = np.array([x for x in self.l_p if x > 0 and not is_inf_nan_or_masked(x)])
-
         l_logp = np.log10(self.l_p_trimmed)
 
         # Check if there's any valid data for this bin
@@ -198,12 +227,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                 logger.warning(self.MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
             else:
                 logger.debug(self.MSG_INSUFFICIENT_DATA, self.bin_parameter.value, self.bin_limits)
-                return
-
-        # Make a histogram of the data
-
-        # Set up the figure
-        self.subplots_adjust()
+                return True
 
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
@@ -221,6 +245,11 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
             self.l_ref_p_trimmed = None
             self.l_ref_logp = None
 
+        return False
+
+    def _draw_plot(self):
+        """ Override parent method for drawing the plot.
+        """
         # Plot the histogram for both test and reference catalogs
         plt.hist(self.l_p_to_plot,
                  bins = self.HIST_NUM_BINS,
@@ -229,7 +258,6 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                  histtype = self.HIST_TYPE,
                  label = self.TEST_CAT_LEGEND_NAME,
                  linestyle = '-')
-
         if self.two_sample_mode:
             # Add the other histogram, plus a legend to differentiate them
             plt.hist(self.l_ref_logp,
@@ -240,31 +268,34 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                      label = self.REF_CAT_LEGEND_NAME,
                      linestyle = '--')
 
-            plt.legend(loc = "upper right")
+    def plot(self):
+        """ Plot histograms of log10(p_chisq) values.
+        """
 
-        # Set the plot title
+        cancel_plotting = self._calc_plotting_data()
+        if cancel_plotting:
+            # We've received a signal to cancel plotting without raising an error, so return here
+            return
 
+        # Set up the figure
+        self.subplots_adjust()
+
+        # Draw the figure
+        self._draw_plot()
+
+        # Add the legend to the figure
+        self._draw_legend()
+
+        # Set the plot title and labels
         self.set_title(self.plot_title)
-
         self.set_xy_labels(self.x_label, self.y_label)
 
-        # Write some summary statistics
-        p_median = np.median(self.l_p_trimmed)
-
-        self.l_summary_text = [self.STR_HIST_TEST_P_MED_LABEL + f"{p_median:.{self.P_MED_DIGITS}e}"]
-
-        if self.two_sample_mode:
-            ref_p_median = np.median(self.l_ref_p_trimmed)
-            self.l_summary_text.append(self.STR_HIST_REF_P_MED_LABEL + f"{ref_p_median:.{self.P_MED_DIGITS}e}")
-
-        self.l_summary_text.append(self.STR_KS_P_LABEL + f"{self.ks_test_result.pvalue:.{self.KS_P_DIGITS}f}")
-
-        # Write the summary p values on the plot
+        # Write the text on the plot
         self.summary_text(self.l_summary_text)
 
         # Save the plot (which generates a filename) and log it
-        super()._save_plot()
-        logger.info(f"Saved {self.bin_parameter} {self.bin_limits} PSF Res (Star Pos.) histogram to"
-                    f" {self.qualified_plot_filename}")
+        self._save_plot()
+
+        logger.info(self.msg_plot_saved)
 
         plt.close()
