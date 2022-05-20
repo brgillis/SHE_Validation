@@ -217,7 +217,8 @@ class ValidationPlotter(abc.ABC):
 
     # Public methods
 
-    def plot(self, *args, **kwargs):
+    def plot(self,
+             show: bool = False):
         """ Makes and saves the plot(s).
         """
 
@@ -227,7 +228,7 @@ class ValidationPlotter(abc.ABC):
             return
 
         # Set up the figure
-        self.__subplots_adjust()
+        self._subplots_adjust()
 
         # Draw the figure
         self._draw_plot()
@@ -236,11 +237,16 @@ class ValidationPlotter(abc.ABC):
         self.__draw_legend()
 
         # Set the plot title and labels
+        # TODO: Remove args, and just use attributes within methods here
         self.__set_title(self.plot_title)
         self.__set_xy_labels(self.x_label, self.y_label)
 
         # Write the text on the plot
         self.__write_summary_text(self.l_summary_text)
+
+        # Display the plot if requested
+        if show:
+            plt.show()
 
         # Save the plot (which generates a filename) and log it
         self.__save_plot()
@@ -290,6 +296,11 @@ class ValidationPlotter(abc.ABC):
         """ Overridable method to get all the data we want to plot
         """
         pass
+
+    def _subplots_adjust(self):
+        """ Set up the figure with a single subplot in a standard format.
+        """
+        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
 
     def _draw_plot(self):
         """ Overridable method for drawing the plot
@@ -400,11 +411,6 @@ class ValidationPlotter(abc.ABC):
         logger.info(self.msg_plot_saved)
 
         return self.plot_filename
-
-    def __subplots_adjust(self):
-        """ Set up the figure with a single subplot in a standard format.
-        """
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
 
     def __write_summary_text(self,
                              l_s: Union[str, Iterable[str]]):
