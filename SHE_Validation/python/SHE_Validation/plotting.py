@@ -139,11 +139,21 @@ class ValidationPlotter(abc.ABC):
             self._xlim = deepcopy(self.ax.get_xlim())
         return self._xlim
 
+    @xlim.setter
+    def xlim(self, xlim: Tuple[float, float]) -> None:
+        self.ax.set_xlim(xlim[0], xlim[1])
+        self._xlim = xlim
+
     @property
     def ylim(self) -> Tuple[float, float]:
         if self._ylim is None:
             self._ylim = deepcopy(self.ax.get_ylim())
         return self._ylim
+
+    @ylim.setter
+    def ylim(self, ylim: Tuple[float, float]) -> None:
+        self.ax.set_ylim(ylim[0], ylim[1])
+        self._ylim = ylim
 
     # Public methods
 
