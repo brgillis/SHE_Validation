@@ -100,7 +100,7 @@ class ShearBiasPlotter(ValidationPlotter):
         self.file_namer.instance_id_tail = f"g{i}"
 
         # Use the parent method to save the plot and get the filename of it
-        bias_plot_filename = super()._save_plot()
+        bias_plot_filename = super().__save_plot()
 
         # Record the filename for this plot in the filenames dict
         self.d_bias_plot_filename[i] = bias_plot_filename
@@ -120,33 +120,33 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Set up the figure, with a density scatter as a base
 
-        self.subplots_adjust()
+        self.__subplots_adjust()
 
-        self.density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
+        self._density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
 
         plot_title = f"{self.method} Shear Estimates: g{i}"
-        self.set_title(plot_title)
+        self.__set_title(plot_title)
 
-        self.set_xy_labels(x_label = f"True g{i}",
-                           y_label = f"Estimated g{i}")
+        self.__set_xy_labels(x_label = f"True g{i}",
+                             y_label = f"Estimated g{i}")
 
         # Draw the zero-axes
-        self.draw_axes()
+        self._draw_axes()
 
         # Draw the line of best-fit
-        self.draw_bestfit_line(linregress_results)
+        self._draw_bestfit_line(linregress_results)
 
         # Reset the axes, in case they changed after drawing the axes or bestfit line
-        self.reset_axes()
+        self._reset_axes()
 
         # Write the m and c bias on the plot
-        self.summary_text([d_bias_strings[f"c{i}"], d_bias_strings[f"m{i}"]])
+        self.__write_summary_text([d_bias_strings[f"c{i}"], d_bias_strings[f"m{i}"]])
 
         # Save the plot
         self._save_component_plot(i)
 
         # Clear the plot to make way for future plots
-        self.clear_plots()
+        self._clear_plots()
 
     def plot(self) -> None:
         """ Plot shear bias for both components.

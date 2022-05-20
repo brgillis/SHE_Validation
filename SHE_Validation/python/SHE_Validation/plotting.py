@@ -89,6 +89,8 @@ class ValidationPlotter(abc.ABC):
         if file_namer is not None:
             self.file_namer = file_namer
 
+    # Attribute getters and setters
+
     @property
     def method(self) -> Optional[ShearEstimationMethods]:
         if self.file_namer is None:
@@ -213,6 +215,40 @@ class ValidationPlotter(abc.ABC):
     def msg_plot_saved(self, msg_plot_saved: str) -> None:
         self._msg_plot_saved = msg_plot_saved
 
+    # Public methods
+
+    def plot(self, *args, **kwargs):
+        """ Makes and saves the plot(s).
+        """
+
+        cancel_plotting = self._calc_plotting_data()
+        if cancel_plotting:
+            # We've received a signal to cancel plotting without raising an error, so return here
+            return
+
+        # Set up the figure
+        self.__subplots_adjust()
+
+        # Draw the figure
+        self._draw_plot()
+
+        # Add the legend to the figure
+        self.__draw_legend()
+
+        # Set the plot title and labels
+        self.__set_title(self.plot_title)
+        self.__set_xy_labels(self.x_label, self.y_label)
+
+        # Write the text on the plot
+        self.__write_summary_text(self.l_summary_text)
+
+        # Save the plot (which generates a filename) and log it
+        self.__save_plot()
+
+        logger.info(self.msg_plot_saved)
+
+        plt.close()
+
     # Protected methods intended to be overridden as needed by child classes
 
     @staticmethod
@@ -262,13 +298,13 @@ class ValidationPlotter(abc.ABC):
 
     # Protected methods for use as needed by child classes
 
-    def density_scatter(self,
-                        l_x: np.ndarray,
-                        l_y: np.ndarray,
-                        sort: bool = True,
-                        bins: int = 20,
-                        colorbar: bool = False,
-                        **kwargs):
+    def _density_scatter(self,
+                         l_x: np.ndarray,
+                         l_y: np.ndarray,
+                         sort: bool = True,
+                         bins: int = 20,
+                         colorbar: bool = False,
+                         **kwargs):
         """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
             Credit: Guillaume on StackOverflow
         """
@@ -304,30 +340,30 @@ class ValidationPlotter(abc.ABC):
             cbar = self.fig.colorbar(cm.ScalarMappable(norm = norm), ax = self.ax)
             cbar.ax.set_ylabel('Density')
 
-    def draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis on a plot.
         """
 
         self.ax.plot(self.xlim, [0, 0], label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws a y-axis on a plot.
         """
 
         self.ax.plot([0, 0], self.ylim, label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
         """ Draws an x-axis and y-axis on a plot.
         """
 
-        self.draw_x_axis(color, linestyle, **kwargs)
-        self.draw_y_axis(color, linestyle, **kwargs)
+        self._draw_x_axis(color, linestyle, **kwargs)
+        self._draw_y_axis(color, linestyle, **kwargs)
 
-    def draw_bestfit_line(self,
-                          linregress_results: LinregressResults,
-                          label: Optional[str] = None,
-                          color: str = "r",
-                          linestyle: str = "solid"):
+    def _draw_bestfit_line(self,
+                           linregress_results: LinregressResults,
+                           label: Optional[str] = None,
+                           color: str = "r",
+                           linestyle: str = "solid"):
         """ Draw a line of bestfit on a plot.
         """
 
@@ -335,9 +371,24 @@ class ValidationPlotter(abc.ABC):
         bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
         self.ax.plot(bestfit_x, bestfit_y, label = label, color = color, linestyle = linestyle)
 
+    def _reset_axes(self):
+        """ Resets the axes to saved xlim/ylim from when they were first accessed.
+        """
+
+        self.ax.set_xlim(*self.xlim)
+        self.ax.set_ylim(*self.ylim)
+
+    def _clear_plots(self):
+        """ Closes the plots and resets self.ax and self.fig.
+        """
+
+        plt.close()
+        self.ax = None
+        self.fig = None
+
     # Private methods
 
-    def _save_plot(self) -> str:
+    def __save_plot(self) -> str:
 
         # Get the filename to save to
         self.plot_filename = self.file_namer.filename
@@ -350,43 +401,28 @@ class ValidationPlotter(abc.ABC):
 
         return self.plot_filename
 
-    def reset_axes(self):
-        """ Resets the axes to saved xlim/ylim from when they were first accessed.
-        """
-
-        self.ax.set_xlim(*self.xlim)
-        self.ax.set_ylim(*self.ylim)
-
-    def clear_plots(self):
-        """ Closes the plots and resets self.ax and self.fig.
-        """
-
-        plt.close()
-        self.ax = None
-        self.fig = None
-
-    def subplots_adjust(self):
+    def __subplots_adjust(self):
         """ Set up the figure with a single subplot in a standard format.
         """
         self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
 
-    def summary_text(self,
-                     l_s: Union[str, Iterable[str]]):
+    def __write_summary_text(self,
+                             l_s: Union[str, Iterable[str]]):
         """ Writes summary text on the plot. If provided as a list of strings, each will be written on a separate
             line.
         """
 
         # If just one string, write it directly and return
         if isinstance(l_s, str):
-            self._summary_text_line(l_s)
+            self.__write_summary_text_line(l_s)
 
         # Write each string on a separate line
         for line_num, s in enumerate(l_s):
-            self._summary_text_line(s, line_num = line_num)
+            self.__write_summary_text_line(s, line_num = line_num)
 
-    def _summary_text_line(self,
-                           s: str,
-                           line_num: int = 0):
+    def __write_summary_text_line(self,
+                                  s: str,
+                                  line_num: int = 0):
         """ Writes a single line of summary text on the plot.
         """
 
@@ -398,47 +434,13 @@ class ValidationPlotter(abc.ABC):
                      transform = self.ax.transAxes,
                      fontsize = self.SUM_TEXT_FONTSIZE)
 
-    def set_xy_labels(self, x_label, y_label):
+    def __set_xy_labels(self, x_label, y_label):
         self.ax.set_xlabel(x_label, fontsize = self.AXISLABEL_FONTSIZE)
         self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
 
-    def set_title(self, plot_title):
+    def __set_title(self, plot_title):
         plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-    def _draw_legend(self):
+    def __draw_legend(self):
         if self.legend_loc is not None:
             plt.legend(loc = self.legend_loc)
-
-    # Public methods
-
-    def plot(self, *args, **kwargs):
-        """ Makes and saves the plot(s).
-        """
-
-        cancel_plotting = self._calc_plotting_data()
-        if cancel_plotting:
-            # We've received a signal to cancel plotting without raising an error, so return here
-            return
-
-        # Set up the figure
-        self.subplots_adjust()
-
-        # Draw the figure
-        self._draw_plot()
-
-        # Add the legend to the figure
-        self._draw_legend()
-
-        # Set the plot title and labels
-        self.set_title(self.plot_title)
-        self.set_xy_labels(self.x_label, self.y_label)
-
-        # Write the text on the plot
-        self.summary_text(self.l_summary_text)
-
-        # Save the plot (which generates a filename) and log it
-        self._save_plot()
-
-        logger.info(self.msg_plot_saved)
-
-        plt.close()

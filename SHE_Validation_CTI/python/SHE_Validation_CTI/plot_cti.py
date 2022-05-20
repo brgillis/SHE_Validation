@@ -176,31 +176,31 @@ class CtiPlotter(ValidationPlotter):
 
         # Set up the figure, with a density scatter as a base
 
-        self.subplots_adjust()
+        self.__subplots_adjust()
 
-        self.density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
+        self._density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
-        self.set_title(plot_title)
+        self.__set_title(plot_title)
 
-        self.set_xy_labels(x_label = f"Readout Register Distance (pix)",
-                           y_label = f"e1 (detector coordinates)")
+        self.__set_xy_labels(x_label = f"Readout Register Distance (pix)",
+                             y_label = f"e1 (detector coordinates)")
 
         # Draw the x axis
-        self.draw_x_axis()
+        self._draw_x_axis()
 
         # Draw the line of best-fit
-        self.draw_bestfit_line(linregress_results)
+        self._draw_bestfit_line(linregress_results)
 
         # Reset the axes, in case they changed after drawing the axes or bestfit line
-        self.reset_axes()
+        self._reset_axes()
 
         # Write the m and c bias on the plot
-        self.summary_text([d_linregress_strings[f"slope"], d_linregress_strings[f"intercept"]])
+        self.__write_summary_text([d_linregress_strings[f"slope"], d_linregress_strings[f"intercept"]])
 
         # Save the plot (which generates a filename) and log it
-        super()._save_plot()
+        super().__save_plot()
         logger.info(f"Saved {self.method_name} CTI plot to {self.qualified_plot_filename}")
 
         plt.close()

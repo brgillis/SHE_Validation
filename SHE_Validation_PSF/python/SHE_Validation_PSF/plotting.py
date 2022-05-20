@@ -267,35 +267,3 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                      histtype = self.HIST_TYPE,
                      label = self.REF_CAT_LEGEND_NAME,
                      linestyle = '--')
-
-    def plot(self):
-        """ Plot histograms of log10(p_chisq) values.
-        """
-
-        cancel_plotting = self._calc_plotting_data()
-        if cancel_plotting:
-            # We've received a signal to cancel plotting without raising an error, so return here
-            return
-
-        # Set up the figure
-        self.subplots_adjust()
-
-        # Draw the figure
-        self._draw_plot()
-
-        # Add the legend to the figure
-        self._draw_legend()
-
-        # Set the plot title and labels
-        self.set_title(self.plot_title)
-        self.set_xy_labels(self.x_label, self.y_label)
-
-        # Write the text on the plot
-        self.summary_text(self.l_summary_text)
-
-        # Save the plot (which generates a filename) and log it
-        self._save_plot()
-
-        logger.info(self.msg_plot_saved)
-
-        plt.close()
