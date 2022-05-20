@@ -44,8 +44,8 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     """
 
     # Class constants
-    TEST_CAT_LEGEND_NAME = "Test Catalog"
-    REF_CAT_LEGEND_NAME = "Reference Catalog"
+    TEST_CAT_LEGEND_NAME = "Test"
+    REF_CAT_LEGEND_NAME = "Reference"
 
     STR_KS_P_LABEL = r"$p_{\rm KS}$: "
     KS_P_DIGITS = 2
