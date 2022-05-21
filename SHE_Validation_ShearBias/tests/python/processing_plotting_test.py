@@ -491,8 +491,9 @@ class TestShearBias(SheTestCase):
 
                     # noinspection PyTypeChecker
                     plotter = ShearBiasPlotter(data_processor = mock_data_processor,
-                                               bin_index = 0)
-                    plotter.plot()
+                                               bin_index = 0,
+                                               bin_limits = l_bin_limits[bin_index:bin_index + 2])
+                    plotter.plot(show = True)
 
                     # Check the results
 

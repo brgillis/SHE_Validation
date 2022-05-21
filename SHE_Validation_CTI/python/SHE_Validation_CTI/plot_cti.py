@@ -32,7 +32,6 @@ from SHE_PPT.utility import coerce_to_list
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.plotting import ValidationPlotter
-from .file_io import CtiPlotFileNamer
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
 logger = getLogger(__name__)
@@ -74,12 +73,11 @@ class CtiPlotter(ValidationPlotter):
 
     def __init__(self,
                  object_table: Table,
-                 file_namer: CtiPlotFileNamer,
                  l_ids_in_bin: Sequence[int],
                  *args,
                  **kwargs):
 
-        super().__init__(file_namer = file_namer, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Set attrs directly
         self.object_table = object_table

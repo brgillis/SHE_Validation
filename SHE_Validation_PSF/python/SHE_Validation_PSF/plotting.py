@@ -33,7 +33,6 @@ from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_PSF.file_io import PsfResSPPlotFileNamer
 from SHE_Validation_PSF.utility import KsResult, calculate_p_values
 
 logger = logging.getLogger(__name__)
@@ -56,13 +55,14 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
     def __init__(self,
                  star_cat: Table,
-                 file_namer: PsfResSPPlotFileNamer,
                  l_ids_in_bin: Sequence[int],
                  ks_test_result: KsResult,
+                 *args,
                  ref_star_cat: Optional[Table] = None,
                  l_ref_ids_in_bin: Optional[Sequence[int]] = None,
-                 group_mode: Optional[bool] = None, ):
-        super().__init__(file_namer = file_namer)
+                 group_mode: Optional[bool] = None,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
 
         # Set attrs directly
         self.star_cat = star_cat

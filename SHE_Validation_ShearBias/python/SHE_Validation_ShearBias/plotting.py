@@ -69,6 +69,8 @@ class ShearBiasPlotter(ValidationPlotter):
     def __init__(self,
                  data_processor: ShearBiasTestCaseDataProcessor,
                  bin_index: int,
+                 *args,
+                 **kwargs,
                  ) -> None:
 
         file_namer = ShearBiasPlotFileNamer(workdir = data_processor.workdir,
@@ -76,10 +78,11 @@ class ShearBiasPlotter(ValidationPlotter):
                                             bin_parameter = data_processor.bin_parameter,
                                             bin_index = bin_index)
 
-        super().__init__(file_namer = file_namer)
+        super().__init__(*args, file_namer = file_namer, **kwargs)
 
         # Set attrs directly
         self.data_processor = data_processor
+        self.data_processor.calc()
 
         # Init empty dicts for intermediate data used when plotting
         self._d_bias_plot_filename = {}
@@ -114,7 +117,7 @@ class ShearBiasPlotter(ValidationPlotter):
         """ Overridable method to get the plot title
         """
 
-        plot_title = f"{self.method} Shear Estimates: g{self.component_index} {self._get_bin_info_str()}"
+        plot_title = f"{self.method.value} Shear Estimates: g{self.component_index} {self._get_bin_info_str()}"
 
         return plot_title
 
