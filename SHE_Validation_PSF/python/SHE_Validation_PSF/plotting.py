@@ -140,7 +140,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         self.l_ref_p_trimmed: Optional[np.ndarray] = None
         self.l_ref_logp: Optional[np.ndarray] = None
 
-    # Private method overrides
+    # Protected method overrides
 
     def _get_x_label(self) -> str:
         """ Override parent method to get the label for the X axis.

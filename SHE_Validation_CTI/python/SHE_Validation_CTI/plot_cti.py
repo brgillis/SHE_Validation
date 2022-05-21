@@ -20,11 +20,10 @@ __updated__ = "2021-08-30"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 import numpy as np
 from astropy.table import Row, Table
-from matplotlib import pyplot as plt
 
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults, linregress_with_errors
@@ -48,6 +47,10 @@ class CtiPlotter(ValidationPlotter):
     SLOPE_DIGITS = 7
     INTERCEPT_DIGITS = 5
     SIGMA_DIGITS = 1
+
+    # Overridden parent attributes
+    _x_label = f"Readout Register Distance (pix)"
+    _y_label = f"e1 (detector coordinates)"
 
     # Attributes set directly at init
     _object_table: Table
@@ -112,95 +115,106 @@ class CtiPlotter(ValidationPlotter):
     def weight_colname(self) -> Optional[str]:
         return self._weight_colname
 
-    # Callable methods
+    # Protected method overrides
 
-    def plot(self) -> None:
-        """ Plot CTI validation test data.
+    def _get_plot_title(self) -> str:
+        """ Overridable method to get the plot title
         """
 
-        l_rr_dist: Sequence[float] = np.array(coerce_to_list(self.t_good[CGOD_TF.readout_dist]))
-        l_g1: Sequence[float] = np.array(coerce_to_list(self.t_good[self.g1_colname]))
-
-        if self.g1_err_colname is not None:
-            l_g1_err: Sequence[float] = np.array(coerce_to_list(self.g1_err_colname))
-        else:
-            l_g1_err: Sequence[float] = np.array(coerce_to_list(1 / np.sqrt(self.t_good[self.weight_colname])))
-
         if self.method_name is None:
-            opt_method_str: str = ""
             plot_title: str = f"CTI-PSF Validation - {self.bin_parameter.value}"
         else:
-            opt_method_str = f"method {self.method_name}, "
             plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
 
         # Append note of exposure or observation
-        exp_index = self.file_namer.exp_index
-        if exp_index is None:
+        if self.exp_index is None:
             plot_title += "- Full Observation"
         else:
-            plot_title += f"- Exposure {exp_index}"
-
-        # Check if there's any valid data for this bin
-        if len(l_rr_dist) <= 1:
-            # We'll always make the tot plot for testing purposes, but log a warning if no data
-            if self.bin_parameter == BinParameters.TOT:
-                logger.warning(f"Insufficient valid data to plot for {opt_method_str}and test case "
-                               f"{self.bin_parameter.value}, but making plot anyway for testing purposes.")
-            else:
-                logger.debug(f"Insufficient valid valid data to plot for {opt_method_str}test case "
-                             f"{self.bin_parameter.value}, bin {self.bin_limits}, so skipping plot.")
-                return
-
-        # Perform the linear regression, calculate bias, and save it in the bias dict
-        linregress_results: LinregressResults = linregress_with_errors(x = l_rr_dist,
-                                                                       y = l_g1,
-                                                                       y_err = l_g1_err)
-
-        # Log the bias measurements, and save these strings for the plot
-        logger.info(f"Linear regression for {opt_method_str}test case {self.bin_parameter.value}, "
-                    f"bin {self.bin_limits}:")
-        d_linregress_strings: Dict[str, str] = {}
-        for a, d in (("slope", self.SLOPE_DIGITS),
-                     ("intercept", self.INTERCEPT_DIGITS)):
-
-            val = getattr(linregress_results, a)
-            val_err = getattr(linregress_results, f'{a}_err')
-            val_sigma = getattr(linregress_results, f'{a}_sigma')
-
-            d_linregress_strings[f"{a}"] = (f"{a} = {val:.{d}f} +/- "
-                                            f"{val_err:.{d}f} "
-                                            f"({val_sigma:.{self.SIGMA_DIGITS}f}$\\sigma$)")
-            logger.info(d_linregress_strings[f"{a}"])
-
-        # Make a plot of the data and bestfit line
-
-        # Set up the figure, with a density scatter as a base
-
-        self._subplots_adjust()
-
-        self._density_scatter(l_rr_dist, l_g1, sort = True, bins = 200, colorbar = False, s = 4)
+            plot_title += f"- Exposure {self.exp_index}"
 
         if self.bin_parameter != BinParameters.TOT:
             plot_title += f" {self.bin_limits}"
-        self.__set_title(plot_title)
 
-        self.__set_xy_labels(x_label = f"Readout Register Distance (pix)",
-                             y_label = f"e1 (detector coordinates)")
+        return plot_title
+
+    def _get_l_summary_text(self) -> List[str]:
+        """ Override parent method to get summary text.
+        """
+
+        return [self.d_linregress_strings[f"slope"],
+                self.d_linregress_strings[f"intercept"]]
+
+    def _get_msg_plot_saved(self) -> str:
+        """ Override parent method to get the method to print to log that a plot has been saved
+        """
+        return f"Saved {self.method_name} CTI plot to {self.qualified_plot_filename}"
+
+    def _calc_plotting_data(self):
+        """ Override parent method to get all the data we want to plot.
+        """
+
+        self.l_rr_distarray = np.array(coerce_to_list(self.t_good[CGOD_TF.readout_dist]))
+        self.l_g1 = np.array(coerce_to_list(self.t_good[self.g1_colname]))
+
+        if self.g1_err_colname is not None:
+            self.l_g1_err: Sequence[float] = np.array(coerce_to_list(self.g1_err_colname))
+        else:
+            self.l_g1_err: Sequence[float] = np.array(coerce_to_list(1 / np.sqrt(self.t_good[self.weight_colname])))
+
+        if self.method_name is None:
+            self.opt_method_str: str = ""
+        else:
+            self.opt_method_str = f"method {self.method_name}, "
+
+        self.exp_index = self.file_namer.exp_index
+
+        # Check if there's any valid data for this bin
+        if len(self.l_rr_distarray) <= 1:
+            # We'll always make the tot plot for testing purposes, but log a warning if no data
+            if self.bin_parameter == BinParameters.TOT:
+                logger.warning(f"Insufficient valid data to plot for {self.opt_method_str}and test case "
+                               f"{self.bin_parameter.value}, but making plot anyway for testing purposes.")
+            else:
+                logger.debug(f"Insufficient valid valid data to plot for {self.opt_method_str}test case "
+                             f"{self.bin_parameter.value}, bin {self.bin_limits}, so skipping plot.")
+                return True
+
+        # Perform the linear regression, calculate bias, and save it in the bias dict
+        self.linregress_results: LinregressResults = linregress_with_errors(x = self.l_rr_distarray,
+                                                                            y = self.l_g1,
+                                                                            y_err = self.l_g1_err)
+
+        # Log the bias measurements, and save these strings for the plot
+        logger.info(f"Linear regression for {self.opt_method_str}test case {self.bin_parameter.value}, "
+                    f"bin {self.bin_limits}:")
+
+        self.d_linregress_strings: Dict[str, str] = {}
+        for a, d in (("slope", self.SLOPE_DIGITS),
+                     ("intercept", self.INTERCEPT_DIGITS)):
+
+            val = getattr(self.linregress_results, a)
+            val_err = getattr(self.linregress_results, f'{a}_err')
+            val_sigma = getattr(self.linregress_results, f'{a}_sigma')
+
+            self.d_linregress_strings[f"{a}"] = (f"{a} = {val:.{d}f} +/- "
+                                                 f"{val_err:.{d}f} "
+                                                 f"({val_sigma:.{self.SIGMA_DIGITS}f}$\\sigma$)")
+            logger.info(self.d_linregress_strings[f"{a}"])
+
+        return False
+
+    def _draw_plot(self):
+        """ Override parent method for drawing the plot.
+        """
+
+        # Draw the plot as a density scatter plot
+        self._density_scatter(self.l_rr_distarray, self.l_g1, sort = True, bins = 200, colorbar = False, s = 4)
 
         # Draw the x axis
         self._draw_x_axis()
 
         # Draw the line of best-fit
-        self._draw_bestfit_line(linregress_results)
+        self._draw_bestfit_line(self.linregress_results)
 
         # Reset the axes, in case they changed after drawing the axes or bestfit line
         self._reset_axes()
-
-        # Write the m and c bias on the plot
-        self.__write_summary_text([d_linregress_strings[f"slope"], d_linregress_strings[f"intercept"]])
-
-        # Save the plot (which generates a filename) and log it
-        super().__save_plot()
-        logger.info(f"Saved {self.method_name} CTI plot to {self.qualified_plot_filename}")
-
-        plt.close()
