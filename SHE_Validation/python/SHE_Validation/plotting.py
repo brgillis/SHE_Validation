@@ -218,7 +218,7 @@ class ValidationPlotter(abc.ABC):
     # Public methods
 
     def plot(self,
-             show: bool = False):
+             show: bool = False) -> None:
         """ Makes and saves the plot(s).
         """
 
@@ -238,8 +238,8 @@ class ValidationPlotter(abc.ABC):
 
         # Set the plot title and labels
         # TODO: Remove args, and just use attributes within methods here
-        self._set_title(self.plot_title)
-        self._set_xy_labels(self.x_label, self.y_label)
+        self._set_title()
+        self._set_xy_labels()
 
         # Write the text on the plot
         self._write_summary_text(self.l_summary_text)
@@ -292,18 +292,19 @@ class ValidationPlotter(abc.ABC):
         """
         return f"Saved plot to {self.qualified_plot_filename}"
 
-    def _calc_plotting_data(self):
+    def _calc_plotting_data(self) -> None:
         """ Overridable method to get all the data we want to plot
         """
         pass
 
-    def _subplots_adjust(self):
+    def _subplots_adjust(self) -> None:
         """ Set up the figure with a single subplot in a standard format.
         """
         self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
 
-    def _draw_plot(self):
-        """ Overridable method for drawing the plot
+    @abc.abstractmethod
+    def _draw_plot(self) -> None:
+        """ Abstract method for drawing the plot
         """
         pass
 
@@ -315,7 +316,7 @@ class ValidationPlotter(abc.ABC):
                          sort: bool = True,
                          bins: int = 20,
                          colorbar: bool = False,
-                         **kwargs):
+                         **kwargs) -> None:
         """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
             Credit: Guillaume on StackOverflow
         """
@@ -351,19 +352,19 @@ class ValidationPlotter(abc.ABC):
             cbar = self.fig.colorbar(cm.ScalarMappable(norm = norm), ax = self.ax)
             cbar.ax.set_ylabel('Density')
 
-    def _draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis on a plot.
         """
 
         self.ax.plot(self.xlim, [0, 0], label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def _draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws a y-axis on a plot.
         """
 
         self.ax.plot([0, 0], self.ylim, label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def _draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis and y-axis on a plot.
         """
 
@@ -374,7 +375,7 @@ class ValidationPlotter(abc.ABC):
                            linregress_results: LinregressResults,
                            label: Optional[str] = None,
                            color: str = "r",
-                           linestyle: str = "solid"):
+                           linestyle: str = "solid") -> None:
         """ Draw a line of bestfit on a plot.
         """
 
@@ -389,7 +390,7 @@ class ValidationPlotter(abc.ABC):
         self.ax.set_xlim(*self.xlim)
         self.ax.set_ylim(*self.ylim)
 
-    def _clear_plots(self):
+    def _clear_plots(self) -> None:
         """ Closes the plots and resets self.ax and self.fig.
         """
 
@@ -413,7 +414,7 @@ class ValidationPlotter(abc.ABC):
         return self.plot_filename
 
     def _write_summary_text(self,
-                            l_s: Union[str, Iterable[str]]):
+                            l_s: Union[str, Iterable[str]]) -> None:
         """ Writes summary text on the plot. If provided as a list of strings, each will be written on a separate
             line.
         """
@@ -428,7 +429,7 @@ class ValidationPlotter(abc.ABC):
 
     def _write_summary_text_line(self,
                                  s: str,
-                                 line_num: int = 0):
+                                 line_num: int = 0) -> None:
         """ Writes a single line of summary text on the plot.
         """
 
@@ -440,13 +441,13 @@ class ValidationPlotter(abc.ABC):
                      transform = self.ax.transAxes,
                      fontsize = self.SUM_TEXT_FONTSIZE)
 
-    def _set_xy_labels(self, x_label, y_label):
-        self.ax.set_xlabel(x_label, fontsize = self.AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
+    def _set_xy_labels(self) -> None:
+        self.ax.set_xlabel(self.x_label, fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(self.y_label, fontsize = self.AXISLABEL_FONTSIZE)
 
-    def _set_title(self, plot_title):
-        plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
+    def _set_title(self) -> None:
+        plt.title(self.plot_title, fontsize = self.TITLE_FONTSIZE)
 
-    def _draw_legend(self):
+    def _draw_legend(self) -> None:
         if self.legend_loc is not None:
             plt.legend(loc = self.legend_loc)
