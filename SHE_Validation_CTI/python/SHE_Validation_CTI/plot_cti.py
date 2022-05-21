@@ -64,6 +64,15 @@ class CtiPlotter(ValidationPlotter):
     _g1_err_colname: Optional[str] = None
     _weight_colname: Optional[str] = None
 
+    # Attributes determined while plotting
+    l_rr_distarray: Optional[np.ndarray] = None
+    l_g1: Optional[np.ndarray] = None
+    l_g1_err: Optional[np.ndarray] = None
+    opt_method_str: str = ""
+    exp_index: Optional[int] = None
+    linregress_results: Optional[LinregressResults] = None
+    d_linregress_strings: Optional[Dict[str, str]] = None
+
     def __init__(self,
                  object_table: Table,
                  file_namer: CtiPlotFileNamer,
@@ -161,9 +170,7 @@ class CtiPlotter(ValidationPlotter):
         else:
             self.l_g1_err: Sequence[float] = np.array(coerce_to_list(1 / np.sqrt(self.t_good[self.weight_colname])))
 
-        if self.method_name is None:
-            self.opt_method_str: str = ""
-        else:
+        if self.method_name is not None:
             self.opt_method_str = f"method {self.method_name}, "
 
         self.exp_index = self.file_namer.exp_index
@@ -180,9 +187,9 @@ class CtiPlotter(ValidationPlotter):
                 return True
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
-        self.linregress_results: LinregressResults = linregress_with_errors(x = self.l_rr_distarray,
-                                                                            y = self.l_g1,
-                                                                            y_err = self.l_g1_err)
+        self.linregress_results = linregress_with_errors(x = self.l_rr_distarray,
+                                                         y = self.l_g1,
+                                                         y_err = self.l_g1_err)
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Linear regression for {self.opt_method_str}test case {self.bin_parameter.value}, "
