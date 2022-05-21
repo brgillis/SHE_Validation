@@ -31,6 +31,7 @@ from matplotlib.colors import Normalize
 from matplotlib.figure import Axes, Figure
 from scipy.interpolate import interpn
 
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
@@ -65,6 +66,7 @@ class ValidationPlotter(abc.ABC):
 
     # Attributes set directly at init
     file_namer: Optional[SheValFileNamer] = None
+    bin_limits: Optional[np.ndarray] = None
 
     # Intermediate values used while plotting
     _fig: Optional[Figure] = None
@@ -84,10 +86,14 @@ class ValidationPlotter(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self,
-                 file_namer: Optional[SheValFileNamer] = None):
+                 file_namer: Optional[SheValFileNamer] = None,
+                 bin_limits: Optional[np.ndarray] = None):
 
         if file_namer is not None:
             self.file_namer = file_namer
+
+        if bin_limits is not None:
+            self.bin_limits = bin_limits
 
     # Attribute getters and setters
 
@@ -309,6 +315,16 @@ class ValidationPlotter(abc.ABC):
         pass
 
     # Protected methods for use as needed by child classes
+
+    def _get_bin_info_str(self):
+        """ Get a string for the bin info, which can be added to the plot title.
+        """
+
+        bin_info_str = f" - {self.bin_parameter.value}"
+        if self.bin_parameter != BinParameters.TOT:
+            bin_info_str += f" {self.bin_limits}"
+
+        return bin_info_str
 
     def _density_scatter(self,
                          l_x: np.ndarray,

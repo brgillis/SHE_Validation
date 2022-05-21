@@ -57,7 +57,6 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     def __init__(self,
                  star_cat: Table,
                  file_namer: PsfResSPPlotFileNamer,
-                 bin_limits: Sequence[float],
                  l_ids_in_bin: Sequence[int],
                  ks_test_result: KsResult,
                  ref_star_cat: Optional[Table] = None,
@@ -67,7 +66,6 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
         # Set attrs directly
         self.star_cat = star_cat
-        self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
         self.ks_test_result = ks_test_result
         self.ref_star_cat = ref_star_cat
@@ -171,10 +169,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         if self.cumulative:
             plot_title += self.STR_HIST_TITLE_CUMULATIVE_TAIL
 
-        plot_title += self.bin_parameter.name
-
-        if self.bin_parameter != BinParameters.TOT:
-            plot_title += f" {self.bin_limits}"
+        plot_title += self._get_bin_info_str()
 
         return plot_title
 

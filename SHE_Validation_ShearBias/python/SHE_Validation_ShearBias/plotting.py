@@ -114,7 +114,9 @@ class ShearBiasPlotter(ValidationPlotter):
         """ Overridable method to get the plot title
         """
 
-        return f"{self.method} Shear Estimates: g{self.component_index}"
+        plot_title = f"{self.method} Shear Estimates: g{self.component_index} {self._get_bin_info_str()}"
+
+        return plot_title
 
     def _get_l_summary_text(self) -> List[str]:
         """ Override parent method to get summary text.
@@ -152,8 +154,6 @@ class ShearBiasPlotter(ValidationPlotter):
 
         # Reset the axes, in case they changed after drawing the axes or bestfit line
         self._reset_axes()
-
-    # Private methods
 
     def _save_plot(self) -> None:
         """ Override parent method to set up different name for each component plot and store results in dict.

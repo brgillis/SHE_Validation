@@ -54,7 +54,6 @@ class CtiPlotter(ValidationPlotter):
 
     # Attributes set directly at init
     _object_table: Table
-    bin_limits: np.ndarray
     l_ids_in_bin: Sequence[int]
 
     # Attributes determined at init
@@ -76,14 +75,14 @@ class CtiPlotter(ValidationPlotter):
     def __init__(self,
                  object_table: Table,
                  file_namer: CtiPlotFileNamer,
-                 bin_limits: Sequence[float],
-                 l_ids_in_bin: Sequence[int], ):
+                 l_ids_in_bin: Sequence[int],
+                 *args,
+                 **kwargs):
 
-        super().__init__(file_namer = file_namer)
+        super().__init__(file_namer = file_namer, *args, **kwargs)
 
         # Set attrs directly
         self.object_table = object_table
-        self.bin_limits = bin_limits
         self.l_ids_in_bin = l_ids_in_bin
 
         # Determine attrs from kwargs
@@ -131,18 +130,18 @@ class CtiPlotter(ValidationPlotter):
         """
 
         if self.method_name is None:
-            plot_title: str = f"CTI-PSF Validation - {self.bin_parameter.value}"
+            plot_title: str = f"CTI-PSF Validation"
         else:
-            plot_title: str = f"{self.method_name} CTI-Gal Validation - {self.bin_parameter.value}"
+            plot_title: str = f"{self.method_name} CTI-Gal Validation"
 
         # Append note of exposure or observation
         if self.exp_index is None:
-            plot_title += "- Full Observation"
+            plot_title += " - Full Observation"
         else:
-            plot_title += f"- Exposure {self.exp_index}"
+            plot_title += f" - Exposure {self.exp_index}"
 
-        if self.bin_parameter != BinParameters.TOT:
-            plot_title += f" {self.bin_limits}"
+        # Add bin info
+        plot_title += self._get_bin_info_str()
 
         return plot_title
 
