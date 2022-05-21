@@ -493,7 +493,7 @@ class TestShearBias(SheTestCase):
                     plotter = ShearBiasPlotter(data_processor = mock_data_processor,
                                                bin_index = 0,
                                                bin_limits = l_bin_limits[bin_index:bin_index + 2])
-                    plotter.plot(show = True)
+                    plotter.plot()
 
                     # Check the results
 
