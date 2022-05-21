@@ -234,22 +234,22 @@ class ValidationPlotter(abc.ABC):
         self._draw_plot()
 
         # Add the legend to the figure
-        self.__draw_legend()
+        self._draw_legend()
 
         # Set the plot title and labels
         # TODO: Remove args, and just use attributes within methods here
-        self.__set_title(self.plot_title)
-        self.__set_xy_labels(self.x_label, self.y_label)
+        self._set_title(self.plot_title)
+        self._set_xy_labels(self.x_label, self.y_label)
 
         # Write the text on the plot
-        self.__write_summary_text(self.l_summary_text)
+        self._write_summary_text(self.l_summary_text)
 
         # Display the plot if requested
         if show:
             plt.show()
 
         # Save the plot (which generates a filename) and log it
-        self.__save_plot()
+        self._save_plot()
 
         logger.info(self.msg_plot_saved)
 
@@ -397,9 +397,9 @@ class ValidationPlotter(abc.ABC):
         self.ax = None
         self.fig = None
 
-    # Private methods
+    # Protected classes normally expected to be left alone, but which can be overridden if needed
 
-    def __save_plot(self) -> str:
+    def _save_plot(self) -> str:
 
         # Get the filename to save to
         self.plot_filename = self.file_namer.filename
@@ -412,23 +412,23 @@ class ValidationPlotter(abc.ABC):
 
         return self.plot_filename
 
-    def __write_summary_text(self,
-                             l_s: Union[str, Iterable[str]]):
+    def _write_summary_text(self,
+                            l_s: Union[str, Iterable[str]]):
         """ Writes summary text on the plot. If provided as a list of strings, each will be written on a separate
             line.
         """
 
         # If just one string, write it directly and return
         if isinstance(l_s, str):
-            self.__write_summary_text_line(l_s)
+            self._write_summary_text_line(l_s)
 
         # Write each string on a separate line
         for line_num, s in enumerate(l_s):
-            self.__write_summary_text_line(s, line_num = line_num)
+            self._write_summary_text_line(s, line_num = line_num)
 
-    def __write_summary_text_line(self,
-                                  s: str,
-                                  line_num: int = 0):
+    def _write_summary_text_line(self,
+                                 s: str,
+                                 line_num: int = 0):
         """ Writes a single line of summary text on the plot.
         """
 
@@ -440,13 +440,13 @@ class ValidationPlotter(abc.ABC):
                      transform = self.ax.transAxes,
                      fontsize = self.SUM_TEXT_FONTSIZE)
 
-    def __set_xy_labels(self, x_label, y_label):
+    def _set_xy_labels(self, x_label, y_label):
         self.ax.set_xlabel(x_label, fontsize = self.AXISLABEL_FONTSIZE)
         self.ax.set_ylabel(y_label, fontsize = self.AXISLABEL_FONTSIZE)
 
-    def __set_title(self, plot_title):
+    def _set_title(self, plot_title):
         plt.title(plot_title, fontsize = self.TITLE_FONTSIZE)
 
-    def __draw_legend(self):
+    def _draw_legend(self):
         if self.legend_loc is not None:
             plt.legend(loc = self.legend_loc)
