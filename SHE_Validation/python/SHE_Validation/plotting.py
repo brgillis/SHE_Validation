@@ -243,7 +243,6 @@ class ValidationPlotter(abc.ABC):
         self._draw_legend()
 
         # Set the plot title and labels
-        # TODO: Remove args, and just use attributes within methods here
         self._set_title()
         self._set_xy_labels()
 
