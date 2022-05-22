@@ -277,7 +277,8 @@ class ValidationPlotter(abc.ABC):
             Returns
             -------
             plot_filename : Optional[str]
-                If the plot was generated successfully, the workdir-relative name of the file it was saved to
+                If the plot was generated successfully, the workdir-relative name of the file it was saved to;
+                otherwise None
         """
 
         cancel_plotting = self._calc_plotting_data()
@@ -301,14 +302,14 @@ class ValidationPlotter(abc.ABC):
         # Write the text on the plot
         self._write_summary_text()
 
-        # Display the plot if requested
-        if show:
-            plt.show()
-
         # Save the plot (which generates a filename) and log it
         self._save_plot()
 
         logger.info(self.msg_plot_saved)
+
+        # Display the plot if requested
+        if show:
+            plt.show()
 
         plt.close()
 
@@ -318,7 +319,12 @@ class ValidationPlotter(abc.ABC):
 
     @staticmethod
     def _get_legend_loc() -> Optional[str]:
-        """ Overridable method to get location of the legend (None = don't display legend)
+        """ Overridable method to get location of the legend
+
+        Returns
+        -------
+        legend_loc : {None, "upper left", "upper right", "lower left", "lower right"}, default=None
+            The desired location of the legend. If None, no legend will be displayed
         """
         return None
 
@@ -351,10 +357,16 @@ class ValidationPlotter(abc.ABC):
         """
         return f"Saved plot to {self.qualified_plot_filename}"
 
-    def _calc_plotting_data(self) -> None:
+    def _calc_plotting_data(self) -> Optional[bool]:
         """ Overridable method to get all the data we want to plot
+
+        Returns
+        -------
+        cancel_plotting : bool
+            If this returns True, it will signal to the plot() method to cancel plotting without raising an exception.
+            This is useful in case you wish to e.g. not generate plots for any bins which have no data in them.
         """
-        pass
+        return False
 
     def _subplots_adjust(self) -> None:
         """ Set up the figure with a single subplot in a standard format.
