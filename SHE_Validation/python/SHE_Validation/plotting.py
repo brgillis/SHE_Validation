@@ -43,6 +43,41 @@ logger = getLogger(__name__)
 
 class ValidationPlotter(abc.ABC):
     """Abstract base class for plotters for various types of plots made in the SHE_Validation project.
+
+    This class can be used in the following manner:
+
+    1. Create a subclass of it to make a particular style of plot.
+    2. Concretely implement the abstract __init__ and _draw_plot methods
+    3. Override and/or inherit other methods of this which are called from the template method plot(), to alter aspects
+       of how the plot is constructed. See the structure of this method to see which methods are called and in which
+       order (and keep in mind that attribute calls are generally to getters, which have their own methods which can
+       be overriden/inherited).
+
+       At time of implementation, the relevant methods which you might wish to override are:
+
+        _get_legend_loc()*
+            Set the location of the plot's legend (default None = no legend)
+        _get_plot_title()*
+            Set the plot title (default no title)
+        _get_x_label()*
+            Set the plot's x-axis label (default no label)
+        _get_y_label()*
+            Set the plot's y-axis label (default no label)
+        _get_l_summary_text()*
+            Set the lines of summary text to display on the plot (default no text)
+        _get_msg_plot_saved()*
+            Set the message to log when the plot is saved (default prints the qualified file name and says it's been
+            saved)
+        _calc_plotting_data()
+            Calculate any member variables needed for plotting (this can alternatively be done within __init__ if
+            it's not necessary that this be done each time plot() is called)
+        _subplots_adjust()
+            Set the margins of the plot
+
+        *For any of the _get_*()methods, if the value you wish to set is fixed and not dependent on any attributes, you
+        can alternatively set the corresponding member variable directly, e.g. _x_label = "X"
+
+        (Check the implementation of the plot() method to be sure, in case this documentation has gone out of date.)
     """
 
     # Class constants
