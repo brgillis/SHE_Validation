@@ -80,7 +80,7 @@ class ValidationPlotter(abc.ABC):
         (Check the implementation of the plot() method to be sure, in case this documentation has gone out of date.)
     """
 
-    # Class constants
+    # Class constants (can be overridden by subclasses to modify plot appearance)
     TITLE_FONTSIZE = 12
     AXISLABEL_FONTSIZE = 12
 
@@ -104,10 +104,15 @@ class ValidationPlotter(abc.ABC):
     bin_limits: Optional[np.ndarray] = None
 
     # Intermediate values used while plotting
+
     _fig: Optional[Figure] = None
     _ax: Optional[Axes] = None
+
     _xlim: Optional[Tuple[float, float]] = None
     _ylim: Optional[Tuple[float, float]] = None
+
+    # Values generated on-demand while plotting, from methods than can be overridden. If these variables are
+    # overridden in a subclass to a specific value, that value will be used instead of the _get_*() being used.
     _legend_loc: Optional[str] = None
     _plot_title: Optional[str] = None
     _x_label: Optional[str] = None
@@ -259,8 +264,20 @@ class ValidationPlotter(abc.ABC):
     # Public methods
 
     def plot(self,
-             show: bool = False) -> None:
-        """ Makes and saves the plot(s).
+             show: bool = False) -> Optional[str]:
+        """ Makes and saves the plot(s). This is a template method, where subclasses can override/inherit the various
+            methods it calls.
+
+            Parameters
+            ----------
+            show : bool, default=False
+                If True, will show the plot and wait for the user to close it before returning. This should only be done
+                in local versions of code, to test plot appearances, as it interruptes program execution.
+
+            Returns
+            -------
+            plot_filename : Optional[str]
+                If the plot was generated successfully, the workdir-relative name of the file it was saved to
         """
 
         cancel_plotting = self._calc_plotting_data()
@@ -294,6 +311,8 @@ class ValidationPlotter(abc.ABC):
         logger.info(self.msg_plot_saved)
 
         plt.close()
+
+        return self.plot_filename
 
     # Protected methods intended to be overridden as needed by child classes
 
