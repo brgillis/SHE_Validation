@@ -77,7 +77,7 @@ class ValidationPlotter(abc.ABC):
     _plot_title: Optional[str] = None
     _x_label: Optional[str] = None
     _y_label: Optional[str] = None
-    _l_summary_text: Optional[List[str]] = None
+    _l_summary_text: Optional[Union[str, List[str]]] = None
     _msg_plot_saved: Optional[str] = None
 
     # Output values from plotting
@@ -202,13 +202,13 @@ class ValidationPlotter(abc.ABC):
         self._legend_loc = legend_loc
 
     @property
-    def l_summary_text(self) -> List[str]:
+    def l_summary_text(self) -> Union[str, List[str]]:
         if self._l_summary_text is None:
             self._l_summary_text = self._get_l_summary_text()
         return self._l_summary_text
 
     @l_summary_text.setter
-    def l_summary_text(self, l_summary_text: List[str]) -> None:
+    def l_summary_text(self, l_summary_text: Union[str, List[str]]) -> None:
         self._l_summary_text = l_summary_text
 
     @property
@@ -247,7 +247,7 @@ class ValidationPlotter(abc.ABC):
         self._set_xy_labels()
 
         # Write the text on the plot
-        self._write_summary_text(self.l_summary_text)
+        self._write_summary_text()
 
         # Display the plot if requested
         if show:
@@ -428,18 +428,17 @@ class ValidationPlotter(abc.ABC):
 
         return self.plot_filename
 
-    def _write_summary_text(self,
-                            l_s: Union[str, Iterable[str]]) -> None:
-        """ Writes summary text on the plot. If provided as a list of strings, each will be written on a separate
-            line.
+    def _write_summary_text(self) -> None:
+        """ Writes summary text on the plot. If self.l_summary_text a list of strings, each will be written on a
+            separate line. If it's just a string, it will be written on a single line
         """
 
         # If just one string, write it directly and return
-        if isinstance(l_s, str):
-            self._write_summary_text_line(l_s)
+        if isinstance(self.l_summary_text, str):
+            self._write_summary_text_line(self.l_summary_text)
 
         # Write each string on a separate line
-        for line_num, s in enumerate(l_s):
+        for line_num, s in enumerate(self.l_summary_text):
             self._write_summary_text_line(s, line_num = line_num)
 
     def _write_summary_text_line(self,
