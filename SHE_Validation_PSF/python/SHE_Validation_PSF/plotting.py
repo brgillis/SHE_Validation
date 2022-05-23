@@ -361,7 +361,8 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         """ Inherit _calc_plotting_data to also calculate data for S/N
         """
 
-        super()._calc_plotting_data()
+        if super()._calc_plotting_data():
+            return True
 
         self.l_snr: np.ndarray = self.star_cat[ESC_TF.snr]
 
