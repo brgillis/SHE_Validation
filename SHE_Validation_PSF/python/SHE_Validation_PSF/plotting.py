@@ -296,8 +296,8 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
     STR_P_BF_SLOPE_TEST_LABEL = r"Slope (test): "
     STR_P_BF_INT_TEST_LABEL = r"Intercept (test): "
-    STR_P_BF_SLOPE_RES_LABEL = r"Slope (ref.): "
-    STR_P_BF_INT_RES_LABEL = r"Intercept (ref.): "
+    STR_P_BF_SLOPE_REF_LABEL = r"Slope (ref.): "
+    STR_P_BF_INT_REF_LABEL = r"Intercept (ref.): "
     BF_DIGITS = 2
 
     MARKER_TEST = "x"
@@ -325,10 +325,10 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         # Declare instance attributes which will be calculated later
         self.l_snr: Optional[np.ndarray] = None
         self.l_snr_trimmed: Optional[np.ndarray] = None
-        self.l_linregress_results: Optional[LinregressResults] = None
+        self.linregress_results: Optional[LinregressResults] = None
         self.l_ref_snr: Optional[np.ndarray] = None
         self.l_ref_snr_trimmed: Optional[np.ndarray] = None
-        self.l_ref_linregress_results: Optional[LinregressResults] = None
+        self.ref_linregress_results: Optional[LinregressResults] = None
 
     # Protected method overrides
 
@@ -363,12 +363,22 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         """ Override parent method to get summary text.
         """
 
-        # TODO: Add a line for slope and intercept of test data
-        l_summary_text = [""]
+        # Note the slope, slope error, intercept, and intercept error for the test catalog
+        l_summary_text = [self.STR_P_BF_SLOPE_TEST_LABEL +
+                          f"{self.linregress_results.slope:.{self.BF_DIGITS}e} +/- " +
+                          f"{self.linregress_results.slope_err:.{self.BF_DIGITS}e}",
+                          self.STR_P_BF_INT_TEST_LABEL +
+                          f"{self.linregress_results.intercept:.{self.BF_DIGITS}e} +/- " +
+                          f"{self.linregress_results.intercept_err:.{self.BF_DIGITS}e}"]
 
-        # TODO: Optionally add a line for slope and intercept of reference data
+        # Note the slope, slope error, intercept, and intercept error for the reference catalog
         if self.two_sample_mode:
-            l_summary_text.append("")
+            l_summary_text.append(self.STR_P_BF_SLOPE_REF_LABEL +
+                                  f"{self.ref_linregress_results.slope:.{self.BF_DIGITS}e} +/- " +
+                                  f"{self.ref_linregress_results.slope_err:.{self.BF_DIGITS}e}")
+            l_summary_text.append(self.STR_P_BF_INT_REF_LABEL +
+                                  f"{self.ref_linregress_results.intercept:.{self.BF_DIGITS}e} +/- " +
+                                  f"{self.ref_linregress_results.intercept_err:.{self.BF_DIGITS}e}")
 
         return l_summary_text
 
@@ -395,8 +405,8 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
                                        if (p > 0 and not is_inf_nan_or_masked(p))])
 
         # Calculate a linear regression for p versus SNR
-        self.l_linregress_results = linregress_with_errors(self.l_snr_trimmed,
-                                                           self.l_p_to_plot)
+        self.linregress_results = linregress_with_errors(self.l_snr_trimmed,
+                                                         self.l_p_to_plot)
 
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
@@ -409,12 +419,12 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
                                                if (p > 0 and not is_inf_nan_or_masked(p))])
 
             # Calculate a linear regression for p versus SNR
-            self.l_ref_linregress_results = linregress_with_errors(self.l_ref_snr_trimmed,
-                                                                   self.l_ref_logp)
+            self.ref_linregress_results = linregress_with_errors(self.l_ref_snr_trimmed,
+                                                                 self.l_ref_logp)
         else:
             self.l_ref_snr = None
             self.l_ref_snr_trimmed = None
-            self.l_ref_linregress_results = None
+            self.ref_linregress_results = None
 
     def _draw_plot(self):
         """ Override parent method for drawing the plot.
@@ -438,9 +448,9 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
         # Draw lines of best fit, reference first so test line will lie on top
         if self.two_sample_mode:
-            self._draw_bestfit_line(self.l_ref_linregress_results,
+            self._draw_bestfit_line(self.ref_linregress_results,
                                     color = self.COLOR_REF,
                                     linestyle = self.LINESTYLE_REF)
-        self._draw_bestfit_line(self.l_linregress_results,
+        self._draw_bestfit_line(self.linregress_results,
                                 color = self.COLOR_TEST,
                                 linestyle = self.LINESTYLE_TEST)
