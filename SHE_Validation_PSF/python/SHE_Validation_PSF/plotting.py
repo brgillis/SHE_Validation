@@ -49,6 +49,11 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     STR_KS_P_LABEL = r"$p_{\rm KS}$: "
     KS_P_DIGITS = 2
 
+    PRSP_TITLE_HEAD = "PSF Res. (Star Pos.) "
+
+    P_LABEL = r"$p(\chi^2,{\rm d.o.f.})$"
+    P_LOG_LABEL = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
+
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
     group_mode: bool = False
@@ -90,6 +95,45 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
         # Declare instance attributes which will be calculated later
         self.base_plot_title: Optional[str] = None
 
+    def _calc_plotting_data(self):
+        """ Override parent method to get all the data we want to plot. This part is the same for all PSF plots, so
+            implement it here, and specific plots can inherit and modify as necessary.
+        """
+
+        self.l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
+                                                       group_mode = self.group_mode)
+
+        # Remove any bad values from the data
+        self.l_p_trimmed = np.array([x for x in self.l_p if x > 0 and not is_inf_nan_or_masked(x)])
+        l_logp = np.log10(self.l_p_trimmed)
+
+        # Check if there's any valid data for this bin
+        if len(l_logp) <= 1:
+            # We'll always make the tot plot for testing purposes, but log a warning if no data
+            if self.bin_parameter == BinParameters.TOT:
+                logger.warning(self.MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
+            else:
+                logger.debug(self.MSG_INSUFFICIENT_DATA, self.bin_parameter.value, self.bin_limits)
+                return True
+
+        # Determine whether we'll plot log or not depending on comparison mode
+        if self.two_sample_mode:
+            self.l_p_to_plot = l_logp
+
+            # Get data for the reference catalog here
+            self.l_ref_p = calculate_p_values(cat = self.ref_t_good,
+                                              group_mode = self.group_mode)
+            self.l_ref_p_trimmed = np.array([x for x in self.l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
+
+            self.l_ref_logp = np.log10(self.l_ref_p_trimmed)
+        else:
+            self.l_p_to_plot = self.l_p_trimmed
+            self.l_ref_p = None
+            self.l_ref_p_trimmed = None
+            self.l_ref_logp = None
+
+        return False
+
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
     """ Plotter for a histogram of PSF Residual (Star Pos) log10(p_chisq) values.
@@ -104,15 +148,15 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
 
-    STR_HIST_BASE_TITLE = "PSF Res. (Star Pos.) p"
-    STR_HIST_BASE_TITLE_LOG = "PSF Res. (Star Pos.) log(p)"
+    STR_HIST_BASE_TITLE = super().PRSP_TITLE_HEAD + "p"
+    STR_HIST_BASE_TITLE_LOG = super().PRSP_TITLE_HEAD + "log(p)"
     STR_HIST_TITLE_CUMULATIVE_TAIL = " (cumulative)"
 
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
     STR_HIST_Y_LABEL_BASE = r"$n$"
 
-    STR_HIST_X_LABEL = r"$p(\chi^2,{\rm d.o.f.})$"
-    STR_HIST_X_LABEL_LOG = r"${\rm log}_{10}(p(\chi^2,{\rm d.o.f.}))$"
+    STR_HIST_X_LABEL = super().P_LABEL
+    STR_HIST_X_LABEL_LOG = super().P_LOG_LABEL
 
     # Class attributes
 
@@ -203,44 +247,6 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         """
         return (f"Saved {self.bin_parameter} {self.bin_limits} PSF Res (Star Pos.) histogram to"
                 f" {self.qualified_plot_filename}")
-
-    def _calc_plotting_data(self):
-        """ Override parent method to get all the data we want to plot.
-        """
-
-        self.l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
-                                                       group_mode = self.group_mode)
-
-        # Remove any bad values from the data
-        self.l_p_trimmed = np.array([x for x in self.l_p if x > 0 and not is_inf_nan_or_masked(x)])
-        l_logp = np.log10(self.l_p_trimmed)
-
-        # Check if there's any valid data for this bin
-        if len(l_logp) <= 1:
-            # We'll always make the tot plot for testing purposes, but log a warning if no data
-            if self.bin_parameter == BinParameters.TOT:
-                logger.warning(self.MSG_INSUFFICIENT_DATA_TOT, self.bin_parameter.value)
-            else:
-                logger.debug(self.MSG_INSUFFICIENT_DATA, self.bin_parameter.value, self.bin_limits)
-                return True
-
-        # Determine whether we'll plot log or not depending on comparison mode
-        if self.two_sample_mode:
-            self.l_p_to_plot = l_logp
-
-            # Get data for the reference catalog here
-            self.l_ref_p = calculate_p_values(cat = self.ref_t_good,
-                                              group_mode = self.group_mode)
-            self.l_ref_p_trimmed = np.array([x for x in self.l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
-
-            self.l_ref_logp = np.log10(self.l_ref_p_trimmed)
-        else:
-            self.l_p_to_plot = self.l_p_trimmed
-            self.l_ref_p = None
-            self.l_ref_p_trimmed = None
-            self.l_ref_logp = None
-
-        return False
 
     def _draw_plot(self):
         """ Override parent method for drawing the plot.
