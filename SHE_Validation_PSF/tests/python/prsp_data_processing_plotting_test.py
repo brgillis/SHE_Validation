@@ -165,7 +165,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                          l_ref_ids_in_bin = l_test_case_object_ids,
                                                          ks_test_result = KstestResult(0.1412, 0.2),
                                                          group_mode = False, )
-                scatter_plotter.plot(show = True)
+                scatter_plotter.plot()
 
     def test_run_psf_res_val_test(self):
         """ Test that the function for testing across all bins works as expected.
