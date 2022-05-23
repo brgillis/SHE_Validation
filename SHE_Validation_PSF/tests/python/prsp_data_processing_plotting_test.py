@@ -159,13 +159,18 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = self.bin_parameter,
                                                           workdir = self.workdir)
 
+            if ref_star_cat is None:
+                l_ref_ids = None,
+            else:
+                l_ref_ids = ref_star_cat[ESC_TF.id]
+
             # Plot the scatter plot
             scatter_plotter = PsfResSPScatterPlotter(star_cat = self.mock_starcat_table,
                                                      ref_star_cat = ref_star_cat,
                                                      file_namer = scatter_file_namer,
                                                      bin_limits = self.l_bin_limits,
                                                      l_ids_in_bin = self.mock_starcat_table[ESC_TF.id],
-                                                     l_ref_ids_in_bin = ref_star_cat[ESC_TF.id],
+                                                     l_ref_ids_in_bin = l_ref_ids,
                                                      ks_test_result = KstestResult(0.1412, 0.2),
                                                      group_mode = False, )
             scatter_plotter.plot(show = True)
