@@ -30,6 +30,7 @@ from matplotlib import pyplot as plt
 
 from SHE_PPT import logging
 from SHE_PPT.constants.classes import BinParameters
+from SHE_PPT.math import LinregressResults, linregress_with_errors
 from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
@@ -43,6 +44,10 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     """
 
     # Class constants
+
+    COLOR_TEST = ValidationPlotter.COLOR_1
+    COLOR_REF = ValidationPlotter.COLOR_2
+
     TEST_CAT_LEGEND_NAME = "Test"
     REF_CAT_LEGEND_NAME = "Reference"
 
@@ -284,6 +289,9 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
     STR_HIST_Y_LABEL = PsfResSPPlotter.P_LABEL
     STR_HIST_Y_LABEL_LOG = PsfResSPPlotter.P_LOG_LABEL
 
+    MARKER_TEST = "x"
+    MARKER_REF = "+"
+
     MARKER_SIZE = 16
 
     # Class attributes
@@ -306,8 +314,10 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         # Declare instance attributes which will be calculated later
         self.l_snr: Optional[np.ndarray] = None
         self.l_snr_trimmed: Optional[np.ndarray] = None
+        self.l_linregress_results: Optional[LinregressResults] = None
         self.l_ref_snr: Optional[np.ndarray] = None
         self.l_ref_snr_trimmed: Optional[np.ndarray] = None
+        self.l_ref_linregress_results: Optional[LinregressResults] = None
 
     # Protected method overrides
 
@@ -373,6 +383,10 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
                                        in zip(self.l_snr, self.l_p)
                                        if (p > 0 and not is_inf_nan_or_masked(p))])
 
+        # Calculate a linear regression for p versus SNR
+        self.l_linregress_results = linregress_with_errors(self.l_snr_trimmed,
+                                                           self.l_p_trimmed)
+
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
 
@@ -382,9 +396,14 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
             self.l_ref_snr_trimmed = np.array([snr for (snr, p)
                                                in zip(self.l_snr, self.l_p)
                                                if (p > 0 and not is_inf_nan_or_masked(p))])
+
+            # Calculate a linear regression for p versus SNR
+            self.l_ref_linregress_results = linregress_with_errors(self.l_ref_snr_trimmed,
+                                                                   self.l_ref_p_trimmed)
         else:
             self.l_ref_snr = None
             self.l_ref_snr_trimmed = None
+            self.l_ref_linregress_results = None
 
     def _draw_plot(self):
         """ Override parent method for drawing the plot.
@@ -394,11 +413,21 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
             plt.scatter(self.l_ref_snr_trimmed,
                         self.l_ref_p_trimmed,
                         s = self.MARKER_SIZE,
-                        marker = "+",
+                        marker = self.MARKER_REF,
+                        c = self.COLOR_REF,
                         label = self.REF_CAT_LEGEND_NAME, )
+
         # Add the test scatter plot - we do this after the reference so it will lie on top of it
         plt.scatter(self.l_snr_trimmed,
                     self.l_p_trimmed,
                     s = self.MARKER_SIZE,
-                    marker = "x",
+                    marker = self.MARKER_TEST,
+                    c = self.COLOR_TEST,
                     label = self.TEST_CAT_LEGEND_NAME, )
+
+        # Draw lines of best fit, reference first so test line will lie on top
+        if self.two_sample_mode:
+            self._draw_bestfit_line(self.l_ref_linregress_results,
+                                    color = self.COLOR_REF)
+        self._draw_bestfit_line(self.l_linregress_results,
+                                color = self.COLOR_TEST, )

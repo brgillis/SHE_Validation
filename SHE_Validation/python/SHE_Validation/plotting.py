@@ -96,6 +96,13 @@ class ValidationPlotter(abc.ABC):
     MSG_INSUFFICIENT_DATA = ("Insufficient valid valid data to plot for %s test case, bin "
                              "%s, so skipping plot.")
 
+    # A selection of colors pre-selected to be distinct for people with any type of color-blindness
+    # Courtesy of https://davidmathlogic.com/colorblind/
+    COLOR_1 = (0xD8 / 0xFF, 0x1B / 0xFF, 0x60 / 0xFF)
+    COLOR_2 = (0x1E / 0xFF, 0x88 / 0xFF, 0xE5 / 0xFF)
+    COLOR_3 = (0xFF / 0xFF, 0xC1 / 0xFF, 0x07 / 0xFF)
+    COLOR_4 = (0x00 / 0xFF, 0x4D / 0xFF, 0x40 / 0xFF)
+
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
 
@@ -455,7 +462,7 @@ class ValidationPlotter(abc.ABC):
     def _draw_bestfit_line(self,
                            linregress_results: LinregressResults,
                            label: Optional[str] = None,
-                           color: str = "r",
+                           color: Union[str, Tuple[float, float, float]] = "r",
                            linestyle: str = "solid") -> None:
         """ Draw a line of bestfit on a plot.
         """
