@@ -33,7 +33,7 @@ from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation.binning.bin_constraints import get_table_of_ids
 from SHE_Validation.plotting import ValidationPlotter
-from SHE_Validation_PSF.utility import KsResult, calculate_p_values
+from SHE_Validation_PSF.utility import ESC_TF, KsResult, calculate_p_values
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +94,14 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
         # Declare instance attributes which will be calculated later
         self.base_plot_title: Optional[str] = None
+        self.l_p: Optional[np.ndarray] = None
+        self.l_p_trimmed: Optional[np.ndarray] = None
+        self.l_p_to_plot: Optional[np.ndarray] = None
+        self.l_ref_p: Optional[np.ndarray] = None
+        self.l_ref_p_trimmed: Optional[np.ndarray] = None
+        self.l_ref_logp: Optional[np.ndarray] = None
 
-    def _calc_plotting_data(self):
+    def _calc_plotting_data(self) -> Optional[bool]:
         """ Override parent method to get all the data we want to plot. This part is the same for all PSF plots, so
             implement it here, and specific plots can inherit and modify as necessary.
         """
@@ -132,8 +138,6 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
             self.l_ref_p_trimmed = None
             self.l_ref_logp = None
 
-        return False
-
 
 class PsfResSPHistPlotter(PsfResSPPlotter):
     """ Plotter for a histogram of PSF Residual (Star Pos) log10(p_chisq) values.
@@ -141,8 +145,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
     # Class constants
 
-    STR_HIST_TEST_P_MED_LABEL = r"Median test $p(\chi^2,{\rm d.o.f.})$: "
-    STR_HIST_REF_P_MED_LABEL = r"Median ref. $p(\chi^2,{\rm d.o.f.})$: "
+    STR_HIST_TEST_P_MED_LABEL = "Median test " + super().P_LABEL
+    STR_HIST_REF_P_MED_LABEL = "Median ref. " + super().P_LABEL
     P_MED_DIGITS = 2
 
     HIST_TYPE = 'step'
@@ -175,12 +179,10 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         self.cumulative = cumulative if cumulative is not None else self.cumulative
 
         # Declare instance attributes which will be calculated later
-        self.l_p: Optional[np.ndarray] = None
-        self.l_p_trimmed: Optional[np.ndarray] = None
-        self.l_p_to_plot: Optional[np.ndarray] = None
-        self.l_ref_p: Optional[np.ndarray] = None
-        self.l_ref_p_trimmed: Optional[np.ndarray] = None
-        self.l_ref_logp: Optional[np.ndarray] = None
+        self.l_snr: Optional[np.ndarray] = None
+        self.l_snr_trimmed: Optional[np.ndarray] = None
+        self.l_ref_snr: Optional[np.ndarray] = None
+        self.l_ref_snr_trimmed: Optional[np.ndarray] = None
 
     # Protected method overrides
 
@@ -251,16 +253,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     def _draw_plot(self):
         """ Override parent method for drawing the plot.
         """
-        # Plot the histogram for both test and reference catalogs
-        plt.hist(self.l_p_to_plot,
-                 bins = self.HIST_NUM_BINS,
-                 density = True,
-                 cumulative = self.cumulative,
-                 histtype = self.HIST_TYPE,
-                 label = self.TEST_CAT_LEGEND_NAME,
-                 linestyle = '-')
         if self.two_sample_mode:
-            # Add the other histogram, plus a legend to differentiate them
+            # Add the reference histogram, plus a legend to differentiate them
             plt.hist(self.l_ref_logp,
                      bins = self.HIST_NUM_BINS,
                      density = True,
@@ -268,3 +262,142 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                      histtype = self.HIST_TYPE,
                      label = self.REF_CAT_LEGEND_NAME,
                      linestyle = '--')
+        # Plot the histogram for test catalog
+        plt.hist(self.l_p_to_plot,
+                 bins = self.HIST_NUM_BINS,
+                 density = True,
+                 cumulative = self.cumulative,
+                 histtype = self.HIST_TYPE,
+                 label = self.TEST_CAT_LEGEND_NAME,
+                 linestyle = '-')
+
+
+class PsfResSPScatterPlotter(PsfResSPPlotter):
+    """ Plotter for a scatter of PSF Residual (Star Pos) log10(p_chisq) v. SNR values.
+    """
+
+    # Class constants
+
+    STR_SCATTER_BASE_TITLE = super().PRSP_TITLE_HEAD + "p vs. S/N"
+    STR_SCATTER_BASE_TITLE_LOG = super().PRSP_TITLE_HEAD + "log(p) vs. S/N"
+
+    STR_HIST_Y_LABEL = super().P_LABEL
+    STR_HIST_Y_LABEL_LOG = super().P_LOG_LABEL
+
+    MARKER_SIZE = 16
+
+    # Class attributes
+
+    cumulative: bool = False
+    _x_label = "S/N (VIS filter)"
+
+    def __init__(self,
+                 *args,
+                 cumulative: Optional[bool] = None,
+                 **kwargs):
+        """ Init that allows the user to specify here whether to plot a cumulative hist or not, or else go with the
+            default.
+        """
+
+        super().__init__(*args, **kwargs)
+
+        self.cumulative = cumulative if cumulative is not None else self.cumulative
+
+        # Declare instance attributes which will be calculated later
+        self.l_snr: Optional[np.ndarray] = None
+        self.l_snr_trimmed: Optional[np.ndarray] = None
+        self.l_ref_snr: Optional[np.ndarray] = None
+        self.l_ref_snr_trimmed: Optional[np.ndarray] = None
+
+    # Protected method overrides
+
+    def _get_y_label(self) -> str:
+        """ Override parent method to get the label for the Y axis.
+        """
+        if self.two_sample_mode:
+            return self.STR_HIST_Y_LABEL_LOG
+        else:
+            return self.STR_HIST_Y_LABEL
+
+    def _get_plot_title(self) -> str:
+        """ Overridable method to get the plot title
+        """
+        if self.two_sample_mode:
+            plot_title = self.STR_SCATTER_BASE_TITLE_LOG
+        else:
+            plot_title = self.STR_SCATTER_BASE_TITLE
+
+        plot_title += self._get_bin_info_str()
+
+        return plot_title
+
+    def _get_legend_loc(self) -> Optional[str]:
+        """ Override parent method to get location of the legend (None = don't display legend)
+        """
+        if self.two_sample_mode:
+            return "lower right"
+        return None
+
+    def _get_l_summary_text(self) -> List[str]:
+        """ Override parent method to get summary text.
+        """
+
+        # TODO: Add a line for slope and intercept of test data
+        l_summary_text = [""]
+
+        # TODO: Optionally add a line for slope and intercept of reference data
+        if self.two_sample_mode:
+            l_summary_text.append("")
+
+        return l_summary_text
+
+    def _get_msg_plot_saved(self) -> str:
+        """ Override parent method to get the method to print to log that a plot has been saved
+        """
+        return (f"Saved {self.bin_parameter} {self.bin_limits} PSF Res (Star Pos.) scatter plot to"
+                f" {self.qualified_plot_filename}")
+
+    def _calc_plotting_data(self) -> Optional[bool]:
+        """ Inherit _calc_plotting_data to also calculate data for S/N
+        """
+
+        super()._calc_plotting_data()
+
+        self.l_snr: np.ndarray = self.star_cat[ESC_TF.snr]
+
+        # TODO Trim on bad SNR too
+
+        # Remove any bad values from the data
+        self.l_snr_trimmed = np.array([snr for (snr, p)
+                                       in zip(self.l_snr, self.l_p)
+                                       if (p > 0 and not is_inf_nan_or_masked(p))])
+
+        # Determine whether we'll plot log or not depending on comparison mode
+        if self.two_sample_mode:
+
+            self.l_ref_snr: np.ndarray = self.ref_star_cat[ESC_TF.snr]
+
+            # Remove any bad values from the data
+            self.l_ref_snr_trimmed = np.array([snr for (snr, p)
+                                               in zip(self.l_snr, self.l_p)
+                                               if (p > 0 and not is_inf_nan_or_masked(p))])
+        else:
+            self.l_ref_snr = None
+            self.l_ref_snr_trimmed = None
+
+    def _draw_plot(self):
+        """ Override parent method for drawing the plot.
+        """
+        if self.two_sample_mode:
+            # Add the reference scatter plot
+            plt.scatter(self.l_ref_snr_trimmed,
+                        self.l_ref_p_trimmed,
+                        s = self.MARKER_SIZE,
+                        marker = "+",
+                        label = self.REF_CAT_LEGEND_NAME, )
+        # Add the test scatter plot - we do this after the reference so it will lie on top of it
+        plt.scatter(self.l_snr_trimmed,
+                    self.l_p_trimmed,
+                    s = self.MARKER_SIZE,
+                    marker = "x",
+                    label = self.TEST_CAT_LEGEND_NAME, )
