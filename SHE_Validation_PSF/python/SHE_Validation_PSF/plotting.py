@@ -48,6 +48,9 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
     COLOR_TEST = ValidationPlotter.COLOR_1
     COLOR_REF = ValidationPlotter.COLOR_2
 
+    LINESTYLE_TEST = '-'
+    LINESTYLE_REF = '--'
+
     TEST_CAT_LEGEND_NAME = "Test"
     REF_CAT_LEGEND_NAME = "Reference"
 
@@ -266,7 +269,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                      cumulative = self.cumulative,
                      histtype = self.HIST_TYPE,
                      label = self.REF_CAT_LEGEND_NAME,
-                     linestyle = '--')
+                     linestyle = self.LINESTYLE_REF,
+                     color = self.COLOR_REF)
         # Plot the histogram for test catalog
         plt.hist(self.l_p_to_plot,
                  bins = self.HIST_NUM_BINS,
@@ -274,7 +278,8 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
                  cumulative = self.cumulative,
                  histtype = self.HIST_TYPE,
                  label = self.TEST_CAT_LEGEND_NAME,
-                 linestyle = '-')
+                 linestyle = self.LINESTYLE_TEST,
+                 color = self.COLOR_TEST)
 
 
 class PsfResSPScatterPlotter(PsfResSPPlotter):
@@ -428,6 +433,8 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         # Draw lines of best fit, reference first so test line will lie on top
         if self.two_sample_mode:
             self._draw_bestfit_line(self.l_ref_linregress_results,
-                                    color = self.COLOR_REF)
+                                    color = self.COLOR_REF,
+                                    linestyle = self.LINESTYLE_REF)
         self._draw_bestfit_line(self.l_linregress_results,
-                                color = self.COLOR_TEST, )
+                                color = self.COLOR_TEST,
+                                linestyle = self.LINESTYLE_TEST)
