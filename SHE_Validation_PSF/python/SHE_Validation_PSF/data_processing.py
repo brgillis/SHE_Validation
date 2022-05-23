@@ -24,7 +24,7 @@ __updated__ = "2022-04-23"
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 from astropy.table import Table
@@ -32,7 +32,7 @@ from scipy.stats import ks_2samp, kstest, uniform
 from scipy.stats.stats import KstestResult
 
 from SHE_PPT import logging as log
-from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
+from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked, join_without_none
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
@@ -47,7 +47,8 @@ logger = log.getLogger(__name__)
 def run_psf_res_val_test(star_cat: Table,
                          d_l_bin_limits: Dict[BinParameters, Sequence[float]],
                          workdir: str,
-                         ref_star_cat: Optional[Table] = None) -> Dict[str, List[KsResult]]:
+                         ref_star_cat: Optional[Table] = None) -> Tuple[Dict[str, List[KsResult]],
+                                                                        Dict[str, Dict[str, str]]]:
     """ Calculates results of the PSF residual validation test for all bin parameters and bins.
 
         Returns a Dict of Lists of log(p) values for each test case and bin.
@@ -55,8 +56,6 @@ def run_psf_res_val_test(star_cat: Table,
 
     # Add the necessary SNR column to the star_cat and ref_star_cat so we can bin with it
     add_snr_column_to_star_cat(star_cat)
-    if ref_star_cat is not None:
-        add_snr_column_to_star_cat(ref_star_cat)
 
     # Get lists of IDs in each bin, in both the test and reference star catalogs
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
@@ -66,6 +65,7 @@ def run_psf_res_val_test(star_cat: Table,
 
     d_l_l_ref_test_case_object_ids: Optional[Dict[str, List[Sequence[int]]]]
     if ref_star_cat is not None:
+        add_snr_column_to_star_cat(ref_star_cat)
         d_l_l_ref_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
                                                                 d_bin_limits = d_l_bin_limits,
                                                                 detections_table = ref_star_cat,
@@ -75,6 +75,9 @@ def run_psf_res_val_test(star_cat: Table,
 
     # Init a dict of list of results
     d_l_psf_res_result_ps: Dict[str, List[KsResult]] = {}
+
+    # Init a dict to store filenames of plots that we generate
+    d_d_plot_filenames: Dict[str, Dict[str, str]] = {}
 
     # Loop over bin parameters first, then over bin limits, and test for each
     for test_case in L_PSF_RES_SP_TEST_CASE_INFO:
@@ -92,6 +95,9 @@ def run_psf_res_val_test(star_cat: Table,
 
         # Create a list for the results of each set of bin limits
         l_psf_res_result_ps: List[KsResult] = [KstestResult(np.nan, np.nan)] * num_bins
+
+        # Init a dict for filenames of plots for this test case
+        d_d_plot_filenames[test_case.name] = {}
 
         # Loop over bins now
         for bin_index in range(num_bins):
@@ -135,6 +141,12 @@ def run_psf_res_val_test(star_cat: Table,
                                                    cumulative = cumulative)
                 hist_plotter.plot()
 
+                cum_label: Optional[str] = "cum" if cumulative else None
+
+                # Save the name of the created plot in the d_d_plot_filenames dict
+                hist_label = join_without_none([bin_parameter.value, bin_index, cum_label, "hist"])
+                d_d_plot_filenames[test_case.name][hist_label] = hist_plotter.plot_filename
+
             # Add the list of results to the output dict
             d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
 
@@ -143,10 +155,7 @@ def run_psf_res_val_test(star_cat: Table,
         scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = bin_parameter,
                                                       workdir = workdir)
 
-        if ref_star_cat is None:
-            l_ref_ids = None,
-        else:
-            l_ref_ids = ref_star_cat[ESC_TF.id]
+        l_ref_ids = ref_star_cat[ESC_TF.id] if ref_star_cat is not None else None
 
         # Plot the scatter plot
         scatter_plotter = PsfResSPScatterPlotter(star_cat = star_cat,
@@ -158,7 +167,11 @@ def run_psf_res_val_test(star_cat: Table,
                                                  group_mode = False, )
         scatter_plotter.plot()
 
-    return d_l_psf_res_result_ps
+        # Save the name of the created plot in the d_d_plot_filenames dict
+        scatter_label = join_without_none([bin_parameter.value, "scatter"])
+        d_d_plot_filenames[test_case.name][scatter_label] = scatter_plotter.plot_filename
+
+    return d_l_psf_res_result_ps, d_d_plot_filenames
 
 
 def run_psf_res_val_test_for_bin(star_cat: Table,
