@@ -294,6 +294,12 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
     STR_HIST_Y_LABEL = PsfResSPPlotter.P_LABEL
     STR_HIST_Y_LABEL_LOG = PsfResSPPlotter.P_LOG_LABEL
 
+    STR_P_BF_SLOPE_TEST_LABEL = r"Slope (test): "
+    STR_P_BF_INT_TEST_LABEL = r"Intercept (test): "
+    STR_P_BF_SLOPE_RES_LABEL = r"Slope (ref.): "
+    STR_P_BF_INT_RES_LABEL = r"Intercept (ref.): "
+    BF_DIGITS = 2
+
     MARKER_TEST = "x"
     MARKER_REF = "+"
 
