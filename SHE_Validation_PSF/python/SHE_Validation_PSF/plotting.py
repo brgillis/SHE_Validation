@@ -161,7 +161,7 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
     HIST_NUM_BINS = 20
 
     STR_HIST_BASE_TITLE = PsfResSPPlotter.PRSP_TITLE_HEAD + "p"
-    STR_HIST_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log(p)"
+    STR_HIST_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log_{10}(p)"
     STR_HIST_TITLE_CUMULATIVE_TAIL = " (cumulative)"
 
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
@@ -289,7 +289,7 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
     # Class constants
 
     STR_SCATTER_BASE_TITLE = PsfResSPPlotter.PRSP_TITLE_HEAD + "p vs. S/N"
-    STR_SCATTER_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log(p) vs. S/N"
+    STR_SCATTER_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log_{10}(p) vs. S/N"
 
     STR_HIST_Y_LABEL = PsfResSPPlotter.P_LABEL
     STR_HIST_Y_LABEL_LOG = PsfResSPPlotter.P_LOG_LABEL
@@ -390,7 +390,7 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
         # Calculate a linear regression for p versus SNR
         self.l_linregress_results = linregress_with_errors(self.l_snr_trimmed,
-                                                           self.l_p_trimmed)
+                                                           self.l_p_to_plot)
 
         # Determine whether we'll plot log or not depending on comparison mode
         if self.two_sample_mode:
@@ -404,7 +404,7 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
             # Calculate a linear regression for p versus SNR
             self.l_ref_linregress_results = linregress_with_errors(self.l_ref_snr_trimmed,
-                                                                   self.l_ref_p_trimmed)
+                                                                   self.l_ref_logp)
         else:
             self.l_ref_snr = None
             self.l_ref_snr_trimmed = None
@@ -416,7 +416,7 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         if self.two_sample_mode:
             # Add the reference scatter plot
             plt.scatter(self.l_ref_snr_trimmed,
-                        self.l_ref_p_trimmed,
+                        self.l_ref_logp,
                         s = self.MARKER_SIZE,
                         marker = self.MARKER_REF,
                         c = self.COLOR_REF,
@@ -424,7 +424,7 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
         # Add the test scatter plot - we do this after the reference so it will lie on top of it
         plt.scatter(self.l_snr_trimmed,
-                    self.l_p_trimmed,
+                    self.l_p_to_plot,
                     s = self.MARKER_SIZE,
                     marker = self.MARKER_TEST,
                     c = self.COLOR_TEST,
