@@ -36,9 +36,9 @@ from SHE_PPT.utility import is_inf_or_nan, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer
-from SHE_Validation_PSF.plotting import PsfResSPHistPlotter
-from SHE_Validation_PSF.utility import (KsResult, add_snr_column_to_star_cat, calculate_p_values,
+from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer, PsfResSPScatterFileNamer
+from SHE_Validation_PSF.plotting import PsfResSPHistPlotter, PsfResSPScatterPlotter
+from SHE_Validation_PSF.utility import (ESC_TF, KsResult, add_snr_column_to_star_cat, calculate_p_values,
                                         get_table_in_bin, getitem_or_none, )
 
 logger = log.getLogger(__name__)
@@ -116,7 +116,7 @@ def run_psf_res_val_test(star_cat: Table,
                                                                           ref_star_cat = ref_table_in_bin,
                                                                           group_mode = group_mode)
 
-            # Create plots for this bin
+            # Create histograms for this bin
             for (cumulative, file_namer_type) in ((False, PsfResSPHistFileNamer),
                                                   (True, PsfResSPCumHistFileNamer)):
 
@@ -137,6 +137,26 @@ def run_psf_res_val_test(star_cat: Table,
 
             # Add the list of results to the output dict
             d_l_psf_res_result_ps[test_case.name] = l_psf_res_result_ps
+
+        # Create a scatter plot of the data
+
+        scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = bin_parameter,
+                                                      workdir = workdir)
+
+        if ref_star_cat is None:
+            l_ref_ids = None,
+        else:
+            l_ref_ids = ref_star_cat[ESC_TF.id]
+
+        # Plot the scatter plot
+        scatter_plotter = PsfResSPScatterPlotter(star_cat = star_cat,
+                                                 ref_star_cat = ref_star_cat,
+                                                 file_namer = scatter_file_namer,
+                                                 bin_limits = l_bin_limits,
+                                                 l_ids_in_bin = star_cat[ESC_TF.id],
+                                                 l_ref_ids_in_bin = l_ref_ids,
+                                                 group_mode = False, )
+        scatter_plotter.plot()
 
     return d_l_psf_res_result_ps
 

@@ -171,7 +171,6 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                      bin_limits = self.l_bin_limits,
                                                      l_ids_in_bin = self.mock_starcat_table[ESC_TF.id],
                                                      l_ref_ids_in_bin = l_ref_ids,
-                                                     ks_test_result = KstestResult(0.1412, 0.2),
                                                      group_mode = False, )
             scatter_plotter.plot()
 
