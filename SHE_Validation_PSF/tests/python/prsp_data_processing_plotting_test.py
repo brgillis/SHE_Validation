@@ -34,7 +34,7 @@ from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFac
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
 from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
-from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer
+from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer, PsfResSPScatterFileNamer
 from SHE_Validation_PSF.plotting import PsfResSPHistPlotter, PsfResSPScatterPlotter
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 from SHE_Validation_PSF.utility import ESC_TF
@@ -156,16 +156,19 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                        cumulative = cumulative)
                     hist_plotter.plot()
 
-                # Plot the scatter plot
-                scatter_plotter = PsfResSPScatterPlotter(star_cat = self.mock_starcat_table,
-                                                         ref_star_cat = ref_star_cat,
-                                                         file_namer = hist_file_namer,
-                                                         bin_limits = self.l_bin_limits[bin_index:bin_index + 2],
-                                                         l_ids_in_bin = l_test_case_object_ids,
-                                                         l_ref_ids_in_bin = l_test_case_object_ids,
-                                                         ks_test_result = KstestResult(0.1412, 0.2),
-                                                         group_mode = False, )
-                scatter_plotter.plot()
+            scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = self.bin_parameter,
+                                                          workdir = self.workdir)
+
+            # Plot the scatter plot
+            scatter_plotter = PsfResSPScatterPlotter(star_cat = self.mock_starcat_table,
+                                                     ref_star_cat = ref_star_cat,
+                                                     file_namer = scatter_file_namer,
+                                                     bin_limits = self.l_bin_limits,
+                                                     l_ids_in_bin = self.mock_starcat_table[ESC_TF.id],
+                                                     l_ref_ids_in_bin = ref_star_cat[ESC_TF.id],
+                                                     ks_test_result = KstestResult(0.1412, 0.2),
+                                                     group_mode = False, )
+            scatter_plotter.plot(show = True)
 
     def test_run_psf_res_val_test(self):
         """ Test that the function for testing across all bins works as expected.
