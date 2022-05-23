@@ -145,22 +145,22 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
 
     # Class constants
 
-    STR_HIST_TEST_P_MED_LABEL = "Median test " + super().P_LABEL
-    STR_HIST_REF_P_MED_LABEL = "Median ref. " + super().P_LABEL
+    STR_HIST_TEST_P_MED_LABEL = "Median test " + PsfResSPPlotter.P_LABEL
+    STR_HIST_REF_P_MED_LABEL = "Median ref. " + PsfResSPPlotter.P_LABEL
     P_MED_DIGITS = 2
 
     HIST_TYPE = 'step'
     HIST_NUM_BINS = 20
 
-    STR_HIST_BASE_TITLE = super().PRSP_TITLE_HEAD + "p"
-    STR_HIST_BASE_TITLE_LOG = super().PRSP_TITLE_HEAD + "log(p)"
+    STR_HIST_BASE_TITLE = PsfResSPPlotter.PRSP_TITLE_HEAD + "p"
+    STR_HIST_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log(p)"
     STR_HIST_TITLE_CUMULATIVE_TAIL = " (cumulative)"
 
     STR_HIST_Y_LABEL_CUMULATIVE_TAIL = " (cumulative)"
     STR_HIST_Y_LABEL_BASE = r"$n$"
 
-    STR_HIST_X_LABEL = super().P_LABEL
-    STR_HIST_X_LABEL_LOG = super().P_LOG_LABEL
+    STR_HIST_X_LABEL = PsfResSPPlotter.P_LABEL
+    STR_HIST_X_LABEL_LOG = PsfResSPPlotter.P_LOG_LABEL
 
     # Class attributes
 
@@ -278,11 +278,11 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
     # Class constants
 
-    STR_SCATTER_BASE_TITLE = super().PRSP_TITLE_HEAD + "p vs. S/N"
-    STR_SCATTER_BASE_TITLE_LOG = super().PRSP_TITLE_HEAD + "log(p) vs. S/N"
+    STR_SCATTER_BASE_TITLE = PsfResSPPlotter.PRSP_TITLE_HEAD + "p vs. S/N"
+    STR_SCATTER_BASE_TITLE_LOG = PsfResSPPlotter.PRSP_TITLE_HEAD + "log(p) vs. S/N"
 
-    STR_HIST_Y_LABEL = super().P_LABEL
-    STR_HIST_Y_LABEL_LOG = super().P_LOG_LABEL
+    STR_HIST_Y_LABEL = PsfResSPPlotter.P_LABEL
+    STR_HIST_Y_LABEL_LOG = PsfResSPPlotter.P_LOG_LABEL
 
     MARKER_SIZE = 16
 

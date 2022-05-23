@@ -140,10 +140,9 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                         hist_file_namer_type = PsfResSPCumHistFileNamer
                     else:
                         hist_file_namer_type = PsfResSPHistFileNamer
-                    hist_file_namer = hist_file_namer_type(
-                        bin_parameter = self.bin_parameter,
-                        bin_index = bin_index,
-                        workdir = self.workdir),
+                    hist_file_namer = hist_file_namer_type(bin_parameter = self.bin_parameter,
+                                                           bin_index = bin_index,
+                                                           workdir = self.workdir)
 
                     # Plot the histogram
                     hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
@@ -166,7 +165,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                                                          l_ref_ids_in_bin = l_test_case_object_ids,
                                                          ks_test_result = KstestResult(0.1412, 0.2),
                                                          group_mode = False, )
-                scatter_plotter.plot()
+                scatter_plotter.plot(show = True)
 
     def test_run_psf_res_val_test(self):
         """ Test that the function for testing across all bins works as expected.
