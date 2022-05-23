@@ -128,25 +128,27 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[snr_test_case_info.name]
 
-        for cumulative in (False, True):
+        for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-            for ref_star_cat in (None, self.mock_ref_starcat_table):
+            for bin_index in range(len(self.l_bin_limits) - 1):
 
-                for bin_index in range(len(self.l_bin_limits) - 1):
+                l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
 
-                    l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+                for cumulative in (False, True):
 
                     if cumulative:
-                        file_namer_type = PsfResSPCumHistFileNamer
+                        hist_file_namer_type = PsfResSPCumHistFileNamer
                     else:
-                        file_namer_type = PsfResSPHistFileNamer
+                        hist_file_namer_type = PsfResSPHistFileNamer
+                    hist_file_namer = hist_file_namer_type(
+                        bin_parameter = self.bin_parameter,
+                        bin_index = bin_index,
+                        workdir = self.workdir),
 
+                    # Plot the histogram
                     hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
                                                        ref_star_cat = ref_star_cat,
-                                                       file_namer = file_namer_type(
-                                                           bin_parameter = self.bin_parameter,
-                                                           bin_index = bin_index,
-                                                           workdir = self.workdir),
+                                                       file_namer = hist_file_namer,
                                                        bin_limits = self.l_bin_limits[bin_index:bin_index + 2],
                                                        l_ids_in_bin = l_test_case_object_ids,
                                                        l_ref_ids_in_bin = l_test_case_object_ids,
