@@ -180,10 +180,10 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-            d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
-                                                      ref_star_cat = ref_star_cat,
-                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config),
-                                                      workdir = self.workdir)
+            (d_l_kstest_results, _) = run_psf_res_val_test(star_cat = self.mock_starcat_table,
+                                                           ref_star_cat = ref_star_cat,
+                                                           d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config),
+                                                           workdir = self.workdir)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]
