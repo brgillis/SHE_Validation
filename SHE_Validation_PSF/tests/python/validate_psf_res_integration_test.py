@@ -23,6 +23,7 @@ __updated__ = "2022-04-08"
 import os
 import subprocess
 from argparse import Namespace
+from typing import Optional
 
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
 from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
@@ -104,9 +105,6 @@ class TestPsfResRun(SheValPsfTestCase):
         assert textfiles_tarball_filename
         assert figures_tarball_filename
 
-        # Exit here for now - no textfiles or figures are created at present, so we can't test for them yet
-        return
-
         # Unpack the tarballs containing both the textfiles and the figures
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
             subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell = True)
@@ -118,17 +116,22 @@ class TestPsfResRun(SheValPsfTestCase):
         qualified_directory_filename = os.path.join(workdir, PSF_RES_SP_DIRECTORY_FILENAME)
 
         # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
-        plot_filename = None
+        hist_filename: Optional[str] = None
+        scatter_filename: Optional[str] = None
         with open(qualified_directory_filename, "r") as fi:
             for line in fi:
                 if line[0] == "#":
                     continue
                 key, value = line.strip().split(": ")
-                if key == "tot-0":
-                    plot_filename = value
+                if key == "tot-0-hist":
+                    hist_filename = value
+                elif key == "tot-scatter":
+                    scatter_filename = value
 
-        # Check that we found the filename for this plot
-        assert plot_filename is not None
+        # Check that we found the filename for both plots
+        assert hist_filename is not None
+        assert scatter_filename is not None
 
         # Check that this plot file exists
-        assert os.path.isfile(os.path.join(workdir, plot_filename))
+        assert os.path.isfile(os.path.join(workdir, hist_filename))
+        assert os.path.isfile(os.path.join(workdir, scatter_filename))
