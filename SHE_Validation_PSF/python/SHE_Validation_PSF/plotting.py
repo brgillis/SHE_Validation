@@ -454,3 +454,13 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
         self._draw_bestfit_line(self.linregress_results,
                                 color = self.COLOR_TEST,
                                 linestyle = self.LINESTYLE_TEST)
+
+        # Draw lines showing each bin
+
+        for bin_index in range(len(self.bin_limits) - 2):
+
+            l_x = np.array([self.bin_limits[bin_index + 1]] * 2)
+            l_y = np.array(self.ylim)
+            self.ax.plot(l_x, l_y, color = "k", linestyle = ":")
+
+        self._reset_axes()
