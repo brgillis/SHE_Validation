@@ -48,6 +48,8 @@ from SHE_Validation.testing.constants import (KSB_MATCHED_TABLE_FILENAME, KSB_ME
 from SHE_Validation.testing.mock_data import (EST_SEED, MFC_SEED, MockMFCDataGenerator, MockShearEstimateDataGenerator,
                                               MockStarCatDataGenerator, MockTUGalaxyDataGenerator,
                                               MockTUMatchedDataGenerator, STAR_CAT_SEED, )
+from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
+from ST_DataModelBindings.dpd.she.raw.validatedmeasurements_stub import DpdSheValidatedMeasurements
 
 logger = getLogger(__name__)
 
@@ -197,6 +199,11 @@ class MockTUMatchedTableGenerator(MockTableGenerator):
         self.method = method
         self.tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
+    def create_product(self) -> DpdSheValidatedMeasurements:
+        """ Concretely implement method for creating a data product of the correct type for this table.
+        """
+        return create_dpd_she_validated_measurements()
+
 
 def make_mock_matched_table(method = ShearEstimationMethods.LENSMC,
                             seed: int = EST_SEED, ) -> Table:
@@ -255,6 +262,11 @@ class MockStarCatTableGenerator(MockTableGenerator):
     # Attributes with overriding types
     mock_data_generator: MockStarCatDataGenerator
     tf: Optional[SheStarCatalogFormat] = SHE_STAR_CAT_TF
+
+    def create_product(self) -> dpdSheStarCatalog:
+        """ Concretely implement method for creating a data product of the correct type for this table.
+        """
+        return create_dpd_she_star_catalog()
 
 
 def make_mock_starcat_table(seed: int = STAR_CAT_SEED, ) -> Table:

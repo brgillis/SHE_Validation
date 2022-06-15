@@ -147,16 +147,6 @@ class MockTUGalaxyDataGenerator(MockDataGenerator):
         self.data[self.tf.tu_gamma2] = np.linspace(INPUT_G_MAX, INPUT_G_MIN, self.num_test_points)
         self.data[self.tf.tu_kappa] = np.zeros_like(self.data[self.tf.tu_gamma1])
 
-        # Fill in data for bin parameter info, with different bins for each parameter
-
-        i: int
-        bin_parameter: BinParameters
-        for i, bin_parameter in enumerate(BinParameters):
-            if bin_parameter == BinParameters.TOT:
-                continue
-            factor = 2 ** i
-            self.data[bin_parameter.name] = np.where(self._indices % factor < factor / 2, self._ones, self._zeros)
-
 
 class MockShearEstimateDataGenerator(MockDataGenerator):
     """ A class to handle the generation of mock shear estimates data.

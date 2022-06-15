@@ -77,5 +77,5 @@ class TestPsfResReadInput(SheTestCase):
 
         # Check that the input is as expected
         np.testing.assert_allclose(d_l_bin_limits[BinParameters.SNR], DEFAULT_MOCK_BIN_LIMITS)
-        assert self.mock_starcat_product.Header.ProductId == p_star_cat.Header.ProductId
+        assert self.mock_starcat_product.Header.ProductId.value() == p_star_cat.Header.ProductId.value()
         assert (self.mock_starcat_table == star_cat).all()
