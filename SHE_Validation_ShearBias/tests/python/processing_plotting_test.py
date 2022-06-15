@@ -32,6 +32,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS, NUM_TEST_POINTS,
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -150,6 +151,17 @@ class TestShearBias:
 
             matched_table = make_mock_matched_table(method = method,
                                                     seed = EST_SEED + method_index)
+            # Add bin columns to the matched table
+            l_indices = np.indices((len(matched_table),))[0]
+            l_ones = np.ones_like(l_indices)
+            l_zeros = np.zeros_like(l_indices)
+            for i, bin_parameter in enumerate(BinParameters):
+                if bin_parameter == BinParameters.TOT:
+                    continue
+                factor = 2 ** i
+                matched_table[bin_parameter.name] = np.where(l_indices % factor < factor / 2, l_ones,
+                                                             l_zeros)
+
             self.d_matched_tables[method] = matched_table
 
             l_good_g1_in: Sequence[float] = -matched_table[tf.tu_gamma1][:NUM_GOOD_TEST_POINTS]
@@ -327,7 +339,7 @@ class TestShearBias:
 
             # Try loading all data, and check that NaN values were read in
             data_loader.load_all()
-            assert np.isnan(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
+            assert is_nan_or_masked(data_loader.d_g_out[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS - 1])
             assert np.isinf(data_loader.d_g_out_err[1][NUM_GOOD_TEST_POINTS + NUM_NAN_TEST_POINTS +
                                                        NUM_ZERO_WEIGHT_TEST_POINTS - 1])
 

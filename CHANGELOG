@@ -1,5 +1,37 @@
 Changelog for SHE_Validation
 
+Changes in v9.0
+=========================
+
+API Changes
+-----------
+
+
+Dependency Changes
+------------------
+- Now depends on SHE_PPT 9.1 and its respective dependencies
+
+
+Deprecated Features
+-------------------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+New Config Features
+-------------------
+
+
+Miscellaneous
+-------------
+
+
 Changes in v8.3
 =========================
 
