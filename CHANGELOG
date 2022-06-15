@@ -7,13 +7,21 @@ API Changes
 -----------
 - Renamed executable SHE_Validation_ValidatePSFRes to SHE_Validation_ValidatePSFResStarPos, to avoid ambiguity with
   future PSFResInterp executable
+- Added new executable SHE_Validation_ValidatePSFRes
+  - Main executable and interface implemented
+  - Reading in of input data implemented
+  - Processing of data implemented
+  - Reporting of results to in-memory data product implemented
+  - Resulting data product output
+  - Added ability to configure p-value for failure threshold
+  - Added option for comparison against a reference product. Test will check if provided product is consistent with or
+    better than reference product if one is provided. If one isn't provided, test will check if chi-sq probabilities are
+    consistent with uniform distribution.
 
 
 Dependency Changes
 ------------------
-- Now depends on EDEN 3.0 environment
-- Now depends on SHE_PPT 9.1, and implicitly on EL_Utils 1.2.2, ST_DataModelTools 9.0.2, ST_DataModel 9.0.2, and
-  Elements 6.0.1
+
 
 Deprecated Features
 -------------------
@@ -45,21 +53,44 @@ Miscellaneous
 - Added documentation for new executable SHE_Validation_ValidatePSFResStarPos
 
 
+Changes in v9.0
+=========================
+
+API Changes
+-----------
+
+
+Dependency Changes
+------------------
+- Now depends on SHE_PPT 9.1 and its respective dependencies
+
+
+Deprecated Features
+-------------------
+
+
+Bug Fixes
+---------
+
+
+New Features
+------------
+
+
+New Config Features
+-------------------
+
+
+Miscellaneous
+-------------
+
+
 Changes in v8.3
 =========================
 
 API Changes
 -----------
-- Added new executable SHE_Validation_ValidatePSFRes
-  - Main executable and interface implemented
-  - Reading in of input data implemented
-  - Processing of data implemented
-  - Reporting of results to in-memory data product implemented
-  - Resulting data product output
-  - Added ability to configure p-value for failure threshold
-  - Added option for comparison against a reference product. Test will check if provided product is consistent with or
-    better than reference product if one is provided. If one isn't provided, test will check if chi-sq probabilities are
-    consistent with uniform distribution.
+
 
 Dependency Changes
 ------------------

@@ -27,6 +27,7 @@ from astropy.table import Column, Table
 
 from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS,
                                                         ShearEstimationMethods, )
+from SHE_PPT.file_io import TableLoader
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_errors)
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
@@ -81,7 +82,8 @@ class ShearBiasDataLoader:
 
         # Create a table loader with this list of filenames
         self._table_loader = BinnedMultiTableLoader(l_filenames = self.l_filenames,
-                                                    workdir = self.workdir)
+                                                    workdir = self.workdir,
+                                                    file_loader_type = TableLoader)
 
         # Determine the table format
         self._sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
