@@ -481,7 +481,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
             requirement_writer = test_case_writer.l_requirement_writers[0]
 
-            if (test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_test_results):
+            if test_case_info.bins != BinParameters.EPOCH and test_case_name in self.d_l_test_results:
 
                 num_bins = len(l_bin_limits) - 1
 
