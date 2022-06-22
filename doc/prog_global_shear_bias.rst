@@ -15,7 +15,7 @@ To run the ``SHE_Validation_ValidateGlobalShearBias`` program with Elements, use
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidateGlobalShearBias --workdir <dir> --matched_catalog_listfile <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."] [--max_g_in <value>] [--bootstrap_errors <value>] [--require_fitclass_zero <value>]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGlobalShearBias --workdir <dir> --matched_catalog_listfile <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."] [--bg_bin_limits "<value> <value> ..."] [--colour_bin_limits "<value> <value> ..."] [--size_bin_limits "<value> <value> ..."] [--epoch_bin_limits "<value> <value> ..."] [--max_g_in <value>] [--bootstrap_errors <value>] [--require_fitclass_zero <value>]
 
 with the following arguments which differ from ``SHE_Validation_ValidateShearBias``:
 
@@ -56,7 +56,7 @@ The program can then be run with the following command in an EDEN 2.1 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidateGlobalShearBias --workdir $WORKDIR  --matched_catalog_listfile $MC_LISTFILE --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGlobalShearBias --workdir $WORKDIR  --matched_catalog_listfile $MC_LISTFILE --she_validation_test_results_product she_validation_test_results_product.xml
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variable ``$MC_LISTFILE`` corresponds to the filename of the prepared matched catalog product.
 

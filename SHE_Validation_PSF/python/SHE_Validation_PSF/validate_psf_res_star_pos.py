@@ -57,7 +57,7 @@ class PsfResSPConfigBinInterpreter(ConfigBinInterpreter):
 
 
 @dataclass
-class PsfResSPInputData():
+class PsfResSPInputData:
     d_l_bin_limits: Dict[BinParameters, np.ndarray]
     p_star_cat: Any
     star_cat: Table
