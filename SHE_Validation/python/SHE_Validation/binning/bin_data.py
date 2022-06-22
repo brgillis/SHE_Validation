@@ -254,7 +254,8 @@ def _determine_data_table(t: Table,
     data_table: Table
     if data_colname in t.colnames:
         data_table = t
-    elif data_colname in data_stack.detections_catalogue.colnames:
+    elif (data_stack is not None and data_stack.detections_catalogue is not None and
+          data_colname in data_stack.detections_catalogue.colnames):
         full_data_table: Table = data_stack.detections_catalogue
 
         # We need to make sure IDs align, so here we select on IDs in t
