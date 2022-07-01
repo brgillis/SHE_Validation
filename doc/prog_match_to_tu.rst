@@ -17,7 +17,7 @@ To run the ``SHE_Validation_MatchToTU`` program with Elements, use the following
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.0 SHE_Validation_MatchToTU --workdir <dir> --she_validated_measurements_product <filename> --tu_output_product <filename> --matched_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--match_threshold <value>]
+    E-Run SHE_Validation 9.1 SHE_Validation_MatchToTU --workdir <dir> --she_validated_measurements_product <filename> --tu_output_product <filename> --matched_catalog <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--match_threshold <value>]
 
 with the arguments and options as defined in the following sections:
 
@@ -310,7 +310,7 @@ Download the required input data into the desired workdir. The program can then 
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.0 SHE_Validation_MatchToTU --she_validated_measurements_product $SVM_PRODUCT --tu_output_product $TU_PRODUCT --matched_catalog matched_catalog.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_MatchToTU --she_validated_measurements_product $SVM_PRODUCT --tu_output_product $TU_PRODUCT --matched_catalog matched_catalog.xml
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ``$SVM_PRODUCT`` and ``$TU_PRODUCT`` correspond to the filenames of the prepared downloaded products for each input port.
 

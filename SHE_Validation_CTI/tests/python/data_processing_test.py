@@ -88,10 +88,9 @@ class TestCtiGalDataProcessing(SheTestCase):
     """ Unit tests for CTI validation data processing.
     """
 
-    @classmethod
-    def setup_class(cls):
+    def setup_workdir(self):
 
-        cls._download_mdb()
+        self._download_mdb()
 
     @classmethod
     def teardown_class(cls):
