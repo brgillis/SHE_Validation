@@ -9,7 +9,7 @@ This program performs the CTI-Galaxy validation test, T-SHE-000010-CTI-gal, whic
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_ValidateCTIGal`` program with Elements, use the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
@@ -361,7 +361,7 @@ Example
 
 Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``mer_final_catalog_listfile``, and ``she_validated_measurements_product`` data for a selected observation (in the case of the DpdMerFinalCatalog products, these must be downloaded for all tiles which overlap this observation), and then running the `SHE_Validation_CalcCommonValData <prog_ccvd.html#SHE_Validation_CalcCommonValData>`__ program to generate the ``extended_catalog`` data product.
 
-The program can then be run with the following command in an EDEN 2.1 environment:
+The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 

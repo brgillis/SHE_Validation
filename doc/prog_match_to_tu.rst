@@ -13,7 +13,7 @@ This program implements a match between true sources and detected objects, attem
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_MatchToTU`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_MatchToTU`` program with Elements, use the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
@@ -306,7 +306,7 @@ The table for objects best matched to galaxies includes useful additional data. 
 Example
 -------
 
-Download the required input data into the desired workdir. The program can then be run with the following command in an EDEN 2.1 environment:
+Download the required input data into the desired workdir. The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
