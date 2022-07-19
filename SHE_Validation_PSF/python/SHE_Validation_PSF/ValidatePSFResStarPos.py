@@ -1,4 +1,4 @@
-""" @file ValidatePSFRes.py
+""" @file ValidatePSFResStarPos.py
 
     Created 08 March 2022 by Bryan Gillis
 
@@ -31,9 +31,9 @@ from SHE_PPT import logging as log
 from SHE_Validation.executor import ValLogOptions
 from SHE_Validation_PSF.argument_parser import PsfResArgumentParser
 from SHE_Validation_PSF.executor import PsfResValExecutor
-from SHE_Validation_PSF.validate_psf_res import run_validate_psf_res_from_args
+from SHE_Validation_PSF.validate_psf_res_star_pos import run_validate_psf_res_from_args
 
-EXEC_NAME = "SHE_Validation_ValidatePSFRes"
+EXEC_NAME = "SHE_Validation_ValidatePSFResStarPos"
 
 logger = log.getLogger(__name__)
 

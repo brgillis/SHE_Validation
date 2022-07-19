@@ -30,6 +30,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
 from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, )
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation_CTI.input_data import (PositionInfo, ShearEstimate, SingleObjectData, get_raw_cti_gal_object_data,
                                            sort_raw_object_data_into_table, )
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
@@ -86,9 +87,9 @@ class TestCtiGalInput(SheTestCase):
             assert lensmc_world_shear_info.g2 == lmcm_row[lmcm_tf.g2]
             assert lensmc_world_shear_info.weight == lmcm_row[lmcm_tf.weight]
 
-            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.KSB].g1)
-            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.MOMENTSML].g1)
-            assert np.isnan(object_data.world_shear_info[ShearEstimationMethods.REGAUSS].g1)
+            assert is_nan_or_masked(object_data.world_shear_info[ShearEstimationMethods.KSB].g1)
+            assert is_nan_or_masked(object_data.world_shear_info[ShearEstimationMethods.MOMENTSML].g1)
+            assert is_nan_or_masked(object_data.world_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
             # Check the shear info for each exposure
             ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width = 1)
@@ -119,9 +120,9 @@ class TestCtiGalInput(SheTestCase):
                 assert lensmc_exposure_shear_info.g2 == lmcm_row[lmcm_tf.g2]
                 assert lensmc_exposure_shear_info.weight == lmcm_row[lmcm_tf.weight]
 
-                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.KSB].g1)
-                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.MOMENTSML].g1)
-                assert np.isnan(position_info.exposure_shear_info[ShearEstimationMethods.REGAUSS].g1)
+                assert is_nan_or_masked(position_info.exposure_shear_info[ShearEstimationMethods.KSB].g1)
+                assert is_nan_or_masked(position_info.exposure_shear_info[ShearEstimationMethods.MOMENTSML].g1)
+                assert is_nan_or_masked(position_info.exposure_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
     def test_sort_raw_object_data(self):
 

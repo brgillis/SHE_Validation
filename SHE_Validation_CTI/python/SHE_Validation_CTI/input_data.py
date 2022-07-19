@@ -23,12 +23,12 @@ __updated__ = "2021-08-26"
 # The size for the stamp used for calculating the background level
 
 from copy import deepcopy
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
 import numpy as np
 from astropy import table
 from astropy.table import Row, Table
-from dataclasses import dataclass
 
 from SHE_PPT import shear_utility
 from SHE_PPT.constants.fits import CCDID_LABEL
@@ -42,6 +42,7 @@ from SHE_PPT.she_image_stack import SHEImageStack
 from SHE_PPT.shear_utility import ShearEstimate
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
+from SHE_PPT.utility import is_inf_nan_or_masked
 from .data_processing import add_readout_register_distance
 from .table_formats.cti_gal_object_data import TF as CGOD_TF
 
@@ -170,10 +171,9 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
 
         # Check the object isn't flagged as a failure
         object_weight: float
-        if ((not is_flagged_failure(object_row[sem_tf.fit_flags])) and not (np.isinf(object_row[sem_tf.g1_err]) or
-                                                                            np.isinf(object_row[sem_tf.g2_err]) or
-                                                                            np.isnan(object_row[sem_tf.g1_err]) or
-                                                                            np.isnan(object_row[sem_tf.g2_err]))):
+        if ((not is_flagged_failure(object_row[sem_tf.fit_flags])) and
+                not (is_inf_nan_or_masked(object_row[sem_tf.g1_err]) or
+                     is_inf_nan_or_masked(object_row[sem_tf.g2_err]))):
             object_weight = object_row[sem_tf.weight]
         else:
             object_weight = 0
