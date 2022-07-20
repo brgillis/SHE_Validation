@@ -9,7 +9,7 @@ This program performs the Shear Bias validation test, T-SHE-000006-shear-bias, w
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateShearBias`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_ValidateShearBias`` program with Elements, use the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
@@ -315,7 +315,7 @@ Example
 
 Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``tu_output_product``, and ``she_validated_measurements_product`` data, and then running the `SHE_Validation_MatchToTU <prog_match_to_tu.html>`__ program to generate the ``matched_catalog`` data product.
 
-The program can then be run with the following command in an EDEN 2.1 environment:
+The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
