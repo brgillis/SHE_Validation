@@ -11,7 +11,7 @@ This program performs the CTI-PSF validation test, T-SHE-000009-CTI-PSF, which v
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateCTIPSF`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_ValidateCTIPSF`` program with Elements, use the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
@@ -334,7 +334,7 @@ Example
 
 Prepare the required input data in the desired workdir. This will require downloading the ``vis_calibrated_frame_listfile``, ``mer_final_catalog_listfile``, and ``she_validated_measurements_product`` data, and then running the `SHE_Validation_CalcCommonValData <prog_ccvd.html#SHE_Validation_CalcCommonValData>`__ program to generate the ``extended_catalog`` data product, and also the `SHE_PSF_Toolkit_FitPSFs <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PSFToolkit>`__ program to generate the ``star_catalog_listfile`` and the data products it points to.
 
-The program can then be run with the following command in an EDEN 2.1 environment:
+The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
