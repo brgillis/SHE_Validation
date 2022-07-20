@@ -27,7 +27,7 @@ from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 
 # Metadata about the requirement
 CTI_PSF_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-CAL-F-020",
-                                           description = ("CTI correction residuals in the PSF."),
+                                           description = "CTI correction residuals in the PSF.",
                                            parameter = ("Z-values of differences in slope of g1_image versus distance "
                                                         "from readout register between bins, compared to expectation "
                                                         "of zero."))

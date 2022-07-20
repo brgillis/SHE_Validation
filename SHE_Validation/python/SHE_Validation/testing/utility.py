@@ -1,11 +1,11 @@
-""" @file psf_res_default_config.py
+""" @file utility.py
 
-    Created 08 March 2022 by Bryan Gillis
+    Created 12 April 2022 by Bryan Gillis
 
-    Constants relating to PSF-Res configuration
+    Utility functions and classes for testing of SHE_Validation code
 """
 
-__updated__ = "2022-04-08"
+__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -20,10 +20,10 @@ __updated__ = "2022-04-08"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
-                                                     D_VALIDATION_CONFIG_TYPES, )
+from SHE_PPT.testing.utility import SheTestCase
 
-# Create the default config dicts for this task by extending the tot default config dicts
-D_PSF_RES_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
-D_PSF_RES_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
-D_PSF_RES_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
+
+class SheValTestCase(SheTestCase):
+    """Test case base class which defines convenience methods to create test data.
+    """
+    pass

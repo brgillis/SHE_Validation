@@ -1,9 +1,9 @@
 """ @file __init__.py
 
-    Created 8 March 2022 by Bryan Gillis
+    Created 12 April 2022 by Bryan Gillis
 """
 
-__updated__ = "2022-03-08"
+__updated__ = "2022-04-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

@@ -33,7 +33,7 @@ from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_
 from SHE_PPT.file_io import (read_product_and_table, read_table_from_product, write_xml_product, )
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
-from SHE_PPT.table_formats.she_star_catalog import TF as SC_TF
+from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.config_utility import get_d_l_bin_limits
@@ -89,7 +89,7 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
 
     # Calculate the data necessary for validation
 
-    add_readout_register_distance(star_catalog_table, y_colname = SC_TF.y)
+    add_readout_register_distance(star_catalog_table, y_colname = SHE_STAR_CAT_TF.y)
 
     (d_regression_results_tables,
      d_d_figures) = validate_cti_psf(star_catalog_table = star_catalog_table,
@@ -107,7 +107,7 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
         # Fill in the product with results
         fill_cti_psf_validation_results(test_result_product = test_result_product,
                                         workdir = workdir,
-                                        d_regression_results_tables = d_regression_results_tables,
+                                        d_l_test_results = d_regression_results_tables,
                                         pipeline_config = d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits = d_l_bin_limits,
                                         dl_dl_figures = d_d_figures)
@@ -138,7 +138,7 @@ def validate_cti_psf(star_catalog_table: Table,
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_PSF_TEST_CASE_INFO,
                                                         d_bin_limits = d_l_bin_limits,
                                                         detections_table = extended_catalog_table,
-                                                        l_full_ids = star_catalog_table[SC_TF.id],
+                                                        l_full_ids = star_catalog_table[SHE_STAR_CAT_TF.id],
                                                         bin_constraint_type = BinParameterBinConstraint)
 
     for test_case_info in L_CTI_PSF_TEST_CASE_INFO:

@@ -28,7 +28,7 @@ from astropy import table
 
 from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
-from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list
+from SHE_PPT.utility import any_is_inf_or_nan, any_is_zero, coerce_to_list, is_inf_nan_or_masked, is_nan_or_masked
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, MEASURED_VAL_BAD_DATA,
@@ -38,6 +38,7 @@ from SHE_Validation.results_writer import (AnalysisWriter, FailSigmaCalculator, 
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from .constants.cti_gal_test_info import (D_L_CTI_GAL_REQUIREMENT_INFO,
                                           L_CTI_GAL_TEST_CASE_INFO, )
+from .constants.cti_psf_test_info import D_L_CTI_PSF_REQUIREMENT_INFO, L_CTI_PSF_TEST_CASE_INFO
 from .table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
@@ -144,7 +145,7 @@ class CtiRequirementWriter(RequirementWriter):
         for prop in messages:
             for bin_index in range(self.num_bins):
 
-                self._append_message_for_bin(bin_index, prop, messages)
+                self._append_prop_message_for_bin(bin_index, prop, messages)
 
         slope_supplementary_info = SupplementaryInfo(key = KEY_SLOPE_INFO,
                                                      description = DESC_SLOPE_INFO,
@@ -156,10 +157,10 @@ class CtiRequirementWriter(RequirementWriter):
 
         return slope_supplementary_info, intercept_supplementary_info
 
-    def _append_message_for_bin(self,
-                                bin_index: int,
-                                prop: str,
-                                d_messages: Dict[str, str]):
+    def _append_prop_message_for_bin(self,
+                                     bin_index: int,
+                                     prop: str,
+                                     d_messages: Dict[str, str]):
         """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo, and appends
             it to the dict of messages's entry for this property.
         """
@@ -239,7 +240,7 @@ class CtiRequirementWriter(RequirementWriter):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         l_supplementary_info = self._get_slope_intercept_info(extra_slope_message = MSG_ZERO_SLOPE_ERR)
-        self.add_supplementary_info(l_supplementary_info)
+        self.add_supplementary_info(l_supplementary_info = l_supplementary_info)
 
     def report_good_data(self,
                          measured_value: float = -99.,
@@ -298,8 +299,8 @@ class CtiRequirementWriter(RequirementWriter):
                                   l_prop_result: np.ndarray):
         # Report NaN result if NaN data in this bin, or if we're doing a difference comparison and this is the
         # first bin
-        if (np.isnan(getattr(self, f"l_{prop}")[bin_index]) or
-                np.isnan(getattr(self, f"l_{prop}_err")[bin_index]) or
+        if (is_nan_or_masked(getattr(self, f"l_{prop}")[bin_index]) or
+                is_nan_or_masked(getattr(self, f"l_{prop}_err")[bin_index]) or
                 (self.bin_slope_comparison_method == BinSlopeComparisonMethod.DIFFERENCE and bin_index <= 0)):
             self.__mark_nan_data_for_bin(bin_index, l_prop_z, l_prop_pass, l_prop_good_data)
 
@@ -363,6 +364,7 @@ class CtiRequirementWriter(RequirementWriter):
         l_prop_good_data[bin_index] = False
 
     def write(self,
+              *args,
               report_method: Callable[[Any], None] = None,
               have_data: bool = False,
               l_slope: List[float] = None,
@@ -371,7 +373,8 @@ class CtiRequirementWriter(RequirementWriter):
               l_intercept_err: List[float] = None,
               l_bin_limits: List[float] = None,
               fail_sigma: float = None,
-              report_kwargs: Dict[str, Any] = None) -> str:
+              report_kwargs: Dict[str, Any] = None,
+              **kwargs) -> str:
 
         # Default to reporting good data if we're not told otherwise
         if report_method is None:
@@ -410,10 +413,8 @@ class CtiRequirementWriter(RequirementWriter):
         if np.all(self.l_slope_err == 0.):
             report_method = self.report_zero_slope_err
             extra_report_kwargs = {}
-        elif np.logical_or.reduce((np.isnan(self.l_slope),
-                                   np.isinf(self.l_slope),
-                                   np.isnan(self.l_slope_err),
-                                   np.isinf(self.l_slope_err),
+        elif np.logical_or.reduce((is_inf_nan_or_masked(self.l_slope),
+                                   is_inf_nan_or_masked(self.l_slope_err),
                                    self.l_slope_err == 0.)).all():
             report_method = self.report_bad_data
             extra_report_kwargs = {}
@@ -425,7 +426,8 @@ class CtiRequirementWriter(RequirementWriter):
 
         return super().write(result = self.slope_result,
                              report_method = report_method,
-                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+                             report_kwargs = {**report_kwargs, **extra_report_kwargs},
+                             *args, **kwargs)
 
 
 class CtiGalRequirementWriter(CtiRequirementWriter):
@@ -456,12 +458,14 @@ class CtiAnalysisWriter(AnalysisWriter):
         super().__init__(product_type = D_ANALYSIS_PRODUCT_TYPES[self.cti_test],
                          *args, **kwargs)
 
-    def _generate_directory_filename(self):
+    @property
+    def directory_filename(self) -> Optional[str]:
         """ Overriding method to generate a filename for a directory file.
         """
-        self.directory_filename = D_CTI_DIRECTORY_FILENAMES[self.cti_test]
+        return D_CTI_DIRECTORY_FILENAMES[self.cti_test]
 
-    def _get_directory_header(self):
+    @property
+    def directory_header(self) -> str:
         """ Overriding method to get the desired header for a directory file.
         """
         return D_CTI_DIRECTORY_HEADERS[self.cti_test]
@@ -514,27 +518,22 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = CtiTestCaseWriter
+    d_l_test_results: Dict[str, List[table.Table]]
 
     def __init__(self,
                  test_object: dpdSheValidationTestResults,
                  workdir: str,
                  regression_results_row_index: int,
-                 d_regression_results_tables: Dict[str, List[table.Table]],
                  fail_sigma_calculator: FailSigmaCalculator,
-                 d_bin_limits: Dict[BinParameters, np.ndarray],
                  method_data_exists: bool = True,
                  *args, **kwargs):
 
         super().__init__(test_object = test_object,
                          workdir = workdir,
-                         l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                         dl_l_requirement_info = D_L_CTI_GAL_REQUIREMENT_INFO,
                          *args, **kwargs)
 
         self.regression_results_row_index = regression_results_row_index
-        self.d_regression_results_tables = d_regression_results_tables
         self.fail_sigma_calculator = fail_sigma_calculator
-        self.d_bin_limits = d_bin_limits
         self.method_data_exists = method_data_exists
 
     def _get_method_info(self,
@@ -546,8 +545,8 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
         """ Sort the data out from the tables for this method.
         """
 
-        l_test_case_bins = self.d_bin_limits[test_case_info.bins]
-        l_test_case_regression_results_tables = self.d_regression_results_tables[test_case_info.name]
+        l_test_case_bins = self.d_l_bin_limits[test_case_info.bins]
+        l_test_case_regression_results_tables = self.d_l_test_results[test_case_info.name]
 
         num_bins = len(l_test_case_bins) - 1
 
@@ -629,6 +628,8 @@ class CtiGalValidationResultsWriter(CtiValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = CtiGalTestCaseWriter
+    l_test_case_info = L_CTI_GAL_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_CTI_GAL_REQUIREMENT_INFO
 
 
 class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
@@ -637,11 +638,13 @@ class CtiPsfValidationResultsWriter(CtiValidationResultsWriter):
 
     # Types of child classes
     test_case_writer_type = CtiPsfTestCaseWriter
+    l_test_case_info = L_CTI_PSF_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_CTI_PSF_REQUIREMENT_INFO
 
 
 def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestResults,
                                     regression_results_row_index: int,
-                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    d_l_test_results: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
@@ -662,9 +665,9 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
     test_results_writer = CtiGalValidationResultsWriter(test_object = test_result_product,
                                                         workdir = workdir,
                                                         regression_results_row_index = regression_results_row_index,
-                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        d_l_bin_limits = d_l_bin_limits,
+                                                        d_l_test_results = d_l_test_results,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 
@@ -672,7 +675,7 @@ def fill_cti_gal_validation_results(test_result_product: dpdSheValidationTestRes
 
 
 def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestResults,
-                                    d_regression_results_tables: Dict[str, List[table.Table]],
+                                    d_l_test_results: Dict[str, List[table.Table]],
                                     pipeline_config: Dict[ConfigKeys, Any],
                                     d_l_bin_limits: Dict[BinParameters, np.ndarray],
                                     workdir: str,
@@ -693,9 +696,9 @@ def fill_cti_psf_validation_results(test_result_product: dpdSheValidationTestRes
     test_results_writer = CtiPsfValidationResultsWriter(test_object = test_result_product,
                                                         workdir = workdir,
                                                         regression_results_row_index = 0,
-                                                        d_regression_results_tables = d_regression_results_tables,
+                                                        d_l_bin_limits = d_l_bin_limits,
+                                                        d_l_test_results = d_l_test_results,
                                                         fail_sigma_calculator = fail_sigma_calculator,
-                                                        d_bin_limits = d_l_bin_limits,
                                                         method_data_exists = method_data_exists,
                                                         dl_dl_figures = dl_dl_figures, )
 

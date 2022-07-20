@@ -23,20 +23,20 @@ __updated__ = "2021-08-26"
 import os
 
 import numpy as np
-import pytest
 from astropy.table import Table
-from py._path.local import LocalPath
 
 from SHE_PPT.argument_parser import CA_MER_CAT, CA_SHE_MEAS
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
+from SHE_PPT.testing.mock_measurements_cat import write_mock_measurements_tables
+from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.CalcCommonValData import (defineSpecificProgramOptions, mainMethod, )
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
-from SHE_Validation.testing.mock_tables import (cleanup_mock_measurements_tables, cleanup_mock_mfc_table,
-                                                write_mock_measurements_tables, write_mock_mfc_table, )
+
+# noinspection PyProtectedMember
 
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
@@ -55,29 +55,17 @@ class CCVDTestCase(SheTestCase):
 
         setattr(self.args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
 
-    @classmethod
-    def setup_class(cls):
-        pass
-
-    @classmethod
-    def teardown_class(cls):
-
-        super().teardown_class()
-        if cls.workdir:
-            cleanup_mock_measurements_tables(cls.workdir)
-            cleanup_mock_mfc_table(cls.workdir)
-
-    @pytest.fixture(autouse = True)
-    def setup(self, tmpdir: LocalPath):
-
-        self._setup(tmpdir)
-
-        # Write the mock input data and store filenames in the args
+    def post_setup(self):
+        # Set up the mock Shear Catalogs
         meas_filename = write_mock_measurements_tables(self.workdir)
         setattr(self.args, CA_SHE_MEAS, meas_filename)
 
-        mer_cat_filename = write_mock_mfc_table(self.workdir)
-        setattr(self.args, CA_MER_CAT, mer_cat_filename)
+        # Set up the mock MER Final Catalog
+        mfc_table_gen = MockMFCGalaxyTableGenerator(workdir = self.workdir)
+        mfc_table_gen.write_mock_listfile()
+        setattr(self.args, CA_MER_CAT, mfc_table_gen.listfile_filename)
+
+        pass
 
     def test_run(self):
         """ Tests a complete run of calculating common validation data.

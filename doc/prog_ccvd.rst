@@ -9,7 +9,7 @@ Multiple PF-SHE Validation tests rely on the same data, such as parameters used 
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_CalcCommonValData`` program with Elements, use the following command in an EDEN 2.1 environment:
+To run the ``SHE_Validation_CalcCommonValData`` program with Elements, use the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
@@ -42,7 +42,7 @@ Common Elements Arguments
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execut will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -304,7 +304,7 @@ The added columns are:
 Example
 -------
 
-Download the required input data into the desired workdir. The program can then be run with the following command in an EDEN 2.1 environment:
+Download the required input data into the desired workdir. The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 

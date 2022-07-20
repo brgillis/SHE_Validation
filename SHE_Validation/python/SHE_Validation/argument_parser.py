@@ -78,6 +78,8 @@ class ValidationArgumentParser(SheArgumentParser):
                                l_bin_parameters: Iterable[BinParameters] = BinParameters):
         for bin_parameter in l_bin_parameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
-            self.add_arg_with_type(f'--{bin_parameter_meta.cline_arg}', type = str, default = None, arg_type =
-            arg_type,
+            self.add_arg_with_type(f'--{bin_parameter_meta.cline_arg}',
+                                   type = str,
+                                   default = None,
+                                   arg_type = arg_type,
                                    help = bin_parameter_meta.help_text)

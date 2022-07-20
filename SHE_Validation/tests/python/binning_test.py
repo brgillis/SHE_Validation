@@ -37,6 +37,7 @@ from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from SHE_PPT.table_utility import is_in_format
+from SHE_PPT.utility import is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, FitclassZeroBinConstraint,
                                                     FitflagsBinConstraint, HeteroBinConstraint, MultiBinConstraint,
                                                     get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids, )
@@ -388,10 +389,10 @@ class TestBinData:
 
         # Try adding columns for each bin parameter
         add_snr_column(mfc_t_copy, self.data_stack)
-        np.isnan(mfc_t_copy[BIN_TF.snr]).all()
+        is_nan_or_masked(mfc_t_copy[BIN_TF.snr]).all()
 
         add_colour_column(mfc_t_copy, self.data_stack)
-        np.isnan(mfc_t_copy[BIN_TF.colour]).all()
+        is_nan_or_masked(mfc_t_copy[BIN_TF.colour]).all()
 
         add_size_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.size], mfc_t_copy[MFC_TF.SEGMENTATION_AREA].data)
