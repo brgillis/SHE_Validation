@@ -24,7 +24,6 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.constants.config import ValidationConfigKeys
-from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
@@ -107,7 +106,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
             d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
                                                       ref_star_cat = ref_star_cat,
-                                                      d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config))
+                                                      d_l_bin_limits = self.d_l_bin_limits)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]

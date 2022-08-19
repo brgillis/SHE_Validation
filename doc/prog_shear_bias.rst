@@ -103,24 +103,34 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * - ``--snr_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+   * - ``--snr_bin_limits "<value> <value> ..."`` OR ``--snr_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
+       ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
+       data into.
      - no
-     - ``0 3.5 5 7 10 15 30 1e99``
-   * - ``--bg_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits in ADU for when binning by sky background level.
+     - ``auto-4``
+   * - ``--bg_bin_limits "<value> <value> ..."`` OR ``--bg_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits in ADU for when binning by sky
+       background level. Or 2. "auto-<N>" where <N> is the number of sky background level quantiles (of equal data
+       volume) to automatically divide the data into.
      - no
-     - ``0 30 35 35.25 36 50 1e99``
-   * - ``--colour_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by colour.
+     - ``auto-4``
+   * - ``--colour_bin_limits "<value> <value> ..."`` OR ``--colour_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by colour. Or 2.
+       "auto-<N>" where <N> is the number of colour quantiles (of equal data volume) to automatically divide the
+       data into.
      - no
-     - ``-1e99 -2.5 -2 -1.5 -1 -0.6 1e99``
-   * - ``--size_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits in pixels for when binning by size.
+     - ``auto-4``
+   * - ``--size_bin_limits "<value> <value> ..."`` OR ``--size_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits in pixels for when binning by size. Or
+       2. "auto-<N>" where <N> is the number of size quantiles (of equal data volume) to automatically divide the data
+       into.
      - no
-     - ``0 30 45 75 140 300 1e99``
-   * - ``--epoch_bin_limits "<value> <value> ..."``
-     - List of quoted, space-separated values listing the bin limits for when binning by epoch.
+     - ``auto-4``
+   * - ``--epoch_bin_limits "<value> <value> ..."`` OR ``--epoch_bin_limits auto-<N>``
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by epoch. Or 2.
+       "auto-<N>" where <N> is the number of epoch quantiles (of equal data volume) to automatically divide the data
+       into.
      - no
      - N/A - Not yet implemented
    * - ``--max_g_in <value>``
@@ -253,19 +263,29 @@ optionally any of the following which apply to this executable:
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
      - Profiling will not be enabled
    * - SHE_Validation_snr_bin_limits
-     - List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise ratio.
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
+       ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
+       data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_bg_bin_limits
-     - List of quoted, space-separated values listing the bin limits in ADU for when binning by sky background level.
+     - Either: 1. List of quoted, space-separated values listing the bin limits in ADU for when binning by sky
+       background level. Or 2. "auto-<N>" where <N> is the number of sky background level quantiles (of equal data
+       volume) to automatically divide the data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_colour_bin_limits
-     - List of quoted, space-separated values listing the bin limits for when binning by colour.
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by colour. Or 2.
+       "auto-<N>" where <N> is the number of colour quantiles (of equal data volume) to automatically divide the
+       data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_size_bin_limits
-     - List of quoted, space-separated values listing the bin limits in pixels for when binning by size.
+     - Either: 1. List of quoted, space-separated values listing the bin limits in pixels for when binning by size. Or
+       2. "auto-<N>" where <N> is the number of size quantiles (of equal data volume) to automatically divide the data
+       into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_epoch_bin_limits
-     - List of quoted, space-separated values listing the bin limits for when binning by epoch.
+     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by epoch. Or 2.
+       "auto-<N>" where <N> is the number of epoch quantiles (of equal data volume) to automatically divide the data
+       into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_ValidateShearBias_max_g_in
      - Determines the maximum magnitude of true shear applied to objects, for those objects to be included in the bias regression.

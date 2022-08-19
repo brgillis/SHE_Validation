@@ -39,7 +39,7 @@ from SHE_PPT.utility import (any_is_inf_or_nan, coerce_to_list, default_value_if
 from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValidationTestResults
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
-from .constants.default_config import DEFAULT_BIN_LIMITS, ExecutionMode, FailSigmaScaling
+from .constants.default_config import ExecutionMode, FailSigmaScaling, TOT_BIN_LIMITS
 from .constants.test_info import BinParameters, RequirementInfo, TestCaseInfo
 
 # Set up a custom type definition for when either a dict or list is accepted
@@ -199,7 +199,7 @@ class FailSigmaCalculator:
         if d_l_bin_limits is None:
             d_l_bin_limits = {}
             for bin_parameter in s_bin_parameters:
-                d_l_bin_limits[bin_parameter] = DEFAULT_BIN_LIMITS
+                d_l_bin_limits[bin_parameter] = TOT_BIN_LIMITS
 
         # Calculate the number of bins for each test case, and in total
 

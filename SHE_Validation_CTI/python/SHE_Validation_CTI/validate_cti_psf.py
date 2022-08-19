@@ -36,7 +36,7 @@ from SHE_PPT.products.she_validation_test_results import create_dpd_she_validati
 from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
-from SHE_Validation.config_utility import get_d_l_bin_limits
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 from .constants.cti_psf_test_info import L_CTI_PSF_TEST_CASE_INFO, NUM_CTI_PSF_TEST_CASES

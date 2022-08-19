@@ -27,12 +27,12 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-from SHE_PPT.testing.mock_data import MockDataGenerator
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+from SHE_Validation.testing.mock_data import MockBinDataGenerator, TEST_L_GOOD, TEST_L_NAN, TEST_L_ZERO
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
@@ -44,20 +44,17 @@ TEST_G1_ERR = 0.25
 
 TEST_SIGMA_L_TOL = 5  # Pass test if calculations are within 5 sigma
 
-TEST_L_GOOD = 200  # Length of good data
-TEST_L_NAN = 5  # Length of bad data
-TEST_L_ZERO = 5  # Length of zero-weight data
 
-
-class MockCtiDataGenerator(MockDataGenerator):
-    # Overriding base class default values
-    seed: int = 1245
-    num_test_points = TEST_L_GOOD + TEST_L_NAN + TEST_L_ZERO
+class MockCtiDataGenerator(MockBinDataGenerator):
+    """ Data generator which generates data suitable for binning with various bin parameters.
+    """
 
     # Implement abstract methods
     def _generate_unique_data(self):
         """ Generate galaxy data.
         """
+
+        super()._generate_unique_data()
 
         self.data["indices"] = self._indices
 
@@ -67,13 +64,6 @@ class MockCtiDataGenerator(MockDataGenerator):
 
         self.data["g1"] = (TEST_M * self.data["readout_dist"] + TEST_B + self.data["g1_err"] *
                            self._rng.standard_normal(size = self.num_test_points)).astype('>f4')
-
-        # Set mock snr, bg, colour, and size values to test different bins
-
-        self.data["snr"] = np.where(self._indices % 2 < 1, self._ones, self._zeros)
-        self.data["bg"] = np.where(self._indices % 4 < 2, self._ones, self._zeros)
-        self.data["colour"] = np.where(self._indices % 8 < 4, self._ones, self._zeros)
-        self.data["size"] = np.where(self._indices % 16 < 8, self._ones, self._zeros)
 
         # Make the last bit of data bad or zero weight
         self.data["weight"][-TEST_L_NAN - TEST_L_ZERO:-TEST_L_ZERO] = np.NaN
@@ -101,10 +91,10 @@ class TestCtiGalDataProcessing(SheTestCase):
     @pytest.fixture(scope = "class")
     def detections_table(self, class_setup):
         detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: self.indices})
-        detections_table[BIN_TF.snr] = self.mock_data["snr"]
-        detections_table[BIN_TF.bg] = self.mock_data["bg"]
-        detections_table[BIN_TF.colour] = self.mock_data["colour"]
-        detections_table[BIN_TF.size] = self.mock_data["size"]
+        detections_table[BIN_TF.snr] = self.mock_data[BIN_TF.snr]
+        detections_table[BIN_TF.bg] = self.mock_data[BIN_TF.bg]
+        detections_table[BIN_TF.colour] = self.mock_data[BIN_TF.colour]
+        detections_table[BIN_TF.size] = self.mock_data[BIN_TF.size]
         return detections_table
 
     @pytest.fixture(scope = "class")

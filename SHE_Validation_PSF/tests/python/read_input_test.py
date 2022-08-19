@@ -27,11 +27,13 @@ import numpy as np
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 # Output data filenames
+from SHE_Validation.binning.bin_data import add_bin_columns
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.ValidatePSFResStarPos import defineSpecificProgramOptions
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
+from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
 from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
@@ -103,10 +105,14 @@ class TestPsfResReadInput(SheValPsfTestCase):
                 psf_res_sp_input.p_star_cat.Header.ProductId.value())
         assert (self.mock_starcat_table == psf_res_sp_input.star_cat).all()
 
-        # Check that reference star catalog matches expectation
+        # Check that reference star catalog matches expectation (with binning columns added)
         assert (self.mock_ref_starcat_product.Header.ProductId.value() ==
                 psf_res_sp_input.p_ref_star_cat.Header.ProductId.value())
-        assert (self.mock_ref_starcat_table == psf_res_sp_input.ref_star_cat).all()
+
+        ex_mock_ref_star_cat = deepcopy(self.mock_ref_starcat_table)
+        add_bin_columns(ex_mock_ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+
+        assert np.all(ex_mock_ref_star_cat == psf_res_sp_input.ref_star_cat)
 
         # Check that the star catalog and reference star catalog don't match
         assert np.all(psf_res_sp_input.star_cat != psf_res_sp_input.ref_star_cat)

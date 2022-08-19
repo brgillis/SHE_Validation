@@ -29,8 +29,7 @@ from SHE_PPT.constants.config import ConfigKeys
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_pipeline_config import MockPipelineConfigFactory
 from .constants import DEFAULT_GLOBAL_FAIL_SIGMA, DEFAULT_LOCAL_FAIL_SIGMA, DEFAULT_MOCK_BIN_LIMITS
-from ..constants.default_config import (DEFAULT_BIN_LIMITS, D_VALIDATION_CONFIG_DEFAULTS,
-                                        ValidationConfigKeys, )
+from ..constants.default_config import (D_VALIDATION_CONFIG_DEFAULTS, TOT_BIN_LIMITS, ValidationConfigKeys)
 from ..constants.test_info import BinParameters, D_BIN_PARAMETER_META
 
 logger = getLogger(__name__)
@@ -108,7 +107,7 @@ class MockValPipelineConfigFactory(MockPipelineConfigFactory):
             if bin_parameter == self._test_bin_parameter:
                 d_l_bin_limits[bin_parameter] = np.array(self._mock_bin_limits)
             else:
-                d_l_bin_limits[bin_parameter] = np.array(DEFAULT_BIN_LIMITS)
+                d_l_bin_limits[bin_parameter] = np.array(TOT_BIN_LIMITS)
 
         return d_l_bin_limits
 

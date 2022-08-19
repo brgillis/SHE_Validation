@@ -35,8 +35,9 @@ from SHE_PPT.flags import failure_flags
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_measurements import SheMeasurementsFormat
+from SHE_PPT.utility import is_nan_or_masked
 from .bin_data import D_COLUMN_ADDING_METHODS, TF as BIN_TF
-from ..constants.default_config import DEFAULT_BIN_LIMITS
+from ..constants.default_config import TOT_BIN_LIMITS
 from ..constants.test_info import BinParameters, TestCaseInfo
 
 POSSIBLE_BIN_TFS = (BIN_TF, *D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.values(),
@@ -209,17 +210,24 @@ class RangeBinConstraint(BinConstraint):
                 return True
             return True * np.ones(len(data), dtype = bool)
 
+        # First check for any NaN or masked values, and exclude them from the bin
+        l_nan_or_masked = is_nan_or_masked(data[self.bin_colname])
+
         # Check against min and max, based on whether they're included in the bin or not
         if self.include_min:
-            min_check = self.bin_limits[0] <= data[self.bin_colname]
+            l_min_check = self.bin_limits[0] <= data[self.bin_colname]
         else:
-            min_check = self.bin_limits[0] < data[self.bin_colname]
+            l_min_check = self.bin_limits[0] < data[self.bin_colname]
         if self.include_max:
-            max_check = self.bin_limits[1] >= data[self.bin_colname]
+            l_max_check = self.bin_limits[1] >= data[self.bin_colname]
         else:
-            max_check = self.bin_limits[1] > data[self.bin_colname]
+            l_max_check = self.bin_limits[1] > data[self.bin_colname]
 
-        return np.logical_and(min_check, max_check)
+        l_min_and_max_check = np.logical_and(l_min_check, l_max_check)
+            
+        l_in_bin = np.where(l_nan_or_masked, False, l_min_and_max_check)
+
+        return l_in_bin
 
 
 class ValueBinConstraint(BinConstraint):
@@ -399,7 +407,7 @@ class GlobalBinConstraint(RangeBinConstraint):
 
     bin_parameter: BinParameters = BinParameters.TOT
     bin_colname: Optional[str] = None
-    bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS
+    bin_limits: Sequence[float] = TOT_BIN_LIMITS
 
 
 class BinParameterBinConstraint(RangeBinConstraint):
@@ -413,7 +421,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
 
         super().__init__(bin_limits = bin_limits)
 
@@ -538,7 +546,7 @@ class VisDetBinParameterBinConstraint(MultiBinConstraint):
     def __init__(self,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
         vis_det_bc = VisDetBinConstraint()
         bin_parameter_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
@@ -578,7 +586,7 @@ class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
                  method: Optional[ShearEstimationMethods] = None,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
 
         det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                bin_parameter = bin_parameter,
@@ -599,7 +607,7 @@ class GoodBinnedGalaxyMeasurementBinConstraint(MultiBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
                                                bin_parameter = bin_parameter,
                                                bin_limits = bin_limits)
@@ -619,7 +627,7 @@ class GoodBinnedMeasurementHBC(HeteroBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
                                                      bin_limits = bin_limits)
@@ -636,7 +644,7 @@ class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
                  method: ShearEstimationMethods,
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
-                 bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS, ) -> None:
+                 bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
         det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
                                                      bin_parameter = bin_parameter,
                                                      bin_limits = bin_limits)

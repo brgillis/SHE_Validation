@@ -21,7 +21,7 @@ __updated__ = "2021-08-25"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-from typing import Sequence
+from typing import Iterable, Optional, Sequence
 
 import numpy as np
 from astropy.table import Column, Table
@@ -66,6 +66,12 @@ class SheBinDataFormat(SheTableFormat):
     def __init__(self):
         super().__init__(SheBinDataMeta())
 
+        self.id = self.set_column_properties(name = "OBJECT_ID", dtype = ">i8", fits_dtype = "K", unlabelled = True)
+
+        # Set a column for the tot bin parameter, for a consistent interface (smaller dtype for this to save space)
+        self.tot = self.set_column_properties(name = BinParameters.TOT.name, is_optional = True,
+                                              dtype = bool, fits_dtype = "L")
+
         # Set a column for each bin parameter
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             setattr(self, bin_parameter.value, self.set_column_properties(name = bin_parameter.name, is_optional = True,
@@ -84,11 +90,20 @@ TF = BIN_TF
 # Functions to add columns of bin data to a table
 
 
-def add_global_column(_t: Table,
-                      _data_stack: SHEFrameStack) -> None:
+def add_tot_column(t: Table,
+                   data_stack: SHEFrameStack) -> None:
     """ Dummy method to add a tot column, for a consistent interface.
     """
-    pass
+
+    # Return if column is already present
+    if TF.tot in t.colnames:
+        return
+
+    tot_data: Sequence[float] = np.ones(len(t), dtype = TF.dtypes[TF.tot])
+
+    tot_column: Column = Column(data = tot_data, name = TF.tot, dtype = TF.dtypes[TF.tot])
+
+    t.add_column(tot_column)
 
 
 def add_snr_column(t: Table,
@@ -212,6 +227,27 @@ def add_epoch_column(t: Table,
     t.add_column(epoch_column)
 
 
+d_bin_column_adding_functions = {BinParameters.TOT   : add_tot_column,
+                                 BinParameters.SNR   : add_snr_column,
+                                 BinParameters.COLOUR: add_colour_column,
+                                 BinParameters.SIZE  : add_size_column,
+                                 BinParameters.BG    : add_bg_column,
+                                 BinParameters.EPOCH : add_epoch_column, }
+
+
+def add_bin_columns(t: Table,
+                    data_stack: Optional[SHEFrameStack],
+                    l_bin_parameters: Iterable[BinParameters] = BinParameters) -> None:
+    """ Calculates data for all parameters to be binned on and adds columns for each of them to the provided table if
+        not already present.
+    """
+
+    # Call the proper function to add a column for each bin parameter
+    for bin_parameter in l_bin_parameters:
+        add_column = d_bin_column_adding_functions[bin_parameter]
+        add_column(t, data_stack)
+
+
 def _determine_data_table(t: Table,
                           data_stack: SHEFrameStack,
                           data_colname: str) -> Table:
@@ -240,7 +276,7 @@ def _determine_data_table(t: Table,
 
 
 D_COLUMN_ADDING_METHODS = {
-    BinParameters.TOT   : add_global_column,
+    BinParameters.TOT   : add_tot_column,
     BinParameters.SNR   : add_snr_column,
     BinParameters.BG    : add_bg_column,
     BinParameters.COLOUR: add_colour_column,
