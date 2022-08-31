@@ -28,12 +28,8 @@ from typing import Dict
 import numpy as np
 from astropy.table import Column, Row, Table
 
-from ElementsServices.DataSync import DataSync
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                         MER_FINAL_CATALOG_TABLE_FILENAME, SYNC_CONF, TEST_DATA_LOCATION,
-                                         TEST_FILES_DATA_STACK, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.she_frame_stack import SHEFrameStack
+from SHE_PPT.constants.test_data import (MER_FINAL_CATALOG_TABLE_FILENAME, )
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from SHE_PPT.table_utility import is_in_format
@@ -43,9 +39,13 @@ from SHE_Validation.binning.bin_constraints import (BinParameterBinConstraint, F
                                                     get_ids_for_bins, get_ids_for_test_cases, get_table_of_ids, )
 from SHE_Validation.binning.bin_data import (TF as BIN_TF, add_bg_column, add_colour_column, add_epoch_column,
                                              add_size_column, add_snr_column, )
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.binning.utility import (get_auto_bin_limits_from_data,
+                                            get_auto_bin_limits_from_table, )
+from SHE_Validation.constants.default_config import STR_AUTO_BIN_LIMITS_HEAD, TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, NON_GLOBAL_BIN_PARAMETERS, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
+from SHE_Validation.testing.mock_data import MockBinTableGenerator, TEST_L_TOT
+from SHE_Validation.testing.utility import SheValTestCase
 
 ID_COLNAME = LMC_TF.ID
 
@@ -109,7 +109,7 @@ class TestBinConstraints:
         cls.t_lmc[LMC_TF.fit_flags] = fitflags_data
 
         # Set up d_bin_limits
-        cls.d_l_bin_limits = {BinParameters.TOT: DEFAULT_BIN_LIMITS}
+        cls.d_l_bin_limits = {BinParameters.TOT: TOT_BIN_LIMITS}
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             cls.d_l_bin_limits[bin_parameter] = np.linspace(start = cls.D_PAR_OFFSETS[bin_parameter],
                                                             stop = cls.D_PAR_OFFSETS[bin_parameter] + cls.TABLE_SIZE,
@@ -138,15 +138,15 @@ class TestBinConstraints:
             ids_in_bin = bin_constraint.get_ids_in_bin(self.t_mfc)
 
             # Check the outputs are consistent
-            assert (self.t_mfc[l_is_row_in_bin] == rows_in_bin).all()
+            assert np.all(self.t_mfc[l_is_row_in_bin] == rows_in_bin)
             # noinspection PyUnresolvedReferences
-            assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+            assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
             # Check the outputs are as expected
             assert l_is_row_in_bin.sum() == self.NUM_ROWS_IN_BIN
             assert len(rows_in_bin) == self.NUM_ROWS_IN_BIN
-            assert (ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET).all()
-            assert (self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN).all()
+            assert np.all(ids_in_bin < self.NUM_ROWS_IN_BIN + self.ID_OFFSET)
+            assert np.all(self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN)
 
         # Special check for TOT test case
         bin_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.TOT)
@@ -157,13 +157,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_mfc)
 
         # Check the outputs are consistent
-        assert (self.t_mfc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_mfc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected
         assert l_is_row_in_bin.sum() == self.TABLE_SIZE
         assert len(rows_in_bin) == self.TABLE_SIZE
-        assert (ids_in_bin == self.t_mfc[ID_COLNAME]).all()
+        assert np.all(ids_in_bin == self.t_mfc[ID_COLNAME])
 
     def test_fitclass_zero_bin(self):
         """ Test applying a bin constraint of fitclass == zero.
@@ -178,13 +178,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every three should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 3))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 3))
-        assert (ids_in_bin % 3 == self.ID_OFFSET % 3).all()
+        assert np.all(ids_in_bin % 3 == self.ID_OFFSET % 3)
 
     def test_bit_flags_bins(self):
         """ Test applying a bin constraint on fit_flags
@@ -199,13 +199,13 @@ class TestBinConstraints:
         ids_in_bin = bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 4))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 4))
-        assert (ids_in_bin % 4 == self.ID_OFFSET % 4).all()
+        assert np.all(ids_in_bin % 4 == self.ID_OFFSET % 4)
 
     def test_combine_flags(self):
 
@@ -229,13 +229,13 @@ class TestBinConstraints:
         ids_in_bin = fit_multi_bin_constraint.get_ids_in_bin(self.t_lmc)
 
         # Check the outputs are consistent
-        assert (self.t_lmc[l_is_row_in_bin] == rows_in_bin).all()
-        assert (rows_in_bin[ID_COLNAME] == ids_in_bin).all()
+        assert np.all(self.t_lmc[l_is_row_in_bin] == rows_in_bin)
+        assert np.all(rows_in_bin[ID_COLNAME] == ids_in_bin)
 
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert l_is_row_in_bin.sum() == int(ceil(self.TABLE_SIZE / 12))
         assert len(rows_in_bin) == int(ceil(self.TABLE_SIZE / 12))
-        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+        assert np.all(ids_in_bin % 12 == self.ID_OFFSET % 12)
 
         # Apply the full constraint
         ids_in_bin = full_bin_constraint.get_ids_in_bin([self.t_mfc, self.t_lmc, self.t_lmc])
@@ -243,7 +243,7 @@ class TestBinConstraints:
         # Check the outputs are as expected - only the first of every four should be in the bin
         assert len(ids_in_bin) == int(ceil(self.NUM_ROWS_IN_BIN / 12))
         # noinspection PyTypeChecker
-        assert (ids_in_bin % 12 == self.ID_OFFSET % 12).all()
+        assert np.all(ids_in_bin % 12 == self.ID_OFFSET % 12)
 
     def test_get_ids_for_bins(self):
         """ Tests the get_ids_for_bins function.
@@ -332,46 +332,28 @@ class TestBinConstraints:
         assert len(get_table_of_ids(self.t_mfc, some_ids_in)) == 2
 
 
-class TestBinData:
+class TestBinData(SheValTestCase):
     """ Class to perform tests on bin data tables and adding columns.
     """
 
-    workdir: str
-    logdir: str
-    data_stack: SHEFrameStack
     mfc_t: Table
-    lmc_t: Table
 
     # Set up some expected values
     EX_BG_LEVEL = 45.71
 
-    @classmethod
-    def setup_class(cls):
+    def setup_workdir(self):
         # Download the data stack files from WebDAV
-        sync_datastack = DataSync(SYNC_CONF, TEST_FILES_DATA_STACK)
-        sync_datastack.download()
-        qualified_vis_calibrated_frames_filename = sync_datastack.absolutePath(
-            os.path.join(TEST_DATA_LOCATION, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME))
-        assert os.path.isfile(
-            qualified_vis_calibrated_frames_filename), f"Cannot find file: {qualified_vis_calibrated_frames_filename}"
+        self._download_datastack()
 
-        # Get the workdir based on where the data images listfile is
-        cls.workdir = os.path.split(qualified_vis_calibrated_frames_filename)[0]
-        cls.logdir = os.path.join(cls.workdir, "logs")
+    def post_setup(self):
+        # Read in the needed tables
+        self.mfc_t = Table.read(os.path.join(self.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
 
-        # Read in the test data
-        cls.data_stack = SHEFrameStack.read(exposure_listfile_filename = VIS_CALIBRATED_FRAME_LISTFILE_FILENAME,
-                                            detections_listfile_filename = MER_FINAL_CATALOG_LISTFILE_FILENAME,
-                                            workdir = cls.workdir,
-                                            clean_detections = False,
-                                            memmap = True,
-                                            mode = 'denywrite')
-        cls.mfc_t = Table.read(os.path.join(cls.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
-        cls.lmc_t = Table.read(os.path.join(cls.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
+        # Setup a random-number generator
+        self.rng = np.random.default_rng(seed = 754)
 
-    @classmethod
-    def teardown_class(cls):
-        return
+        # Create a table of binning data
+        self.bin_t = MockBinTableGenerator(workdir = self.workdir).get_mock_table()
 
     def test_table_format(self):
         """ Runs tests of the bin data table format.
@@ -389,10 +371,10 @@ class TestBinData:
 
         # Try adding columns for each bin parameter
         add_snr_column(mfc_t_copy, self.data_stack)
-        is_nan_or_masked(mfc_t_copy[BIN_TF.snr]).all()
+        assert np.all(is_nan_or_masked(mfc_t_copy[BIN_TF.snr]))
 
         add_colour_column(mfc_t_copy, self.data_stack)
-        is_nan_or_masked(mfc_t_copy[BIN_TF.colour]).all()
+        assert np.all(is_nan_or_masked(mfc_t_copy[BIN_TF.colour]))
 
         add_size_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.size], mfc_t_copy[MFC_TF.SEGMENTATION_AREA].data)
@@ -402,3 +384,69 @@ class TestBinData:
 
         add_epoch_column(mfc_t_copy, self.data_stack)
         assert np.allclose(mfc_t_copy[BIN_TF.epoch], 0.)
+
+    def test_get_auto_bin_limits_from_data(self):
+        """ Unit test of determining bin limits automatically from a data array.
+        """
+
+        num_test_points = 100
+
+        # Make some mock data
+        l_data = self.rng.uniform(size = num_test_points)
+
+        # Test with a couple different numbers of quantiles
+        for num_quantiles in (4, 5):
+            ex_n_per_bin = num_test_points // num_quantiles
+            l_bin_limits = get_auto_bin_limits_from_data(l_data = l_data,
+                                                         num_quantiles = num_quantiles)
+
+            # Check the bin limits for validity
+            assert len(l_bin_limits) == num_quantiles + 1
+            assert np.isclose(l_bin_limits[0], -1e99)
+            assert np.isclose(l_bin_limits[-1], 1e99)
+
+            # Try binning the data with these bin limits, and check that we have the right amount of data in each bin
+            for bin_index in range(num_quantiles):
+                bin_lo: float = l_bin_limits[bin_index]
+                bin_hi: float = l_bin_limits[bin_index + 1]
+
+                l_data_in_bin = l_data[np.logical_and(l_data >= bin_lo, l_data < bin_hi)]
+                assert len(l_data_in_bin) == ex_n_per_bin
+
+    def test_get_auto_bin_limits_from_table(self):
+        """ Unit test of determining bin limits automatically from a data table.
+        """
+
+        # Test splitting into 2 quantiles on size
+        num_quantiles = 2
+        bin_limits_value = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_quantiles}"
+
+        l_bin_limits = get_auto_bin_limits_from_table(bin_parameter = BinParameters.SIZE,
+                                                      bin_data_table = self.bin_t,
+                                                      bin_limits_value = bin_limits_value)
+
+        # Check that the bin limits we get make sense
+        assert len(l_bin_limits) == num_quantiles + 1
+        assert np.isclose(l_bin_limits[0], -1e99)
+        assert 0 < l_bin_limits[1] <= 1
+        assert np.isclose(l_bin_limits[2], 1e99)
+
+        # Check that these bin limits split the data as expected
+        l_data = self.bin_t[BIN_TF.size]
+        for bin_index in range(num_quantiles):
+            bin_lo: float = l_bin_limits[bin_index]
+            bin_hi: float = l_bin_limits[bin_index + 1]
+
+            l_data_in_bin = l_data[np.logical_and(l_data >= bin_lo, l_data < bin_hi)]
+            assert len(l_data_in_bin) == TEST_L_TOT // 2
+
+        # And test by applying the bin constraint object, which should have the same result as the manual binning above
+        d_l_l_bin_ids = get_ids_for_bins(d_bin_limits = {BinParameters.SIZE: l_bin_limits},
+                                         detections_table = self.bin_t,
+                                         l_bin_parameters = [BinParameters.SIZE],
+                                         bin_constraint_type = BinParameterBinConstraint)
+
+        l_l_bin_ids = d_l_l_bin_ids[BinParameters.SIZE]
+
+        assert len(l_l_bin_ids[0]) == TEST_L_TOT // 2
+        assert len(l_l_bin_ids[1]) == TEST_L_TOT // 2

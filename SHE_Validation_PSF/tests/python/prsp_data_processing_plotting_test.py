@@ -27,7 +27,6 @@ from scipy.stats.stats import KstestResult
 from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
-from SHE_Validation.config_utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -182,7 +181,7 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
             (d_l_kstest_results, _) = run_psf_res_val_test(star_cat = self.mock_starcat_table,
                                                            ref_star_cat = ref_star_cat,
-                                                           d_l_bin_limits = get_d_l_bin_limits(self.pipeline_config),
+                                                           d_l_bin_limits = self.d_l_bin_limits,
                                                            workdir = self.workdir)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]

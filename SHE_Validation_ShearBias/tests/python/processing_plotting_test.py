@@ -36,7 +36,7 @@ from SHE_PPT.testing.mock_tum_cat import MockTUMatchedDataGenerator, MockTUMatch
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.utility import is_inf, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
-from SHE_Validation.constants.default_config import DEFAULT_BIN_LIMITS
+from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
@@ -76,7 +76,7 @@ class MockDataProcessor(NamedTuple):
     l_d_linregress_results: List[Dict[int, LinregressResults]]
     l_d_bias_strings: List[Dict[str, str]]
 
-    l_bin_limits: Sequence[float] = DEFAULT_BIN_LIMITS
+    l_bin_limits: Sequence[float] = TOT_BIN_LIMITS
 
     def calc(self, *args, **kwargs):
         """ Mock version of the calc method so it can be called without raising an exception."""
@@ -393,7 +393,7 @@ class TestShearBias(SheTestCase):
 
                 mock_data_processor = self.d_d_mock_data_processors[method][bin_parameter]
 
-                self._test_specific_data_processor(bin_limits = DEFAULT_BIN_LIMITS,
+                self._test_specific_data_processor(bin_limits = TOT_BIN_LIMITS,
                                                    test_case_info = m_test_case_info,
                                                    mock_data_loader = mock_data_loader,
                                                    mock_data_processor = mock_data_processor)

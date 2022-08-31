@@ -27,6 +27,8 @@ Other Contributors
 ~~~~~~~~~~~~~~~~~~
 
 -  Rob Blake (rpb@roe.ac.uk)
+-  Gordon Gibb (gordon.gibb@ed.ac.uk)
+-  Richard Rollins (`@rrollins <https://gitlab.euclid-sgs.uk/rrollins>`_)
 
 Purpose
 -------
