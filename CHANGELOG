@@ -91,6 +91,7 @@ New Config Features
 
 Miscellaneous
 -------------
+- Update list of contributors
 
 
 Changes in v9.0
@@ -133,6 +134,8 @@ New Config Features
 
 Miscellaneous
 -------------
+- Refactored code to move generation of mock data and tables for unit testing to SHE_PPT
+- Added documentation for new executable SHE_Validation_ValidatePSFResStarPos
 - Version number is now determined in the code directly from what's in the CMakeLists.txt file, and no longer needs to
   be maintained separately
 
