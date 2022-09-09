@@ -239,25 +239,3 @@ class TestCtiGalDataProcessing(SheTestCase):
 
         assert np.isclose(exp_rr_row[RR_TF.slope_err], obs_rr_row[RR_TF.slope_err], rtol = 0.1)
         assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol = 0.1)
-
-    @pytest.fixture(scope = "class")
-    def measurements_table(self, class_setup):
-        measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: self.indices})
-        return measurements_table
-
-    @pytest.fixture(scope = "class")
-    def detections_table(self, class_setup):
-        detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: self.indices})
-        detections_table[BIN_TF.snr] = self.mock_data["snr"]
-        detections_table[BIN_TF.bg] = self.mock_data["bg"]
-        detections_table[BIN_TF.colour] = self.mock_data["colour"]
-        detections_table[BIN_TF.size] = self.mock_data["size"]
-        return detections_table
-
-    @pytest.fixture(scope = "class")
-    def object_data_table(self, class_setup):
-        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.indices,
-                                                            CGOD_TF.weight_LensMC  : self.mock_data["weight"],
-                                                            CGOD_TF.readout_dist   : self.mock_data["readout_dist"],
-                                                            CGOD_TF.g1_image_LensMC: self.mock_data["g1"]})
-        return object_data_table
