@@ -20,10 +20,6 @@ The Status Report is:
 | **Shear Validation Test**            | **Short Descriptor**                                                             | **Test Case**                                | **PF** | **Status**            |
 | T-SHE-000001-PSF-res-star-pos        | χ2 distribution of PSF residuals at star positions                               | TC-SHE-100001-PSF-res-star-pos-tot           | PSF    | Red                   |
 |                                      |                                                                                  | TC-SHE-100002-PSF-res-star-pos-SNR           | PSF    | Red                   |
-|                                      |                                                                                  | TC-SHE-100002-PSF-res-star-pos-SED           | PSF    | Red                   |
-|                                      |                                                                                  | TC-SHE-100002-PSF-res-star-pos-pix           | PSF    | Red                   |
-|                                      |                                                                                  | TC-SHE-100002-PSF-res-star-pos-epoch         | PSF    | Red                   |
-|                                      |                                                                                  | TC-SHE-100002-PSF-res-star-pos-solaspang     | PSF    | Red                   |
 | T-SHE-000002-PSF-lambdas             | PSF from broadband magnitudes compared to precise PSF from spectroscopic data    | TC-SHE-100003-PSF-lambda-ell                 | PSF    | Red Test needs review |
 |                                      |                                                                                  | TC-SHE-100004-PSF-lambda-R2                  | PSF    | Red Test needs review |
 | T-SHE-000003-PSF-res-interp-star-pos | Residual of PSF at galaxy                                                        | TC-SHE-100005-PSF-res-interp-star-pos-tot    | PSF    | Red                   |
