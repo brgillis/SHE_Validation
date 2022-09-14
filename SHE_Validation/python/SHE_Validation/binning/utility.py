@@ -48,25 +48,27 @@ MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized
                             f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
                             f"integer giving the desired number of quantiles to use as bin limits.")
 
-""" Class tasked with interpreting bin limits keys in a pipeline config dict, and converting them into
-    np.ndarrays of bin limits.
-
-    The class structure is used here to allow this to be subclassed, with the class attribute `d_local_bin_keys`
-    overridden by subclasses with a dict defining the bin limits keys specific to a given executable. When the
-    class method `get_d_l_bin_limits` is called, it will use the class attribute `d_local_bin_keys` of the subclass
-    which calls it.
-"""
-
-
-# Dict relating the "local" config key for each bin parameter - that is, the key for providing a value specifically
-# for an individual validation test. This should be overridden by any subclass of this with specific keys.
 
 def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
                        bin_data_table: Optional[Table] = None,
                        l_bin_parameters: Iterable[BinParameters] = BinParameters,
                        d_local_bin_keys: Optional[Mapping[BinParameters, Optional[ConfigKeys]]] = None) -> \
         Dict[BinParameters, np.ndarray]:
-    """ Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
+    """Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
+
+    Parameters
+    ----------
+    pipeline_config: Dict[ConfigKeys, Any]
+    bin_data_table: Table or None
+    l_bin_parameters: Iterable[BinParameters]
+    d_local_bin_keys: Mapping[BinParameters, Optional[ConfigKeys]] or None
+        Dict relating the "local" config key for each bin parameter - that is, the key for providing a value
+        specifically for an individual validation test.
+
+    Returns
+    -------
+    d_l_bin_limits: Dict[BinParameters, np.ndarray]
+
     """
 
     # We do this to use D_GLOBAL_BIN_KEYS (a constant) as the default argument for d_local_bin_keys, without risk
