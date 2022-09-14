@@ -42,7 +42,7 @@ from SHE_PPT.utility import join_without_none
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import add_bin_columns
-from SHE_Validation.binning.utility import ConfigBinInterpreter
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 from ST_DataModelBindings.dpd.vis.raw.calibratedframe_stub import dpdVisCalibratedFrame
@@ -56,20 +56,16 @@ from .plot_cti import CtiPlotter
 from .results_reporting import fill_cti_gal_validation_results
 from .table_formats.regression_results import TF as RR_TF
 
+D_CTI_GAL_BIN_KEYS = {BinParameters.TOT: None,
+                      BinParameters.SNR: ValidationConfigKeys.CG_SNR_BIN_LIMITS,
+                      BinParameters.BG: ValidationConfigKeys.CG_BG_BIN_LIMITS,
+                      BinParameters.COLOUR: ValidationConfigKeys.CG_COLOUR_BIN_LIMITS,
+                      BinParameters.SIZE: ValidationConfigKeys.CG_SIZE_BIN_LIMITS,
+                      BinParameters.EPOCH: ValidationConfigKeys.CG_EPOCH_BIN_LIMITS, }
+
 MSG_COMPLETE = "Complete!"
 
 logger = getLogger(__name__)
-
-
-class CtiGalConfigBinInterpreter(ConfigBinInterpreter):
-    """ Child class of ConfigBinInterpreter, set up with the executable-specific keys for CTI-Gal Validation.
-    """
-    d_local_bin_keys = {BinParameters.TOT   : None,
-                        BinParameters.SNR   : ValidationConfigKeys.CG_SNR_BIN_LIMITS,
-                        BinParameters.BG    : ValidationConfigKeys.CG_BG_BIN_LIMITS,
-                        BinParameters.COLOUR: ValidationConfigKeys.CG_COLOUR_BIN_LIMITS,
-                        BinParameters.SIZE  : ValidationConfigKeys.CG_SIZE_BIN_LIMITS,
-                        BinParameters.EPOCH : ValidationConfigKeys.CG_EPOCH_BIN_LIMITS, }
 
 
 def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
@@ -95,19 +91,19 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
     d_shear_estimate_tables, _ = read_d_method_tables(d_args[CA_SHE_MEAS],
-                                                      workdir = workdir,
-                                                      log_info = True)
+                                                      workdir=workdir,
+                                                      log_info=True)
 
     # Load the image data as a SHEFrameStack. Limit to object IDs we have shear estimates for
     logger.info("Loading in calibrated frames, exposure segmentation maps, and MER final catalogs as a SHEFrameStack.")
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_estimate_tables)
-    data_stack = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
-                                    detections_listfile_filename = d_args[CA_SHE_EXT_CAT],
-                                    object_id_list = s_object_ids,
-                                    workdir = workdir,
-                                    load_images = False,
-                                    prune_images = False,
-                                    mode = 'denywrite')
+    data_stack = SHEFrameStack.read(exposure_listfile_filename=d_args[CA_VIS_CAL_FRAME],
+                                    detections_listfile_filename=d_args[CA_SHE_EXT_CAT],
+                                    object_id_list=s_object_ids,
+                                    workdir=workdir,
+                                    load_images=False,
+                                    prune_images=False,
+                                    mode='denywrite')
     logger.info(MSG_COMPLETE)
 
     # Make sure the detections catalogue contains all information necessary for binning
@@ -115,18 +111,19 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                     data_stack)
 
     # Get the bin limits dictionary from the config
-    d_l_bin_limits = CtiGalConfigBinInterpreter.get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
-                                                                   bin_data_table = data_stack.detections_catalogue)
+    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
+                                        bin_data_table=data_stack.detections_catalogue,
+                                        d_local_bin_keys=D_CTI_GAL_BIN_KEYS)
 
     # TODO: Use products from the frame stack
     # Load the exposure products, to get needed metadata for output
     l_vis_calibrated_frame_filename = read_listfile(join(workdir, d_args[CA_VIS_CAL_FRAME]),
-                                                    log_info = True)
+                                                    log_info=True)
     l_vis_calibrated_frame_product = []
     for vis_calibrated_frame_filename in l_vis_calibrated_frame_filename:
         vis_calibrated_frame_prod = read_xml_product(vis_calibrated_frame_filename,
-                                                     workdir = workdir,
-                                                     log_info = True)
+                                                     workdir=workdir,
+                                                     log_info=True)
         if not isinstance(vis_calibrated_frame_prod, dpdVisCalibratedFrame):
             raise ValueError("Vis calibrated frame product from " + vis_calibrated_frame_filename
                              + " is invalid type.")

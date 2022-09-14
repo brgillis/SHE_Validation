@@ -38,7 +38,7 @@ from SHE_PPT.file_io import read_product_and_table, write_xml_product
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_data import add_bin_columns
-from SHE_Validation.binning.utility import ConfigBinInterpreter
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS, NUM_PSF_RES_SP_TEST_CASES
 from SHE_Validation_PSF.data_processing import run_psf_res_val_test
@@ -47,13 +47,8 @@ from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 
 logger = log.getLogger(__name__)
 
-
-class PsfResSPConfigBinInterpreter(ConfigBinInterpreter):
-    """ Child class of ConfigBinInterpreter, set up with the executable-specific keys for PSF Residual (Star Pos)
-        Validation.
-    """
-    d_local_bin_keys = {BinParameters.TOT: None,
-                        BinParameters.SNR: ValidationConfigKeys.PRSP_SNR_BIN_LIMITS, }
+D_PSF_RES_SP_BIN_KEYS = {BinParameters.TOT: None,
+                         BinParameters.SNR: ValidationConfigKeys.PRSP_SNR_BIN_LIMITS, }
 
 
 @dataclass
@@ -111,13 +106,14 @@ def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputDat
     if p_ref_star_cat_filename is None:
 
         # Get the bin limits dictionary from the config, generating based on the star cat
-        d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                                                         bin_data_table = star_cat,
-                                                                         l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+        d_l_bin_limits = get_d_l_bin_limits(pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                            bin_data_table=star_cat,
+                                            l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
+                                            d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
 
-        return PsfResSPInputData(d_l_bin_limits = d_l_bin_limits,
-                                 p_star_cat = p_star_cat,
-                                 star_cat = star_cat)
+        return PsfResSPInputData(d_l_bin_limits=d_l_bin_limits,
+                                 p_star_cat=p_star_cat,
+                                 star_cat=star_cat)
 
     # Load the reference star catalog and return with it
     p_ref_star_cat, ref_star_cat = read_product_and_table(product_filename = d_args[CA_REF_SHE_STAR_CAT],
@@ -126,9 +122,10 @@ def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputDat
 
     # Get the bin limits dictionary from the config, generating based on the star cat
     add_bin_columns(ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
-    d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                                                     bin_data_table = ref_star_cat,
-                                                                     l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+    d_l_bin_limits = get_d_l_bin_limits(pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                        bin_data_table=ref_star_cat,
+                                        l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
+                                        d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
 
     return PsfResSPInputData(d_l_bin_limits = d_l_bin_limits,
                              p_star_cat = p_star_cat,

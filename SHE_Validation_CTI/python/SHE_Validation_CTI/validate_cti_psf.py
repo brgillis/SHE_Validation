@@ -37,7 +37,7 @@ from SHE_PPT.products.she_validation_test_results import create_dpd_she_validati
 from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
-from SHE_Validation.binning.utility import ConfigBinInterpreter
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters
 from ST_DataModelBindings.dpd.she.raw.starcatalog_stub import dpdSheStarCatalog
 from .constants.cti_psf_test_info import L_CTI_PSF_TEST_CASE_INFO, NUM_CTI_PSF_TEST_CASES
@@ -49,16 +49,12 @@ from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
 
-
-class CtiPsfConfigBinInterpreter(ConfigBinInterpreter):
-    """ Child class of ConfigBinInterpreter, set up with the executable-specific keys for CTI-PSF Validation.
-    """
-    d_local_bin_keys = {BinParameters.TOT   : None,
-                        BinParameters.SNR   : ValidationConfigKeys.CP_SNR_BIN_LIMITS,
-                        BinParameters.BG    : ValidationConfigKeys.CP_BG_BIN_LIMITS,
-                        BinParameters.COLOUR: ValidationConfigKeys.CP_COLOUR_BIN_LIMITS,
-                        BinParameters.SIZE  : ValidationConfigKeys.CP_SIZE_BIN_LIMITS,
-                        BinParameters.EPOCH : ValidationConfigKeys.CP_EPOCH_BIN_LIMITS, }
+D_CTI_PSF_BIN_KEYS = {BinParameters.TOT: None,
+                      BinParameters.SNR: ValidationConfigKeys.CP_SNR_BIN_LIMITS,
+                      BinParameters.BG: ValidationConfigKeys.CP_BG_BIN_LIMITS,
+                      BinParameters.COLOUR: ValidationConfigKeys.CP_COLOUR_BIN_LIMITS,
+                      BinParameters.SIZE: ValidationConfigKeys.CP_SIZE_BIN_LIMITS,
+                      BinParameters.EPOCH: ValidationConfigKeys.CP_EPOCH_BIN_LIMITS, }
 
 
 def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
@@ -87,28 +83,29 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
     star_catalog_product: dpdSheStarCatalog
     star_catalog_product, star_catalog_table = read_product_and_table(d_args[CA_SHE_STAR_CAT],
                                                                       workdir = workdir,
-                                                                      log_info = True)
+                                                                      log_info=True)
 
     logger.info(MSG_COMPLETE)
 
     # Load the extended detections catalog
     extended_catalog_table = read_table_from_product(d_args[CA_SHE_STAR_CAT],
-                                                     workdir = workdir,
-                                                     log_info = True)
+                                                     workdir=workdir,
+                                                     log_info=True)
 
     # Get the bin limits dictionary from the config
-    d_l_bin_limits = CtiPsfConfigBinInterpreter.get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
-                                                                   bin_data_table = extended_catalog_table)
+    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
+                                        bin_data_table=extended_catalog_table,
+                                        d_local_bin_keys=D_CTI_PSF_BIN_KEYS)
 
     # Calculate the data necessary for validation
 
-    add_readout_register_distance(star_catalog_table, y_colname = SHE_STAR_CAT_TF.y)
+    add_readout_register_distance(star_catalog_table, y_colname=SHE_STAR_CAT_TF.y)
 
     (d_regression_results_tables,
-     d_d_figures) = validate_cti_psf(star_catalog_table = star_catalog_table,
-                                     extended_catalog_table = extended_catalog_table,
-                                     d_l_bin_limits = d_l_bin_limits,
-                                     workdir = workdir)
+     d_d_figures) = validate_cti_psf(star_catalog_table=star_catalog_table,
+                                     extended_catalog_table=extended_catalog_table,
+                                     d_l_bin_limits=d_l_bin_limits,
+                                     workdir=workdir)
 
     # Set up output product, using the star catalog product as a reference
     test_result_product = create_dpd_she_validation_test_results(reference_product = star_catalog_product,

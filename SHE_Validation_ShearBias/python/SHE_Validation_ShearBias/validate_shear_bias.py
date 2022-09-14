@@ -34,7 +34,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements
 from SHE_PPT.products.she_validation_test_results import create_validation_test_results_product
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_MATCHED_CAT_LIST, CA_SHE_TEST_RESULTS
-from SHE_Validation.binning.utility import ConfigBinInterpreter
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import ExecutionMode
 from SHE_Validation.constants.test_info import BinParameters
 from .constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO, L_SHEAR_BIAS_TEST_CASE_M_INFO,
@@ -45,18 +45,12 @@ from .results_reporting import fill_shear_bias_test_results
 
 logger = getLogger(__name__)
 
-
-class ShearBiasConfigBinInterpreter(ConfigBinInterpreter):
-    """ Child class of ConfigBinInterpreter, set up with the executable-specific keys for Shear Bias Validation.
-
-        TODO: Once config keys are available for bin limits specific to this executable, use them here
-    """
-    d_local_bin_keys = {BinParameters.TOT   : None,
-                        BinParameters.SNR   : ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
-                        BinParameters.BG    : ValidationConfigKeys.VAL_BG_BIN_LIMITS,
-                        BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
-                        BinParameters.SIZE  : ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
-                        BinParameters.EPOCH : ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS, }
+D_SHEAR_BIAS_BIN_KEYS = {BinParameters.TOT: None,
+                         BinParameters.SNR: ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                         BinParameters.BG: ValidationConfigKeys.VAL_BG_BIN_LIMITS,
+                         BinParameters.COLOUR: ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS,
+                         BinParameters.SIZE: ValidationConfigKeys.VAL_SIZE_BIN_LIMITS,
+                         BinParameters.EPOCH: ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS, }
 
 
 def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -> None:
@@ -84,13 +78,13 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     # Make a data loader for each shear estimation method
     d_data_loaders: Dict[ShearEstimationMethods, ShearBiasDataLoader] = {}
     for method in ShearEstimationMethods:
-        d_data_loaders[method] = ShearBiasDataLoader(l_filenames = d_method_l_table_filenames[method],
-                                                     workdir = workdir,
-                                                     method = method)
+        d_data_loaders[method] = ShearBiasDataLoader(l_filenames=d_method_l_table_filenames[method],
+                                                     workdir=workdir,
+                                                     method=method)
 
     # Get the bin limits from the pipeline_config
-    d_l_bin_limits: Dict[BinParameters, np.ndarray] = ShearBiasConfigBinInterpreter.get_d_l_bin_limits(
-        d_args[CA_PIPELINE_CONFIG])
+    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
+                                                                         d_local_bin_keys=D_SHEAR_BIAS_BIN_KEYS)
     # TODO: Figure out a bin data table here to use
 
     # Perform validation for each shear estimation method

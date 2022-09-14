@@ -28,6 +28,7 @@ from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation.binning.bin_data import add_bin_columns
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.default_config import DEFAULT_N_BIN_LIMITS_QUANTILES, STR_AUTO_BIN_LIMITS_HEAD
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
@@ -37,7 +38,8 @@ from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
-from SHE_Validation_PSF.validate_psf_res_star_pos import PsfResSPConfigBinInterpreter, load_psf_res_input
+from SHE_Validation_PSF.validate_psf_res_star_pos import (D_PSF_RES_SP_BIN_KEYS, PsfResSPConfigBinInterpreter,
+                                                          load_psf_res_input, )
 
 
 class TestPsfResReadInput(SheValPsfTestCase):
@@ -157,11 +159,10 @@ class TestPsfResReadInput(SheValPsfTestCase):
                 del pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS]
 
             # Generate a dict of bin limits
-            d_l_bin_limits = PsfResSPConfigBinInterpreter.get_d_l_bin_limits(pipeline_config_cpy,
-                                                                             bin_data_table =
-                                                                             self.mock_starcat_table,
-                                                                             l_bin_parameters =
-                                                                             L_PSF_RES_SP_BIN_PARAMETERS)
+            d_l_bin_limits = get_d_l_bin_limits(pipeline_config_cpy,
+                                                bin_data_table=self.mock_starcat_table,
+                                                l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
+                                                d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
 
             l_snr_bin_limits = d_l_bin_limits[BinParameters.SNR]
 

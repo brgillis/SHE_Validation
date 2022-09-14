@@ -28,10 +28,11 @@ from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.file_io import read_product_and_table
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_Validation.binning.bin_data import add_bin_columns
+from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.mock_data import MockRefValStarCatTableGenerator, MockValStarCatTableGenerator
-from SHE_Validation_PSF.validate_psf_res_star_pos import PsfResSPConfigBinInterpreter
+from SHE_Validation_PSF.validate_psf_res_star_pos import D_PSF_RES_SP_BIN_KEYS
 
 
 class SheValPsfTestCase(SheValTestCase):
@@ -73,9 +74,10 @@ class SheValPsfTestCase(SheValTestCase):
         """ Getter for d_l_bin_limits, which generates it from self.pipeline_config and self.mock_starcat_table.
         """
 
-        return PsfResSPConfigBinInterpreter.get_d_l_bin_limits(self.pipeline_config,
-                                                               bin_data_table = self.mock_starcat_table,
-                                                               l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+        return get_d_l_bin_limits(self.pipeline_config,
+                                  bin_data_table=self.mock_starcat_table,
+                                  l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
+                                  d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
 
     @property
     def mock_starcat_table_gen(self) -> MockValStarCatTableGenerator:
