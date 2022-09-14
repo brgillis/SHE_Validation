@@ -21,7 +21,7 @@ __updated__ = "2021-08-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Any, Dict, Iterable, Mapping, Optional, Union
+from typing import Dict, Iterable, Mapping, Union
 
 import numpy as np
 from astropy.table import Table
@@ -49,26 +49,39 @@ MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized
                             f"integer giving the desired number of quantiles to use as bin limits.")
 
 
-def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
-                       bin_data_table: Optional[Table] = None,
-                       l_bin_parameters: Iterable[BinParameters] = BinParameters,
-                       d_local_bin_keys: Optional[Mapping[BinParameters, Optional[ConfigKeys]]] = None) -> \
-        Dict[BinParameters, np.ndarray]:
+def get_d_l_bin_limits(pipeline_config,
+                       bin_data_table=None,
+                       l_bin_parameters=BinParameters,
+                       d_local_bin_keys=None):
     """Convert the bin limits in a pipeline_config (after type conversion) into a dict of arrays.
 
     Parameters
     ----------
-    pipeline_config: Dict[ConfigKeys, Any]
-    bin_data_table: Table or None
-    l_bin_parameters: Iterable[BinParameters]
-    d_local_bin_keys: Mapping[BinParameters, Optional[ConfigKeys]] or None
+    pipeline_config : Dict[ConfigKeys, Any]
+        Pipeline configuration dictionary, after processing to convert the input string values to their respective
+        desired types. The entries specifying bin limits should be in the format of either an iterable of the
+        bin_limits_key limits, or a string of the format "auto-N" (for some positive integer N). In the former case,
+        this iterable will be converted into a np.ndarray. In the latter case, a np.ndarray will be created with bin
+        limits to define N quantiles of the data to be binned, by referencing the data in the `bin_data_table` input
+        parameter.
+    bin_data_table : Table or None
+        Table containing data to be binned, in case of automatic binning of any parameter. See description of
+        `pipeline_config` above for details.
+    l_bin_parameters : Iterable[BinParameters]
+        An iterable of the bin parameters for which bin limits should be determined. The output dict will contain bin
+        limits for only the BinParameters in this iterable.
+    d_local_bin_keys : Mapping[BinParameters, ConfigKeys or None] or None
         Dict relating the "local" config key for each bin parameter - that is, the key for providing a value
-        specifically for an individual validation test.
+        specifically for an individual validation test. If this is `None` (default), the keys for specifying bin limits
+        globally will be used for all parameters. Similarly, if the entry for any bin parameter is `None`,
+        the global key will be used for it.
 
     Returns
     -------
-    d_l_bin_limits: Dict[BinParameters, np.ndarray]
-
+    d_l_bin_limits : Dict[BinParameters, np.ndarray]
+        A dictionary of the bin limits for each bin parameter. Each parameter's bin limits will be expressed as a
+        np.ndarray. This array will have N+1 elements when binning data into N bins, as it contains both the minimum
+        and maximum value for each bin.
     """
 
     # We do this to use D_GLOBAL_BIN_KEYS (a constant) as the default argument for d_local_bin_keys, without risk
@@ -76,7 +89,7 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
     if d_local_bin_keys is None:
         d_local_bin_keys = deepcopy(D_GLOBAL_BIN_KEYS)
 
-    d_bin_limits = {}
+    d_bin_limits: Dict[BinParameters, np.ndarray] = {}
     for bin_parameter in l_bin_parameters:
         global_bin_limits_key = D_GLOBAL_BIN_KEYS[bin_parameter]
         local_bin_limits_key = d_local_bin_keys[bin_parameter]
@@ -89,23 +102,23 @@ def get_d_l_bin_limits(pipeline_config: Dict[ConfigKeys, Any],
         else:
             bin_limits_key = global_bin_limits_key
 
+        bin_limits_value: Union[np.ndarray, str]
         if bin_limits_key is None or bin_limits_key not in pipeline_config:
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in
             # case
             if bin_parameter == BinParameters.TOT:
-                bin_limits_value: Union[np.ndarray, str] = TOT_BIN_LIMITS
+                bin_limits_value = TOT_BIN_LIMITS
             else:
-                bin_limits_value: Union[np.ndarray, str] = DEFAULT_AUTO_BIN_LIMITS
+                bin_limits_value = DEFAULT_AUTO_BIN_LIMITS
         else:
-            bin_limits_value: Union[np.ndarray, str] = pipeline_config[bin_limits_key]
+            bin_limits_value = pipeline_config[bin_limits_key]
 
         if isinstance(bin_limits_value, str):
 
-            # Raise an exception if no table was provided
+            # Raise an exception if no table was provided but we need one due to bin limits being specified via a string
             if bin_data_table is None:
                 raise ValueError(
-                    f"'{STR_AUTO_BIN_LIMITS_HEAD}' bin limits were requested, but no bin_data_table was "
-                    f"provided.")
+                    f"'{STR_AUTO_BIN_LIMITS_HEAD}' bin limits were requested, but no `bin_data_table` was provided.")
             d_bin_limits[bin_parameter] = get_auto_bin_limits_from_table(bin_parameter=bin_parameter,
                                                                          bin_limits_value=bin_limits_value,
                                                                          bin_data_table=bin_data_table)
