@@ -35,6 +35,15 @@ from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DE
                                                      TOT_BIN_LIMITS, )
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
+# Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
+# bin limits if no overriding local key is provided.
+D_GLOBAL_BIN_LIMITS = {BinParameters.TOT: D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
+                       BinParameters.SNR: D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
+                       BinParameters.BG: D_BIN_PARAMETER_META[BinParameters.BG].config_key,
+                       BinParameters.COLOUR: D_BIN_PARAMETER_META[BinParameters.COLOUR].config_key,
+                       BinParameters.SIZE: D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
+                       BinParameters.EPOCH: D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
+
 MSG_BAD_BIN_LIMITS_VALUE = ("Provided bin limits value ('%s') is of unrecognized format. It should either be a list of "
                             f"bin limits, or a string of the format '{STR_AUTO_BIN_LIMITS_HEAD}-N', where N is an "
                             f"integer giving the desired number of quantiles to use as bin limits.")
@@ -49,24 +58,15 @@ class ConfigBinInterpreter:
         class method `get_d_l_bin_limits` is called, it will use the class attribute `d_local_bin_keys` of the subclass
         which calls it.
     """
-    
-    # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
-    # bin limits if no overriding local key is provided.
-    d_global_bin_keys = {BinParameters.TOT   : D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
-                         BinParameters.SNR   : D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
-                         BinParameters.BG    : D_BIN_PARAMETER_META[BinParameters.BG].config_key,
-                         BinParameters.COLOUR: D_BIN_PARAMETER_META[BinParameters.COLOUR].config_key,
-                         BinParameters.SIZE  : D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
-                         BinParameters.EPOCH : D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
 
     # Dict relating the "local" config key for each bin parameter - that is, the key for providing a value specifically
     # for an individual validation test. This should be overridden by any subclass of this with specific keys.
-    d_local_bin_keys = {BinParameters.TOT   : D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
-                        BinParameters.SNR   : D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
-                        BinParameters.BG    : D_BIN_PARAMETER_META[BinParameters.BG].config_key,
+    d_local_bin_keys = {BinParameters.TOT: D_BIN_PARAMETER_META[BinParameters.TOT].config_key,
+                        BinParameters.SNR: D_BIN_PARAMETER_META[BinParameters.SNR].config_key,
+                        BinParameters.BG: D_BIN_PARAMETER_META[BinParameters.BG].config_key,
                         BinParameters.COLOUR: D_BIN_PARAMETER_META[BinParameters.COLOUR].config_key,
-                        BinParameters.SIZE  : D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
-                        BinParameters.EPOCH : D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
+                        BinParameters.SIZE: D_BIN_PARAMETER_META[BinParameters.SIZE].config_key,
+                        BinParameters.EPOCH: D_BIN_PARAMETER_META[BinParameters.EPOCH].config_key}
 
     @classmethod
     def get_d_l_bin_limits(cls,
@@ -79,7 +79,7 @@ class ConfigBinInterpreter:
 
         d_bin_limits = {}
         for bin_parameter in l_bin_parameters:
-            global_bin_limits_key = cls.d_global_bin_keys[bin_parameter]
+            global_bin_limits_key = D_GLOBAL_BIN_LIMITS[bin_parameter]
             local_bin_limits_key = cls.d_local_bin_keys[bin_parameter]
 
             # Determine if we should use the global or local key. If the local key is available and used, use that,
