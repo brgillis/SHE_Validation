@@ -38,8 +38,7 @@ from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
-from SHE_Validation_PSF.validate_psf_res_star_pos import (D_PSF_RES_SP_BIN_KEYS, PsfResSPConfigBinInterpreter,
-                                                          load_psf_res_input, )
+from SHE_Validation_PSF.validate_psf_res_star_pos import D_PSF_RES_SP_BIN_KEYS, load_psf_res_input
 
 
 class TestPsfResReadInput(SheValPsfTestCase):
