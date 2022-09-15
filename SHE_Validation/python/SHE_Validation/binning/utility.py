@@ -21,7 +21,7 @@ __updated__ = "2021-08-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, Iterable, Mapping, Union
+from typing import Dict, Union
 
 import numpy as np
 from astropy.table import Table
