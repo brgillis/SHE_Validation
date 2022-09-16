@@ -307,26 +307,46 @@ optionally any of the following which apply to this executable:
        ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
        data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidateCTIGal_snr_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_snr_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_bg_bin_limits
      - Either: 1. List of quoted, space-separated values listing the bin limits in ADU for when binning by sky
        background level. Or 2. "auto-<N>" where <N> is the number of sky background level quantiles (of equal data
        volume) to automatically divide the data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidateCTIGal_bg_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_bg_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_colour_bin_limits
      - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by colour. Or 2.
        "auto-<N>" where <N> is the number of colour quantiles (of equal data volume) to automatically divide the
        data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidateCTIGal_colour_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_colour_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_size_bin_limits
      - Either: 1. List of quoted, space-separated values listing the bin limits in pixels for when binning by size. Or
        2. "auto-<N>" where <N> is the number of size quantiles (of equal data volume) to automatically divide the data
        into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidateCTIGal_size_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_size_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
    * - SHE_Validation_epoch_bin_limits
      - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by epoch. Or 2.
        "auto-<N>" where <N> is the number of epoch quantiles (of equal data volume) to automatically divide the data
        into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
+   * - SHE_Validation_ValidateCTIGal_epoch_bin_limits
+     - As above, but this value applies only to this executable, and takes precedence if supplied.
+     - If a value is supplied to SHE_Validation_epoch_bin_limits, that will be used. Otherwise, will use default bin
+       limits, as listed above in the `Options`_ section above.
 
 See `Bin Definitions <bin_definitions>`_ for the specific definitions of values used for binning.
 

@@ -25,9 +25,11 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.argument_parser import CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
-# Output data filenames
 from SHE_Validation.binning.bin_data import add_bin_columns
+from SHE_Validation.binning.utility import get_d_l_bin_limits
+from SHE_Validation.constants.default_config import DEFAULT_N_BIN_LIMITS_QUANTILES, STR_AUTO_BIN_LIMITS_HEAD
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.constants import DEFAULT_MOCK_BIN_LIMITS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
@@ -36,7 +38,7 @@ from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_BIN_PARAMETERS
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
-from SHE_Validation_PSF.validate_psf_res_star_pos import load_psf_res_input
+from SHE_Validation_PSF.validate_psf_res_star_pos import D_PSF_RES_SP_BIN_KEYS, load_psf_res_input
 
 
 class TestPsfResReadInput(SheValPsfTestCase):
@@ -116,3 +118,52 @@ class TestPsfResReadInput(SheValPsfTestCase):
 
         # Check that the star catalog and reference star catalog don't match
         assert np.all(psf_res_sp_input.star_cat != psf_res_sp_input.ref_star_cat)
+
+    def test_config_bin_limits(self):
+        """ Test the bin limits from the pipeline config are interpreted properly.
+        """
+
+        # Create a copy of the pipeline_config which we'll modify here
+        pipeline_config_cpy = deepcopy(self.pipeline_config)
+
+        num_global_bins = 2
+        num_local_bins = 3
+        num_default_bins = DEFAULT_N_BIN_LIMITS_QUANTILES
+
+        # Check if the defaults are the same as one of the test values - if so, test values will need update
+        assert ((num_global_bins != num_default_bins) and (num_local_bins != num_default_bins) and
+                (num_global_bins != num_default_bins)), (f"Number of bins for test global, local, and default cases "
+                                                         f"must all differ for test to be run properly.")
+
+        test_global_val = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_global_bins}"
+        test_local_val = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_local_bins}"
+
+        # We'll test four cases here - setting/not setting each of the global key and local key
+        for (set_global, set_local, ex_num_bins) in ((False, False, num_default_bins),
+                                                     (False, True, num_local_bins),
+                                                     (True, False, num_global_bins),
+                                                     (True, True, num_local_bins),
+                                                     ):
+
+            # Set pipeline config values as desired
+
+            if set_global:
+                pipeline_config_cpy[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = test_global_val
+            elif ValidationConfigKeys.VAL_SNR_BIN_LIMITS in pipeline_config_cpy:
+                del pipeline_config_cpy[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
+
+            if set_local:
+                pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS] = test_local_val
+            elif ValidationConfigKeys.PRSP_SNR_BIN_LIMITS in pipeline_config_cpy:
+                del pipeline_config_cpy[ValidationConfigKeys.PRSP_SNR_BIN_LIMITS]
+
+            # Generate a dict of bin limits
+            d_l_bin_limits = get_d_l_bin_limits(pipeline_config_cpy,
+                                                bin_data_table=self.mock_starcat_table,
+                                                l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
+                                                d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
+
+            l_snr_bin_limits = d_l_bin_limits[BinParameters.SNR]
+
+            # Check that we got the right limits by testing the length
+            assert len(l_snr_bin_limits) == ex_num_bins + 1
