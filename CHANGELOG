@@ -21,7 +21,10 @@ API Changes
   positive integer). This will be interpreted as "Automatically generate bin limits from the data, by separating it
   N quantiles (of equal data volume)." The default is now "auto-4" for all parameters, which splits the data into
   quartiles.
-
+- Bin limits can now be specified separately for different executables (e.g. if you wish to use different SNR bin
+  limits for the PSF Residual (Star Position) test and the CTI-Galaxy test). Each executable now has its own set of
+  pipeline_config keys for its own bin limits. If these are supplied, they'll be used; otherwise the old, "global" keys
+  will be used. See each executable's documentation for lists of the new keys
 
 
 Dependency Changes

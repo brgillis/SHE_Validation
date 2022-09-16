@@ -30,6 +30,7 @@ from EL_CoordsUtils import telescope_coords
 from SHE_PPT import mdb
 from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT,
                                      CA_WORKDIR, )
+from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.file_io import (read_product_and_table, read_table_from_product, write_xml_product, )
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
@@ -47,6 +48,13 @@ from .results_reporting import fill_cti_psf_validation_results
 from .validate_cti_gal import MSG_COMPLETE
 
 logger = getLogger(__name__)
+
+D_CTI_PSF_BIN_KEYS = {BinParameters.TOT: None,
+                      BinParameters.SNR: ValidationConfigKeys.CP_SNR_BIN_LIMITS,
+                      BinParameters.BG: ValidationConfigKeys.CP_BG_BIN_LIMITS,
+                      BinParameters.COLOUR: ValidationConfigKeys.CP_COLOUR_BIN_LIMITS,
+                      BinParameters.SIZE: ValidationConfigKeys.CP_SIZE_BIN_LIMITS,
+                      BinParameters.EPOCH: ValidationConfigKeys.CP_EPOCH_BIN_LIMITS, }
 
 
 def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
@@ -68,9 +76,6 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
 
     logger.info(MSG_COMPLETE)
 
-    # Get the bin limits dictionary from the config
-    d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG])
-
     # Load the star catalogue
 
     logger.info("Loading star catalog.")
@@ -78,24 +83,29 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
     star_catalog_product: dpdSheStarCatalog
     star_catalog_product, star_catalog_table = read_product_and_table(d_args[CA_SHE_STAR_CAT],
                                                                       workdir = workdir,
-                                                                      log_info = True)
+                                                                      log_info=True)
 
     logger.info(MSG_COMPLETE)
 
     # Load the extended detections catalog
     extended_catalog_table = read_table_from_product(d_args[CA_SHE_STAR_CAT],
-                                                     workdir = workdir,
-                                                     log_info = True)
+                                                     workdir=workdir,
+                                                     log_info=True)
+
+    # Get the bin limits dictionary from the config
+    d_l_bin_limits = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
+                                        bin_data_table=extended_catalog_table,
+                                        d_local_bin_keys=D_CTI_PSF_BIN_KEYS)
 
     # Calculate the data necessary for validation
 
-    add_readout_register_distance(star_catalog_table, y_colname = SHE_STAR_CAT_TF.y)
+    add_readout_register_distance(star_catalog_table, y_colname=SHE_STAR_CAT_TF.y)
 
     (d_regression_results_tables,
-     d_d_figures) = validate_cti_psf(star_catalog_table = star_catalog_table,
-                                     extended_catalog_table = extended_catalog_table,
-                                     d_l_bin_limits = d_l_bin_limits,
-                                     workdir = workdir)
+     d_d_figures) = validate_cti_psf(star_catalog_table=star_catalog_table,
+                                     extended_catalog_table=extended_catalog_table,
+                                     d_l_bin_limits=d_l_bin_limits,
+                                     workdir=workdir)
 
     # Set up output product, using the star catalog product as a reference
     test_result_product = create_dpd_she_validation_test_results(reference_product = star_catalog_product,
