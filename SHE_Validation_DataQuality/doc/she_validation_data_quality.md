@@ -147,4 +147,45 @@ data products.
 
 ## T-SHE-000013-data-proc
 
+Make sure that SHE provides the level-2 data including the final mission products and catalogs. The information to be
+tested is:
+* Catalog of shear estimates and ancillary data
+* Sufficient information on bias of shear estimates in the above
+
+### Requirement: R-SHE-CAL- F-060
+
+Parent: R-GDP-DL2-002
+
+R-SHE-PRD-F-010: Ground data processing shall generate Level-2 and higher data, including the final mission products and
+catalogues.
+
+### Requirement Comment from GDPRD
+
+SHE shall deliver algorithms to produce calibrated shear measurements.
+
+### Rationale:
+
+Need to provide LE2 data so that it can be processed by LE3.
+
+### Input Data
+
+No input is required to validate this requirement.
+
+### Analysis Tools
+
+Visual inspection.
+
+### Test Cases:
+
+#### TC-SHE-100035-data-proc
+
+**Purpose:** Ability to provide calibrated shear estimates.
+
+**Output:** SHE shall provide calibrated shear estimates.
+
+**Pass/Fail criteria:** Through review, design, and visual inspection, it is assured that SHE can provide the level-2
+data.
+
+##### Test Procedure:
+
 TBD
