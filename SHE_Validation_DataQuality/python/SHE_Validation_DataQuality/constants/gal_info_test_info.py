@@ -1,6 +1,8 @@
-"""@file gal_info_test_info.py
+"""
+:file: python/SHE_Validation_DataQuality/constants/gal_info_test_info.py
 
-Created 21 September 2022
+:date: 09/21/22
+:author: Bryan Gillis
 
 Default values for information about the gal-info test and test cases.
 """

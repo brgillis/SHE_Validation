@@ -1,6 +1,8 @@
-"""@file sed_exist_test_info.py
+"""
+:file: python/SHE_Validation_DataQuality/constants/sed_exist_test_info.py
 
-Created 21 September 2022
+:date: 09/21/22
+:author: Bryan Gillis
 
 Default values for information about the SED-Exist test and test cases.
 """

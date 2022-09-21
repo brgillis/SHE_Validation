@@ -1,6 +1,8 @@
-"""@file gal_info_config.py
+"""
+:file: python/SHE_Validation_DataQuality/constants/gal_info_config.py
 
-Created 21 September 2022
+:date: 09/21/22
+:author: Bryan Gillis
 
 Constants relating to Gal-Info validation test configuration
 """

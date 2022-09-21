@@ -1,6 +1,8 @@
-"""@file sed_exist_config.py
+"""
+:file: python/SHE_Validation_DataQuality/constants/sed_exist_config.py
 
-Created 21 September 2022
+:date: 09/21/22
+:author: Bryan Gillis
 
 Constants relating to SED-Exist validation test configuration
 """
