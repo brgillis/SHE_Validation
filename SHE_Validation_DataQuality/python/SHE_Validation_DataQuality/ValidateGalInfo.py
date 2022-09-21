@@ -21,7 +21,7 @@
 :file: python/SHE_Validation_DataQuality/ValidateGalInfo.py
 
 :date: 09/21/22
-:author: user
+:author: Bryan Gillis
 
 """
 

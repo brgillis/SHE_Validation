@@ -21,7 +21,7 @@
 :file: python/SHE_Validation_DataQuality/ValidateSedExist.py
 
 :date: 09/21/22
-:author: user
+:author: Bryan Gillis
 
 """
 
