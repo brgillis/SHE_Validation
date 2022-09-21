@@ -24,13 +24,15 @@ Parent: R-GDP-DL3-060
 R-SHE-PRD-F-180: For each galaxy used in the weak lensing analysis up to the limiting magnitude the following
 information should be available:
 
-- at east 1 ellipticity measurement such that a shear estimate can be inferred.
-- the posterior probability distribution of the true ellipticity given the data
-- the posterior probability distribution of the photometric redshift given the data
-- estimate of the covariance between photometric redshift and ellipticity (TBD)
-- the classification star / galaxy
-- confidence level and quality assessment
-- at least one size measurement
+* At least one ellipticity measurement such that a shear estimate can be inferred
+* The posterior distribution of the ellipticity
+* The posterior distribution of the photometric redshift
+* ~~An estimate of the covariance between photometric redshift and ellipticity, from joint inference of redshift and
+  ellipticity~~ NOTE: Excluded from test due to design changes
+* The star-galaxy classification
+* At least one measurement of galaxy size
+* Quality flags
+* A morphology/type quantifier is optional but should be clearly flagged if present or not present
 
 ### Requirement Comment from GDPRD
 
@@ -38,17 +40,10 @@ Validated by SHE and SGS
 
 ### Rationale:
 
-Ensure that every weak lensing object provides the following:
-
-- at least one ellipticity measurement such that a shear estimate can be inferred;
-- the posterior distribution of the ellipticity;
-- the posterior distribution of the photometric redshift;
-- an estimate of the covariance between photometric redshift and ellipticity, from joint inference of redshift and
-  ellipticity [TBD];
-- the star-galaxy classification;
-- at least one measurement of galaxy size;
-- quality flags [TBD];
-- a morphology/type quantifier is optional but should be clearly flagged if present or not present.
+This data is required by LE3 for their processing. The quality flags are used to indicate any issues with the data, and
+must be set if any such problems exist. All objects must be present in the catalogue, as the absence of an object
+leaves ambiguity on if there was an issue with processing the object or if it was mistakenly missed or dropped from the
+catalogue.
 
 ### Input Data
 
@@ -79,11 +74,7 @@ the output catalogue (Nout/Nin =1), and all output catalogue entries have valid 
 3. Take ratio of N\_out to N\_in (Nout/N\_in).
 4. Check Nout/N\_in =1
 
-ANT Note: Should we make a pairwise comparison per object?
-
 #### TC-SHE-100023-gal-info-out
-
-Test that all SHE measurements in shear catalogue have a measurement or are flagged appropriately.
 
 **Purpose:** Test that all SHE measurements in shear catalogue have a measurement or are flagged appropriately.
 
@@ -102,7 +93,7 @@ NaNs or out-of-range values).
 Verify that an estimate of the SED of the stars used in the PSF modelling has been provided, using available data. This
 is provided by OU-PHZ.
 
-### Requirement: R-SHE-CAL- F-060
+### Requirement: R-SHE-CAL-F-060
 
 Parent: None
 
@@ -111,7 +102,6 @@ R-SHE-CAL-F-060: An estimate of the SED of the stars used in the PSF modelling s
 ### Requirement Comment from GDPRD
 
 This shall be provided from PHZ.
-[ANT: Note this is updated from SHE RSD which incorrectly named SPE. ]
 
 ### Rationale:
 
@@ -119,7 +109,7 @@ Need to ensure adequate SED information is available from PHZ for PSF.
 
 ### Input Data
 
-Catalogue of SEDs (from SPE) for stars. This has to include all stars used for the PSF.
+Catalogue of template assignments (from PHZ) for stars. This has to include all stars used for the PSF.
 
 ### Analysis Tools
 
@@ -129,10 +119,8 @@ TBD
 
 #### TC-SHE-100033-star-SED-exist
 
-Tests whether the SED exists of all stars used to determine the PSF model. The SED is provided from PHZ data products.
-
-**Purpose:** Tests whether the SED exists of all stars used to determine the PSF model. The SED is provided from PHZ
-data products.
+**Purpose:** Tests whether the template assignment exists for all stars used to determine the PSF model. The template
+assignment is provided from PHZ data products.
 
 **Output:** Number and identify of stars used in PSF fitting with no SED from PHZ.
 
@@ -149,10 +137,11 @@ data products.
 
 Make sure that SHE provides the level-2 data including the final mission products and catalogs. The information to be
 tested is:
+
 * Catalog of shear estimates and ancillary data
 * Sufficient information on bias of shear estimates in the above
 
-### Requirement: R-SHE-CAL- F-060
+### Requirement: R-SHE-CAL-F-060
 
 Parent: R-GDP-DL2-002
 
