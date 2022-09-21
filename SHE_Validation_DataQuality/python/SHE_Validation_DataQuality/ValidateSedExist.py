@@ -21,12 +21,14 @@
 :file: python/SHE_Validation_DataQuality/ValidateSedExist.py
 
 :date: 09/21/22
-:author: user
+:author: Bryan Gillis
 
 """
 
 import argparse
+
 import ElementsKernel.Logging as log
+
 
 def defineSpecificProgramOptions():
     """
