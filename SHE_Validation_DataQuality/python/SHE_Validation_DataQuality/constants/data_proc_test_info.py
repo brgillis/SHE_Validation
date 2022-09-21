@@ -21,7 +21,7 @@ Default values for information about the data-proc test and test cases.
 from SHE_Validation.constants.test_info import RequirementInfo, TestCaseInfo, TestInfo
 
 # Metadata about the requirement
-DATA_PROC_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-060",
+DATA_PROC_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-PRD-F-010",
                                              description="Ground data processing shall generate Level-2 and higher "
                                                          "data, including the final mission products and catalogues.",
                                              parameter="True/False for whether or not all data is provided.")

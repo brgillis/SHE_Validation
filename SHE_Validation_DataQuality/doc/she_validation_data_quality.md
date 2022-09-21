@@ -141,7 +141,7 @@ tested is:
 * Catalog of shear estimates and ancillary data
 * Sufficient information on bias of shear estimates in the above
 
-### Requirement: R-SHE-CAL-F-060
+### Requirement: R-SHE-PRD-F-010
 
 Parent: R-GDP-DL2-002
 
