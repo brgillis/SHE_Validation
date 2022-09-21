@@ -61,6 +61,9 @@ GAL_INFO_DATA_TEST_CASE_INFO = TestCaseInfo(test_info=GAL_INFO_TEST_INFO,
                                             base_description="Test that all SHE measurements in shear catalogue have "
                                                              "a measurement or are flagged appropriately.")
 
+L_GAL_INFO_TEST_CASE_INFO = [GAL_INFO_N_TEST_CASE_INFO,
+                             GAL_INFO_DATA_TEST_CASE_INFO]
+
 # Dict associated the test cases to requirements
 D_L_GAL_INFO_REQUIREMENT_INFO = {GAL_INFO_N_TEST_CASE_INFO.name: GAL_INFO_REQUIREMENT_INFO,
                                  GAL_INFO_DATA_TEST_CASE_INFO.name: GAL_INFO_REQUIREMENT_INFO}

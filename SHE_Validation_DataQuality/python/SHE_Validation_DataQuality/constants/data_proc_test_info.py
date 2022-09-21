@@ -36,5 +36,7 @@ DATA_PROC_TEST_CASE_INFO = TestCaseInfo(test_info=DATA_PROC_TEST_INFO,
                                         base_name="DataProc",
                                         base_description="Output calibrated shear estimates.")
 
+L_DATA_PROC_TEST_CASE_INFO = [DATA_PROC_TEST_CASE_INFO]
+
 # Dict associated the test cases to requirements
 D_L_DATA_PROC_REQUIREMENT_INFO = {DATA_PROC_TEST_CASE_INFO.name: DATA_PROC_REQUIREMENT_INFO}
