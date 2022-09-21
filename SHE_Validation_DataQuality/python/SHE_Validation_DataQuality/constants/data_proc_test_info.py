@@ -18,9 +18,7 @@ Default values for information about the data-proc test and test cases.
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.test_info import (ID_NUMBER_REPLACE_TAG, NAME_REPLACE_TAG, RequirementInfo, TestCaseInfo,
-                                                TestInfo, )
-from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
+from SHE_Validation.constants.test_info import RequirementInfo, TestCaseInfo, TestInfo
 
 # Metadata about the requirement
 DATA_PROC_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-060",
