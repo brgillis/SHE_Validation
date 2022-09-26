@@ -29,7 +29,7 @@ from typing import Any, Dict
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys
-from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
 
 EXEC_NAME = "SHE_Validation_ValidateGalInfo"
@@ -52,7 +52,18 @@ def defineSpecificProgramOptions():
     # Set up the argument parser, using built-in methods where possible
     parser = ValidationArgumentParser()
 
-    # TODO: Add cline-args for input and output files
+    # Input arguments
+    parser.add_input_arg(f"--{CA_SHE_REC_CAT}",
+                         type=str,
+                         help="Filename of the input reconciled shear measurements .xml data product to be checked.")
+
+    parser.add_input_arg(f"--{CA_MER_CAT_PROD}",
+                         type=str,
+                         help="Filename of the input MER Final Catalog .xml data product for the same tile as the "
+                              "reconciled shear measurements data product.")
+
+    # Output arguments
+    parser.add_test_result_arg()
 
     logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
