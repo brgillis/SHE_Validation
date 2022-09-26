@@ -21,11 +21,14 @@ __updated__ = "2021-08-03"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
+from SHE_PPT.constants.config import AnalysisConfigKeys
 from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
                                                      D_VALIDATION_CONFIG_TYPES, )
 
 # Create the default config dicts for this task by extending the tot default config dicts
-D_SED_EXIST_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS}
-D_SED_EXIST_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES}
-D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS}
+D_SED_EXIST_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
+                               AnalysisConfigKeys.PSF_NUM_STARS: 200}
+D_SED_EXIST_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
+                            AnalysisConfigKeys.PSF_NUM_STARS: int}
+D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
+                                 AnalysisConfigKeys.PSF_NUM_STARS: None}
