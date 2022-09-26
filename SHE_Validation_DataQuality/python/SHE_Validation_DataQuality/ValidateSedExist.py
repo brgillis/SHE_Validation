@@ -27,7 +27,7 @@ __updated__ = "2022-04-08"
 #
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, Type
+from typing import Any, Dict
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
@@ -41,39 +41,10 @@ D_SED_EXIST_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
                                AnalysisConfigKeys.PSF_NUM_STARS: 200}
 D_SED_EXIST_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
                             AnalysisConfigKeys.PSF_NUM_STARS: int}
-D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
-                                 AnalysisConfigKeys.PSF_NUM_STARS: None}
 
 EXEC_NAME = "SHE_Validation_ValidateSedExist"
 
 logger = log.getLogger(__name__)
-
-
-class SedExistReadConfigArgs(ValReadConfigArgs):
-    """ Subclass of ReadConfigArgs which overrides defaults.
-    """
-
-    def __post_init__(self):
-        """ Override __post_init__ to set different default values
-        """
-
-        self.d_config_defaults = (self.d_config_defaults if self.d_config_defaults is not None
-                                  else D_SED_EXIST_CONFIG_DEFAULTS)
-        self.d_config_defaults = (self.d_config_types if self.d_config_types is not None
-                                  else D_SED_EXIST_CONFIG_TYPES)
-        self.d_config_cline_args = (self.d_config_cline_args if self.d_config_cline_args is not None
-                                    else D_SED_EXIST_CONFIG_CLINE_ARGS)
-        self.s_config_keys_types = (self.s_config_keys_types if self.s_config_keys_types is not None
-                                    else {ValidationConfigKeys, AnalysisConfigKeys})
-
-
-class ShearBiasValExecutor(SheValExecutor):
-    """ Subclass of SheValExecutor which further overrides attribute types.
-    """
-
-    # Attributes with different types from base class
-    config_args: SedExistReadConfigArgs
-    config_args_type: Type = SedExistReadConfigArgs
 
 
 # noinspection PyPep8Naming
@@ -103,14 +74,20 @@ def mainMethod(args: Namespace) -> None:
     """Main entry point function for program.
     """
 
-    executor = ShearBiasValExecutor(run_from_args_function=run_validate_sed_exist_from_args,
-                                    log_options=ValLogOptions(executable_name=EXEC_NAME), )
+    config_args = ValReadConfigArgs(d_config_defaults=D_SED_EXIST_CONFIG_DEFAULTS,
+                                    d_config_types=D_SED_EXIST_CONFIG_TYPES,
+                                    d_config_cline_args=D_VALIDATION_CONFIG_CLINE_ARGS,
+                                    s_config_keys_types={ValidationConfigKeys, AnalysisConfigKeys})
+
+    executor = SheValExecutor(run_from_args_function=run_validate_sed_exist_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME),
+                              config_args=config_args)
 
     executor.run(args, logger=logger, pass_args_as_dict=True)
 
 
 def run_validate_sed_exist_from_args(d_args: Dict[str, Any]) -> None:
-    """Dummy implementation of run function.
+    """Dummy implementation of run function. TODO: Implement properly
     """
     pass
 
