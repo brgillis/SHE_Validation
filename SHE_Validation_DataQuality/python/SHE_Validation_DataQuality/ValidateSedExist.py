@@ -71,6 +71,7 @@ def defineSpecificProgramOptions():
                          help=".json listfile containing filenames of PHZ catalog products for all tiles overlapping "
                               "the observation to be analysed.")
     parser.add_calibrated_frame_arg()
+    parser.add_final_catalog_arg()
 
     # Output arguments
     parser.add_test_result_arg()
