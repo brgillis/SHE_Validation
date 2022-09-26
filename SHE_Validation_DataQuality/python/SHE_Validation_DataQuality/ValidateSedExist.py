@@ -27,22 +27,22 @@ __updated__ = "2022-04-08"
 from argparse import ArgumentParser, Namespace
 
 from SHE_PPT import logging as log
-from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
+from SHE_PPT.constants.config import (AnalysisConfigKeys, D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
+                                      D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
+from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, ValidationArgumentParser
-from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
-                                                     D_VALIDATION_CONFIG_TYPES, )
-from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
+from SHE_Validation.executor import SheValExecutor, ValLogOptions
 # Use a constant string for each cline-arg
 from SHE_Validation_DataQuality.validate_sed_exist import run_validate_sed_exist_from_args
 
 CA_PSF_NUM_STARS = "no_stars_to_fit"
 
 # Create the default config dicts for this task by extending the tot default config dicts
-D_SED_EXIST_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
+D_SED_EXIST_CONFIG_DEFAULTS = {**D_GLOBAL_CONFIG_DEFAULTS,
                                AnalysisConfigKeys.PSF_NUM_STARS: 200}
-D_SED_EXIST_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
+D_SED_EXIST_CONFIG_TYPES = {**D_GLOBAL_CONFIG_TYPES,
                             AnalysisConfigKeys.PSF_NUM_STARS: int}
-D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
+D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_GLOBAL_CONFIG_CLINE_ARGS,
                                  AnalysisConfigKeys.PSF_NUM_STARS: CA_PSF_NUM_STARS}
 
 EXEC_NAME = "SHE_Validation_ValidateSedExist"
@@ -96,10 +96,10 @@ def mainMethod(args):
         The parsed arguments for this program, as would be obtained through e.g. `args = parser.parse_args()`
     """
 
-    config_args = ValReadConfigArgs(d_config_defaults=D_SED_EXIST_CONFIG_DEFAULTS,
-                                    d_config_types=D_SED_EXIST_CONFIG_TYPES,
-                                    d_config_cline_args=D_SED_EXIST_CONFIG_CLINE_ARGS,
-                                    s_config_keys_types={ValidationConfigKeys, AnalysisConfigKeys})
+    config_args = ReadConfigArgs(d_config_defaults=D_SED_EXIST_CONFIG_DEFAULTS,
+                                 d_config_types=D_SED_EXIST_CONFIG_TYPES,
+                                 d_config_cline_args=D_SED_EXIST_CONFIG_CLINE_ARGS,
+                                 s_config_keys_types={ValidationConfigKeys, AnalysisConfigKeys})
 
     executor = SheValExecutor(run_from_args_function=run_validate_sed_exist_from_args,
                               log_options=ValLogOptions(executable_name=EXEC_NAME),

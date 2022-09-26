@@ -26,7 +26,6 @@ from SHE_PPT.constants.test_data import (MER_FINAL_CATALOG_LISTFILE_FILENAME, VI
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
-from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_DataQuality.ValidateSedExist import defineSpecificProgramOptions, mainMethod
 
 PHZ_CATALOG_LISTFILE_FILENAME = "phz_catalog_listfile.json"
@@ -35,8 +34,6 @@ PHZ_CATALOG_LISTFILE_FILENAME = "phz_catalog_listfile.json"
 class TestSedExistRun(SheTestCase):
     """Test case for SedExist validation test integration tests.
     """
-
-    pipeline_config_factory_type = MockValPipelineConfigFactory
 
     def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.

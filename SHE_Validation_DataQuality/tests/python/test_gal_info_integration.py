@@ -25,7 +25,6 @@ from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_PRODUCT_FILENAME
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
-from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_DataQuality.ValidateGalInfo import defineSpecificProgramOptions, mainMethod
 
 SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME = "she_reconciled_measurements.xml"
@@ -34,8 +33,6 @@ SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME = "she_reconciled_measurements.xml"
 class TestGalInfoRun(SheTestCase):
     """Test case for GalInfo validation test integration tests.
     """
-
-    pipeline_config_factory_type = MockValPipelineConfigFactory
 
     def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.

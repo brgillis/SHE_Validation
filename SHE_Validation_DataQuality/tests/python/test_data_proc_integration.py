@@ -26,15 +26,12 @@ from SHE_PPT.constants.test_data import SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILEN
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
-from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_DataQuality.ValidateDataProc import defineSpecificProgramOptions, mainMethod
 
 
 class TestDataProcRun(SheTestCase):
     """Test case for DataProc validation test integration tests.
     """
-
-    pipeline_config_factory_type = MockValPipelineConfigFactory
 
     def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.

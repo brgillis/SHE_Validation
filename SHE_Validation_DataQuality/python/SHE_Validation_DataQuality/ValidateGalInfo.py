@@ -27,9 +27,11 @@ __updated__ = "2022-04-08"
 from argparse import ArgumentParser, Namespace
 
 from SHE_PPT import logging as log
-from SHE_PPT.constants.config import AnalysisConfigKeys
+from SHE_PPT.constants.config import (AnalysisConfigKeys, D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
+                                      D_GLOBAL_CONFIG_TYPES, )
+from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, ValidationArgumentParser
-from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
+from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation_DataQuality.validate_gal_info import run_validate_gal_info_from_args
 
 EXEC_NAME = "SHE_Validation_ValidateGalInfo"
@@ -80,9 +82,14 @@ def mainMethod(args):
         The parsed arguments for this program, as would be obtained through e.g. `args = parser.parse_args()`
     """
 
+    config_args = ReadConfigArgs(d_config_defaults=D_GLOBAL_CONFIG_DEFAULTS,
+                                 d_config_types=D_GLOBAL_CONFIG_TYPES,
+                                 d_config_cline_args=D_GLOBAL_CONFIG_CLINE_ARGS,
+                                 s_config_keys_types={AnalysisConfigKeys})
+
     executor = SheValExecutor(run_from_args_function=run_validate_gal_info_from_args,
                               log_options=ValLogOptions(executable_name=EXEC_NAME),
-                              config_args=ValReadConfigArgs(s_config_keys_types={AnalysisConfigKeys}))
+                              config_args=config_args)
 
     executor.run(args, logger=logger, pass_args_as_dict=True)
 
