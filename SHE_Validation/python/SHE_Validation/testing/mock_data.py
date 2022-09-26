@@ -33,6 +33,8 @@ from SHE_Validation.constants.default_config import (TOT_BIN_LIMITS)
 
 logger = getLogger(__name__)
 
+SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
+
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
     """ Generate a mock dictionary of bin limits for testing.
