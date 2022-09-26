@@ -66,7 +66,7 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input arguments
-    parser.add_input_arg(CA_PHZ_CAT_LIST,
+    parser.add_input_arg(f"--{CA_PHZ_CAT_LIST}",
                          type=str,
                          help=".json listfile containing filenames of PHZ catalog products for all tiles overlapping "
                               "the observation to be analysed.")
