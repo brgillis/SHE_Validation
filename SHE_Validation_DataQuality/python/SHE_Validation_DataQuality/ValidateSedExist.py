@@ -1,3 +1,13 @@
+"""
+:file: python/SHE_Validation_DataQuality/ValidateSedExist.py
+
+:date: 09/21/22
+:author: Bryan Gillis
+
+"""
+
+__updated__ = "2022-04-08"
+
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -16,60 +26,98 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict, Type
 
-"""
-:file: python/SHE_Validation_DataQuality/ValidateSedExist.py
+from SHE_PPT import logging as log
+from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
+from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
+from SHE_Validation_DataQuality.constants.sed_exist_config import (D_SED_EXIST_CONFIG_CLINE_ARGS,
+                                                                   D_SED_EXIST_CONFIG_DEFAULTS,
+                                                                   D_SED_EXIST_CONFIG_TYPES, )
 
-:date: 09/21/22
-:author: Bryan Gillis
+EXEC_NAME = "SHE_Validation_ValidateSedExist"
 
-"""
-
-import argparse
-
-import ElementsKernel.Logging as log
+logger = log.getLogger(__name__)
 
 
-def defineSpecificProgramOptions():
+class SedExistReadConfigArgs(ValReadConfigArgs):
+    """ Subclass of ReadConfigArgs which overrides defaults.
+    """
+
+    def __post_init__(self):
+        """ Override __post_init__ to set different default values
+        """
+
+        self.d_config_defaults = (self.d_config_defaults if self.d_config_defaults is not None
+                                  else D_SED_EXIST_CONFIG_DEFAULTS)
+        self.d_config_defaults = (self.d_config_types if self.d_config_types is not None
+                                  else D_SED_EXIST_CONFIG_TYPES)
+        self.d_config_cline_args = (self.d_config_cline_args if self.d_config_cline_args is not None
+                                    else D_SED_EXIST_CONFIG_CLINE_ARGS)
+        self.s_config_keys_types = (self.s_config_keys_types if self.s_config_keys_types is not None
+                                    else {ValidationConfigKeys, AnalysisConfigKeys})
+
+
+class ShearBiasValExecutor(SheValExecutor):
+    """ Subclass of SheValExecutor which further overrides attribute types.
+    """
+
+    # Attributes with different types from base class
+    config_args: SedExistReadConfigArgs
+    config_args_type: Type = SedExistReadConfigArgs
+
+
+# noinspection PyPep8Naming
+def defineSpecificProgramOptions() -> ArgumentParser:
     """
     @brief Allows to define the (command line and configuration file) options
     specific to this program
 
-    @details See the Elements documentation for more details.
-    @return An  ArgumentParser.
+    @details
+        See the Elements documentation for more details.
+    @return
+        An  ArgumentParser.
     """
 
-    parser = argparse.ArgumentParser()
+    logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
 
-    #
-    # !!! Write your program options here !!!
-    # e.g. parser.add_argument('--string-value', type=str, help='A string option')
-    #
+    # Set up the argument parser, using built-in methods where possible
+    parser = ValidationArgumentParser()
+
+    logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
     return parser
 
 
-def mainMethod(args):
-    """
-    @brief The "main" method.
-    
-    @details This method is the entry point to the program. In this sense, it is
-    similar to a main (and it is why it is called mainMethod()).
+# noinspection PyPep8Naming
+def mainMethod(args: Namespace) -> None:
+    """Main entry point function for program.
     """
 
-    logger = log.getLogger('ValidateSedExist')
+    executor = ShearBiasValExecutor(run_from_args_function=run_validate_sed_exist_from_args,
+                                    log_options=ValLogOptions(executable_name=EXEC_NAME), )
 
-    logger.info('#')
-    logger.info('# Entering ValidateSedExist mainMethod()')
-    logger.info('#')
+    executor.run(args, logger=logger, pass_args_as_dict=True)
 
-    # !! Getting the option from the example option in defineSpecificProgramOption
-    # !! e.g string_option = args.string_value
 
-    #
-    # !!! Write you main code here !!!
-    #
+def run_validate_sed_exist_from_args(d_args: Dict[str, Any]) -> None:
+    """Dummy implementation of run function.
+    """
+    pass
 
-    logger.info('#')
-    logger.info('# Exiting ValidateSedExist mainMethod()')
-    logger.info('#')
+
+def main() -> None:
+    """Alternate entry point for non-Elements execution.
+    """
+
+    parser = defineSpecificProgramOptions()
+
+    args = parser.parse_args()
+
+    mainMethod(args)
+
+
+if __name__ == "__main__":
+    main()
