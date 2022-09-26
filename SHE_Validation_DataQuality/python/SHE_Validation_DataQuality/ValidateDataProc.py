@@ -52,7 +52,11 @@ def defineSpecificProgramOptions():
     # Set up the argument parser, using built-in methods where possible
     parser = ValidationArgumentParser()
 
-    # TODO: Add cline-args for input and output files
+    # Input arguments
+    parser.add_measurements_arg()
+
+    # Output arguments
+    parser.add_test_result_arg()
 
     logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
