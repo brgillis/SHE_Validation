@@ -25,7 +25,6 @@ __updated__ = "2022-04-08"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
@@ -33,8 +32,9 @@ from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, ValidationArgumentPa
 from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
                                                      D_VALIDATION_CONFIG_TYPES, )
 from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
-
 # Use a constant string for each cline-arg
+from SHE_Validation_DataQuality.validate_sed_exist import run_validate_sed_exist_from_args
+
 CA_PSF_NUM_STARS = "no_stars_to_fit"
 
 # Create the default config dicts for this task by extending the tot default config dicts
@@ -106,12 +106,6 @@ def mainMethod(args):
                               config_args=config_args)
 
     executor.run(args, logger=logger, pass_args_as_dict=True)
-
-
-def run_validate_sed_exist_from_args(d_args: Dict[str, Any]):
-    """Dummy implementation of run function. TODO: Implement properly
-    """
-    pass
 
 
 def main():

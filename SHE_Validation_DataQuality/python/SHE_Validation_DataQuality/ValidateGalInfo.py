@@ -25,12 +25,12 @@ __updated__ = "2022-04-08"
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
+from SHE_Validation_DataQuality.validate_gal_info import run_validate_gal_info_from_args
 
 EXEC_NAME = "SHE_Validation_ValidateGalInfo"
 
@@ -85,12 +85,6 @@ def mainMethod(args):
                               config_args=ValReadConfigArgs(s_config_keys_types={AnalysisConfigKeys}))
 
     executor.run(args, logger=logger, pass_args_as_dict=True)
-
-
-def run_validate_gal_info_from_args(d_args: Dict[str, Any]):
-    """Dummy implementation of run function. TODO: Implement properly
-    """
-    pass
 
 
 def main():
