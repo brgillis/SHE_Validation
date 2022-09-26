@@ -32,10 +32,17 @@ from typing import Any, Dict, Type
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
+                                                     D_VALIDATION_CONFIG_TYPES, )
 from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
-from SHE_Validation_DataQuality.constants.sed_exist_config import (D_SED_EXIST_CONFIG_CLINE_ARGS,
-                                                                   D_SED_EXIST_CONFIG_DEFAULTS,
-                                                                   D_SED_EXIST_CONFIG_TYPES, )
+
+# Create the default config dicts for this task by extending the tot default config dicts
+D_SED_EXIST_CONFIG_DEFAULTS = {**D_VALIDATION_CONFIG_DEFAULTS,
+                               AnalysisConfigKeys.PSF_NUM_STARS: 200}
+D_SED_EXIST_CONFIG_TYPES = {**D_VALIDATION_CONFIG_TYPES,
+                            AnalysisConfigKeys.PSF_NUM_STARS: int}
+D_SED_EXIST_CONFIG_CLINE_ARGS = {**D_VALIDATION_CONFIG_CLINE_ARGS,
+                                 AnalysisConfigKeys.PSF_NUM_STARS: None}
 
 EXEC_NAME = "SHE_Validation_ValidateSedExist"
 
