@@ -1,5 +1,5 @@
 """
-:file: tests/python/test_gal_info_integration.py
+:file: tests/python/gal_info_integration_test.py
 
 :date: 09/26/22
 :author: Bryan Gillis
