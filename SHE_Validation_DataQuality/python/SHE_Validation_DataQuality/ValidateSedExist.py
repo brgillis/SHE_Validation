@@ -29,7 +29,7 @@ from typing import Any, Dict
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys
-from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, ValidationArgumentParser
 from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_CLINE_ARGS, D_VALIDATION_CONFIG_DEFAULTS,
                                                      D_VALIDATION_CONFIG_TYPES, )
 from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
@@ -65,11 +65,20 @@ def defineSpecificProgramOptions():
     # Set up the argument parser, using built-in methods where possible
     parser = ValidationArgumentParser()
 
-    # TODO: Add cline-args for input and output files
+    # Input arguments
+    parser.add_input_arg(CA_PHZ_CAT_LIST,
+                         type=str,
+                         help=".json listfile containing filenames of PHZ catalog products for all tiles overlapping "
+                              "the observation to be analysed.")
+    parser.add_calibrated_frame_arg()
+
+    # Output arguments
+    parser.add_test_result_arg()
 
     # Options
-    
-    parser.add_option_arg(f"--{CA_PSF_NUM_STARS}", help="Number of stars to be used by the PSF Fitter.")
+    parser.add_option_arg(f"--{CA_PSF_NUM_STARS}",
+                          type=D_SED_EXIST_CONFIG_TYPES[AnalysisConfigKeys.PSF_NUM_STARS],
+                          help="Number of stars to be used by the PSF Fitter.")
 
     logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 

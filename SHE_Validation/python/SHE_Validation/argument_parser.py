@@ -26,6 +26,8 @@ from .constants.test_info import BinParameterMeta, BinParameters, D_BIN_PARAMETE
 
 CA_MER_CAT_PROD = "mer_final_catalog"
 
+CA_PHZ_CAT_LIST = "phz_catalog_listfile"
+
 CA_SHE_EXT_CAT = "extended_catalog"
 CA_SHE_MATCHED_CAT = "matched_catalog"
 CA_SHE_MATCHED_CAT_LIST = "matched_catalog_listfile"
