@@ -1,4 +1,13 @@
-#
+"""
+:file: python/SHE_Validation_DataQuality/ValidateDataProc.py
+
+:date: 09/21/22
+:author: Bryan Gillis
+
+"""
+
+__updated__ = "2022-04-08"
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under
@@ -14,62 +23,75 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-#
+
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict
+
+from SHE_PPT import logging as log
+from SHE_PPT.constants.config import AnalysisConfigKeys
+from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.executor import SheValExecutor, ValLogOptions, ValReadConfigArgs
+
+EXEC_NAME = "SHE_Validation_ValidateDataProc"
+
+logger = log.getLogger(__name__)
 
 
-"""
-:file: python/SHE_Validation_DataQuality/ValidateDataProc.py
-
-:date: 09/21/22
-:author: Bryan Gillis
-
-"""
-
-import argparse
-
-import ElementsKernel.Logging as log
-
-
+# noinspection PyPep8Naming
 def defineSpecificProgramOptions():
+    """Allows one to define the (command line and configuration file) options specific to this program. See the
+    Elements documentation for more details.
+
+    Returns
+    -------
+    parser: ArgumentParser
     """
-    @brief Allows to define the (command line and configuration file) options
-    specific to this program
 
-    @details See the Elements documentation for more details.
-    @return An  ArgumentParser.
-    """
+    logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
 
-    parser = argparse.ArgumentParser()
+    # Set up the argument parser, using built-in methods where possible
+    parser = ValidationArgumentParser()
 
-    #
-    # !!! Write your program options here !!!
-    # e.g. parser.add_argument('--string-value', type=str, help='A string option')
-    #
+    # TODO: Add cline-args for input and output files
+
+    logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args):
+    """Main entry point function for program.
+
+    Parameters
+    ----------
+    args : Namespace
+        The parsed arguments for this program, as would be obtained through e.g. `args = parser.parse_args()`
     """
-    @brief The "main" method.
-    
-    @details This method is the entry point to the program. In this sense, it is
-    similar to a main (and it is why it is called mainMethod()).
+
+    executor = SheValExecutor(run_from_args_function=run_validate_data_proc_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME),
+                              config_args=ValReadConfigArgs(s_config_keys_types={AnalysisConfigKeys}))
+
+    executor.run(args, logger=logger, pass_args_as_dict=True)
+
+
+def run_validate_data_proc_from_args(d_args: Dict[str, Any]):
+    """Dummy implementation of run function. TODO: Implement properly
+    """
+    pass
+
+
+def main():
+    """Alternate entry point for non-Elements execution.
     """
 
-    logger = log.getLogger('ValidateDataProc')
+    parser = defineSpecificProgramOptions()
 
-    logger.info('#')
-    logger.info('# Entering ValidateDataProc mainMethod()')
-    logger.info('#')
+    args = parser.parse_args()
 
-    # !! Getting the option from the example option in defineSpecificProgramOption
-    # !! e.g string_option = args.string_value
+    mainMethod(args)
 
-    #
-    # !!! Write you main code here !!!
-    #
 
-    logger.info('#')
-    logger.info('# Exiting ValidateDataProc mainMethod()')
-    logger.info('#')
+if __name__ == "__main__":
+    main()
