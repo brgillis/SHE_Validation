@@ -15,9 +15,9 @@ To run the ``SHE_Validation_ValidateGalInfo`` program with Elements, use the fol
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir <dir> --reconciled_catalog <filename>
-    --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--reconciled_chains
-    <filename>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir <dir> --mer_final_catalog <filename>
+     --reconciled_catalog <filename> --she_validation_test_results_product <filename> [--log-file <filename>]
+     [--log-level <value>] [--reconciled_chains <filename>] [--pipeline_config <filename>]
 
 with the following arguments:
 
@@ -62,6 +62,11 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--mer_final_catalog <filename>``
+     - ``.xml`` data product of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/
+       mer_finalcatalog.html>`__ pointing to a ``.fits`` table of all objects detected in a given spatial tile.
+     - yes
+     - N/A
    * - ``--reconciled_catalog <filename>``
      - ``.xml`` data product of type `DpdSheReconciledMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/
        dpcards/she_reconciledmeasurements.html>`__ pointing to ``.fits`` table(s) of shear measurements for a given
@@ -217,17 +222,18 @@ expected information.
 Example
 -------
 
-Prepare the required input data in the desired workdir. This will require downloading the reconciled catalog and chains
-data for a selected spatial tile.
+Prepare the required input data in the desired workdir. This will require downloading the MER final catalog, reconciled
+catalog, and reconciled chains data for a selected spatial tile.
 
 The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir $WORKDIR --reconciled_catalog $REC_CAT
-    --reconciled_chains $REC_CHAINS --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir $WORKDIR --mer_final_catalog $MFC_CAT
+    --reconciled_catalog $REC_CAT --reconciled_chains $REC_CHAINS --she_validation_test_results_product
+    she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables ``$REC_CAT`` and
-``$REC_CHAINS`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables ``$MFC_CAT``, ```$REC_CAT``,
+and ``$REC_CHAINS`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results.
