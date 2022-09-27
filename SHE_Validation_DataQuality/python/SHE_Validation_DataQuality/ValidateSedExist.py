@@ -28,7 +28,7 @@ from argparse import ArgumentParser, Namespace
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (AnalysisConfigKeys, D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
-                                      D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
+                                      D_GLOBAL_CONFIG_TYPES, )
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
@@ -99,7 +99,7 @@ def mainMethod(args):
     config_args = ReadConfigArgs(d_config_defaults=D_SED_EXIST_CONFIG_DEFAULTS,
                                  d_config_types=D_SED_EXIST_CONFIG_TYPES,
                                  d_config_cline_args=D_SED_EXIST_CONFIG_CLINE_ARGS,
-                                 s_config_keys_types={ValidationConfigKeys, AnalysisConfigKeys})
+                                 s_config_keys_types={AnalysisConfigKeys})
 
     executor = SheValExecutor(run_from_args_function=run_validate_sed_exist_from_args,
                               log_options=ValLogOptions(executable_name=EXEC_NAME),
