@@ -70,18 +70,20 @@ Input Arguments
      - Required
      - Default
    * - ``--phz_catalog_listfile <filename>``
-     - `.json`` listfile, containing the filenames of ```.xml`` data products of type `PhzPfOutputCatalog <https://
+     - `.json`` listfile, containing the filenames of ```.xml`` data products of type `PhzPfOutputCatalog <https:/
        euclid.esac.esa.int/dm/dpdd/latest/phzdpd/dpcards/phz_phzpfoutputcatalog.html>`__, which contain the photo-z,
        template, and SED information for galaxies in each tile overlapping an observation.
      - yes
      - N/A
    * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure
-      in an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa
+       .int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure
+       in an observation.
      - yes
      - N/A
    * - ``--mer_final_catalog_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing MER object catalogs for all tiles
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa
+       .int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing MER object catalogs for all tiles
        overlapping an observation.
      - yes
      - N/A
@@ -104,7 +106,8 @@ Output Arguments
      - Required
      - Default
    * - ``--she_validation_test_results_product``
-     - Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation
+     - Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa
+       .int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation
        test.
      - yes
      - N/A
