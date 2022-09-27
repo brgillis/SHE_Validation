@@ -32,7 +32,6 @@ from SHE_PPT.constants.config import (AnalysisConfigKeys, D_GLOBAL_CONFIG_CLINE_
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
-# Use a constant string for each cline-arg
 from SHE_Validation_DataQuality.validate_sed_exist import run_validate_sed_exist_from_args
 
 CA_PSF_NUM_STARS = "no_stars_to_fit"
