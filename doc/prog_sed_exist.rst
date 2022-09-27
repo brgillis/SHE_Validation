@@ -11,7 +11,8 @@ PSF model for a given observation.
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateSedExist`` program with Elements, use the following command in an EDEN 3.0 environment:
+To run the ``SHE_Validation_ValidateSedExist`` program with Elements, use the following command in an EDEN 3.0
+environment:
 
 .. code:: bash
 
@@ -39,15 +40,20 @@ Common Elements Arguments
      - yes
      - N/A
    * - --log-file ``<filename>``
-     - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
+     - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output
+     to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of
+     executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
      - no
      - None
    * - --logdir ``<path>``
-     - Path where logging data will be stored. This only has effect if some other option is enabled which produces logging data, such as ``--profile``.
+     - Path where logging data will be stored. This only has effect if some other option is enabled which produces
+     logging data, such as ``--profile``.
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR.
+     Note that this will only contain logs directly from the run of this executable. The log level of executables
+     called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -70,7 +76,8 @@ Input Arguments
      - yes
      - N/A
    * - ``--vis_calibrated_frame_listfile <filename>``
-     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure in an observation.
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure
+      in an observation.
      - yes
      - N/A
    * - ``--mer_final_catalog_listfile <filename>``
@@ -79,7 +86,8 @@ Input Arguments
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
-     - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
+     - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1)
+     either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
 
@@ -135,28 +143,42 @@ purpose of this validation test, only the SED information from the stars table i
 
 See the data product information linked above for a detailed description of the data product.
 
-**Source:** The PhzPfOutputCatalog data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and multiple TileIndex values to specify which ones. These TileIndex values should correspond to the tiles which overlap the observation being analysed. These are most easily determined through using the online EAS viewer available at https://eas-dps-cus.test.euclid.astro.rug.nl/ to query for DpdMerFinalCatalog products whose ObservationIdList contains the ID of this observation, and which match the DataSetRelease in use. The TileIndex values for these can then be used to download the PhzPfOutputCatalog data products for the same tiles.
+**Source:** The PhzPfOutputCatalog data products and their associated ``.fits`` files may be downloaded through the
+EAS, using a desired DataSetRelease and multiple TileIndex values to specify which ones. These TileIndex values should
+correspond to the tiles which overlap the observation being analysed. These are most easily determined through using
+the online EAS viewer available at https://eas-dps-cus.test.euclid.astro.rug.nl/ to query for DpdMerFinalCatalog
+products whose ObservationIdList contains the ID of this observation, and which match the DataSetRelease in use. The
+TileIndex values for these can then be used to download the PhzPfOutputCatalog data products for the same tiles.
 
-The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_phz_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script
+``get_all_phz_products.sh`` to aid in the download of these products - see that project's documentation for details on
+this script. This script can be used to download the desired products to a workdir with a command such as:
 
 .. code-block:: bash
 
    cd $WORKDIR
    TILE_ID=$TILE_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_phz_products.sh
 
-where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each overlapping tile (e.g. 90346, repeat for the TileIndex of each overlapping tile).
+where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each overlapping tile (e.g. 90346, repeat for
+the TileIndex of each overlapping tile).
 
-After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir.
+Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text
+editor of choice. It should look something like:
 
 .. code-block:: text
 
    ["PhzPfOutputCatalog-0.xml", "PhzPfOutputCatalog-1.xml", ...]
 
-except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``phz_catalog_listfile`` input argument.
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be
+passed to the ``phz_catalog_listfile`` input argument.
 
 ``vis_calibrated_frame_listfile``:
 
-**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__ in the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science images made available by PF-VIS, containing the following data relevant to PF-SHE:
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-4 ``.xml`` data products of
+type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__ in
+the workdir, corresponding to each exposure of the observation being analysed. This data product contains the science
+images made available by PF-VIS, containing the following data relevant to PF-SHE:
 
 * Science images
 * Masks
@@ -167,28 +189,41 @@ except with the actual filenames of the downloaded data products. The filename o
 
 See the data product information linked above for a detailed description of the data product.
 
-This information is stored in multiple Multi-HDU ``.fits`` files associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+This information is stored in multiple Multi-HDU ``.fits`` files associated with each data product, which must be
+stored in the ``data`` subdirectory of the workdir.
 
-**Source:** The DpdVisCalibratedFrame data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and ObservationId to specify which ones. The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_vis_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+**Source:** The DpdVisCalibratedFrame data products and their associated ``.fits`` files may be downloaded through the
+EAS, using a desired DataSetRelease and ObservationId to specify which ones. The `SHE_IAL_Pipelines project <https://
+gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_vis_products.sh`` to aid in the
+download of these products - see that project's documentation for details on this script. This script can be used to
+download the desired products to a workdir with a command such as:
 
 .. code-block:: bash
 
    cd $WORKDIR
    OBS_ID=$OBS_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_vis_products.sh
 
-where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this script will download both the DpdVisCalibratedFrame and DpdVisStackedFrame data products. If the latter isn't needed, you can comment out this code within the script so that it is not unnecessarily downloaded.
+where ``$WORKDIR`` is the workdir and ``$OBS_ID`` is the ObservationId of the desired data (e.g. 10351). Note that this
+script will download both the DpdVisCalibratedFrame and DpdVisStackedFrame data products. If the latter isn't needed,
+you can comment out this code within the script so that it is not unnecessarily downloaded.
 
-After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir.
+Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text
+editor of choice. It should look something like:
 
 .. code-block:: text
 
    ["DpdCalibratedFrame1.xml","DpdCalibratedFrame2.xml","DpdCalibratedFrame3.xml","DpdCalibratedFrame4.xml"]
 
-except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``vis_calibrated_frame_listfile`` input argument.
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be
+passed to the ``vis_calibrated_frame_listfile`` input argument.
 
 ``mer_final_catalog_listfile``:
 
-**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-12 ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__  in the workdir, corresponding to catalogs for each tile which overlaps the observation being analysed. This data product contains the object detections catalogue provided by MER, containing the following information relevant to PF-SHE:
+**Description:** The filename of a ``.json`` listfile which contains the filenames of 1-12 ``.xml`` data products of
+type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__  in the
+workdir, corresponding to catalogs for each tile which overlaps the observation being analysed. This data product
+contains the object detections catalogue provided by MER, containing the following information relevant to PF-SHE:
 
 * Object ID assignments
 * Object positions
@@ -198,26 +233,39 @@ except with the actual filenames of the downloaded data products. The filename o
 
 See the data product information linked above for a detailed description of the data product.
 
-This information is stored in one ``.fits`` file associated with each data product, which must be stored in the ``data`` subdirectory of the workdir.
+This information is stored in one ``.fits`` file associated with each data product, which must be stored in the
+``data`` subdirectory of the workdir.
 
-**Source:** The DpdMerFinalCatalog data products and their associated ``.fits`` files may be downloaded through the EAS, using a desired DataSetRelease and multiple TileIndex values to specify which ones. These TileIndex values should correspond to the tiles which overlap the observation being analysed. These are most easily determined through using the online EAS viewer available at https://eas-dps-cus.test.euclid.astro.rug.nl/ to query for DpdMerFinalCatalog products whose ObservationIdList contains the ID of this observation, and which match the DataSetRelease in use.
+**Source:** The DpdMerFinalCatalog data products and their associated ``.fits`` files may be downloaded through the
+EAS, using a desired DataSetRelease and multiple TileIndex values to specify which ones. These TileIndex values should
+correspond to the tiles which overlap the observation being analysed. These are most easily determined through using
+the online EAS viewer available at https://eas-dps-cus.test.euclid.astro.rug.nl/ to query for DpdMerFinalCatalog
+products whose ObservationIdList contains the ID of this observation, and which match the DataSetRelease in use.
 
-The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script ``get_all_mer_products.sh`` to aid in the download of these products - see that project's documentation for details on this script. This script can be used to download the desired products to a workdir with a command such as:
+The `SHE_IAL_Pipelines project <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_IAL_Pipelines>`__ provides the helper script
+``get_all_mer_products.sh`` to aid in the download of these products - see that project's documentation for details on
+this script. This script can be used to download the desired products to a workdir with a command such as:
 
 .. code-block:: bash
 
    cd $WORKDIR
    TILE_ID=$TILE_ID $HOME/Work/Projects/SHE_IAL_Pipelines/SHE_Pipeline/scripts/get_all_mer_products.sh
 
-where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each overlapping tile (e.g. 90346, repeat for the TileIndex of each overlapping tile). Note that this script will download both the DpdMerFinalCatalog and DpdMerSegmentationMap data products. If the latter aren't needed, you can comment out this code within the script so that these are not unnecessarily downloaded.
+where ``$WORKDIR`` is the workdir and ``$TILE_ID`` is the TileIndex of each overlapping tile (e.g. 90346, repeat for
+the TileIndex of each overlapping tile). Note that this script will download both the DpdMerFinalCatalog and
+DpdMerSegmentationMap data products. If the latter aren't needed, you can comment out this code within the script so
+that these are not unnecessarily downloaded.
 
-After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir. Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text editor of choice. It should look something like:
+After the data has been downloaded, sort the downloaded ``.fits`` files into the ``data`` subdirectory of the workdir.
+Next, write a ``.json`` listfile containing the filenames of the downloaded ``.xml`` data products with your text
+editor of choice. It should look something like:
 
 .. code-block:: text
 
    ["DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", "DpdMerFinalCatalog__EUC_MER_???-final_catalog-0.xml", ...]
 
-except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be passed to the ``mer_final_catalog_listfile`` input argument.
+except with the actual filenames of the downloaded data products. The filename of this ``.json`` listfile can then be
+passed to the ``mer_final_catalog_listfile`` input argument.
 
 ``pipeline_config``:
 
@@ -254,7 +302,8 @@ optionally any of the following which apply to this executable:
      - Description
      - Default Behaviour
    * - SHE_Pipeline_profile
-     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
+     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the
+     directory specified with ``--logdir``.
      - Profiling will not be enabled
 
 **Source:** One of the following:
@@ -277,9 +326,13 @@ Outputs
 
 ``she_validation_test_results_product``:
 
-**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test.
+**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.
+esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation
+test.
 
-**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case.
+**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList
+element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test
+case.
 
 Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the
 SupplementaryInformation element. For this test, these details include the ratio of the number of stars with SEDs to
@@ -288,7 +341,8 @@ the required number.
 Example
 -------
 
-Prepare the required input data in the desired workdir. This will require downloading the ... data for a selected ... .
+Prepare the required input data in the desired workdir. This will require downloading the PHZ output, VIS calibrated
+frames, and MER final catalog data for a selected observation.
 
 The program can then be run with the following command in an EDEN 3.0 environment:
 
