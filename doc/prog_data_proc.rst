@@ -3,6 +3,9 @@
 SHE_Validation_ValidateDataProc
 ===============================
 
+**WARNING:** This executable is presently under construction. This documentation reflects the intended functionality of
+it.
+
 This program performs the Data Proc validation test, T-SHE-000013-data-proc, which validates requirement
 R-SHE-PRD-F-010. This tests checks that all required Level-2 data is produced by PF-SHE pipelines.
 

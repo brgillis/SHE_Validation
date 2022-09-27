@@ -3,6 +3,9 @@
 SHE_Validation_ValidateGalInfo
 ==============================
 
+**WARNING:** This executable is presently under construction. This documentation reflects the intended functionality of
+it.
+
 This program performs the Galaxy Info validation test, T-SHE-000008-gal-info, which validates requirement
 R-SHE-PRD-F-180. This tests checks that the catalogs produced by PF-SHE contain required data for all galaxies in the
 relevant sky patch, except where explicitly flagged as a failure.

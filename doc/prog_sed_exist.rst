@@ -3,6 +3,9 @@
 SHE_Validation_ValidateSedExist
 ===============================
 
+**WARNING:** This executable is presently under construction. This documentation reflects the intended functionality of
+it.
+
 This program performs the SED-Exist validation test, T-SHE-000011-star-SED-exist, which validates requirement
 R-SHE-CAL-F-060. This tests checks that SEDs are provided for a number of stars sufficient to adequately constrain the
 PSF model for a given observation.
