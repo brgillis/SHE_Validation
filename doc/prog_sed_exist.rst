@@ -41,19 +41,19 @@ Common Elements Arguments
      - N/A
    * - --log-file ``<filename>``
      - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output
-     to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of
-     executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
+       to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of
+       executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
      - no
      - None
    * - --logdir ``<path>``
      - Path where logging data will be stored. This only has effect if some other option is enabled which produces
-     logging data, such as ``--profile``.
+       logging data, such as ``--profile``.
      - no
      - ``"."``
    * - --log-level ``<level>``
      - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR.
-     Note that this will only contain logs directly from the run of this executable. The log level of executables
-     called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
+       Note that this will only contain logs directly from the run of this executable. The log level of executables
+       called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -87,7 +87,7 @@ Input Arguments
      - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1)
-     either pointing to such a data product, or empty.
+       either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
 
@@ -303,7 +303,7 @@ optionally any of the following which apply to this executable:
      - Default Behaviour
    * - SHE_Pipeline_profile
      - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the
-     directory specified with ``--logdir``.
+       directory specified with ``--logdir``.
      - Profiling will not be enabled
 
 **Source:** One of the following:

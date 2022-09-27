@@ -10,7 +10,8 @@ R-SHE-PRD-F-010. This tests checks that all required Level-2 data is produced by
 Running the Program on EDEN/LODEEN
 ----------------------------------
 
-To run the ``SHE_Validation_ValidateDataProc`` program with Elements, use the following command in an EDEN 3.0 environment:
+To run the ``SHE_Validation_ValidateDataProc`` program with Elements, use the following command in an EDEN 3.0
+environment:
 
 .. code:: bash
 
@@ -37,15 +38,20 @@ Common Elements Arguments
      - yes
      - N/A
    * - --log-file ``<filename>``
-     - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
+     - Name of a filename to store logs in, relative to the workdir. If not provided, logging data will only be output
+       to the terminal. Note that this will only contain logs directly from the run of this executable. Logs of
+       executables called during the pipeline execution will be stored in the "logs" directory of the workdir.
      - no
      - None
    * - --logdir ``<path>``
-     - Path where logging data will be stored. This only has effect if some other option is enabled which produces logging data, such as ``--profile``.
+     - Path where logging data will be stored. This only has effect if some other option is enabled which produces
+       logging data, such as ``--profile``.
      - no
      - ``"."``
    * - --log-level ``<level>``
-     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR. Note that this will only contain logs directly from the run of this executable. The log level of executables called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
+     - Minimum severity level at which to print logging information. Valid values are DEBUG, INFO, WARNING, and ERROR.
+       Note that this will only contain logs directly from the run of this executable. The log level of executables
+       called during pipeline execution will be set based on the configuration of the pipeline server (normally INFO).
      - no
      - INFO
 
@@ -74,7 +80,8 @@ Input Arguments
      - no
      - None
    * - ``--pipeline_config <filename>``
-     - ``.xml`` data product pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
+     - ``.xml`` data product pointing to configuration file (described below), or .json listfile (Cardinality 0-1)
+       either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
 
@@ -137,9 +144,9 @@ DataSetRelease and TileIndex to specify which one.
 ``reconciled_chains``:
 
 **Description:** ``.xml`` data product of type `DpdSheReconciledLensMCChains <https://euclid.esac.esa.int/dm/dpdd/
-latest/shedpd/dpcards/she_reconciledlensmcchains.html>`__ pointing to a ``.fits`` table of shear measurement MCMC chains
-for a given spatial tile. If provided, this product will be checked to confirm that it points to a valid table of shear
-measurement MCMC chains.
+latest/shedpd/dpcards/she_reconciledlensmcchains.html>`__ pointing to a ``.fits`` table of shear measurement MCMC
+chains for a given spatial tile. If provided, this product will be checked to confirm that it points to a valid table
+of shear measurement MCMC chains.
 
 **Source:** This product is produced by the ``SHE_CTE_ReconcileShear`` program within the SHE Reconciliation pipeline.
 See that program's documentation in the `SHE_CTE <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_CTE>`__ project for more
@@ -182,7 +189,8 @@ optionally any of the following which apply to this executable:
      - Description
      - Default Behaviour
    * - SHE_Pipeline_profile
-     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the directory specified with ``--logdir``.
+     - If set to "True", Python code will be profiled, and the resulting profiling data will be output to a file in the
+       directory specified with ``--logdir``.
      - Profiling will not be enabled
 
 **Source:** One of the following:
@@ -205,11 +213,16 @@ Outputs
 
 ``she_validation_test_results_product``:
 
-**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation test.
+**Description:** Desired filename of output ``.xml`` data product of type `DpdSheValidationTestResults <https://euclid.
+esac.esa.int/dm/dpdd/latest/shedpd/dpcards/she_validationtestresults.html>`__, containing the results of the validation
+test.
 
-**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case.
+**Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList
+element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test
+case.
 
-Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include whether any expected file was missing or empty.
+Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the
+SupplementaryInformation element. For this test, these details include whether any expected file was missing or empty.
 
 Example
 -------
@@ -227,4 +240,5 @@ The program can then be run with the following command in an EDEN 3.0 environmen
 where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables ``$REC_CAT`` and
 ``$REC_CHAINS`` correspond to the filenames of the prepared downloaded products for each input port.
 
-This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results.
+This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can
+be opened with your text editor of choice to view the validation test results.
