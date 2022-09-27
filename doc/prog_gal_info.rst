@@ -15,8 +15,9 @@ To run the ``SHE_Validation_ValidateGalInfo`` program with Elements, use the fol
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir <dir> --she_validation_test_results_product
-    <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir <dir> --reconciled_catalog <filename>
+    --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--reconciled_chains
+    <filename>] [--pipeline_config <filename>]
 
 with the following arguments:
 
@@ -61,8 +62,20 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--reconciled_catalog <filename>``
+     - ``.xml`` data product of type `DpdSheReconciledMeasurements <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/
+       dpcards/she_reconciledmeasurements.html>`__ pointing to ``.fits`` table(s) of shear measurements for a given
+       spatial tile.
+     - yes
+     - N/A
+   * - ``--reconciled_chains <filename>``
+     - ``.xml`` data product of type `DpdSheReconciledLensMCChains <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/
+       dpcards/she_reconciledlensmcchains.html>`__ pointing to a ``.fits`` table of shear measurement MCMC chains for a
+       given spatial tile.
+     - no
+     - None
    * - ``--pipeline_config <filename>``
-     - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
+     - ``.xml`` data product pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
      - None (equivalent to providing an empty listfile)
 
@@ -108,6 +121,32 @@ Options
 
 Inputs
 ------
+
+``reconciled_catalog``:
+
+**Description:** ``.xml`` data product of type `DpdSheReconciledMeasurements <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_reconciledmeasurements.html>`__ pointing to ``.fits`` table(s) of shear measurements for a
+given spatial tile. This product will be checked to confirm that it points to at least one valid table of shear
+measurements.
+
+**Source:** This product is produced by the ``SHE_CTE_ReconcileShear`` program within the SHE Reconciliation pipeline.
+See that program's documentation in the `SHE_CTE <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_CTE>`__ project for more
+details. This product is archived in the EAS at the end of execution of the SHE Reconciliation pipeline when it is
+triggered via PPO or COORS. Archived instances of this product may be downloaded through the EAS, using a desired
+DataSetRelease and TileIndex to specify which one.
+
+``reconciled_chains``:
+
+**Description:** ``.xml`` data product of type `DpdSheReconciledLensMCChains <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_reconciledlensmcchains.html>`__ pointing to a ``.fits`` table of shear measurement MCMC chains
+for a given spatial tile. If provided, this product will be checked to confirm that it points to a valid table of shear
+measurement MCMC chains.
+
+**Source:** This product is produced by the ``SHE_CTE_ReconcileShear`` program within the SHE Reconciliation pipeline.
+See that program's documentation in the `SHE_CTE <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_CTE>`__ project for more
+details. This product is archived in the EAS at the end of execution of the SHE Reconciliation pipeline when it is
+triggered via PPO or COORS. Archived instances of this product may be downloaded through the EAS, using a desired
+DataSetRelease and TileIndex to specify which one.
 
 ``pipeline_config``:
 
@@ -171,20 +210,24 @@ Outputs
 
 **Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test case.
 
-Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include ...
+Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the SupplementaryInformation element. For this test, these details include the fraction of galaxies present in the input
+catalog which are also present in the output catalog, and the fraction of objects in the output catalog which have all
+expected information.
 
 Example
 -------
 
-Prepare the required input data in the desired workdir. This will require downloading the ... data for a selected ... .
+Prepare the required input data in the desired workdir. This will require downloading the reconciled catalog and chains
+data for a selected spatial tile.
 
 The program can then be run with the following command in an EDEN 3.0 environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir $WORKDIR
-    --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateGalInfo --workdir $WORKDIR --reconciled_catalog $REC_CAT
+    --reconciled_chains $REC_CHAINS --she_validation_test_results_product she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables  ... correspond to the filenames of the prepared listfiles and downloaded products for each input port.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir and the variables ``$REC_CAT`` and
+``$REC_CHAINS`` correspond to the filenames of the prepared listfiles and downloaded products for each input port.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be opened with your text editor of choice to view the validation test results.
