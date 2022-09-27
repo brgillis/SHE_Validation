@@ -3,7 +3,9 @@
 SHE_Validation_ValidateGalInfo
 ==============================
 
-This program performs the Galaxy Info validation test, T-..., which validates requirement R-.... This tests checks ...
+This program performs the Galaxy Info validation test, T-SHE-000008-gal-info, which validates requirement
+R-SHE-PRD-F-180. This tests checks that the catalogs produced by PF-SHE contain required data for all galaxies in the
+relevant sky patch, except where explicitly flagged as a failure.
 
 
 Running the Program on EDEN/LODEEN

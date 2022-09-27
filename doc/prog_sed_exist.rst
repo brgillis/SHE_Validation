@@ -3,7 +3,9 @@
 SHE_Validation_ValidateSedExist
 ===============================
 
-This program performs the SED-Exist validation test, T-..., which validates requirement R-.... This tests checks ...
+This program performs the SED-Exist validation test, T-SHE-000011-star-SED-exist, which validates requirement
+R-SHE-CAL-F-060. This tests checks that SEDs are provided for a number of stars sufficient to adequately constrain the
+PSF model for a given observation.
 
 
 Running the Program on EDEN/LODEEN
