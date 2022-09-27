@@ -21,11 +21,11 @@
 
 from argparse import Namespace
 
-from SHE_PPT.argument_parser import CA_SHE_MEAS
-from SHE_PPT.constants.test_data import SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
-from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
+from SHE_Validation.argument_parser import CA_SHE_REC_CAT, CA_SHE_REC_CHAINS, CA_SHE_TEST_RESULTS
+from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILENAME,
+                                              SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME,
+                                              SHE_TEST_RESULTS_PRODUCT_FILENAME, )
 from SHE_Validation_DataQuality.ValidateDataProc import defineSpecificProgramOptions, mainMethod
 
 
@@ -44,7 +44,8 @@ class TestDataProcRun(SheTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_SHE_MEAS, SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_REC_CAT, SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_REC_CHAINS, SHE_RECONCILED_CHAINS_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
