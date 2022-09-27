@@ -15,8 +15,10 @@ To run the ``SHE_Validation_ValidateSedExist`` program with Elements, use the fo
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidateSedExist --workdir <dir> --she_validation_test_results_product
-    <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidateSedExist --workdir <dir> --phz_catalog_listfile <filename>
+    --vis_calibrated_frame_listfile <filename> --mer_final_catalog_listfile <filename>
+    --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config
+    <filename>]
 
 with the following arguments:
 
@@ -61,6 +63,21 @@ Input Arguments
      - Description
      - Required
      - Default
+   * - ``--phz_catalog_listfile <filename>``
+     - `.json`` listfile, containing the filenames of ```.xml`` data products of type `PhzPfOutputCatalog <https://
+       euclid.esac.esa.int/dm/dpdd/latest/phzdpd/dpcards/phz_phzpfoutputcatalog.html>`__, which contain the photo-z,
+       template, and SED information for galaxies in each tile overlapping an observation.
+     - yes
+     - N/A
+   * - ``--vis_calibrated_frame_listfile <filename>``
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdVisCalibratedFrame <https://euclid.esac.esa.int/dm/dpdd/latest/visdpd/dpcards/vis_calibratedframe.html>`__, containing VIS science images for each exposure in an observation.
+     - yes
+     - N/A
+   * - ``--mer_final_catalog_listfile <filename>``
+     - ``.json`` listfile pointing to ``.xml`` data products of type `DpdMerFinalCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/merdpd/dpcards/mer_finalcatalog.html>`__, containing MER object catalogs for all tiles
+       overlapping an observation.
+     - yes
+     - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1) either pointing to such a data product, or empty.
      - no
