@@ -312,33 +312,35 @@ This shall be demonstrated on emulated Euclid images based in processed HST imag
 
 ### Validation Test: T-SHE-000004-PSF-model-err-propa
 
-Propagate the uncertainty in the PSF to the galaxy ellipticity and size, and ensure below Requirement.
+Propagate the uncertainty in the PSF to the galaxy ellipticity and size, and ensure below requirements.
 
 ### Rationale:
 
 This test validates if the propagated errors from the object PSF model to the WL objects remain below the required
 thresholds.
 
-### Test Cases:
-
-#### TC-SHE-100011-PSF-model-err-propa-ell
+### Test Case: TC-SHE-100011-PSF-model-err-propa-ell
 
 Propagation of PSF model parameter errors from the posterior of the PSF model parameters to galaxy shape and size PDF,
 effect on ellipticity.
 
 ##### Test Procedure:
 
-1. Applied to emulated (HST) Euclid galaxies.
-1. Apply shear estimation to galaxies with fiducial PSF parameters.
-1. Repeat shear estimation with a range of PSF parameters based in parameter uncertainties.
-1. Measure the variance of galaxy ellipticities.
-1. Test is variance is with Requirements.
+1. Estimate the posterior distribution of the PSF model parameters
+2. Derive the posterior distribution of the PSF ellipticity
+3. Propagate these posterior distributions to the probability distribution of the measurement of the corresponding
+   parameter for a given galaxy.
+4. Assess the error on the galaxy measurement.
 
-#### TC-SHE-100011-PSF-model-err-propa-R2
+#### Test Case: TC-SHE-100012-PSF-model-err-propa-R2
 
 Propagation of PSF model parameter errors from the posterior of the PSF model parameters to galaxy shape and size PDF,
 effect on size.
 
 ##### Test Procedure:
 
-As for TC-SHE-100011-PSF-model-err-propa-ell with ellipticity reply red by size.
+1. Estimate the posterior distribution of the PSF model parameters
+2. Derive the posterior distribution of the PSF size
+3. Propagate these posterior distributions to the probability distribution of the measurement of the corresponding
+   parameter for a given galaxy.
+4. Assess the error on the galaxy measurement.
