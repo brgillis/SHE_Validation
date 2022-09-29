@@ -8,17 +8,15 @@ numbersections: true geometry: margin=2cm fontsize: 12pt documentclass: article
 
 ### Requirement: R-SHE-PRD-F-100:
 
-Parent: R-GDP-DL3-014 The distribution of χ2 (chi-squared) values for each star with respect to the model, over the
-population of stars, shall be consistent (TBD) with the χ2-distribution.
+Parent: R-GDP-DL3-014
 
-[ANT: TBD to be removed in SHE RSD]
+The distribution of χ2 (chi-squared) values for each star with respect to the model, over the population of stars,
+shall be consistent with the χ2-distribution.
 
 ### Requirement Comment from GDPRD
 
 This shall be demonstrated by estimating the chi-squared distribution of stellar residuals with respect to the PSF
-model.
-
-Requirements Chain: TBD
+model. Consistency is determined by passing a chi-squared test. 
 
 ### Validation Test: T-SHE-000001-PSF-res-star-pos
 
@@ -85,19 +83,29 @@ aspect angle.
 
 ## PSF SED Validation
 
-### Requirement: R-SHE-CAL-F-040 / R-SHE-CAL-F-050:
+### Requirement: R-SHE-CAL-F-040
+ 
+Parent: R-GDP-CAL-025
 
-Parent: R-GDP-CAL-025 / R-GDP-CAL-035 The bias caused in the ellipticity of an object arising from the transfer of the
-VIS PSF ellipticity model to the weak-lensing objects shall be smaller than 3.5x10-5 (1 sigma TBC).
-
-[ANT: TBD to be removed in SHE RSD]
+The uncertainty on the bias in the ellipticity of an object arising from the transfer of the VIS PSF
+ellipticity model to the weak-lensing objects shall be smaller than 3.5x10^-5 (1-sigma)
 
 ### Requirement Comment from GDPRD
 
-This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and
-galaxies. [Note a proposed revision of this Requirement to an error has been proposed by SHE.]
+This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and galaxies. This Requirement has
+been revised by OU-SHE to specify error and 1-sigma measure. This should propagate to GDPRD.
 
-Requirements Chain:
+### Requirement: R-SHE-CAL-F-050:
+
+Parent: R-GDP-CAL-035
+
+The bias caused in the inferred R^2 of an object arising from the transfer of the wavelength dependence of the VIS PSF 
+shall be < 3.5x10^-4.
+
+### Requirement Comment from GDPRD
+
+This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and galaxies. [Note a proposed
+revision of this Requirement to an error has been proposed by SHE.]
 
 ### Validation Test: T-SHE-000002-PSF-lambda
 
@@ -142,20 +150,45 @@ Approximate PSF from broad-band magnitudes compared to precise PSF from spectros
 
 ## PSF Spatial Validation
 
-### Requirement: R-SHE-CAL-F-030 / R-SHE-PRD-F-090
+### Requirement: R-SHE-CAL-F-030
 
-Parent: R-GDP-CAL-020 The r.m.s. of the ensemble averaged ΔQij/R2 (where ΔQij is the quadrupole moment of the residual
-after the linearity correction) for each subset (TBD) of stars in the useful dynamic range, shall be:  
-<3.0x10-5 (1-sigma) per moment if i=j  
-and  
-<1.75x10-5 (1sigma) if i≠j
+Parent: R-GDP-CAL-020
+
+The r.m.s. of the ensemble averaged ΔQij/R^2 (where ΔQij is the quadrupole moment of the residual after the linearity 
+correction) for a subset of observed and emulated stars in the range 18 < VIS < 24.5 as a function of magnitude in bins
+of width one magnitude shall be: <3.0x10^-5 (1-sigma) per moment if i=j and <1.75x10^-5 (1-sigma) if i≠j, averaging over
+magnitude bins and 100 fields.
 
 ### Requirement Comment from GDPRD
 
-This shall be demonstrated on emulated Euclid stellar images.  
-[ANT - availability of emulated Euclid stars? - Gaia?]
+This part of the allocation is for the contribution linked to the model selected to represent the PSF that differs from
+the true PSF. 
 
-Requirements Chain:
+The requirement ensures that the mean PSF model does not lead to biased shapes or sizes. If the PSF model is within
+requirements then the residuals at star positions should be consistent with noise (within requirements). This can be
+checked with a validation test where subsets of stars not used to derive the PSF model are predicted.
+
+This shall be demonstrated on observed and emulated Euclid stellar images.
+
+### Requirement: R-SHE-PRD-F-090
+
+Parent: R-GDP-DL3-012
+
+The SGS shall create a model of the PSF such that the normalized moments Qii/R^2 of the ensemble averaged residual image 
+(observed – PSF model) for a subset of observed stars in the range 18 < VIS < 23 as a function of magnitude in bins of 
+width one magnitude shall be: < 8.6x10^-5 (1-sigma) per moment if i=j, and < 5x10^-5 if i≠j, averaging over magnitude
+bins and 100 fields.
+
+### Requirement Comment from GDPRD
+
+This part of the allocation is for the contribution linked to the model selected to represent the PSF that differs from
+the true PSF. 
+
+The requirement ensures that the mean PSF model does not lead to biased shapes or sizes. If the PSF model is within
+requirements then the residuals at star positions should consistent with noise (within requirements). This can be
+checked with a validation test where subsets of stars not used to derive the PSF model are predicted.
+
+This shall be demonstrated on observed Euclid stellar images.
 
 ### Validation Test: T-SHE-000003-PSF-res-interp-star-pos
 
@@ -188,21 +221,27 @@ To test accuracy of the effective PSF model (i.e., the spatial interpolation of 
 
 ## PSF Ellipticity and Size Validation
 
-### Requirement: R-SHE-PRD-F-110 / R-SHE-PRD-F-120
+### Requirement: R-SHE-PRD-F-110
 
-Parent: R-GDP-DL3-030 / R-GDP-DL3-040
+Parent: R-GDP-DL3-030
 
-R-SHE-PRD-F-110: For each ellipticity component, the transfer of the VIS PSF model to the weak-lensing objects shall not
-introduce errors larger than 5×10-5 (one sigma TBC).
-
-R-SHE-PRD-F-120: For the PSF R2 component, the transfer of the VIS PSF model to the weak-lensing objects shall not
-introduce errors larger than sigma(R)/R< 5×10-4.
+For each ellipticity component, the transfer of the VIS PSF model to the weak-lensing objects shall not introduce
+errors larger than 5×10^-5 (1-sigma).
 
 ### Requirement Comment from GDPRD
 
 This shall be demonstrated on emulated Euclid images based in processed HST images for galaxies.
 
-Requirements Chain:
+### Requirement: R-SHE-PRD-F-120
+
+Parent: R-GDP-DL3-040
+
+For the PSF R^2 component, the transfer of the VIS PSF model to the weak-lensing objects shall not introduce errors
+larger than sigma(R)/R< 5×10^-4.
+
+### Requirement Comment from GDPRD
+
+This shall be demonstrated on emulated Euclid images based in processed HST images for galaxies.
 
 ### Validation Test: T-SHE-000004-PSF-model-err-propa
 
