@@ -82,44 +82,51 @@ revision of this Requirement to an error has been proposed by SHE.]
 
 ### Validation Test: T-SHE-000002-PSF-lambda
 
-Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g. KL
-test (ANT: should this be KS-test?)
-
-This test is defined in the WL Validation doc in VAL-WL-SHE-0020.
+Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g.
+KS test.
 
 ### Rationale:
 
 Ensures that the object PSF model captures the correct wavelength dependence for stars.
 
-### Test Cases:
-
-#### TC-SHE-100003-PSF-lambda-ell
+### Test Case: TC-SHE-100003-PSF-lambda-ell
 
 Approximate PSF from broad-band magnitudes compared to precise PSF from spectroscopic data, effect on ellipticity.
 
-##### Test Procedure:
+#### Test Procedure:
 
-**[Major concern raised over this test as checking wavelength dependence.]**
-
-1. For every star i, use the spectral information to create the precise reference PSF Ipsf,i(⃗x) as function of position
-   ⃗x for the star SED and the star position.
-1. Emulate broad-band magnitudes of the star by utilising the star SED and the broad-band filter curves.
-1. Construct an approximate, interpolated PSF model Iˆ (⃗x) of the star by making use of psf ,i the emulated broad-band
+1. For every star i, use the spectral information to create the precise reference PSF I_psf,i(g) as function of position
+   g for the star SED and the star position.
+2. Emulate broad-band magnitudes of the star by using the star SED, broad-band filter curves, and templates provided by
+   PHZ.
+3. Construct an approximate, interpolated PSF model Ihat_psf,i(g) of the star by making use of the emulated broad-band
    magnitudes only.
-1. Compute the unweighted quadrupole moments Q and Qˆ from I kl,i kl,i respectively; k, l = 1, 2 are the components of
-   the 2D tensor Qkl,i.
-1. Compute from Qkl,i, Qˆkl,i, respectively:  
-   (⃗x) and Iˆ psf,i psf,i  
-   (⃗x),  
-   • the ellipticity components eij , eˆij j = 1, 2 are the ellipticity components.
-1. Obtain difference between reference and estimated, approximate quantities, and their scatter (around zero by
+4. Compute the unweighted quadrupole moments Q_kl,i and Qhat_kl,i from I_psf,i(g) and Ihat_psf,i(g), respectively;
+   k, l = 1, 2 are the components of the 2D tensor Q_kl,i.
+5. Compute from Q_kl,i, Qhat_kl,i, respectively:
+   - The ellipticity components e_ij, ehat_ij, where j = 1, 2 are the ellipticity components.
+6. Obtain difference between reference and estimated, approximate quantities, and their scatter (around zero by
    construction).
 
-### Issues:
+### Test Case: TC-SHE-100004-PSF-lambda-R2
 
-* For running on emulated images, precise input SEDs are needed. This will require a data product providing this from
-  somewhere (EXT, SPE, SIR?).
-* Unweighted moments might not be the best choice
+Approximate PSF from broad-band magnitudes compared to precise PSF from spectroscopic data, effect on size.
+
+#### Test Procedure:
+
+1. For every star i, use the spectral information to create the precise reference PSF I_psf,i(g) as function of position
+   g for the star SED and the star position.
+2. Emulate broad-band magnitudes of the star by using the star SED, broad-band filter curves, and templates provided by
+   PHZ.
+3. Construct an approximate, interpolated PSF model Ihat_psf,i(g) of the star by making use of the emulated broad-band
+   magnitudes only.
+4. Compute the unweighted quadrupole moments Q_kl,i and Qhat_kl,i from I_psf,i(g) and Ihat_psf,i(g), respectively;
+   k, l = 1, 2 are the components of the 2D tensor Q_kl,i.
+5. Compute from Q_kl,i, Qhat_kl,i, respectively:
+   - The sizes R^2, Rhat^2.
+6. Obtain difference between reference and estimated, approximate quantities, and their scatter (around zero by
+   construction).
+
 
 ## PSF Spatial Validation
 
