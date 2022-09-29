@@ -174,30 +174,117 @@ This shall be demonstrated on observed Euclid stellar images.
 
 Compare the PSF at a stellar position for a star **not** used in the PSF Fitting.
 
-This test is defined in
-the [WL Validation](https://euclid.roe.ac.uk/attachments/download/21974/EUCL-UBN-TS-8-001_WLValidation_2018-06-18.pdf)
-doc in VAL-WL-SHE-0020.
-
 ### Rationale:
 
 To test accuracy of the effective PSF model (i.e., the spatial interpolation of the object PSF model).
 
-[ANT - the spatial interpolation test is no longer appropriate with the wavefront model.]
+### Test Case: TC-SHE-100005-PSF-res-interp-star-pos-tot
 
-### Test Cases:
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
 
-#### TC-SHE-100005-PSF-res-interp-star-pos-tot
+#### Test Procedure:
 
-#### TC-SHE-100006-PSF-res-interp-star-pos-SNR
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - The entire set of stars
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
 
-#### TC-SHE-100006-PSF-res-interp-star-pos-SED
+### Test Case: TC-SHE-100006-PSF-res-interp-star-pos-SNR
 
-#### TC-SHE-100006-PSF-res-interp-star-pos-coord
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
 
-#### TC-SHE-100006-PSF-res-interp-star-pos-epoch
+#### Test Procedure:
 
-#### TC-SHE-100006-PSF-res-interp-star-pos-aspect
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - Subsets split according to S/N
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
 
+### Test Case: TC-SHE-100007-PSF-res-interp-star-pos-SED
+
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
+
+#### Test Procedure:
+
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - Subsets split according to SED properties
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
+
+### Test Case: TC-SHE-100008-PSF-res-interp-star-pos-coord
+
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
+
+#### Test Procedure:
+
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - Subsets split according to pixel coordinates
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
+
+### Test Case: TC-SHE-100009-PSF-res-interp-star-pos-epoch
+
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
+
+#### Test Procedure:
+
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - Subsets split according to mission epoch
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
+
+### Test Case: TC-SHE-100010-PSF-res-interp-star-pos-aspect
+
+Residuals of the interpolated PSF at a subset of star positions not used to derive the model for total population.
+
+#### Test Procedure:
+
+1. Divide the stars in the exposure into a subset used for modeling, and another subset used for testing. The modelling
+   subset should contain a number of stars representative for typical galaxy fields. This needs to be accounted for in
+   high-density stellar calibration fields.
+2. Fit the PSF in the model subset to obtain the object PSF model.
+3. Interpolate object PSF model over distance and multi-band photometry (which represents the SED) to the test subset to
+   obtain the effective PSF model.
+4. Measure PSF residuals on remaining stars, for set of stars that corresponds to:
+   - Subsets split according to solar aspect angle
+5. Obtain the residual of the quadrupole moments as defined in the requirements.
+6. Obtain the quadrupole moments of the residuals as defined in the requirements.
+7. Check the residual against the requirements.
 
 ## PSF Ellipticity and Size Validation
 
