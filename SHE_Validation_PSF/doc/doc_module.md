@@ -13,7 +13,7 @@ Parent: R-GDP-DL3-014
 The distribution of χ2 (chi-squared) values for each star with respect to the model, over the population of stars,
 shall be consistent with the χ2-distribution.
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This shall be demonstrated by estimating the chi-squared distribution of stellar residuals with respect to the PSF
 model. Consistency is determined by passing a chi-squared test. 
@@ -63,7 +63,7 @@ Parent: R-GDP-CAL-025
 The uncertainty on the bias in the ellipticity of an object arising from the transfer of the VIS PSF
 ellipticity model to the weak-lensing objects shall be smaller than 3.5x10^-5 (1-sigma)
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and galaxies. This Requirement has
 been revised by OU-SHE to specify error and 1-sigma measure. This should propagate to GDPRD.
@@ -75,7 +75,7 @@ Parent: R-GDP-CAL-035
 The bias caused in the inferred R^2 of an object arising from the transfer of the wavelength dependence of the VIS PSF 
 shall be < 3.5x10^-4.
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and galaxies. [Note a proposed
 revision of this Requirement to an error has been proposed by SHE.]
@@ -139,7 +139,7 @@ correction) for a subset of observed and emulated stars in the range 18 < VIS < 
 of width one magnitude shall be: <3.0x10^-5 (1-sigma) per moment if i=j and <1.75x10^-5 (1-sigma) if i≠j, averaging over
 magnitude bins and 100 fields.
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This part of the allocation is for the contribution linked to the model selected to represent the PSF that differs from
 the true PSF. 
@@ -159,7 +159,7 @@ The SGS shall create a model of the PSF such that the normalized moments Qii/R^2
 width one magnitude shall be: < 8.6x10^-5 (1-sigma) per moment if i=j, and < 5x10^-5 if i≠j, averaging over magnitude
 bins and 100 fields.
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This part of the allocation is for the contribution linked to the model selected to represent the PSF that differs from
 the true PSF. 
@@ -208,7 +208,7 @@ Parent: R-GDP-DL3-030
 For each ellipticity component, the transfer of the VIS PSF model to the weak-lensing objects shall not introduce
 errors larger than 5×10^-5 (1-sigma).
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This shall be demonstrated on emulated Euclid images based in processed HST images for galaxies.
 
@@ -219,7 +219,7 @@ Parent: R-GDP-DL3-040
 For the PSF R^2 component, the transfer of the VIS PSF model to the weak-lensing objects shall not introduce errors
 larger than sigma(R)/R< 5×10^-4.
 
-### Requirement Comment from GDPRD
+#### Requirement Comment from GDPRD
 
 This shall be demonstrated on emulated Euclid images based in processed HST images for galaxies.
 
