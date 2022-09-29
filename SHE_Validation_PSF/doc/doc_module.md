@@ -2,27 +2,25 @@
 numbersections: true geometry: margin=2cm fontsize: 12pt documentclass: article
 ---
 
-# SHE Validation
+# PSF Validation Test Descriptions
 
-## PSF Validation Test Descriptions
+## PSF Model Validation
 
-### PSF Model Validation
-
-#### Requirement: R-SHE-PRD-F-100:
+### Requirement: R-SHE-PRD-F-100:
 
 Parent: R-GDP-DL3-014 The distribution of χ2 (chi-squared) values for each star with respect to the model, over the
 population of stars, shall be consistent (TBD) with the χ2-distribution.
 
 [ANT: TBD to be removed in SHE RSD]
 
-#### Requirement Comment from GDPRD
+### Requirement Comment from GDPRD
 
 This shall be demonstrated by estimating the chi-squared distribution of stellar residuals with respect to the PSF
 model.
 
 Requirements Chain: TBD
 
-#### Validation Test: T-SHE-000001-PSF-res-star-pos
+### Validation Test: T-SHE-000001-PSF-res-star-pos
 
 Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g. KL
 test (ANT: should this be KS-test?)
@@ -33,16 +31,16 @@ This test is defined in the WL Validation doc in VAL-WL-SHE-0010.
 
 [ANT: The test refers to a KL test. KL is the Kullback-Leibler divergence, which does measure the difference between 2 distributions, but there is no obvious threshold. I'd suggest a KS (Kolmogorov-Smirnov) Test is what was meant here.]
 
-#### Rational:
+### Rational:
 
 To verify that the object PSF model residuals are consistent with noise, i.e., that there are no remaining systematics
 in the PSF model.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100001-PSF-res-star-pos-tot χ2 distribution of χ2 values of PSF residuals at star positions of total population
 
-##### Test Procedure:
+#### Test Procedure:
 
 1. This process is carried out on real and simulated Euclid
    Observations. [ANT:The test on simulated images will require data from SIM.]
@@ -52,11 +50,11 @@ TC-SHE-100001-PSF-res-star-pos-tot χ2 distribution of χ2 values of PSF residua
 1. Estimate the distribution of the χ2-values on a per-exposure basis.
 1. Compute difference between distribution and theoretical χ2 distribution.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100002-PSF-res-star-pos-SNR χ2 distribution of χ2 values of PSF residuals at star positions as function of SNR.
 
-##### Test Procedure:
+#### Test Procedure:
 
 1. This process is carried out on real and simulated Euclid Observations.
 1. This test is carried out per Observation.
@@ -66,20 +64,216 @@ TC-SHE-100002-PSF-res-star-pos-SNR χ2 distribution of χ2 values of PSF residua
 1. Estimate the distribution of the χ2-values on a per-exposure basis.
 1. Compute difference between distribution and theoretical χ2 distribution.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100002-PSF-res-star-pos-SED As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by SED.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100002-PSF-res-star-pos-pix As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by pixel
 coordinates.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100002-PSF-res-star-pos-epoch As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by epoch.
 
-#### Test Case:
+### Test Case:
 
 TC-SHE-100002-PSF-res-star-pos-solaspang As for the TC-SHE-100002-PSF-res-star-pos-SNR test with SNR replaced by solar
 aspect angle.
+
+
+## PSF SED Validation
+
+### Requirement: R-SHE-CAL-F-040 / R-SHE-CAL-F-050:
+
+Parent: R-GDP-CAL-025 / R-GDP-CAL-035 The bias caused in the ellipticity of an object arising from the transfer of the
+VIS PSF ellipticity model to the weak-lensing objects shall be smaller than 3.5x10-5 (1 sigma TBC).
+
+[ANT: TBD to be removed in SHE RSD]
+
+### Requirement Comment from GDPRD
+
+This shall be demonstrated on emulated Euclid images with realistic SEDs for stars and
+galaxies. [Note a proposed revision of this Requirement to an error has been proposed by SHE.]
+
+Requirements Chain:
+
+### Validation Test: T-SHE-000002-PSF-lambda
+
+Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g. KL
+test (ANT: should this be KS-test?)
+
+This test is defined in the WL Validation doc in VAL-WL-SHE-0020.
+
+### Rational:
+
+Ensures that the object PSF model captures the correct wavelength dependence for stars.
+
+### Test Cases:
+
+#### TC-SHE-100003-PSF-lambda-ell
+
+Approximate PSF from broad-band magnitudes compared to precise PSF from spectroscopic data, effect on ellipticity.
+
+##### Test Procedure:
+
+**[Major concern raised over this test as checking wavelength dependence.]**
+
+1. For every star i, use the spectral information to create the precise reference PSF Ipsf,i(⃗x) as function of position
+   ⃗x for the star SED and the star position.
+1. Emulate broad-band magnitudes of the star by utilising the star SED and the broad-band filter curves.
+1. Construct an approximate, interpolated PSF model Iˆ (⃗x) of the star by making use of psf ,i the emulated broad-band
+   magnitudes only.
+1. Compute the unweighted quadrupole moments Q and Qˆ from I kl,i kl,i respectively; k, l = 1, 2 are the components of
+   the 2D tensor Qkl,i.
+1. Compute from Qkl,i, Qˆkl,i, respectively:  
+   (⃗x) and Iˆ psf,i psf,i  
+   (⃗x),  
+   • the ellipticity components eij , eˆij j = 1, 2 are the ellipticity components.
+1. Obtain difference between reference and estimated, approximate quantities, and their scatter (around zero by
+   construction).
+
+### Issues:
+
+* For running on emulated images, precise input SEDs are needed. This will require a data product providing this from
+  somewhere (EXT, SPE, SIR?).
+* Unweighted moments might not be the best choice
+
+## PSF Spatial Validation
+
+### Requirement: R-SHE-CAL-F-030 / R-SHE-PRD-F-090
+
+Parent: R-GDP-CAL-020 The r.m.s. of the ensemble averaged ΔQij/R2 (where ΔQij is the quadrupole moment of the residual
+after the linearity correction) for each subset (TBD) of stars in the useful dynamic range, shall be:  
+<3.0x10-5 (1-sigma) per moment if i=j  
+and  
+<1.75x10-5 (1sigma) if i≠j
+
+### Requirement Comment from GDPRD
+
+This shall be demonstrated on emulated Euclid stellar images.  
+[ANT - availability of emulated Euclid stars? - Gaia?]
+
+Requirements Chain:
+
+### Validation Test: T-SHE-000003-PSF-res-interp-star-pos
+
+Compare the PSF at a stellar position for a star **not** used in the PSF Fitting.
+
+This test is defined in
+the [WL Validation](https://euclid.roe.ac.uk/attachments/download/21974/EUCL-UBN-TS-8-001_WLValidation_2018-06-18.pdf)
+doc in VAL-WL-SHE-0020.
+
+### Rational:
+
+To test accuracy of the effective PSF model (i.e., the spatial interpolation of the object PSF model).
+
+[ANT - the spatial interpolation test is no longer appropriate with the wavefront model.]
+
+### Test Cases:
+
+#### TC-SHE-100005-PSF-res-interp-star-pos-tot
+
+#### TC-SHE-100006-PSF-res-interp-star-pos-SNR
+
+#### TC-SHE-100006-PSF-res-interp-star-pos-SED
+
+#### TC-SHE-100006-PSF-res-interp-star-pos-coord
+
+#### TC-SHE-100006-PSF-res-interp-star-pos-epoch
+
+#### TC-SHE-100006-PSF-res-interp-star-pos-aspect
+
+
+## PSF Ellipticity and Size Validation
+
+### Requirement: R-SHE-PRD-F-110 / R-SHE-PRD-F-120
+
+Parent: R-GDP-DL3-030 / R-GDP-DL3-040
+
+R-SHE-PRD-F-110: For each ellipticity component, the transfer of the VIS PSF model to the weak-lensing objects shall not
+introduce errors larger than 5×10-5 (one sigma TBC).
+
+R-SHE-PRD-F-120: For the PSF R2 component, the transfer of the VIS PSF model to the weak-lensing objects shall not
+introduce errors larger than sigma(R)/R< 5×10-4.
+
+### Requirement Comment from GDPRD
+
+This shall be demonstrated on emulated Euclid images based in processed HST images for galaxies.
+
+Requirements Chain:
+
+### Validation Test: T-SHE-000004-PSF-model-err-propa
+
+Propagate the uncertainty in the PSF to the galaxy ellipticity and size, and ensure below Requirement.
+
+### Rational:
+
+This test validates if the propagated errors from the object PSF model to the WL objects remain below the required
+thresholds.
+
+### Test Cases:
+
+#### TC-SHE-100011-PSF-model-err-propa-ell
+
+Propagation of PSF model parameter errors from the posterior of the PSF model parameters to galaxy shape and size PDF,
+effect on ellipticity.
+
+##### Test Procedure:
+
+1. Applied to emulated (HST) Euclid galaxies.
+1. Apply shear estimation to galaxies with fiducial PSF parameters.
+1. Repeat shear estimation with a range of PSF parameters based in parameter uncertainties.
+1. Measure the variance of galaxy ellipticities.
+1. Test is variance is with Requirements.
+
+#### TC-SHE-100011-PSF-model-err-propa-R2
+
+Propagation of PSF model parameter errors from the posterior of the PSF model parameters to galaxy shape and size PDF,
+effect on size.
+
+##### Test Procedure:
+
+As for TC-SHE-100011-PSF-model-err-propa-ell with ellipticity reply red by size.
+
+
+## Input SED Validation
+
+### Requirement: R-SHE-CAL- F-060
+Parent: None
+
+R-SHE-CAL-F-060: An estimate of the SED of the stars used in the PSF modelling shall be provided, using available data.
+
+### Requirement Comment from GDPRD
+This shall be provided from PHZ.  
+[ANT: Note this is updated from SHE RSD which incorrectly named SPE. ]
+
+### Validation Test: T-SHE-000011-star-SED-exist
+Verify that an estimate of the SED of the stars used in the PSF modelling has been provided, using available data. This is provided by OU-PHZ.
+
+### Rational:
+Need to ensure adequate SED information is available from PHZ for PSF.
+
+### Input Data
+Catalogue of SEDs (from SPE) for stars. This has to include all stars used for the PSF.
+
+### Analysis Tools
+TBD
+
+### Test Cases:
+
+#### TC-SHE-100033-star-SED-exist
+Tests whether the SED exists of all stars used to determine the PSF model. The SED is provided from PHZ data products.
+
+**Purpose:** Tests whether the SED exists of all stars used to determine the PSF model. The SED is provided from PHZ data products.
+
+**Output:** Number and identify of stars used in PSF fitting with no SED from PHZ.
+
+**Pass/Fail criteria:** An SED estimate exists for all stars that are used in the PSF model.
+
+##### Test Procedure:
+1. Identify stars used for PSF fitting toolkit.
+1. Search for corresponding SED input data from PHZ.
+1. If no SED from PHZ corresponds to stellar image in PSF fit, flag.
+1. Collate number of flags and stellar IDs and output results.
