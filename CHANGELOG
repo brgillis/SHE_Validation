@@ -61,6 +61,7 @@ Miscellaneous
 - Refactored code to move generation of mock data and tables for unit testing to SHE_PPT
 - Added documentation for new executable SHE_Validation_ValidatePSFResStarPos
 - Refactored plotting code to use a template-method approach, to help reduce necessary boilerplate
+- Code formatted to be compliant with PEP8, and Flake8 pipeline enabled to ensure this continues to be the case
 
 
 Changes in v9.0
