@@ -66,16 +66,16 @@ class SheBinDataFormat(SheTableFormat):
     def __init__(self):
         super().__init__(SheBinDataMeta())
 
-        self.id = self.set_column_properties(name = "OBJECT_ID", dtype = ">i8", fits_dtype = "K", unlabelled = True)
+        self.id = self.set_column_properties(name="OBJECT_ID", dtype=">i8", fits_dtype="K", unlabelled=True)
 
         # Set a column for the tot bin parameter, for a consistent interface (smaller dtype for this to save space)
-        self.tot = self.set_column_properties(name = BinParameters.TOT.name, is_optional = True,
-                                              dtype = bool, fits_dtype = "L")
+        self.tot = self.set_column_properties(name=BinParameters.TOT.name, is_optional=True,
+                                              dtype=bool, fits_dtype="L")
 
         # Set a column for each bin parameter
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
-            setattr(self, bin_parameter.value, self.set_column_properties(name = bin_parameter.name, is_optional = True,
-                                                                          dtype = ">f4", fits_dtype = "E"))
+            setattr(self, bin_parameter.value, self.set_column_properties(name=bin_parameter.name, is_optional=True,
+                                                                          dtype=">f4", fits_dtype="E"))
 
         self._finalize_init()
 
@@ -99,9 +99,9 @@ def add_tot_column(t: Table,
     if TF.tot in t.colnames:
         return
 
-    tot_data: Sequence[float] = np.ones(len(t), dtype = TF.dtypes[TF.tot])
+    tot_data: Sequence[float] = np.ones(len(t), dtype=TF.dtypes[TF.tot])
 
-    tot_column: Column = Column(data = tot_data, name = TF.tot, dtype = TF.dtypes[TF.tot])
+    tot_column: Column = Column(data=tot_data, name=TF.tot, dtype=TF.dtypes[TF.tot])
 
     t.add_column(tot_column)
 
@@ -116,13 +116,13 @@ def add_snr_column(t: Table,
         return
 
     # Check first if necessary data is in the target table
-    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)
+    data_table = _determine_data_table(t, data_stack, data_colname=MFC_TF.FLUXERR_VIS_APER)
 
     snr_data: Sequence[float] = np.where(data_table[MFC_TF.FLUXERR_VIS_APER] != 0.,
                                          data_table[MFC_TF.FLUX_VIS_APER] / data_table[MFC_TF.FLUXERR_VIS_APER],
                                          np.NaN)
 
-    snr_column: Column = Column(data = snr_data, name = TF.snr, dtype = TF.dtypes[TF.snr])
+    snr_column: Column = Column(data=snr_data, name=TF.snr, dtype=TF.dtypes[TF.snr])
 
     t.add_column(snr_column)
 
@@ -137,14 +137,14 @@ def add_colour_column(t: Table,
         return
 
     # Check first if necessary data is in the target table
-    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUX_NIR_STACK_APER)
+    data_table = _determine_data_table(t, data_stack, data_colname=MFC_TF.FLUX_NIR_STACK_APER)
 
     colour_data: Sequence[float] = np.where(data_table[MFC_TF.FLUX_NIR_STACK_APER] != 0.,
                                             2.5 * np.log10(data_table[MFC_TF.FLUX_VIS_APER] /
                                                            data_table[MFC_TF.FLUX_NIR_STACK_APER]),
                                             np.NaN)
 
-    colour_column: Column = Column(data = colour_data, name = TF.colour, dtype = TF.dtypes[TF.colour])
+    colour_column: Column = Column(data=colour_data, name=TF.colour, dtype=TF.dtypes[TF.colour])
 
     t.add_column(colour_column)
 
@@ -159,11 +159,11 @@ def add_size_column(t: Table,
         return
 
     # Check first if necessary data is in the target table
-    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.SEGMENTATION_AREA)
+    data_table = _determine_data_table(t, data_stack, data_colname=MFC_TF.SEGMENTATION_AREA)
 
     size_data: Sequence[float] = data_table[MFC_TF.SEGMENTATION_AREA].data
 
-    size_column: Column = Column(data = size_data, name = TF.size, dtype = TF.dtypes[TF.size])
+    size_column: Column = Column(data=size_data, name=TF.size, dtype=TF.dtypes[TF.size])
 
     t.add_column(size_column)
 
@@ -179,13 +179,13 @@ def add_bg_column(t: Table,
 
     l_object_ids: Sequence[int] = t[MFC_TF.ID]
 
-    bg_data: np.ndarray = np.zeros_like(l_object_ids, dtype = TF.dtypes[TF.bg])
+    bg_data: np.ndarray = np.zeros_like(l_object_ids, dtype=TF.dtypes[TF.bg])
 
     # Loop over objects to calculate background level
     for object_index, object_id in enumerate(l_object_ids):
 
         # Get the background level from background image at the object position
-        stamp_stack = data_stack.extract_galaxy_stack(object_id, width = BG_STAMP_SIZE, extract_stacked_stamp = False)
+        stamp_stack = data_stack.extract_galaxy_stack(object_id, width=BG_STAMP_SIZE, extract_stacked_stamp=False)
         l_background_level = [None] * len(stamp_stack.exposures)
         for exp_index, exp_image in enumerate(stamp_stack.exposures):
             if exp_image is not None:
@@ -202,7 +202,7 @@ def add_bg_column(t: Table,
             # No data, so set -99 for mean background level
             bg_data[object_index] = -99
 
-    bg_column: Column = Column(data = bg_data, name = TF.bg, dtype = TF.dtypes[TF.bg])
+    bg_column: Column = Column(data=bg_data, name=TF.bg, dtype=TF.dtypes[TF.bg])
 
     t.add_column(bg_column)
 
@@ -217,22 +217,22 @@ def add_epoch_column(t: Table,
         return
 
     # Check first if necessary data is in the target table
-    data_table = _determine_data_table(t, data_stack, data_colname = MFC_TF.FLUXERR_VIS_APER)
+    data_table = _determine_data_table(t, data_stack, data_colname=MFC_TF.FLUXERR_VIS_APER)
 
     # TODO: Fill in with proper calculation
     epoch_data: Sequence[float] = np.zeros_like(data_table[MFC_TF.FLUXERR_VIS_APER].data)
 
-    epoch_column: Column = Column(data = epoch_data, name = TF.epoch, dtype = TF.dtypes[TF.epoch])
+    epoch_column: Column = Column(data=epoch_data, name=TF.epoch, dtype=TF.dtypes[TF.epoch])
 
     t.add_column(epoch_column)
 
 
-d_bin_column_adding_functions = {BinParameters.TOT   : add_tot_column,
-                                 BinParameters.SNR   : add_snr_column,
+d_bin_column_adding_functions = {BinParameters.TOT: add_tot_column,
+                                 BinParameters.SNR: add_snr_column,
                                  BinParameters.COLOUR: add_colour_column,
-                                 BinParameters.SIZE  : add_size_column,
-                                 BinParameters.BG    : add_bg_column,
-                                 BinParameters.EPOCH : add_epoch_column, }
+                                 BinParameters.SIZE: add_size_column,
+                                 BinParameters.BG: add_bg_column,
+                                 BinParameters.EPOCH: add_epoch_column, }
 
 
 def add_bin_columns(t: Table,
@@ -266,7 +266,7 @@ def _determine_data_table(t: Table,
 
         # Special handling for zero-length data
         if len(l_ids) == 0:
-            data_table = full_data_table[np.zeros_like(t[MFC_TF.ID], dtype = bool)]
+            data_table = full_data_table[np.zeros_like(t[MFC_TF.ID], dtype=bool)]
         else:
             data_table = Table(full_data_table.loc[l_ids])
 
@@ -276,12 +276,12 @@ def _determine_data_table(t: Table,
 
 
 D_COLUMN_ADDING_METHODS = {
-    BinParameters.TOT   : add_tot_column,
-    BinParameters.SNR   : add_snr_column,
-    BinParameters.BG    : add_bg_column,
+    BinParameters.TOT: add_tot_column,
+    BinParameters.SNR: add_snr_column,
+    BinParameters.BG: add_bg_column,
     BinParameters.COLOUR: add_colour_column,
-    BinParameters.SIZE  : add_size_column,
-    BinParameters.EPOCH : add_epoch_column}
+    BinParameters.SIZE: add_size_column,
+    BinParameters.EPOCH: add_epoch_column}
 
 
 def add_binning_data(t: Table,

@@ -85,7 +85,7 @@ class TestCtiGalRun(SheTestCase):
         """
 
         self._download_mdb()
-        self._download_datastack(read_in = False)
+        self._download_datastack(read_in=False)
 
     @pytest.mark.skip()
     def test_cti_gal_dry_run(self, local_setup):
@@ -114,7 +114,7 @@ class TestCtiGalRun(SheTestCase):
 
         assert os.path.isfile(qualified_output_filename)
 
-        p = read_xml_product(xml_filename = qualified_output_filename)
+        p = read_xml_product(xml_filename=qualified_output_filename)
 
         # Find the index for the LensMC Tot test case. We'll check that for the presence of expected output data
 
@@ -131,7 +131,7 @@ class TestCtiGalRun(SheTestCase):
 
         # Unpack the tarballs containing both the textfiles and the figures
         for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell = True)
+            subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell=True)
 
         # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
         # containing with in the filenames of all other files which were tarred up. We open this first, and use

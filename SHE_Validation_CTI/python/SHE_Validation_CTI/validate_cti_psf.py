@@ -72,7 +72,7 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
 
     mdb.init(qualified_mdb_filename)
-    telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
+    telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
 
     logger.info(MSG_COMPLETE)
 
@@ -82,7 +82,7 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
 
     star_catalog_product: dpdSheStarCatalog
     star_catalog_product, star_catalog_table = read_product_and_table(d_args[CA_SHE_STAR_CAT],
-                                                                      workdir = workdir,
+                                                                      workdir=workdir,
                                                                       log_info=True)
 
     logger.info(MSG_COMPLETE)
@@ -108,25 +108,25 @@ def run_validate_cti_psf_from_args(d_args: Dict[str, Any]):
                                      workdir=workdir)
 
     # Set up output product, using the star catalog product as a reference
-    test_result_product = create_dpd_she_validation_test_results(reference_product = star_catalog_product,
-                                                                 num_tests = NUM_CTI_PSF_TEST_CASES)
+    test_result_product = create_dpd_she_validation_test_results(reference_product=star_catalog_product,
+                                                                 num_tests=NUM_CTI_PSF_TEST_CASES)
 
     # Fill in the product with the results
     if not d_args[CA_DRY_RUN]:
 
         # Fill in the product with results
-        fill_cti_psf_validation_results(test_result_product = test_result_product,
-                                        workdir = workdir,
-                                        d_l_test_results = d_regression_results_tables,
-                                        pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                        d_l_bin_limits = d_l_bin_limits,
-                                        dl_dl_figures = d_d_figures)
+        fill_cti_psf_validation_results(test_result_product=test_result_product,
+                                        workdir=workdir,
+                                        d_l_test_results=d_regression_results_tables,
+                                        pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                        d_l_bin_limits=d_l_bin_limits,
+                                        dl_dl_figures=d_d_figures)
 
     # Write out the test results product
     write_xml_product(test_result_product,
-                      xml_filename = d_args[CA_SHE_TEST_RESULTS],
-                      workdir = workdir,
-                      log_info = True)
+                      xml_filename=d_args[CA_SHE_TEST_RESULTS],
+                      workdir=workdir,
+                      log_info=True)
 
     logger.info("Execution complete.")
 
@@ -145,11 +145,11 @@ def validate_cti_psf(star_catalog_table: Table,
     d_d_figures: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
-    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_PSF_TEST_CASE_INFO,
-                                                        d_bin_limits = d_l_bin_limits,
-                                                        detections_table = extended_catalog_table,
-                                                        l_full_ids = star_catalog_table[SHE_STAR_CAT_TF.id],
-                                                        bin_constraint_type = BinParameterBinConstraint)
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_PSF_TEST_CASE_INFO,
+                                                        d_bin_limits=d_l_bin_limits,
+                                                        detections_table=extended_catalog_table,
+                                                        l_full_ids=star_catalog_table[SHE_STAR_CAT_TF.id],
+                                                        bin_constraint_type=BinParameterBinConstraint)
 
     for test_case_info in L_CTI_PSF_TEST_CASE_INFO:
 
@@ -173,20 +173,20 @@ def validate_cti_psf(star_catalog_table: Table,
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
 
-            regression_results_table = calculate_regression_results(object_data_table = star_catalog_table,
-                                                                    l_ids_in_bin = l_test_case_object_ids,
-                                                                    product_type = "OBS", )
+            regression_results_table = calculate_regression_results(object_data_table=star_catalog_table,
+                                                                    l_ids_in_bin=l_test_case_object_ids,
+                                                                    product_type="OBS", )
 
             l_regression_results_tables[bin_index] = regression_results_table
 
             # Make a plot
-            file_namer = CtiPsfPlotFileNamer(bin_parameter = test_case_info.bins,
-                                             bin_index = bin_index,
-                                             workdir = workdir)
-            plotter = CtiPlotter(file_namer = file_namer,
-                                 object_table = star_catalog_table,
-                                 bin_limits = bin_limits,
-                                 l_ids_in_bin = l_test_case_object_ids, )
+            file_namer = CtiPsfPlotFileNamer(bin_parameter=test_case_info.bins,
+                                             bin_index=bin_index,
+                                             workdir=workdir)
+            plotter = CtiPlotter(file_namer=file_namer,
+                                 object_table=star_catalog_table,
+                                 bin_limits=bin_limits,
+                                 l_ids_in_bin=l_test_case_object_ids, )
             plotter.plot()
             plot_label = f"{test_case_info.bins.value}-{bin_index}"
             d_d_figures[test_case_info.name][plot_label] = plotter.plot_filename

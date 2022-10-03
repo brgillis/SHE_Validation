@@ -59,18 +59,18 @@ class TestBinConstraints:
     NUM_ROWS_IN_BIN = 40
     BASE_BIN_LIMITS = np.array((0, NUM_ROWS_IN_BIN))
 
-    D_PAR_OFFSETS = {BinParameters.TOT   : 0.,
-                     BinParameters.BG    : 1000.,
-                     BinParameters.SNR   : 2000.,
+    D_PAR_OFFSETS = {BinParameters.TOT: 0.,
+                     BinParameters.BG: 1000.,
+                     BinParameters.SNR: 2000.,
                      BinParameters.COLOUR: 3000.,
-                     BinParameters.SIZE  : 4000.,
-                     BinParameters.EPOCH : 5000., }
+                     BinParameters.SIZE: 4000.,
+                     BinParameters.EPOCH: 5000., }
 
-    D_PAR_NUM_BINS = {BinParameters.BG    : 1,
-                      BinParameters.SNR   : 3,
+    D_PAR_NUM_BINS = {BinParameters.BG: 1,
+                      BinParameters.SNR: 3,
                       BinParameters.COLOUR: 5,
-                      BinParameters.SIZE  : 4,
-                      BinParameters.EPOCH : 2, }
+                      BinParameters.SIZE: 4,
+                      BinParameters.EPOCH: 2, }
 
     t_mfc: Table
     t_lmc: Table
@@ -80,9 +80,9 @@ class TestBinConstraints:
     def setup_class(cls):
 
         # Set up a mock table
-        cls.t_mfc = MFC_TF.init_table(size = cls.TABLE_SIZE)
-        cls.t_lmc = LMC_TF.init_table(size = cls.TABLE_SIZE,
-                                      optional_columns = [LMC_TF.fit_class, LMC_TF.fit_flags])
+        cls.t_mfc = MFC_TF.init_table(size=cls.TABLE_SIZE)
+        cls.t_lmc = LMC_TF.init_table(size=cls.TABLE_SIZE,
+                                      optional_columns=[LMC_TF.fit_class, LMC_TF.fit_flags])
 
         # Set IDs sequentially, but with an offset
         cls.t_mfc[ID_COLNAME] = np.arange(cls.TABLE_SIZE) + cls.ID_OFFSET
@@ -94,7 +94,7 @@ class TestBinConstraints:
             bin_colname = getattr(BIN_TF, bin_parameter.value)
 
             parameter_data = np.arange(cls.TABLE_SIZE) + cls.D_PAR_OFFSETS[bin_parameter]
-            parameter_col = Column(data = parameter_data, name = bin_colname, dtype = BIN_TF.dtypes[bin_colname])
+            parameter_col = Column(data=parameter_data, name=bin_colname, dtype=BIN_TF.dtypes[bin_colname])
 
             cls.t_mfc.add_column(parameter_col)
 
@@ -102,19 +102,19 @@ class TestBinConstraints:
 
         indices = np.arange(cls.TABLE_SIZE)
 
-        fitclass_data = np.ones(cls.TABLE_SIZE, dtype = int) * indices % 3
+        fitclass_data = np.ones(cls.TABLE_SIZE, dtype=int) * indices % 3
         cls.t_lmc[LMC_TF.fit_class] = fitclass_data
 
-        fitflags_data = np.ones(cls.TABLE_SIZE, dtype = int) * indices % 4
+        fitflags_data = np.ones(cls.TABLE_SIZE, dtype=int) * indices % 4
         cls.t_lmc[LMC_TF.fit_flags] = fitflags_data
 
         # Set up d_bin_limits
         cls.d_l_bin_limits = {BinParameters.TOT: TOT_BIN_LIMITS}
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
-            cls.d_l_bin_limits[bin_parameter] = np.linspace(start = cls.D_PAR_OFFSETS[bin_parameter],
-                                                            stop = cls.D_PAR_OFFSETS[bin_parameter] + cls.TABLE_SIZE,
-                                                            num = cls.D_PAR_NUM_BINS[bin_parameter] + 1,
-                                                            endpoint = True)
+            cls.d_l_bin_limits[bin_parameter] = np.linspace(start=cls.D_PAR_OFFSETS[bin_parameter],
+                                                            stop=cls.D_PAR_OFFSETS[bin_parameter] + cls.TABLE_SIZE,
+                                                            num=cls.D_PAR_NUM_BINS[bin_parameter] + 1,
+                                                            endpoint=True)
 
     @classmethod
     def teardown_class(cls):
@@ -129,8 +129,8 @@ class TestBinConstraints:
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
 
             bin_limits = self.BASE_BIN_LIMITS + self.D_PAR_OFFSETS[bin_parameter]
-            bin_constraint = BinParameterBinConstraint(bin_parameter = bin_parameter,
-                                                       bin_limits = bin_limits)
+            bin_constraint = BinParameterBinConstraint(bin_parameter=bin_parameter,
+                                                       bin_limits=bin_limits)
 
             # Apply the constraint
             l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_mfc)
@@ -149,7 +149,7 @@ class TestBinConstraints:
             assert np.all(self.t_mfc[~l_is_row_in_bin][ID_COLNAME] >= self.NUM_ROWS_IN_BIN)
 
         # Special check for TOT test case
-        bin_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.TOT)
+        bin_constraint = BinParameterBinConstraint(bin_parameter=BinParameters.TOT)
 
         # Apply the constraint
         l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_mfc)
@@ -170,7 +170,7 @@ class TestBinConstraints:
         """
 
         # Set up the bin constraint
-        bin_constraint = FitclassZeroBinConstraint(method = ShearEstimationMethods.LENSMC)
+        bin_constraint = FitclassZeroBinConstraint(method=ShearEstimationMethods.LENSMC)
 
         # Apply the constraint
         l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_lmc)
@@ -191,7 +191,7 @@ class TestBinConstraints:
         """
 
         # Set up the bin constraint
-        bin_constraint = FitflagsBinConstraint(method = ShearEstimationMethods.LENSMC)
+        bin_constraint = FitflagsBinConstraint(method=ShearEstimationMethods.LENSMC)
 
         # Apply the constraint
         l_is_row_in_bin = bin_constraint.get_l_is_row_in_bin(self.t_lmc)
@@ -211,17 +211,17 @@ class TestBinConstraints:
 
         # Set up multiple bin constraints
         bin_limits = self.BASE_BIN_LIMITS + self.D_PAR_OFFSETS[BinParameters.SNR]
-        bin_parameter_constraint = BinParameterBinConstraint(bin_parameter = BinParameters.SNR,
-                                                             bin_limits = bin_limits)
-        fitclass_zero_bin_constraint = FitclassZeroBinConstraint(method = ShearEstimationMethods.LENSMC)
-        fitflags_bin_constraint = FitflagsBinConstraint(method = ShearEstimationMethods.LENSMC)
+        bin_parameter_constraint = BinParameterBinConstraint(bin_parameter=BinParameters.SNR,
+                                                             bin_limits=bin_limits)
+        fitclass_zero_bin_constraint = FitclassZeroBinConstraint(method=ShearEstimationMethods.LENSMC)
+        fitflags_bin_constraint = FitflagsBinConstraint(method=ShearEstimationMethods.LENSMC)
 
         # Set up multi and hetero bin constraints
-        fit_multi_bin_constraint = MultiBinConstraint(l_bin_constraints = [fitclass_zero_bin_constraint,
-                                                                           fitflags_bin_constraint])
-        full_bin_constraint = HeteroBinConstraint(l_bin_constraints = [bin_parameter_constraint,
-                                                                       fitclass_zero_bin_constraint,
-                                                                       fitflags_bin_constraint])
+        fit_multi_bin_constraint = MultiBinConstraint(l_bin_constraints=[fitclass_zero_bin_constraint,
+                                                                         fitflags_bin_constraint])
+        full_bin_constraint = HeteroBinConstraint(l_bin_constraints=[bin_parameter_constraint,
+                                                                     fitclass_zero_bin_constraint,
+                                                                     fitflags_bin_constraint])
 
         # Apply the multi constraint
         l_is_row_in_bin = fit_multi_bin_constraint.get_l_is_row_in_bin(self.t_lmc)
@@ -249,9 +249,9 @@ class TestBinConstraints:
         """ Tests the get_ids_for_bins function.
         """
 
-        d_l_l_ids = get_ids_for_bins(d_bin_limits = self.d_l_bin_limits,
-                                     detections_table = self.t_mfc,
-                                     bin_constraint_type = BinParameterBinConstraint)
+        d_l_l_ids = get_ids_for_bins(d_bin_limits=self.d_l_bin_limits,
+                                     detections_table=self.t_mfc,
+                                     bin_constraint_type=BinParameterBinConstraint)
 
         # Check that everything is as expected
         for bin_parameter in BinParameters:
@@ -280,17 +280,17 @@ class TestBinConstraints:
         """ Tests the get_ids_for_test_cases function.
         """
 
-        base_test_case_info = TestCaseInfo(base_test_case_id = "MOCK-ID",
-                                           base_description = "mock description",
-                                           method = ShearEstimationMethods.LENSMC)
+        base_test_case_info = TestCaseInfo(base_test_case_id="MOCK-ID",
+                                           base_description="mock description",
+                                           method=ShearEstimationMethods.LENSMC)
 
         l_test_case_info = make_test_case_info_for_bins(base_test_case_info)
 
-        d_l_l_ids = get_ids_for_test_cases(l_test_case_info = l_test_case_info,
-                                           d_bin_limits = self.d_l_bin_limits,
-                                           detections_table = self.t_mfc,
-                                           d_measurements_tables = {ShearEstimationMethods.LENSMC: self.t_lmc},
-                                           bin_constraint_type = BinParameterBinConstraint)
+        d_l_l_ids = get_ids_for_test_cases(l_test_case_info=l_test_case_info,
+                                           d_bin_limits=self.d_l_bin_limits,
+                                           detections_table=self.t_mfc,
+                                           d_measurements_tables={ShearEstimationMethods.LENSMC: self.t_lmc},
+                                           bin_constraint_type=BinParameterBinConstraint)
 
         # Check that everything is as expected
         for test_case_info in l_test_case_info:
@@ -350,10 +350,10 @@ class TestBinData(SheValTestCase):
         self.mfc_t = Table.read(os.path.join(self.workdir, "data", MER_FINAL_CATALOG_TABLE_FILENAME))
 
         # Setup a random-number generator
-        self.rng = np.random.default_rng(seed = 754)
+        self.rng = np.random.default_rng(seed=754)
 
         # Create a table of binning data
-        self.bin_t = MockBinTableGenerator(workdir = self.workdir).get_mock_table()
+        self.bin_t = MockBinTableGenerator(workdir=self.workdir).get_mock_table()
 
     def test_table_format(self):
         """ Runs tests of the bin data table format.
@@ -392,13 +392,13 @@ class TestBinData(SheValTestCase):
         num_test_points = 100
 
         # Make some mock data
-        l_data = self.rng.uniform(size = num_test_points)
+        l_data = self.rng.uniform(size=num_test_points)
 
         # Test with a couple different numbers of quantiles
         for num_quantiles in (4, 5):
             ex_n_per_bin = num_test_points // num_quantiles
-            l_bin_limits = get_auto_bin_limits_from_data(l_data = l_data,
-                                                         num_quantiles = num_quantiles)
+            l_bin_limits = get_auto_bin_limits_from_data(l_data=l_data,
+                                                         num_quantiles=num_quantiles)
 
             # Check the bin limits for validity
             assert len(l_bin_limits) == num_quantiles + 1
@@ -421,9 +421,9 @@ class TestBinData(SheValTestCase):
         num_quantiles = 2
         bin_limits_value = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_quantiles}"
 
-        l_bin_limits = get_auto_bin_limits_from_table(bin_parameter = BinParameters.SIZE,
-                                                      bin_data_table = self.bin_t,
-                                                      bin_limits_value = bin_limits_value)
+        l_bin_limits = get_auto_bin_limits_from_table(bin_parameter=BinParameters.SIZE,
+                                                      bin_data_table=self.bin_t,
+                                                      bin_limits_value=bin_limits_value)
 
         # Check that the bin limits we get make sense
         assert len(l_bin_limits) == num_quantiles + 1
@@ -441,10 +441,10 @@ class TestBinData(SheValTestCase):
             assert len(l_data_in_bin) == TEST_L_TOT // 2
 
         # And test by applying the bin constraint object, which should have the same result as the manual binning above
-        d_l_l_bin_ids = get_ids_for_bins(d_bin_limits = {BinParameters.SIZE: l_bin_limits},
-                                         detections_table = self.bin_t,
-                                         l_bin_parameters = [BinParameters.SIZE],
-                                         bin_constraint_type = BinParameterBinConstraint)
+        d_l_l_bin_ids = get_ids_for_bins(d_bin_limits={BinParameters.SIZE: l_bin_limits},
+                                         detections_table=self.bin_t,
+                                         l_bin_parameters=[BinParameters.SIZE],
+                                         bin_constraint_type=BinParameterBinConstraint)
 
         l_l_bin_ids = d_l_l_bin_ids[BinParameters.SIZE]
 

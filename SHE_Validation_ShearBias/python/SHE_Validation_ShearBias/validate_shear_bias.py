@@ -64,7 +64,7 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
 
     (d_method_l_table_filenames,
      l_matched_catalog_products) = read_d_l_method_table_filenames(l_matched_catalog_product_filenames,
-                                                                   workdir = workdir)
+                                                                   workdir=workdir)
 
     # Keep a dict of filenames for all plots, which we'll tarball up at the end. We'll only save the plots
     # in the M test case, to avoid duplication
@@ -113,17 +113,17 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
 
             l_bin_limits = d_l_bin_limits[test_case_info.bins]
 
-            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader = data_loader,
-                                                                       test_case_info = test_case_info,
-                                                                       l_bin_limits = l_bin_limits,
-                                                                       pipeline_config = d_args[CA_PIPELINE_CONFIG])
+            shear_bias_data_processor = ShearBiasTestCaseDataProcessor(data_loader=data_loader,
+                                                                       test_case_info=test_case_info,
+                                                                       l_bin_limits=l_bin_limits,
+                                                                       pipeline_config=d_args[CA_PIPELINE_CONFIG])
             shear_bias_data_processor.calc()
 
             # Plot for each bin index
             for bin_index in range(len(l_bin_limits) - 1):
-                shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor,
-                                                      bin_index = bin_index,
-                                                      bin_limits = l_bin_limits[bin_index:bin_index + 2])
+                shear_bias_plotter = ShearBiasPlotter(data_processor=shear_bias_data_processor,
+                                                      bin_index=bin_index,
+                                                      bin_limits=l_bin_limits[bin_index:bin_index + 2])
                 shear_bias_plotter.plot()
 
                 # Component index: filename
@@ -149,7 +149,7 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     test_result_product = create_validation_test_results_product(
-        num_tests = NUM_SHEAR_BIAS_TEST_CASES)
+        num_tests=NUM_SHEAR_BIAS_TEST_CASES)
     test_result_product.Data.TileId = None
     test_result_product.Data.PointingId = None
     test_result_product.Data.ExposureProductId = None
@@ -159,17 +159,17 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
     # Fill in the products with the results
     if not d_args[CA_DRY_RUN]:
         # And fill in the observation product
-        fill_shear_bias_test_results(test_result_product = test_result_product,
-                                     d_l_test_results = d_l_d_bias_measurements,
-                                     pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                     d_l_bin_limits = d_l_bin_limits,
-                                     workdir = workdir,
-                                     dl_dl_plot_filenames = d_d_plot_filenames,
-                                     mode = mode)
+        fill_shear_bias_test_results(test_result_product=test_result_product,
+                                     d_l_test_results=d_l_d_bias_measurements,
+                                     pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                     d_l_bin_limits=d_l_bin_limits,
+                                     workdir=workdir,
+                                     dl_dl_plot_filenames=d_d_plot_filenames,
+                                     mode=mode)
 
     # Write out test results product
     test_results_filename = d_args[CA_SHE_TEST_RESULTS]
-    file_io.write_xml_product(test_result_product, test_results_filename, workdir = workdir)
+    file_io.write_xml_product(test_result_product, test_results_filename, workdir=workdir)
 
     logger.info("Output shear bias validation test results to: " +
                 os.path.join(workdir, test_results_filename))
@@ -193,7 +193,7 @@ def read_l_matched_catalog_filenames(d_args: Dict[str, Any],
         matched_catalog_listfile = d_args[CA_SHE_MATCHED_CAT_LIST]
         logger.info(f"Using matched data from products in listfile {matched_catalog_listfile}")
         qualified_matched_catalog_listfile_filename: str = file_io.find_file(matched_catalog_listfile,
-                                                                             path = d_args[CA_WORKDIR])
+                                                                             path=d_args[CA_WORKDIR])
         l_matched_catalog_product_filenames: List[str] = file_io.read_listfile(
             qualified_matched_catalog_listfile_filename)
     else:

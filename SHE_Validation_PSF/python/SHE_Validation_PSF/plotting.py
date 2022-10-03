@@ -87,15 +87,15 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
 
         # Determine attrs from kwargs
 
-        self.t_good = get_table_of_ids(t = self.star_cat,
-                                       l_ids = self.l_ids_in_bin, )
+        self.t_good = get_table_of_ids(t=self.star_cat,
+                                       l_ids=self.l_ids_in_bin, )
         if self.ref_star_cat is not None:
             # Ensure we have reference IDs supplied
             if self.l_ref_ids_in_bin is None:
                 raise ValueError("self.l_ref_ids_in_bin must be supplied if ref_star_cat is supplied.")
             self.two_sample_mode = True
-            self.ref_t_good = get_table_of_ids(t = self.ref_star_cat,
-                                               l_ids = self.l_ref_ids_in_bin, )
+            self.ref_t_good = get_table_of_ids(t=self.ref_star_cat,
+                                               l_ids=self.l_ref_ids_in_bin, )
         else:
             self.two_sample_mode = False
             self.ref_t_good = None
@@ -114,8 +114,8 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
             implement it here, and specific plots can inherit and modify as necessary.
         """
 
-        self.l_p: Sequence[float] = calculate_p_values(cat = self.t_good,
-                                                       group_mode = self.group_mode)
+        self.l_p: Sequence[float] = calculate_p_values(cat=self.t_good,
+                                                       group_mode=self.group_mode)
 
         # Remove any bad values from the data
         self.l_p_trimmed = np.array([x for x in self.l_p if x > 0 and not is_inf_nan_or_masked(x)])
@@ -135,8 +135,8 @@ class PsfResSPPlotter(ValidationPlotter, abc.ABC):
             self.l_p_to_plot = l_logp
 
             # Get data for the reference catalog here
-            self.l_ref_p = calculate_p_values(cat = self.ref_t_good,
-                                              group_mode = self.group_mode)
+            self.l_ref_p = calculate_p_values(cat=self.ref_t_good,
+                                              group_mode=self.group_mode)
             self.l_ref_p_trimmed = np.array([x for x in self.l_ref_p if x > 0 and not is_inf_nan_or_masked(x)])
 
             self.l_ref_logp = np.log10(self.l_ref_p_trimmed)
@@ -264,22 +264,22 @@ class PsfResSPHistPlotter(PsfResSPPlotter):
         if self.two_sample_mode:
             # Add the reference histogram, plus a legend to differentiate them
             plt.hist(self.l_ref_logp,
-                     bins = self.HIST_NUM_BINS,
-                     density = True,
-                     cumulative = self.cumulative,
-                     histtype = self.HIST_TYPE,
-                     label = self.REF_CAT_LEGEND_NAME,
-                     linestyle = self.LINESTYLE_REF,
-                     color = self.COLOR_REF)
+                     bins=self.HIST_NUM_BINS,
+                     density=True,
+                     cumulative=self.cumulative,
+                     histtype=self.HIST_TYPE,
+                     label=self.REF_CAT_LEGEND_NAME,
+                     linestyle=self.LINESTYLE_REF,
+                     color=self.COLOR_REF)
         # Plot the histogram for test catalog
         plt.hist(self.l_p_to_plot,
-                 bins = self.HIST_NUM_BINS,
-                 density = True,
-                 cumulative = self.cumulative,
-                 histtype = self.HIST_TYPE,
-                 label = self.TEST_CAT_LEGEND_NAME,
-                 linestyle = self.LINESTYLE_TEST,
-                 color = self.COLOR_TEST)
+                 bins=self.HIST_NUM_BINS,
+                 density=True,
+                 cumulative=self.cumulative,
+                 histtype=self.HIST_TYPE,
+                 label=self.TEST_CAT_LEGEND_NAME,
+                 linestyle=self.LINESTYLE_TEST,
+                 color=self.COLOR_TEST)
 
 
 class PsfResSPScatterPlotter(PsfResSPPlotter):
@@ -433,27 +433,27 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
             # Add the reference scatter plot
             plt.scatter(self.l_ref_snr_trimmed,
                         self.l_ref_logp,
-                        s = self.MARKER_SIZE,
-                        marker = self.MARKER_REF,
-                        c = self.COLOR_REF,
-                        label = self.REF_CAT_LEGEND_NAME, )
+                        s=self.MARKER_SIZE,
+                        marker=self.MARKER_REF,
+                        c=self.COLOR_REF,
+                        label=self.REF_CAT_LEGEND_NAME, )
 
         # Add the test scatter plot - we do this after the reference so it will lie on top of it
         plt.scatter(self.l_snr_trimmed,
                     self.l_p_to_plot,
-                    s = self.MARKER_SIZE,
-                    marker = self.MARKER_TEST,
-                    c = self.COLOR_TEST,
-                    label = self.TEST_CAT_LEGEND_NAME, )
+                    s=self.MARKER_SIZE,
+                    marker=self.MARKER_TEST,
+                    c=self.COLOR_TEST,
+                    label=self.TEST_CAT_LEGEND_NAME, )
 
         # Draw lines of best fit, reference first so test line will lie on top
         if self.two_sample_mode:
             self._draw_bestfit_line(self.ref_linregress_results,
-                                    color = self.COLOR_REF,
-                                    linestyle = self.LINESTYLE_REF)
+                                    color=self.COLOR_REF,
+                                    linestyle=self.LINESTYLE_REF)
         self._draw_bestfit_line(self.linregress_results,
-                                color = self.COLOR_TEST,
-                                linestyle = self.LINESTYLE_TEST)
+                                color=self.COLOR_TEST,
+                                linestyle=self.LINESTYLE_TEST)
 
         # Draw lines showing each bin
 
@@ -461,6 +461,6 @@ class PsfResSPScatterPlotter(PsfResSPPlotter):
 
             l_x = np.array([self.bin_limits[bin_index + 1]] * 2)
             l_y = np.array(self.ylim)
-            self.ax.plot(l_x, l_y, color = "k", linestyle = ":")
+            self.ax.plot(l_x, l_y, color="k", linestyle=":")
 
         self._reset_axes()

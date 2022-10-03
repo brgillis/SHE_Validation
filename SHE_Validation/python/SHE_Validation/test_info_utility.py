@@ -87,7 +87,7 @@ def make_test_case_info_for_bins_and_methods(test_case_info: Union[TestCaseInfo,
 def find_test_case_info(l_test_case_info: List[TestCaseInfo],
                         methods: Union[None, ShearEstimationMethods, List[ShearEstimationMethods]] = None,
                         bin_parameters: Union[None, BinParameters, List[BinParameters]] = None,
-                        return_one = False) -> Union[List[TestCaseInfo], TestCaseInfo]:
+                        return_one=False) -> Union[List[TestCaseInfo], TestCaseInfo]:
     """ Finds all test_case_info in the provided list matching the method and bin_parameter provided, and returns as a
         list.
 
@@ -96,8 +96,8 @@ def find_test_case_info(l_test_case_info: List[TestCaseInfo],
     """
 
     # Make sure methods and bin_parameters input are always lists if they aren't None
-    l_methods: List[str] = coerce_to_list(methods, keep_none = True)
-    l_bin_parameters: List[BinParameters] = coerce_to_list(bin_parameters, keep_none = True)
+    l_methods: List[str] = coerce_to_list(methods, keep_none=True)
+    l_bin_parameters: List[BinParameters] = coerce_to_list(bin_parameters, keep_none=True)
 
     # Init list which will store all matching test cases
     l_matching_test_case_info: List[TestCaseInfo] = []

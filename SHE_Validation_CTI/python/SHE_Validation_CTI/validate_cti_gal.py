@@ -82,7 +82,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     qualified_mdb_filename = join(workdir, d_args[CA_MDB])
     logger.info(f"Loading MDB from {qualified_mdb_filename}.")
     mdb.init(qualified_mdb_filename)
-    telescope_coords.load_vis_detector_specs(mdb_dict = mdb.full_mdb)
+    telescope_coords.load_vis_detector_specs(mdb_dict=mdb.full_mdb)
     logger.info(MSG_COMPLETE)
 
     # Load the shear measurements
@@ -142,10 +142,10 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     if not d_args[CA_DRY_RUN]:
         (d_exposure_regression_results_tables,
          d_observation_regression_results_tables,
-         plot_filenames) = validate_cti_gal(data_stack = data_stack,
-                                            shear_estimate_tables = d_shear_estimate_tables,
-                                            d_bin_limits = d_l_bin_limits,
-                                            workdir = workdir)
+         plot_filenames) = validate_cti_gal(data_stack=data_stack,
+                                            shear_estimate_tables=d_shear_estimate_tables,
+                                            d_bin_limits=d_l_bin_limits,
+                                            workdir=workdir)
     else:
         d_exposure_regression_results_tables = None
         d_observation_regression_results_tables = None
@@ -166,42 +166,42 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
 
         # Fill in each exposure product in turn with results
         for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
-            fill_cti_gal_validation_results(test_result_product = exp_test_result_product,
-                                            workdir = workdir,
-                                            regression_results_row_index = product_index,
-                                            d_l_test_results = d_exposure_regression_results_tables,
-                                            pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                            d_l_bin_limits = d_l_bin_limits,
-                                            method_data_exists = method_data_exists)
+            fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
+                                            workdir=workdir,
+                                            regression_results_row_index=product_index,
+                                            d_l_test_results=d_exposure_regression_results_tables,
+                                            pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                            d_l_bin_limits=d_l_bin_limits,
+                                            method_data_exists=method_data_exists)
 
         # And fill in the observation product
-        fill_cti_gal_validation_results(test_result_product = obs_test_result_product,
-                                        workdir = workdir,
-                                        regression_results_row_index = 0,
-                                        d_l_test_results = d_observation_regression_results_tables,
-                                        pipeline_config = d_args[CA_PIPELINE_CONFIG],
-                                        d_l_bin_limits = d_l_bin_limits,
-                                        dl_dl_figures = plot_filenames,
-                                        method_data_exists = method_data_exists)
+        fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
+                                        workdir=workdir,
+                                        regression_results_row_index=0,
+                                        d_l_test_results=d_observation_regression_results_tables,
+                                        pipeline_config=d_args[CA_PIPELINE_CONFIG],
+                                        d_l_bin_limits=d_l_bin_limits,
+                                        dl_dl_figures=plot_filenames,
+                                        method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
     for exp_test_result_product, exp_test_result_filename in zip(l_exp_test_result_product,
                                                                  l_exp_test_result_filename):
         write_xml_product(exp_test_result_product,
                           exp_test_result_filename,
-                          workdir = workdir,
-                          log_info = True)
+                          workdir=workdir,
+                          log_info=True)
 
     qualified_exp_test_results_filename = join(workdir, d_args[CA_SHE_EXP_TEST_RESULTS_LIST])
     write_listfile(qualified_exp_test_results_filename,
                    l_exp_test_result_filename,
-                   log_info = True)
+                   log_info=True)
 
     # Write out observation test results product
-    write_xml_product(product = obs_test_result_product,
-                      xml_filename = d_args[CA_SHE_OBS_TEST_RESULTS],
-                      workdir = workdir,
-                      log_info = True)
+    write_xml_product(product=obs_test_result_product,
+                      xml_filename=d_args[CA_SHE_OBS_TEST_RESULTS],
+                      workdir=workdir,
+                      log_info=True)
 
     logger.info("Execution complete.")
 
@@ -222,17 +222,17 @@ def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]
     for vis_calibrated_frame_product in l_vis_calibrated_frame_product:
 
         exp_test_result_product: Any = create_validation_test_results_product(
-            reference_product = vis_calibrated_frame_product,
-            num_tests = NUM_CTI_GAL_TEST_CASES)
+            reference_product=vis_calibrated_frame_product,
+            num_tests=NUM_CTI_GAL_TEST_CASES)
 
         # Get the Observation ID and Pointing ID, and put them in the filename
         obs_id = vis_calibrated_frame_product.Data.ObservationSequence.ObservationId
         pnt_id = vis_calibrated_frame_product.Data.ObservationSequence.PointingId
-        exp_test_result_filename = get_allowed_filename(type_name = "EXP-CTI-GAL-VAL-TEST-RESULT",
-                                                        instance_id = f"{obs_id}-{pnt_id}",
-                                                        extension = ".xml",
-                                                        version = __version__,
-                                                        subdir = "data")
+        exp_test_result_filename = get_allowed_filename(type_name="EXP-CTI-GAL-VAL-TEST-RESULT",
+                                                        instance_id=f"{obs_id}-{pnt_id}",
+                                                        extension=".xml",
+                                                        version=__version__,
+                                                        subdir="data")
 
         # Store the product and filename in lists
         l_exp_test_result_product.append(exp_test_result_product)
@@ -250,8 +250,8 @@ def load_from_vis_calibrated_frame(l_vis_calibrated_frame_product: Sequence[Any]
     # Create the observation test results product. We don't have a reference product for this, so we have to
     # fill it out manually
     obs_test_result_product = create_validation_test_results_product(
-        num_exposures = len(l_vis_calibrated_frame_product),
-        num_tests = NUM_CTI_GAL_TEST_CASES)
+        num_exposures=len(l_vis_calibrated_frame_product),
+        num_tests=NUM_CTI_GAL_TEST_CASES)
     obs_test_result_product.Data.TileId = None
     obs_test_result_product.Data.PointingId = None
     obs_test_result_product.Data.ExposureProductId = None
@@ -278,11 +278,11 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # First, we'll need to get the pixel coords of each object in the table in each exposure, along with the detector
     # and quadrant where it's found and e1/2 in world coords. We'll start by
     # getting them in a raw format by looping over objects
-    l_raw_object_data = get_raw_cti_gal_object_data(data_stack = data_stack,
-                                                    d_shear_estimate_tables = shear_estimate_tables)
+    l_raw_object_data = get_raw_cti_gal_object_data(data_stack=data_stack,
+                                                    d_shear_estimate_tables=shear_estimate_tables)
 
     # Now sort the raw data into tables (one for each exposure)
-    l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data = l_raw_object_data)
+    l_object_data_table = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
 
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_l_exposure_regression_results_tables: Dict[str, List[Table]] = {}
@@ -290,11 +290,11 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     plot_filenames: Dict[str, Dict[str, str]] = {}
 
     # Get IDs for all bins
-    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_bin_limits = d_bin_limits,
-                                                        detections_table = data_stack.detections_catalogue,
-                                                        d_measurements_tables = shear_estimate_tables,
-                                                        data_stack = data_stack)
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_bin_limits=d_bin_limits,
+                                                        detections_table=data_stack.detections_catalogue,
+                                                        d_measurements_tables=shear_estimate_tables,
+                                                        data_stack=data_stack)
 
     for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
@@ -320,51 +320,51 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             # We'll now loop over the table for each exposure, eventually getting regression results and plots
             # for each
 
-            exposure_regression_results_table = RR_TF.init_table(product_type = "EXP")
+            exposure_regression_results_table = RR_TF.init_table(product_type="EXP")
 
             for exp_index, object_data_table in enumerate(l_object_data_table):
 
                 # Calculate the results of the regression and add it to the results table
-                exposure_regression_results_row = calculate_regression_results(object_data_table = object_data_table,
-                                                                               l_ids_in_bin = l_test_case_object_ids,
-                                                                               method = method,
-                                                                               index = exp_index,
-                                                                               product_type = "EXP",
-                                                                               bootstrap = False)
+                exposure_regression_results_row = calculate_regression_results(object_data_table=object_data_table,
+                                                                               l_ids_in_bin=l_test_case_object_ids,
+                                                                               method=method,
+                                                                               index=exp_index,
+                                                                               product_type="EXP",
+                                                                               bootstrap=False)
                 exposure_regression_results_table.add_row(exposure_regression_results_row)
 
                 # Make a plot for each exposure
-                make_and_save_cti_gal_plot(method = method,
-                                           test_case_info = test_case_info,
-                                           bin_index = bin_index,
-                                           exp_index = exp_index,
-                                           object_data_table = object_data_table,
-                                           bin_limits = bin_limits,
-                                           l_test_case_object_ids = l_test_case_object_ids,
-                                           d_d_plot_filenames = plot_filenames,
-                                           workdir = workdir)
+                make_and_save_cti_gal_plot(method=method,
+                                           test_case_info=test_case_info,
+                                           bin_index=bin_index,
+                                           exp_index=exp_index,
+                                           object_data_table=object_data_table,
+                                           bin_limits=bin_limits,
+                                           l_test_case_object_ids=l_test_case_object_ids,
+                                           d_d_plot_filenames=plot_filenames,
+                                           workdir=workdir)
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
-            merged_object_table = table_vstack(tables = l_object_data_table)
+            merged_object_table = table_vstack(tables=l_object_data_table)
 
             # We use bootstrap error calculations for the observation, since y errors aren't fully independent (due
             # to most objects being in the table multiple times at different x positions, but the same y position)
-            observation_regression_results_table = calculate_regression_results(object_data_table = merged_object_table,
-                                                                                l_ids_in_bin = l_test_case_object_ids,
-                                                                                method = method,
-                                                                                product_type = "OBS",
-                                                                                bootstrap = True)
+            observation_regression_results_table = calculate_regression_results(object_data_table=merged_object_table,
+                                                                                l_ids_in_bin=l_test_case_object_ids,
+                                                                                method=method,
+                                                                                product_type="OBS",
+                                                                                bootstrap=True)
 
             # Make a plot for the observation
-            make_and_save_cti_gal_plot(method = method,
-                                       test_case_info = test_case_info,
-                                       bin_index = bin_index,
-                                       exp_index = None,
-                                       object_data_table = merged_object_table,
-                                       bin_limits = bin_limits,
-                                       l_test_case_object_ids = l_test_case_object_ids,
-                                       d_d_plot_filenames = plot_filenames,
-                                       workdir = workdir)
+            make_and_save_cti_gal_plot(method=method,
+                                       test_case_info=test_case_info,
+                                       bin_index=bin_index,
+                                       exp_index=None,
+                                       object_data_table=merged_object_table,
+                                       bin_limits=bin_limits,
+                                       l_test_case_object_ids=l_test_case_object_ids,
+                                       d_d_plot_filenames=plot_filenames,
+                                       workdir=workdir)
 
             l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
             l_observation_regression_results_tables[bin_index] = observation_regression_results_table
@@ -392,15 +392,15 @@ def make_and_save_cti_gal_plot(method: ShearEstimationMethods,
     """
 
     # Create a file namer, and use dependency injection to provide it to the created plotter
-    file_namer = CtiGalPlotFileNamer(method = method,
-                                     bin_parameter = test_case_info.bins,
-                                     bin_index = bin_index,
-                                     exp_index = exp_index,
-                                     workdir = workdir)
-    plotter = CtiPlotter(file_namer = file_namer,
-                         object_table = object_data_table,
-                         bin_limits = bin_limits,
-                         l_ids_in_bin = l_test_case_object_ids, )
+    file_namer = CtiGalPlotFileNamer(method=method,
+                                     bin_parameter=test_case_info.bins,
+                                     bin_index=bin_index,
+                                     exp_index=exp_index,
+                                     workdir=workdir)
+    plotter = CtiPlotter(file_namer=file_namer,
+                         object_table=object_data_table,
+                         bin_limits=bin_limits,
+                         l_ids_in_bin=l_test_case_object_ids, )
 
     plotter.plot()
 

@@ -112,7 +112,7 @@ class TestPsfResReadInput(SheValPsfTestCase):
                 psf_res_sp_input.p_ref_star_cat.Header.ProductId.value())
 
         ex_mock_ref_star_cat = deepcopy(self.mock_ref_starcat_table)
-        add_bin_columns(ex_mock_ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+        add_bin_columns(ex_mock_ref_star_cat, data_stack=None, l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
 
         assert np.all(ex_mock_ref_star_cat == psf_res_sp_input.ref_star_cat)
 

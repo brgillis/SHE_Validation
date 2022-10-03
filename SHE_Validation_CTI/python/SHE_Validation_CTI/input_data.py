@@ -66,7 +66,7 @@ class PositionInfo:
     def _init_default_exp_shear_info(self):
         self.exposure_shear_info = {}
         for method in ShearEstimationMethods:
-            self.exposure_shear_info[method] = ShearEstimate(weight = 0)
+            self.exposure_shear_info[method] = ShearEstimate(weight=0)
 
     def __init__(self,
                  stamp: Optional[SHEImage] = None,
@@ -98,7 +98,7 @@ class PositionInfo:
             self.det_ix = int(ccdid[6])
             self.det_iy = int(ccdid[8])
 
-        self.quadrant = get_vis_quadrant(x_pix = self.x_pix, y_pix = self.y_pix, det_iy = self.det_iy)
+        self.quadrant = get_vis_quadrant(x_pix=self.x_pix, y_pix=self.y_pix, det_iy=self.det_iy)
 
         # Init default exposure shear if we don't have any world shear info
         if world_shear_info is None:
@@ -155,15 +155,15 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
     """
 
     detections_row: Row = data_stack.detections_catalogue.loc[object_id]
-    object_data: SingleObjectData = SingleObjectData(object_id = object_id,
-                                                     num_exposures = len(wcs_stack.exposures), )
+    object_data: SingleObjectData = SingleObjectData(object_id=object_id,
+                                                     num_exposures=len(wcs_stack.exposures), )
 
     # Set the shear info for this method
     for method in ShearEstimationMethods:
 
         shear_estimate_table: Table = d_shear_estimate_tables[method]
         if shear_estimate_table is None:
-            object_data.world_shear_info[method] = ShearEstimate(weight = 0)
+            object_data.world_shear_info[method] = ShearEstimate(weight=0)
             continue
 
         sem_tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
@@ -178,12 +178,12 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
         else:
             object_weight = 0
 
-        object_data.world_shear_info[method] = ShearEstimate(g1 = object_row[sem_tf.g1],
-                                                             g2 = object_row[sem_tf.g2],
-                                                             g1_err = object_row[sem_tf.g1_err],
-                                                             g2_err = object_row[sem_tf.g2_err],
-                                                             g1g2_covar = object_row[sem_tf.g1g2_covar],
-                                                             weight = object_weight)
+        object_data.world_shear_info[method] = ShearEstimate(g1=object_row[sem_tf.g1],
+                                                             g2=object_row[sem_tf.g2],
+                                                             g1_err=object_row[sem_tf.g1_err],
+                                                             g2_err=object_row[sem_tf.g2_err],
+                                                             g1g2_covar=object_row[sem_tf.g1g2_covar],
+                                                             weight=object_weight)
 
     # Get the object's world position from the detections catalog
     ra: float = detections_row[mfc_tf.gal_x_world]
@@ -193,10 +193,10 @@ def _get_raw_cg_data_for_object(data_stack: SHEFrameStack,
     for exp_index, exposure_wcs_stamp in enumerate(wcs_stack.exposures):
         # Add the position info by using the stamp as an initializer. The initializer
         # will properly use default values if the stamp is None
-        object_data.position_info[exp_index] = PositionInfo(stamp = exposure_wcs_stamp,
-                                                            world_shear_info = object_data.world_shear_info,
-                                                            ra = ra,
-                                                            dec = dec)
+        object_data.position_info[exp_index] = PositionInfo(stamp=exposure_wcs_stamp,
+                                                            world_shear_info=object_data.world_shear_info,
+                                                            ra=ra,
+                                                            dec=dec)
 
     return object_data
 
@@ -238,7 +238,7 @@ def get_raw_cti_gal_object_data(data_stack: SHEFrameStack,
         for oid_index, object_id in enumerate(s_object_ids):
 
             # Find the object's pixel coordinates by extracting a wcs
-            wcs_stack: SHEImageStack = data_stack.extract_galaxy_wcs_stack(object_id, none_if_out_of_bounds = True)
+            wcs_stack: SHEImageStack = data_stack.extract_galaxy_wcs_stack(object_id, none_if_out_of_bounds=True)
 
             if wcs_stack is None:
                 logger.warning(f"Object {object_id} is outside the observation.")
@@ -278,8 +278,8 @@ def sort_raw_object_data_into_table(l_raw_object_data: List[SingleObjectData]) -
     for exp_index in range(num_exposures):
 
         # Initialise the table with one row for each object
-        object_data_table: Table = CGOD_TF.init_table(size = num_objects,
-                                                      optional_columns = [CGOD_TF.quadrant, ])
+        object_data_table: Table = CGOD_TF.init_table(size=num_objects,
+                                                      optional_columns=[CGOD_TF.quadrant, ])
 
         # Fill in the data for each object
         for object_data, row in zip(l_raw_object_data, object_data_table):
@@ -305,7 +305,7 @@ def sort_raw_object_data_into_table(l_raw_object_data: List[SingleObjectData]) -
                 row[getattr(CGOD_TF, f"weight_{method_name}")] = exposure_shear_info.weight
 
         # We'll need to calculate the distance from the readout register, so add columns for that as well
-        add_readout_register_distance(object_data_table = object_data_table)
+        add_readout_register_distance(object_data_table=object_data_table)
 
         l_object_data_tables[exp_index] = object_data_table
 

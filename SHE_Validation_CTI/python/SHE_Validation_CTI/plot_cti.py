@@ -92,8 +92,8 @@ class CtiPlotter(ValidationPlotter):
             self._g1_colname = getattr(CGOD_TF, f"g1_image_{self.method_name}")
             self._weight_colname = getattr(CGOD_TF, f"weight_{self.method_name}")
 
-        self._t_good = get_table_of_ids(t = self.object_table,
-                                        l_ids = self.l_ids_in_bin, )
+        self._t_good = get_table_of_ids(t=self.object_table,
+                                        l_ids=self.l_ids_in_bin, )
 
     # Property getters and setters
 
@@ -184,9 +184,9 @@ class CtiPlotter(ValidationPlotter):
                 return True
 
         # Perform the linear regression, calculate bias, and save it in the bias dict
-        self.linregress_results = linregress_with_errors(x = self.l_rr_distarray,
-                                                         y = self.l_g1,
-                                                         y_err = self.l_g1_err)
+        self.linregress_results = linregress_with_errors(x=self.l_rr_distarray,
+                                                         y=self.l_g1,
+                                                         y_err=self.l_g1_err)
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Linear regression for {self.opt_method_str}test case {self.bin_parameter.value}, "
@@ -212,7 +212,7 @@ class CtiPlotter(ValidationPlotter):
         """
 
         # Draw the plot as a density scatter plot
-        self._density_scatter(self.l_rr_distarray, self.l_g1, sort = True, bins = 200, colorbar = False, s = 4)
+        self._density_scatter(self.l_rr_distarray, self.l_g1, sort=True, bins=200, colorbar=False, s=4)
 
         # Draw the x axis
         self._draw_x_axis()

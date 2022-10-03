@@ -64,10 +64,10 @@ class MockCtiDataGenerator(MockBinDataGenerator):
 
         self.data["g1_err"] = TEST_G1_ERR * self._ones
         self.data["weight"] = np.power(self.data["g1_err"], -2)
-        self.data["readout_dist"] = np.linspace(0, 2100, self.num_test_points, dtype = '>f4')
+        self.data["readout_dist"] = np.linspace(0, 2100, self.num_test_points, dtype='>f4')
 
         self.data["g1"] = (TEST_M * self.data["readout_dist"] + TEST_B + self.data["g1_err"] *
-                           self._rng.standard_normal(size = self.num_test_points)).astype('>f4')
+                           self._rng.standard_normal(size=self.num_test_points)).astype('>f4')
 
         # Make the last bit of data bad or zero weight
         self.data["weight"][-TEST_L_NAN - TEST_L_ZERO:-TEST_L_ZERO] = np.NaN
@@ -87,26 +87,26 @@ class TestCtiGalDataProcessing(SheTestCase):
         self.mock_data = MockCtiDataGenerator().get_data()
         self.indices = self.mock_data["indices"]
 
-    @pytest.fixture(scope = "class")
+    @pytest.fixture(scope="class")
     def measurements_table(self, class_setup):
-        measurements_table = LMC_TF.init_table(init_cols = {LMC_TF.ID: self.indices})
+        measurements_table = LMC_TF.init_table(init_cols={LMC_TF.ID: self.indices})
         return measurements_table
 
-    @pytest.fixture(scope = "class")
+    @pytest.fixture(scope="class")
     def detections_table(self, class_setup):
-        detections_table = MFC_TF.init_table(init_cols = {MFC_TF.ID: self.indices})
+        detections_table = MFC_TF.init_table(init_cols={MFC_TF.ID: self.indices})
         detections_table[BIN_TF.snr] = self.mock_data[BIN_TF.snr]
         detections_table[BIN_TF.bg] = self.mock_data[BIN_TF.bg]
         detections_table[BIN_TF.colour] = self.mock_data[BIN_TF.colour]
         detections_table[BIN_TF.size] = self.mock_data[BIN_TF.size]
         return detections_table
 
-    @pytest.fixture(scope = "class")
+    @pytest.fixture(scope="class")
     def object_data_table(self, class_setup):
-        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : self.indices,
-                                                            CGOD_TF.weight_LensMC  : self.mock_data["weight"],
-                                                            CGOD_TF.readout_dist   : self.mock_data["readout_dist"],
-                                                            CGOD_TF.g1_image_LensMC: self.mock_data["g1"]})
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.ID: self.indices,
+                                                          CGOD_TF.weight_LensMC: self.mock_data["weight"],
+                                                          CGOD_TF.readout_dist: self.mock_data["readout_dist"],
+                                                          CGOD_TF.g1_image_LensMC: self.mock_data["g1"]})
         return object_data_table
 
     def test_add_rr_distance(self):
@@ -116,9 +116,9 @@ class TestCtiGalDataProcessing(SheTestCase):
         assert det_size_y == 4136  # Calculations here rely on this being the value
 
         # Make some mock data
-        mock_y_data = np.array([-100., 0., 500., 1000., 2000., 3000., 4000., 5000.], dtype = '>f4')
+        mock_y_data = np.array([-100., 0., 500., 1000., 2000., 3000., 4000., 5000.], dtype='>f4')
 
-        mock_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.y: mock_y_data})
+        mock_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.y: mock_y_data})
 
         # Run the function
         add_readout_register_distance(mock_data_table)
@@ -136,32 +136,32 @@ class TestCtiGalDataProcessing(SheTestCase):
         d_measurements_tables = {ShearEstimationMethods.LENSMC: measurements_table}
 
         # Run the function
-        rr_row = calculate_regression_results(object_data_table = object_data_table,
-                                              l_ids_in_bin = detections_table[MFC_TF.ID],
-                                              method = ShearEstimationMethods.LENSMC,
-                                              product_type = "EXP",
-                                              bootstrap = False)
+        rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                              l_ids_in_bin=detections_table[MFC_TF.ID],
+                                              method=ShearEstimationMethods.LENSMC,
+                                              product_type="EXP",
+                                              bootstrap=False)
 
         # Check the results
 
         assert rr_row.meta[RR_TF.m.product_type] == "EXP"
 
-        ex_slope_err = self._check_rr_row(rr_row, self.mock_data, err_rtol = 0.01)
+        ex_slope_err = self._check_rr_row(rr_row, self.mock_data, err_rtol=0.01)
 
         # Test the calculation is sensible for each binning
 
         d_bin_limits = {}
-        l_test_case_info = make_test_case_info_for_bins(TestCaseInfo(method = ShearEstimationMethods.LENSMC))
+        l_test_case_info = make_test_case_info_for_bins(TestCaseInfo(method=ShearEstimationMethods.LENSMC))
         for test_case_info in l_test_case_info:
             d_bin_limits[test_case_info.bin_parameter] = (-0.5, 0.5, 1.5)
 
         # Get IDs for all bins
-        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = l_test_case_info,
-                                                            d_bin_limits = d_bin_limits,
-                                                            detections_table = detections_table,
-                                                            d_measurements_tables = d_measurements_tables,
-                                                            bin_constraint_type = BinParameterBinConstraint,
-                                                            data_stack = None)
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=l_test_case_info,
+                                                            d_bin_limits=d_bin_limits,
+                                                            detections_table=detections_table,
+                                                            d_measurements_tables=d_measurements_tables,
+                                                            bin_constraint_type=BinParameterBinConstraint,
+                                                            data_stack=None)
 
         for test_case_info in l_test_case_info:
             if test_case_info.bins == BinParameters.TOT or test_case_info.bins == BinParameters.EPOCH:
@@ -169,18 +169,18 @@ class TestCtiGalDataProcessing(SheTestCase):
             l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
             for bin_index in range(2):
                 l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
-                rr_row = calculate_regression_results(object_data_table = object_data_table,
-                                                      l_ids_in_bin = l_test_case_object_ids,
-                                                      method = ShearEstimationMethods.LENSMC,
-                                                      product_type = "OBS", )
+                rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                                      l_ids_in_bin=l_test_case_object_ids,
+                                                      method=ShearEstimationMethods.LENSMC,
+                                                      product_type="OBS", )
 
                 # Just check the slope here. Give root-2 times the tolerance since we're only using half the data
-                assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol = np.sqrt(2.) * TEST_SIGMA_L_TOL * ex_slope_err)
+                assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol=np.sqrt(2.) * TEST_SIGMA_L_TOL * ex_slope_err)
 
     def _check_rr_row(self,
                       rr_row: Row,
                       mock_data: Dict[str, Any],
-                      err_rtol = 0.1) -> float:
+                      err_rtol=0.1) -> float:
         """ Checks that the regression results row contains results matching what we expect from the mock data.
 
             Returns the expected slope error, which is used for other calculations.
@@ -191,11 +191,11 @@ class TestCtiGalDataProcessing(SheTestCase):
         ex_intercept_err = ex_slope_err * np.sqrt(np.sum(mock_data["readout_dist"][:TEST_L_GOOD] ** 2) / TEST_L_GOOD)
 
         assert rr_row[RR_TF.weight] == TEST_L_GOOD / TEST_G1_ERR ** 2
-        assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol = TEST_SIGMA_L_TOL * ex_slope_err)
-        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol = err_rtol)
-        assert np.isclose(rr_row[RR_TF.intercept], TEST_B, atol = TEST_SIGMA_L_TOL * ex_intercept_err)
-        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol = err_rtol)
-        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol = 5 * ex_slope_err * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.slope], TEST_M, atol=TEST_SIGMA_L_TOL * ex_slope_err)
+        assert np.isclose(rr_row[RR_TF.slope_err], ex_slope_err, rtol=err_rtol)
+        assert np.isclose(rr_row[RR_TF.intercept], TEST_B, atol=TEST_SIGMA_L_TOL * ex_intercept_err)
+        assert np.isclose(rr_row[RR_TF.intercept_err], ex_intercept_err, rtol=err_rtol)
+        assert np.isclose(rr_row[RR_TF.slope_intercept_covar], 0, atol=5 * ex_slope_err * ex_intercept_err)
 
         return ex_slope_err
 
@@ -205,15 +205,15 @@ class TestCtiGalDataProcessing(SheTestCase):
         """
 
         # Run the function with bootstrap error calculation on the regular data
-        exp_rr_row = calculate_regression_results(object_data_table = object_data_table,
-                                                  l_ids_in_bin = detections_table[MFC_TF.ID],
-                                                  method = ShearEstimationMethods.LENSMC,
-                                                  product_type = "OBS",
-                                                  bootstrap = True)
+        exp_rr_row = calculate_regression_results(object_data_table=object_data_table,
+                                                  l_ids_in_bin=detections_table[MFC_TF.ID],
+                                                  method=ShearEstimationMethods.LENSMC,
+                                                  product_type="OBS",
+                                                  bootstrap=True)
 
         # Check the results
 
-        self._check_rr_row(exp_rr_row, self.mock_data, err_rtol = 0.1)
+        self._check_rr_row(exp_rr_row, self.mock_data, err_rtol=0.1)
 
         # Now test with a modified object data type, with multiple entries for each object
 
@@ -228,14 +228,14 @@ class TestCtiGalDataProcessing(SheTestCase):
         obs_object_data_table = table.vstack(l_object_data_tables)
 
         # Run the function with bootstrap error calculation on the regular data
-        obs_rr_row = calculate_regression_results(object_data_table = obs_object_data_table,
-                                                  l_ids_in_bin = detections_table[MFC_TF.ID],
-                                                  method = ShearEstimationMethods.LENSMC,
-                                                  product_type = "OBS",
-                                                  bootstrap = True)
+        obs_rr_row = calculate_regression_results(object_data_table=obs_object_data_table,
+                                                  l_ids_in_bin=detections_table[MFC_TF.ID],
+                                                  method=ShearEstimationMethods.LENSMC,
+                                                  product_type="OBS",
+                                                  bootstrap=True)
 
         # Check that the slope and intercept errors from this are about the same as for the individual exposure (
         # since there's no actual new data)
 
-        assert np.isclose(exp_rr_row[RR_TF.slope_err], obs_rr_row[RR_TF.slope_err], rtol = 0.1)
-        assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol = 0.1)
+        assert np.isclose(exp_rr_row[RR_TF.slope_err], obs_rr_row[RR_TF.slope_err], rtol=0.1)
+        assert np.isclose(exp_rr_row[RR_TF.intercept_err], obs_rr_row[RR_TF.intercept_err], rtol=0.1)

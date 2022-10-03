@@ -43,13 +43,13 @@ NON_GLOBAL_BIN_PARAMETERS: List[BinParameters] = [bin_parameter for bin_paramete
 # Define dicts listing how ID numbers and names work within test cases with various bin parameters
 
 # ID number offset is how much the test case ID differs from the lowest value for each test case
-D_ID_NUMBER_OFFSETS: Dict[Union[BinParameters, None], int] = {None                : 0,
-                                                              BinParameters.TOT   : -1,
-                                                              BinParameters.SNR   : 0,
-                                                              BinParameters.BG    : 1,
+D_ID_NUMBER_OFFSETS: Dict[Union[BinParameters, None], int] = {None: 0,
+                                                              BinParameters.TOT: -1,
+                                                              BinParameters.SNR: 0,
+                                                              BinParameters.BG: 1,
                                                               BinParameters.COLOUR: 3,
-                                                              BinParameters.SIZE  : 2,
-                                                              BinParameters.EPOCH : 4, }
+                                                              BinParameters.SIZE: 2,
+                                                              BinParameters.EPOCH: 4, }
 
 
 class BinParameterMeta:
@@ -197,28 +197,28 @@ class BinParameterMeta:
 # Set up BinParameterMeta for each binning parameter
 D_BIN_PARAMETER_META: Dict[BinParameters, BinParameterMeta] = {}
 
-D_BIN_PARAMETER_META[BinParameters.TOT] = BinParameterMeta(bin_parameter_enum = BinParameters.TOT, )
+D_BIN_PARAMETER_META[BinParameters.TOT] = BinParameterMeta(bin_parameter_enum=BinParameters.TOT, )
 
-D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum = BinParameters.SNR,
-                                                           long_name = "SNR",
-                                                           config_key = ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
-                                                           id_tail = "SNR")
+D_BIN_PARAMETER_META[BinParameters.SNR] = BinParameterMeta(bin_parameter_enum=BinParameters.SNR,
+                                                           long_name="SNR",
+                                                           config_key=ValidationConfigKeys.VAL_SNR_BIN_LIMITS,
+                                                           id_tail="SNR")
 
-D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum = BinParameters.BG,
-                                                          long_name = "background level",
-                                                          units = BACKGROUND_LEVEL_UNITS,
-                                                          config_key = ValidationConfigKeys.VAL_BG_BIN_LIMITS)
+D_BIN_PARAMETER_META[BinParameters.BG] = BinParameterMeta(bin_parameter_enum=BinParameters.BG,
+                                                          long_name="background level",
+                                                          units=BACKGROUND_LEVEL_UNITS,
+                                                          config_key=ValidationConfigKeys.VAL_BG_BIN_LIMITS)
 
-D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum = BinParameters.COLOUR,
-                                                              definition = COLOUR_DEFINITION,
-                                                              config_key = ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS, )
+D_BIN_PARAMETER_META[BinParameters.COLOUR] = BinParameterMeta(bin_parameter_enum=BinParameters.COLOUR,
+                                                              definition=COLOUR_DEFINITION,
+                                                              config_key=ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS, )
 
-D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum = BinParameters.SIZE,
-                                                            units = SIZE_UNITS,
-                                                            definition = SIZE_DEFINITION,
-                                                            config_key = ValidationConfigKeys.VAL_SIZE_BIN_LIMITS, )
+D_BIN_PARAMETER_META[BinParameters.SIZE] = BinParameterMeta(bin_parameter_enum=BinParameters.SIZE,
+                                                            units=SIZE_UNITS,
+                                                            definition=SIZE_DEFINITION,
+                                                            config_key=ValidationConfigKeys.VAL_SIZE_BIN_LIMITS, )
 
-D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum = BinParameters.EPOCH)
+D_BIN_PARAMETER_META[BinParameters.EPOCH] = BinParameterMeta(bin_parameter_enum=BinParameters.EPOCH)
 
 # Set up the dict relating cline-args to config keys
 D_BIN_LIMITS_CLINE_ARGS: Dict[ConfigKeys, str] = {}

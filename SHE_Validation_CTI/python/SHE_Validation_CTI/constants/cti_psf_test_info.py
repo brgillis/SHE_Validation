@@ -26,23 +26,23 @@ from SHE_Validation.constants.test_info import (BinParameters, ID_NUMBER_REPLACE
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 
 # Metadata about the requirement
-CTI_PSF_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-CAL-F-020",
-                                           description = "CTI correction residuals in the PSF.",
-                                           parameter = ("Z-values of differences in slope of g1_image versus distance "
-                                                        "from readout register between bins, compared to expectation "
-                                                        "of zero."))
+CTI_PSF_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-020",
+                                           description="CTI correction residuals in the PSF.",
+                                           parameter=("Z-values of differences in slope of g1_image versus distance "
+                                                      "from readout register between bins, compared to expectation "
+                                                      "of zero."))
 
 # Metadata about the test
-CTI_PSF_TEST_INFO = TestInfo(test_id = "T-SHE-000009-CTI-PSF",
-                             description = ("Linear dependence of PSF ellipticity with read-out register  distance ("
-                                            "slope)."))
+CTI_PSF_TEST_INFO = TestInfo(test_id="T-SHE-000009-CTI-PSF",
+                             description=("Linear dependence of PSF ellipticity with read-out register  distance ("
+                                          "slope)."))
 
-BASE_CTI_PSF_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-PSF-"
-                                                               f"{NAME_REPLACE_TAG}",
-                                           base_name = f"CG-{NAME_REPLACE_TAG}",
-                                           base_description = ("Linear dependence of PSF ellipticity with read-out "
-                                                               "register  distance (slope)."),
-                                           base_id_number = 100024)
+BASE_CTI_PSF_TEST_CASE_INFO = TestCaseInfo(base_test_case_id=f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-PSF-"
+                                                             f"{NAME_REPLACE_TAG}",
+                                           base_name=f"CG-{NAME_REPLACE_TAG}",
+                                           base_description=("Linear dependence of PSF ellipticity with read-out "
+                                                             "register  distance (slope)."),
+                                           base_id_number=100024)
 
 # Create a list and dict of the test case info for each bin parameter
 CTI_PSF_BIN_PARAMETERS = [BinParameters.SNR,
@@ -51,7 +51,7 @@ CTI_PSF_BIN_PARAMETERS = [BinParameters.SNR,
                           BinParameters.EPOCH]
 
 L_CTI_PSF_TEST_CASE_INFO = make_test_case_info_for_bins(BASE_CTI_PSF_TEST_CASE_INFO,
-                                                        l_bin_parameters = CTI_PSF_BIN_PARAMETERS)
+                                                        l_bin_parameters=CTI_PSF_BIN_PARAMETERS)
 
 NUM_CTI_PSF_TEST_CASES = len(L_CTI_PSF_TEST_CASE_INFO)
 

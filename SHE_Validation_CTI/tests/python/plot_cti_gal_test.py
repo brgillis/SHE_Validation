@@ -50,12 +50,12 @@ class TestPlotCti(SheTestCase):
         l_zero = 5  # Length of zero-weight data
         l_tot = l_good + l_nan + l_zero
 
-        rng = np.random.default_rng(seed = 12545)
+        rng = np.random.default_rng(seed=12545)
 
-        g1_err_data = g1_err * np.ones(l_tot, dtype = '>f4')
+        g1_err_data = g1_err * np.ones(l_tot, dtype='>f4')
         weight_data = np.power(g1_err_data, -2)
-        readout_dist_data = np.linspace(0, 2100, l_good + l_nan + l_zero, dtype = '>f4')
-        g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size = l_tot)).astype('>f4')
+        readout_dist_data = np.linspace(0, 2100, l_good + l_nan + l_zero, dtype='>f4')
+        g1_data = (m * readout_dist_data + b + g1_err_data * rng.standard_normal(size=l_tot)).astype('>f4')
 
         # Make the last bit of data bad or zero weight
         weight_data[-l_nan - l_zero:-l_zero] = np.NaN
@@ -63,21 +63,21 @@ class TestPlotCti(SheTestCase):
         g1_data[-l_nan - l_zero:-l_zero] = np.NaN
         weight_data[-l_zero:] = 0
 
-        indices = np.indices((l_tot,), dtype = int, )[0]
-        object_data_table = CGOD_TF.init_table(init_cols = {CGOD_TF.ID             : indices,
-                                                            CGOD_TF.weight_LensMC  : weight_data,
-                                                            CGOD_TF.readout_dist   : readout_dist_data,
-                                                            CGOD_TF.g1_image_LensMC: g1_data})
+        indices = np.indices((l_tot,), dtype=int, )[0]
+        object_data_table = CGOD_TF.init_table(init_cols={CGOD_TF.ID: indices,
+                                                          CGOD_TF.weight_LensMC: weight_data,
+                                                          CGOD_TF.readout_dist: readout_dist_data,
+                                                          CGOD_TF.g1_image_LensMC: g1_data})
 
         # Run the plotting
-        file_namer = CtiGalPlotFileNamer(method = method,
-                                         bin_parameter = BinParameters.TOT,
-                                         bin_index = 0,
-                                         workdir = self.workdir)
-        plotter = CtiPlotter(file_namer = file_namer,
-                             object_table = object_data_table,
-                             bin_limits = TOT_BIN_LIMITS,
-                             l_ids_in_bin = indices[:l_good], )
+        file_namer = CtiGalPlotFileNamer(method=method,
+                                         bin_parameter=BinParameters.TOT,
+                                         bin_index=0,
+                                         workdir=self.workdir)
+        plotter = CtiPlotter(file_namer=file_namer,
+                             object_table=object_data_table,
+                             bin_limits=TOT_BIN_LIMITS,
+                             l_ids_in_bin=indices[:l_good], )
         plotter.plot()
 
         # Check the results

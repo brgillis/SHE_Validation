@@ -30,8 +30,8 @@ from .constants.test_info import BinParameters, D_BIN_PARAMETER_META
 logger = getLogger(__name__)
 
 # Set up the common types and enum types for configs
-COMMON_VAL_TYPES = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : float,
-                    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : float,
+COMMON_VAL_TYPES = {ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: float,
+                    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: float,
                     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling}
 for _bin_parameter in BinParameters:
     _bin_limits_key = D_BIN_PARAMETER_META[_bin_parameter].config_key

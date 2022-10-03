@@ -70,14 +70,14 @@ ax.set_ylabel(AXIS_LABELS[Y_KEY])
 
 # Fill and outline regions for requirements
 for d_reqs in REQS_TO_PLOT:
-    ax.plot((d_reqs[X_KEY], d_reqs[X_KEY]), ylim, linestyle = "--", color = "k")
-    ax.fill_between((xmin, d_reqs[X_KEY]), (ymin, ymin), (ymax, ymax), color = FILL_COLOR[X_KEY], alpha = FILL_ALPHA)
+    ax.plot((d_reqs[X_KEY], d_reqs[X_KEY]), ylim, linestyle="--", color="k")
+    ax.fill_between((xmin, d_reqs[X_KEY]), (ymin, ymin), (ymax, ymax), color=FILL_COLOR[X_KEY], alpha=FILL_ALPHA)
 
-    ax.plot(xlim, (d_reqs[Y_KEY], d_reqs[Y_KEY]), linestyle = "--", color = "k")
-    ax.fill_between(xlim, (ymin, ymin), (d_reqs[Y_KEY], d_reqs[Y_KEY]), color = FILL_COLOR[Y_KEY], alpha = FILL_ALPHA)
+    ax.plot(xlim, (d_reqs[Y_KEY], d_reqs[Y_KEY]), linestyle="--", color="k")
+    ax.fill_between(xlim, (ymin, ymin), (d_reqs[Y_KEY], d_reqs[Y_KEY]), color=FILL_COLOR[Y_KEY], alpha=FILL_ALPHA)
 
 # Plot the points
-ax.scatter(MEASURED_ERRS[X_KEY], MEASURED_ERRS[Y_KEY], c = "k")
+ax.scatter(MEASURED_ERRS[X_KEY], MEASURED_ERRS[Y_KEY], c="k")
 
 plt.title('Shear Bias Error Validation')
 plt.show()

@@ -48,14 +48,14 @@ class SheRegressionResultsMeta(SheTableMeta):
 
     def __init__(self):
         # Store the less-used comments in a dict
-        super().__init__(comments = OrderedDict(((self.fits_version, None),
-                                                 (self.fits_def, None),
-                                                 (self.product_type, "Whether this is a test of an observation (OBS) " +
-                                                  "or exposure (EXP)"),
-                                                 (self.test_case, None),
-                                                 (self.bin_limit_min, None),
-                                                 (self.bin_limit_max, None),
-                                                 )))
+        super().__init__(comments=OrderedDict(((self.fits_version, None),
+                                               (self.fits_def, None),
+                                               (self.product_type, "Whether this is a test of an observation (OBS) " +
+                                                "or exposure (EXP)"),
+                                               (self.test_case, None),
+                                               (self.bin_limit_min, None),
+                                               (self.bin_limit_max, None),
+                                               )))
 
 
 class SheRegressionResultsFormat(SheTableFormat):
@@ -70,8 +70,8 @@ class SheRegressionResultsFormat(SheTableFormat):
 
         # Table column labels
 
-        self.index = self.set_column_properties(f"INDEX", dtype = int, fits_dtype = ">i2")
-        self.method = self.set_column_properties(f"METHOD", dtype = str, fits_dtype = "A", length = 9)
+        self.index = self.set_column_properties(f"INDEX", dtype=int, fits_dtype=">i2")
+        self.method = self.set_column_properties(f"METHOD", dtype=str, fits_dtype="A", length=9)
 
         self.weight = self.set_column_properties(f"WEIGHT")
         self.slope = self.set_column_properties(f"M")

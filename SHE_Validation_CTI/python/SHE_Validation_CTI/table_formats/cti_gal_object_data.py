@@ -51,17 +51,17 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
         super().__init__(SheCtiGalObjectDataMeta())
 
         # Table column labels
-        self.ID = self.set_column_properties("OBJECT_ID", dtype = ">i8", fits_dtype = "K")
+        self.ID = self.set_column_properties("OBJECT_ID", dtype=">i8", fits_dtype="K")
 
-        self.x = self.set_column_properties("X_IMAGE", comment = "pixels")
-        self.y = self.set_column_properties("Y_IMAGE", comment = "pixels")
+        self.x = self.set_column_properties("X_IMAGE", comment="pixels")
+        self.y = self.set_column_properties("Y_IMAGE", comment="pixels")
 
-        self.det_ix = self.set_column_properties("DET_X", dtype = ">i2", fits_dtype = "I")
-        self.det_iy = self.set_column_properties("DET_Y", dtype = ">i2", fits_dtype = "I")
+        self.det_ix = self.set_column_properties("DET_X", dtype=">i2", fits_dtype="I")
+        self.det_iy = self.set_column_properties("DET_Y", dtype=">i2", fits_dtype="I")
 
-        self.quadrant = self.set_column_properties("QUAD", dtype = "str", fits_dtype = "A", length = 1,
-                                                   is_optional = True)
-        self.readout_dist = self.set_column_properties("READOUT_DIST", comment = "pixels", is_optional = True)
+        self.quadrant = self.set_column_properties("QUAD", dtype="str", fits_dtype="A", length=1,
+                                                   is_optional=True)
+        self.readout_dist = self.set_column_properties("READOUT_DIST", comment="pixels", is_optional=True)
 
         # Set up separate shear columns for each shear estimation method
 
@@ -71,9 +71,9 @@ class SheCtiGalObjectDataFormat(SheTableFormat):
             upper_method = method_name.upper()
 
             setattr(self, f"g1_world_{method_name}", self.set_column_properties(
-                f"G1_WORLD_{upper_method}", is_optional = True))
+                f"G1_WORLD_{upper_method}", is_optional=True))
             setattr(self, f"g2_world_{method_name}", self.set_column_properties(
-                f"G2_WORLD_{upper_method}", is_optional = True))
+                f"G2_WORLD_{upper_method}", is_optional=True))
 
             setattr(self, f"weight_{method_name}", self.set_column_properties(f"WEIGHT_{upper_method}"))
 

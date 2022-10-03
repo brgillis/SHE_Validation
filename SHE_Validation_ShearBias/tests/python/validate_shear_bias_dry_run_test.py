@@ -92,7 +92,7 @@ class ShearBiasTestCase(SheTestCase):
 
         assert os.path.isfile(qualified_output_filename)
 
-        p = read_xml_product(xml_filename = qualified_output_filename)
+        p = read_xml_product(xml_filename=qualified_output_filename)
 
         test_list = p.Data.ValidationTestList
         plot_filename = None
@@ -106,7 +106,7 @@ class ShearBiasTestCase(SheTestCase):
             figures_tarball_filename = test.AnalysisResult.AnalysisFiles.Figures.FileName
 
             for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-                subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell = True)
+                subprocess.call(f"cd {workdir} && tar xf {tarball_filename}", shell=True)
 
             qualified_directory_filename = os.path.join(workdir, SHEAR_BIAS_DIRECTORY_FILENAME)
             logger.info(f"Opening file: {qualified_directory_filename}")

@@ -61,7 +61,7 @@ class CCVDTestCase(SheTestCase):
         setattr(self.args, CA_SHE_MEAS, meas_filename)
 
         # Set up the mock MER Final Catalog
-        mfc_table_gen = MockMFCGalaxyTableGenerator(workdir = self.workdir)
+        mfc_table_gen = MockMFCGalaxyTableGenerator(workdir=self.workdir)
         mfc_table_gen.write_mock_listfile()
         setattr(self.args, CA_MER_CAT, mfc_table_gen.listfile_filename)
 

@@ -58,18 +58,18 @@ def run_psf_res_val_test(star_cat: Table,
     add_snr_column_to_star_cat(star_cat)
 
     # Get lists of IDs in each bin, in both the test and reference star catalogs
-    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
-                                                        d_bin_limits = d_l_bin_limits,
-                                                        detections_table = star_cat,
-                                                        bin_constraint_type = BinParameterBinConstraint)
+    d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_PSF_RES_SP_TEST_CASE_INFO,
+                                                        d_bin_limits=d_l_bin_limits,
+                                                        detections_table=star_cat,
+                                                        bin_constraint_type=BinParameterBinConstraint)
 
     d_l_l_ref_test_case_object_ids: Optional[Dict[str, List[Sequence[int]]]]
     if ref_star_cat is not None:
         add_snr_column_to_star_cat(ref_star_cat)
-        d_l_l_ref_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
-                                                                d_bin_limits = d_l_bin_limits,
-                                                                detections_table = ref_star_cat,
-                                                                bin_constraint_type = BinParameterBinConstraint)
+        d_l_l_ref_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_PSF_RES_SP_TEST_CASE_INFO,
+                                                                d_bin_limits=d_l_bin_limits,
+                                                                detections_table=ref_star_cat,
+                                                                bin_constraint_type=BinParameterBinConstraint)
     else:
         d_l_l_ref_test_case_object_ids = None
 
@@ -106,39 +106,39 @@ def run_psf_res_val_test(star_cat: Table,
             l_ref_test_case_object_ids = getitem_or_none(l_l_ref_test_case_object_ids, bin_index)
 
             # Get tables with only data in this bin
-            table_in_bin = get_table_in_bin(cat = star_cat,
-                                            bin_parameter = bin_parameter,
-                                            bin_index = bin_index,
-                                            l_bin_limits = l_bin_limits,
-                                            l_test_case_object_ids = l_test_case_object_ids)
-            ref_table_in_bin = get_table_in_bin(cat = ref_star_cat,
-                                                bin_parameter = bin_parameter,
-                                                bin_index = bin_index,
-                                                l_bin_limits = l_bin_limits,
-                                                l_test_case_object_ids = l_ref_test_case_object_ids)
+            table_in_bin = get_table_in_bin(cat=star_cat,
+                                            bin_parameter=bin_parameter,
+                                            bin_index=bin_index,
+                                            l_bin_limits=l_bin_limits,
+                                            l_test_case_object_ids=l_test_case_object_ids)
+            ref_table_in_bin = get_table_in_bin(cat=ref_star_cat,
+                                                bin_parameter=bin_parameter,
+                                                bin_index=bin_index,
+                                                l_bin_limits=l_bin_limits,
+                                                l_test_case_object_ids=l_ref_test_case_object_ids)
 
             # Run the test on this table and store the result
-            l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat = table_in_bin,
-                                                                          ref_star_cat = ref_table_in_bin,
-                                                                          group_mode = group_mode)
+            l_psf_res_result_ps[bin_index] = run_psf_res_val_test_for_bin(star_cat=table_in_bin,
+                                                                          ref_star_cat=ref_table_in_bin,
+                                                                          group_mode=group_mode)
 
             # Create histograms for this bin
             for (cumulative, file_namer_type) in ((False, PsfResSPHistFileNamer),
                                                   (True, PsfResSPCumHistFileNamer)):
 
-                file_namer = file_namer_type(bin_parameter = bin_parameter,
-                                             bin_index = bin_index,
-                                             workdir = workdir)
+                file_namer = file_namer_type(bin_parameter=bin_parameter,
+                                             bin_index=bin_index,
+                                             workdir=workdir)
 
-                hist_plotter = PsfResSPHistPlotter(star_cat = star_cat,
-                                                   ref_star_cat = ref_star_cat,
-                                                   file_namer = file_namer,
-                                                   bin_limits = l_bin_limits[bin_index:bin_index + 2],
-                                                   l_ids_in_bin = l_test_case_object_ids,
-                                                   l_ref_ids_in_bin = l_ref_test_case_object_ids,
-                                                   ks_test_result = l_psf_res_result_ps[bin_index],
-                                                   group_mode = group_mode,
-                                                   cumulative = cumulative)
+                hist_plotter = PsfResSPHistPlotter(star_cat=star_cat,
+                                                   ref_star_cat=ref_star_cat,
+                                                   file_namer=file_namer,
+                                                   bin_limits=l_bin_limits[bin_index:bin_index + 2],
+                                                   l_ids_in_bin=l_test_case_object_ids,
+                                                   l_ref_ids_in_bin=l_ref_test_case_object_ids,
+                                                   ks_test_result=l_psf_res_result_ps[bin_index],
+                                                   group_mode=group_mode,
+                                                   cumulative=cumulative)
                 hist_plotter.plot()
 
                 cum_label: Optional[str] = "cum" if cumulative else None
@@ -152,19 +152,19 @@ def run_psf_res_val_test(star_cat: Table,
 
         # Create a scatter plot of the data
 
-        scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = bin_parameter,
-                                                      workdir = workdir)
+        scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter=bin_parameter,
+                                                      workdir=workdir)
 
         l_ref_ids = ref_star_cat[ESC_TF.id] if ref_star_cat is not None else None
 
         # Plot the scatter plot
-        scatter_plotter = PsfResSPScatterPlotter(star_cat = star_cat,
-                                                 ref_star_cat = ref_star_cat,
-                                                 file_namer = scatter_file_namer,
-                                                 bin_limits = l_bin_limits,
-                                                 l_ids_in_bin = star_cat[ESC_TF.id],
-                                                 l_ref_ids_in_bin = l_ref_ids,
-                                                 group_mode = False, )
+        scatter_plotter = PsfResSPScatterPlotter(star_cat=star_cat,
+                                                 ref_star_cat=ref_star_cat,
+                                                 file_namer=scatter_file_namer,
+                                                 bin_limits=l_bin_limits,
+                                                 l_ids_in_bin=star_cat[ESC_TF.id],
+                                                 l_ref_ids_in_bin=l_ref_ids,
+                                                 group_mode=False, )
         scatter_plotter.plot()
 
         # Save the name of the created plot in the d_d_plot_filenames dict
@@ -210,13 +210,13 @@ def run_psf_res_val_test_for_bin(star_cat: Table,
     if ref_star_cat is None:
         # If no reference star catalog is provided, do a one-sample test comparing against a uniform distribution of
         # p values
-        ks_test_result = kstest(rvs = l_ps_trimmed, cdf = uniform.cdf)
+        ks_test_result = kstest(rvs=l_ps_trimmed, cdf=uniform.cdf)
     else:
         # If a reference star catalog is provided, test that this catalog is consistent with it or better using a
         # two-sample test.
 
-        ks_test_result = ks_2samp(data1 = l_ps_trimmed, data2 = l_ref_ps_trimmed,
-                                  alternative = 'greater')
+        ks_test_result = ks_2samp(data1=l_ps_trimmed, data2=l_ref_ps_trimmed,
+                                  alternative='greater')
 
     return ks_test_result
 

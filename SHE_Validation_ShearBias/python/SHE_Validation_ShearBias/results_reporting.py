@@ -229,20 +229,20 @@ class ShearBiasRequirementWriter(RequirementWriter):
                         f"Maximum allowed {self._prop}_z = {self.fail_sigma:.{REPORT_DIGITS}f}\n" +
                         f"Result: {result}\n\n")
 
-        l_supplementary_info = (SupplementaryInfo(key = KEY_G1_INFO,
-                                                  description = D_DESC_INFO[f"{self._prop}1"],
-                                                  message = d_messages[1]),
-                                SupplementaryInfo(key = KEY_G2_INFO,
-                                                  description = D_DESC_INFO[f"{self._prop}2"],
-                                                  message = d_messages[2]))
+        l_supplementary_info = (SupplementaryInfo(key=KEY_G1_INFO,
+                                                  description=D_DESC_INFO[f"{self._prop}1"],
+                                                  message=d_messages[1]),
+                                SupplementaryInfo(key=KEY_G2_INFO,
+                                                  description=D_DESC_INFO[f"{self._prop}2"],
+                                                  message=d_messages[2]))
 
         return l_supplementary_info
 
     def report_bad_shear_bias_data(self):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        l_supplementary_info = self._get_supplementary_info(extra_g1_message = MSG_NAN_VAL,
-                                                            extra_g2_message = MSG_NAN_VAL, )
+        l_supplementary_info = self._get_supplementary_info(extra_g1_message=MSG_NAN_VAL,
+                                                            extra_g2_message=MSG_NAN_VAL, )
         super().report_bad_data(l_supplementary_info)
 
     def report_zero_err(self):
@@ -253,17 +253,17 @@ class ShearBiasRequirementWriter(RequirementWriter):
         self.requirement_object.Comment = WARNING_MULTIPLE
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
-        self.add_supplementary_info(self._get_supplementary_info(extra_g1_message = MSG_ZERO_ERR,
-                                                                 extra_g2_message = MSG_ZERO_ERR, ))
+        self.add_supplementary_info(self._get_supplementary_info(extra_g1_message=MSG_ZERO_ERR,
+                                                                 extra_g2_message=MSG_ZERO_ERR, ))
 
     def report_good_shear_bias_data(self,
                                     measured_value: float):
 
         # Add a supplementary info key for each of the slope and intercept, reporting details
         l_supplementary_info: Sequence[SupplementaryInfo] = self._get_supplementary_info()
-        super().report_good_data(measured_value = measured_value,
-                                 warning = False,
-                                 l_supplementary_info = l_supplementary_info)
+        super().report_good_data(measured_value=measured_value,
+                                 warning=False,
+                                 l_supplementary_info=l_supplementary_info)
 
     def _calc_test_results(self):
         """ Calculate the test results
@@ -333,8 +333,8 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         # If report method is supplied, go with that rather than figuring it out
         if report_method:
-            return super().write(report_method = report_method,
-                                 report_kwargs = report_kwargs, )
+            return super().write(report_method=report_method,
+                                 report_kwargs=report_kwargs, )
 
         # Default to reporting good data
         if report_method is None:
@@ -404,9 +404,9 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
             extra_report_kwargs = {"measured_value": np.nanmax((*l_val_z1, *l_val_z2))}
 
-        return super().write(result = self.result,
-                             report_method = report_method,
-                             report_kwargs = {**report_kwargs, **extra_report_kwargs}, )
+        return super().write(result=self.result,
+                             report_method=report_method,
+                             report_kwargs={**report_kwargs, **extra_report_kwargs}, )
 
 
 class ShearBiasAnalysisWriter(AnalysisWriter):
@@ -454,8 +454,8 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
                  **kwargs):
 
         super().__init__(*args,
-                         test_object = test_object,
-                         workdir = workdir,
+                         test_object=test_object,
+                         workdir=workdir,
                          **kwargs)
 
         self.fail_sigma_calculator = fail_sigma_calculator
@@ -507,16 +507,16 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
 
                 report_method = None
                 report_kwargs = {}
-                write_kwargs = {"have_data"     : True,
-                                "prop"          : prop,
-                                "l_d_val"       : l_d_val,
-                                "l_d_val_err"   : l_d_val_err,
+                write_kwargs = {"have_data": True,
+                                "prop": prop,
+                                "l_d_val": l_d_val,
+                                "l_d_val_err": l_d_val_err,
                                 "l_d_val_target": l_d_val_target,
-                                "l_d_val_z"     : l_d_val_z,
-                                "fail_sigma"    : fail_sigma,
-                                "method"        : test_case_info.method,
-                                "bin_parameter" : test_case_info.bin_parameter,
-                                "l_bin_limits"  : self.d_l_bin_limits[test_case_info.bins]}
+                                "l_d_val_z": l_d_val_z,
+                                "fail_sigma": fail_sigma,
+                                "method": test_case_info.method,
+                                "bin_parameter": test_case_info.bin_parameter,
+                                "l_bin_limits": self.d_l_bin_limits[test_case_info.bins]}
 
             else:
                 # Report that the test wasn't run due to a lack of data
@@ -527,7 +527,7 @@ class ShearBiasValidationResultsWriter(ValidationResultsWriter):
             write_kwargs["report_method"] = report_method
             write_kwargs["report_kwargs"] = report_kwargs
 
-            test_case_writer.write(requirements_kwargs = write_kwargs, )
+            test_case_writer.write(requirements_kwargs=write_kwargs, )
 
 
 def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResults,
@@ -542,18 +542,18 @@ def fill_shear_bias_test_results(test_result_product: dpdSheValidationTestResult
     """
 
     # Set up a calculator object for scaled fail sigmas
-    fail_sigma_calculator = FailSigmaCalculator(pipeline_config = pipeline_config,
-                                                l_test_case_info = L_SHEAR_BIAS_TEST_CASE_INFO,
-                                                d_l_bin_limits = d_l_bin_limits,
-                                                mode = mode)
+    fail_sigma_calculator = FailSigmaCalculator(pipeline_config=pipeline_config,
+                                                l_test_case_info=L_SHEAR_BIAS_TEST_CASE_INFO,
+                                                d_l_bin_limits=d_l_bin_limits,
+                                                mode=mode)
 
     # Initialize a test results writer
-    test_results_writer = ShearBiasValidationResultsWriter(test_object = test_result_product,
-                                                           workdir = workdir,
-                                                           d_l_test_results = d_l_test_results,
-                                                           d_l_bin_limits = d_l_bin_limits,
-                                                           fail_sigma_calculator = fail_sigma_calculator,
-                                                           mode = mode,
-                                                           dl_dl_figures = dl_dl_plot_filenames)
+    test_results_writer = ShearBiasValidationResultsWriter(test_object=test_result_product,
+                                                           workdir=workdir,
+                                                           d_l_test_results=d_l_test_results,
+                                                           d_l_bin_limits=d_l_bin_limits,
+                                                           fail_sigma_calculator=fail_sigma_calculator,
+                                                           mode=mode,
+                                                           dl_dl_figures=dl_dl_plot_filenames)
 
     test_results_writer.write()

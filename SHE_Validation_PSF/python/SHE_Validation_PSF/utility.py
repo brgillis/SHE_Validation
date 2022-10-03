@@ -64,17 +64,17 @@ class SheExtStarCatalogFormat(SheStarCatalogFormat):
     def __init__(self):
         super().__init__()
 
-        self.snr = self.set_column_properties(BIN_TF.snr, dtype = BIN_TF.dtypes[BIN_TF.snr],
-                                              fits_dtype = BIN_TF.fits_dtypes[BIN_TF.snr],
-                                              is_optional = True)
+        self.snr = self.set_column_properties(BIN_TF.snr, dtype=BIN_TF.dtypes[BIN_TF.snr],
+                                              fits_dtype=BIN_TF.fits_dtypes[BIN_TF.snr],
+                                              is_optional=True)
 
-        self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype = ">f4", fits_dtype = "E",
-                                                  comment = "p-value for a Chi-squared test on this group",
-                                                  is_optional = True)
+        self.group_p = self.set_column_properties("SHE_STARCAT_GROUP_P", dtype=">f4", fits_dtype="E",
+                                                  comment="p-value for a Chi-squared test on this group",
+                                                  is_optional=True)
 
-        self.star_p = self.set_column_properties("SHE_STARCAT_STAR_P", dtype = ">f4", fits_dtype = "E",
-                                                 comment = "p-value for a Chi-squared test on this star",
-                                                 is_optional = True)
+        self.star_p = self.set_column_properties("SHE_STARCAT_STAR_P", dtype=">f4", fits_dtype="E",
+                                                 comment="p-value for a Chi-squared test on this star",
+                                                 is_optional=True)
 
         self._finalize_init()
 
@@ -110,7 +110,7 @@ def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[
     l_unique_ids: Sequence[int] = np.unique(cat[id_colname])
     num_groups = len(l_unique_ids)
 
-    l_ps = np.ones(num_groups, dtype = float)
+    l_ps = np.ones(num_groups, dtype=float)
 
     # Run the test for each group
     cat.add_index(id_colname)
@@ -141,8 +141,8 @@ def calculate_p_values(cat: Optional[Table], group_mode: bool) -> Optional[List[
         else:
             num_fitted_params = 0
 
-        l_ps[i] = chi2.sf(x = data_row[chisq_colname],
-                          df = data_row[num_pix_colname] - num_fitted_params)
+        l_ps[i] = chi2.sf(x=data_row[chisq_colname],
+                          df=data_row[num_pix_colname] - num_fitted_params)
 
         # Save this value in the initial data table
         table_or_row_in_group[p_colname] = l_ps[i]
@@ -160,7 +160,7 @@ def get_table_in_bin(cat: Optional[Table],
     if cat is None:
         return None
 
-    table_in_bin = deepcopy(get_table_of_ids(cat, l_test_case_object_ids, id_colname = ESC_TF.id))
+    table_in_bin = deepcopy(get_table_of_ids(cat, l_test_case_object_ids, id_colname=ESC_TF.id))
 
     # Save the info about bin_parameter and bin_limits in the table's metadata
     table_in_bin.meta[ESC_TF.m.bin_parameter] = bin_parameter.value
@@ -194,6 +194,6 @@ def add_p_columns_to_star_cat(star_cat: Table) -> None:
     """
     len_star_cat = len(star_cat)
     if ESC_TF.group_p not in star_cat.colnames:
-        star_cat[ESC_TF.group_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.group_p])
+        star_cat[ESC_TF.group_p] = np.NaN * np.ones(len_star_cat, dtype=ESC_TF.dtypes[ESC_TF.group_p])
     if ESC_TF.star_p not in star_cat.colnames:
-        star_cat[ESC_TF.star_p] = np.NaN * np.ones(len_star_cat, dtype = ESC_TF.dtypes[ESC_TF.star_p])
+        star_cat[ESC_TF.star_p] = np.NaN * np.ones(len_star_cat, dtype=ESC_TF.dtypes[ESC_TF.star_p])

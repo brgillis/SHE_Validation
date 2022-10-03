@@ -84,8 +84,8 @@ class SheValPsfTestCase(SheValTestCase):
         """ Getter for mock_starcat_table_gen which generates it on-demand.
         """
         if self._mock_starcat_table_gen is None:
-            self._mock_starcat_table_gen = MockValStarCatTableGenerator(workdir = self.workdir,
-                                                                        num_test_points = self._NUM_TEST_POINTS)
+            self._mock_starcat_table_gen = MockValStarCatTableGenerator(workdir=self.workdir,
+                                                                        num_test_points=self._NUM_TEST_POINTS)
         return self._mock_starcat_table_gen
 
     @mock_starcat_table_gen.setter
@@ -99,8 +99,8 @@ class SheValPsfTestCase(SheValTestCase):
         """ Getter for mock_ref_starcat_table_gen which generates it on-demand.
         """
         if self._mock_ref_starcat_table_gen is None:
-            self._mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir = self.workdir,
-                                                                               num_test_points = self._NUM_TEST_POINTS)
+            self._mock_ref_starcat_table_gen = MockRefValStarCatTableGenerator(workdir=self.workdir,
+                                                                               num_test_points=self._NUM_TEST_POINTS)
         return self._mock_ref_starcat_table_gen
 
     @mock_ref_starcat_table_gen.setter
@@ -116,8 +116,8 @@ class SheValPsfTestCase(SheValTestCase):
         if self._mock_starcat_table is None:
             self._mock_starcat_table = self.mock_starcat_table_gen.get_mock_table()
             add_bin_columns(self._mock_starcat_table,
-                            data_stack = None,
-                            l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+                            data_stack=None,
+                            l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
         return self._mock_starcat_table
 
     @mock_starcat_table.setter
@@ -149,7 +149,7 @@ class SheValPsfTestCase(SheValTestCase):
         mock_starcat_product_filename = self.mock_starcat_table_gen.write_mock_product()
         (self.mock_starcat_product,
          self.mock_starcat_table) = read_product_and_table(mock_starcat_product_filename,
-                                                           workdir = self.workdir)
+                                                           workdir=self.workdir)
 
     def _write_mock_ref_starcat_product(self):
         """ Convenience method to write out a mock reference star catalog product, and set the mock product and table
@@ -158,4 +158,4 @@ class SheValPsfTestCase(SheValTestCase):
         mock_ref_starcat_product_filename = self.mock_ref_starcat_table_gen.write_mock_product()
         (self.mock_ref_starcat_product,
          self.mock_ref_starcat_table) = read_product_and_table(mock_ref_starcat_product_filename,
-                                                               workdir = self.workdir)
+                                                               workdir=self.workdir)

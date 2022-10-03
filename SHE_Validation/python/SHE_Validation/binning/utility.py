@@ -151,8 +151,8 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     """
 
     # Use scipy to calculate bin limits via empirical qunatiles
-    l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint = True)
-    l_quantiles: np.ndarray = mquantiles(l_data, prob = l_prob, alphap = 0, betap = 1)
+    l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint=True)
+    l_quantiles: np.ndarray = mquantiles(l_data, prob=l_prob, alphap=0, betap=1)
 
     # Override the first and last limit with -1e99 and 1e99 respectively
     l_quantiles[0] = -1e99
@@ -191,8 +191,8 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
         l_quantiles_up[bin_index + 1] = (closest_value_above + bin_max) / 2
 
     # Count the number in each bin, for each way to set quantiles
-    l_num_in_bin_down = np.zeros(num_quantiles, dtype = int)
-    l_num_in_bin_up = np.zeros(num_quantiles, dtype = int)
+    l_num_in_bin_down = np.zeros(num_quantiles, dtype=int)
+    l_num_in_bin_up = np.zeros(num_quantiles, dtype=int)
     for bin_index in range(num_quantiles):
         bin_down_lo: float = l_quantiles_down[bin_index]
         bin_down_hi: float = l_quantiles_down[bin_index + 1]

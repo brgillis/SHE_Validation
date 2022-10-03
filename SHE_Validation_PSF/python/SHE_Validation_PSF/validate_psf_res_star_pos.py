@@ -72,24 +72,24 @@ def run_validate_psf_res_from_args(d_args: Dict[str, Any]) -> None:
 
     # Process the data, getting the results of the test
     (d_l_psf_res_test_results,
-     d_d_psf_res_plot_filenames) = run_psf_res_val_test(star_cat = psf_res_sp_input.star_cat,
-                                                        ref_star_cat = psf_res_sp_input.ref_star_cat,
-                                                        d_l_bin_limits = psf_res_sp_input.d_l_bin_limits,
-                                                        workdir = workdir)
+     d_d_psf_res_plot_filenames) = run_psf_res_val_test(star_cat=psf_res_sp_input.star_cat,
+                                                        ref_star_cat=psf_res_sp_input.ref_star_cat,
+                                                        d_l_bin_limits=psf_res_sp_input.d_l_bin_limits,
+                                                        workdir=workdir)
 
     # Create and fill the output data product to contain the results
-    test_result_product = create_dpd_she_validation_test_results(reference_product = psf_res_sp_input.p_star_cat,
-                                                                 num_tests = NUM_PSF_RES_SP_TEST_CASES)
-    test_results_writer = PsfResValidationResultsWriter(test_object = test_result_product,
-                                                        workdir = workdir,
-                                                        d_l_bin_limits = psf_res_sp_input.d_l_bin_limits,
-                                                        d_l_test_results = d_l_psf_res_test_results,
-                                                        dl_dl_figures = d_d_psf_res_plot_filenames)
+    test_result_product = create_dpd_she_validation_test_results(reference_product=psf_res_sp_input.p_star_cat,
+                                                                 num_tests=NUM_PSF_RES_SP_TEST_CASES)
+    test_results_writer = PsfResValidationResultsWriter(test_object=test_result_product,
+                                                        workdir=workdir,
+                                                        d_l_bin_limits=psf_res_sp_input.d_l_bin_limits,
+                                                        d_l_test_results=d_l_psf_res_test_results,
+                                                        dl_dl_figures=d_d_psf_res_plot_filenames)
 
     test_results_writer.write()
 
     # Output the results to the desired location
-    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir = workdir)
+    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir=workdir)
 
 
 def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputData:
@@ -98,10 +98,10 @@ def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputDat
 
     # Load the star catalog table
     logger.info("Loading star catalog.")
-    p_star_cat, star_cat = read_product_and_table(product_filename = d_args[CA_SHE_STAR_CAT],
-                                                  workdir = workdir,
-                                                  product_type = dpdSheStarCatalog)
-    add_bin_columns(star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+    p_star_cat, star_cat = read_product_and_table(product_filename=d_args[CA_SHE_STAR_CAT],
+                                                  workdir=workdir,
+                                                  product_type=dpdSheStarCatalog)
+    add_bin_columns(star_cat, data_stack=None, l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
 
     p_ref_star_cat_filename = d_args[CA_REF_SHE_STAR_CAT]
 
@@ -119,19 +119,19 @@ def load_psf_res_input(d_args: Dict[str, Any], workdir: str) -> PsfResSPInputDat
                                  star_cat=star_cat)
 
     # Load the reference star catalog and return with it
-    p_ref_star_cat, ref_star_cat = read_product_and_table(product_filename = d_args[CA_REF_SHE_STAR_CAT],
-                                                          workdir = workdir,
-                                                          product_type = dpdSheStarCatalog)
+    p_ref_star_cat, ref_star_cat = read_product_and_table(product_filename=d_args[CA_REF_SHE_STAR_CAT],
+                                                          workdir=workdir,
+                                                          product_type=dpdSheStarCatalog)
 
     # Get the bin limits dictionary from the config, generating based on the star cat
-    add_bin_columns(ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+    add_bin_columns(ref_star_cat, data_stack=None, l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
     d_l_bin_limits = get_d_l_bin_limits(pipeline_config=d_args[CA_PIPELINE_CONFIG],
                                         bin_data_table=ref_star_cat,
                                         l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS,
                                         d_local_bin_keys=D_PSF_RES_SP_BIN_KEYS)
 
-    return PsfResSPInputData(d_l_bin_limits = d_l_bin_limits,
-                             p_star_cat = p_star_cat,
-                             star_cat = star_cat,
-                             p_ref_star_cat = p_ref_star_cat,
-                             ref_star_cat = ref_star_cat)
+    return PsfResSPInputData(d_l_bin_limits=d_l_bin_limits,
+                             p_star_cat=p_star_cat,
+                             star_cat=star_cat,
+                             p_ref_star_cat=p_ref_star_cat,
+                             ref_star_cat=ref_star_cat)

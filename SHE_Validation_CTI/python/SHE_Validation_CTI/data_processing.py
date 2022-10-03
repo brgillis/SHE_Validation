@@ -59,7 +59,7 @@ def add_readout_register_distance(object_data_table: table.Table,
 
     readout_distance_data = np.where(y_pos < det_split_y, y_pos, det_size_y - y_pos)
 
-    readout_distance_column = table.Column(name = CGOD_TF.readout_dist, data = readout_distance_data)
+    readout_distance_column = table.Column(name=CGOD_TF.readout_dist, data=readout_distance_data)
     object_data_table.add_column(readout_distance_column)
 
 
@@ -95,7 +95,7 @@ def calculate_regression_results(object_data_table: table.Table,
         odt_tf = SHE_STAR_CAT_TF
 
     # Initialize a table for the output data
-    regression_results_table = RR_TF.init_table(product_type = product_type, size = 1)
+    regression_results_table = RR_TF.init_table(product_type=product_type, size=1)
 
     rr_row = regression_results_table[0]
 
@@ -130,19 +130,19 @@ def calculate_regression_results(object_data_table: table.Table,
     # Get a mask for the data where the weight is > 0 and not NaN
     bad_data_mask = np.logical_or(is_nan_or_masked(weight_data), weight_data <= 0)
 
-    masked_id_data = np.ma.masked_array(id_data, mask = bad_data_mask)
-    masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask = bad_data_mask)
-    masked_g1_data = np.ma.masked_array(g1_data, mask = bad_data_mask)
-    masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask = bad_data_mask))
+    masked_id_data = np.ma.masked_array(id_data, mask=bad_data_mask)
+    masked_readout_dist_data = np.ma.masked_array(readout_dist_data, mask=bad_data_mask)
+    masked_g1_data = np.ma.masked_array(g1_data, mask=bad_data_mask)
+    masked_g1_err_data = np.sqrt(1 / np.ma.masked_array(weight_data, mask=bad_data_mask))
 
     # Perform the regression
 
-    linregress_results = linregress_with_errors(x = masked_readout_dist_data[~bad_data_mask],
-                                                y = masked_g1_data[~bad_data_mask],
-                                                y_err = masked_g1_err_data[~bad_data_mask],
-                                                id = masked_id_data[~bad_data_mask],
-                                                bootstrap = bootstrap,
-                                                n_bootstrap_samples = CTI_GAL_N_BOOTSTRAP_SAMPLES)
+    linregress_results = linregress_with_errors(x=masked_readout_dist_data[~bad_data_mask],
+                                                y=masked_g1_data[~bad_data_mask],
+                                                y_err=masked_g1_err_data[~bad_data_mask],
+                                                id=masked_id_data[~bad_data_mask],
+                                                bootstrap=bootstrap,
+                                                n_bootstrap_samples=CTI_GAL_N_BOOTSTRAP_SAMPLES)
 
     # Save the results in the output table
     rr_row[RR_TF.weight] = tot_weight
