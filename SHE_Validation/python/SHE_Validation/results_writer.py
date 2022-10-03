@@ -1341,7 +1341,7 @@ class ValidationResultsWriter:
                                                                  l_requirement_info=l_requirement_info,
                                                                  d_l_bin_limits=self.d_l_bin_limits,
                                                                  d_l_test_results=self.d_l_test_results,
-                                                                 d_requirement_writer_kwargs=
+                                                                 d_requirement_writer_kwargs=  # noqa: E251
                                                                  self.d_requirement_writer_kwargs)
         self.l_test_case_objects[i] = test_case_object
 

@@ -543,12 +543,12 @@ def find_best_match(sky_coord_se,
         best_tu_id, best_tu_distance, _ = sky_coord_se.match_to_catalog_sky(sky_coord_tu)
 
         # Perform the reverse match as well, and only use a symmetric best-match table
-        best_obj_id_from_tu, _best_distance_from_tu, _ = sky_coord_tu.match_to_catalog_sky(
+        best_obj_id_from_tu, _, _ = sky_coord_tu.match_to_catalog_sky(
             sky_coord_se)
 
     else:
         best_tu_id, best_tu_distance = [], []
-        best_obj_id_from_tu, _best_distance_from_tu = [], []
+        best_obj_id_from_tu, _ = [], []
 
     return np.array(best_obj_id_from_tu), np.array(best_tu_distance), np.array(best_tu_id)
 

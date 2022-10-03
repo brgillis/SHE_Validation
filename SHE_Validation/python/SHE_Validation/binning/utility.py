@@ -21,19 +21,21 @@ __updated__ = "2021-08-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, Union
+from typing import Dict, TYPE_CHECKING, Union
 
 import numpy as np
 from astropy.table import Table
 from scipy.stats.mstats_basic import mquantiles
 
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.constants.config import ConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
                                                      STR_AUTO_BIN_LIMITS_HEAD,
                                                      TOT_BIN_LIMITS, )
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
+
+if TYPE_CHECKING:
+    from SHE_PPT.constants.config import ConfigKeys
 
 # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
 # bin limits if no overriding local key is provided.
