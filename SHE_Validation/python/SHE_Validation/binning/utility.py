@@ -35,7 +35,7 @@ from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DE
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
 
 if TYPE_CHECKING:
-    from SHE_PPT.constants.config import ConfigKeys
+    from SHE_PPT.constants.config import ConfigKeys  # noqa F401
 
 # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
 # bin limits if no overriding local key is provided.
