@@ -23,9 +23,9 @@ __updated__ = "2021-10-05"
 import numpy as np
 
 from SHE_PPT.testing.mock_she_star_cat import MockStarCatDataGenerator, MockStarCatTableGenerator, STAR_CAT_SEED
-from SHE_Validation_PSF.data_processing import ESC_TF, SheExtStarCatalogFormat
 from SHE_Validation_PSF.testing.constants import (REF_STAR_CAT_LISTFILE_FILENAME, REF_STAR_CAT_PRODUCT_FILENAME,
                                                   REF_STAR_CAT_TABLE_FILENAME, )
+from SHE_Validation_PSF.utility import ESC_TF, SheExtStarCatalogFormat
 
 
 class MockValStarCatDataGenerator(MockStarCatDataGenerator):
@@ -37,11 +37,13 @@ class MockValStarCatDataGenerator(MockStarCatDataGenerator):
     def _generate_unique_data(self):
         super()._generate_unique_data()
 
-        # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating
+        # Add the SNR column with controlled values - in pattern of 1, 1, 0, 0, repeating (plus random between -0.5
+        # and 0.5)
         factor = 4
+        l_rand = -0.5 + self._rng.uniform(size = self.num_test_points)
         self.data[self.tf.snr] = np.where(self._indices % factor < factor / 2,
                                           self._ones,
-                                          self._zeros)
+                                          self._zeros) + l_rand
 
 
 class MockValStarCatTableGenerator(MockStarCatTableGenerator):

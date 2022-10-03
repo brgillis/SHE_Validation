@@ -32,7 +32,7 @@ from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter,
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import (D_L_PSF_RES_SP_REQUIREMENT_INFO,
                                                                L_PSF_RES_SP_TEST_CASE_INFO,
                                                                PSF_RES_SP_VAL_NAME, )
-from SHE_Validation_PSF.data_processing import KsResult
+from SHE_Validation_PSF.utility import KsResult
 
 logger = getLogger(__name__)
 

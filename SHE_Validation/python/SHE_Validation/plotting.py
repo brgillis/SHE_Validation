@@ -23,7 +23,7 @@ __updated__ = "2021-08-30"
 
 import abc
 from copy import deepcopy
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from matplotlib import cm, pyplot as plt
@@ -31,6 +31,7 @@ from matplotlib.colors import Normalize
 from matplotlib.figure import Axes, Figure
 from scipy.interpolate import interpn
 
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
@@ -41,19 +42,90 @@ logger = getLogger(__name__)
 
 
 class ValidationPlotter(abc.ABC):
-    """TODO: Add a docstring for this class."""
+    """Abstract base class for plotters for various types of plots made in the SHE_Validation project.
+
+    This class can be used in the following manner:
+
+    1. Create a subclass of it to make a particular style of plot.
+    2. Concretely implement the abstract __init__ and _draw_plot methods
+    3. Override and/or inherit other methods of this which are called from the template method plot(), to alter aspects
+       of how the plot is constructed. See the structure of this method to see which methods are called and in which
+       order (and keep in mind that attribute calls are generally to getters, which have their own methods which can
+       be overriden/inherited).
+
+       At time of implementation, the relevant methods which you might wish to override are:
+
+        _get_legend_loc()*
+            Set the location of the plot's legend (default None = no legend)
+        _get_plot_title()*
+            Set the plot title (default no title)
+        _get_x_label()*
+            Set the plot's x-axis label (default no label)
+        _get_y_label()*
+            Set the plot's y-axis label (default no label)
+        _get_l_summary_text()*
+            Set the lines of summary text to display on the plot (default no text)
+        _get_msg_plot_saved()*
+            Set the message to log when the plot is saved (default prints the qualified file name and says it's been
+            saved)
+        _calc_plotting_data()
+            Calculate any member variables needed for plotting (this can alternatively be done within __init__ if
+            it's not necessary that this be done each time plot() is called)
+        _subplots_adjust()
+            Set the margins of the plot
+
+        *For any of the _get_*()methods, if the value you wish to set is fixed and not dependent on any attributes, you
+        can alternatively set the corresponding member variable directly, e.g. _x_label = "X"
+
+        (Check the implementation of the plot() method to be sure, in case this documentation has gone out of date.)
+    """
+
+    # Class constants (can be overridden by subclasses to modify plot appearance)
+    TITLE_FONTSIZE = 12
+    AXISLABEL_FONTSIZE = 12
+
+    SUM_TXT_HALIGN = 'left'
+    SUM_TXT_VALIGN = 'top'
+    SUM_TXT_X_ORIGIN = 0.02
+    SUM_TXT_Y_ORIGIN = 0.98
+    SUM_TXT_Y_STEP = -0.05
+    SUM_TEXT_FONTSIZE = 12
+
+    MSG_INSUFFICIENT_DATA_TOT = ("Insufficient valid data to plot for %s test case, but making "
+                                 "plot anyway for testing purposes.")
+    MSG_INSUFFICIENT_DATA = ("Insufficient valid valid data to plot for %s test case, bin "
+                             "%s, so skipping plot.")
+
+    # A selection of colors pre-selected to be distinct for people with any type of color-blindness
+    # Courtesy of https://davidmathlogic.com/colorblind/
+    COLOR_1 = (0xD8 / 0xFF, 0x1B / 0xFF, 0x60 / 0xFF)
+    COLOR_2 = (0x1E / 0xFF, 0x88 / 0xFF, 0xE5 / 0xFF)
+    COLOR_3 = (0xFF / 0xFF, 0xC1 / 0xFF, 0x07 / 0xFF)
+    COLOR_4 = (0x00 / 0xFF, 0x4D / 0xFF, 0x40 / 0xFF)
 
     # Fixed attributes which can be overridden by child classes
     plot_format: str = "png"
 
     # Attributes set directly at init
     file_namer: Optional[SheValFileNamer] = None
+    bin_limits: Optional[np.ndarray] = None
 
     # Intermediate values used while plotting
+
     _fig: Optional[Figure] = None
     _ax: Optional[Axes] = None
+
     _xlim: Optional[Tuple[float, float]] = None
     _ylim: Optional[Tuple[float, float]] = None
+
+    # Values generated on-demand while plotting, from methods than can be overridden. If these variables are
+    # overridden in a subclass to a specific value, that value will be used instead of the _get_*() being used.
+    _legend_loc: Optional[str] = None
+    _plot_title: Optional[str] = None
+    _x_label: Optional[str] = None
+    _y_label: Optional[str] = None
+    _l_summary_text: Optional[Union[str, List[str]]] = None
+    _msg_plot_saved: Optional[str] = None
 
     # Output values from plotting
     plot_filename: Optional[str] = None
@@ -61,10 +133,16 @@ class ValidationPlotter(abc.ABC):
 
     @abc.abstractmethod
     def __init__(self,
-                 file_namer: Optional[SheValFileNamer] = None):
+                 file_namer: Optional[SheValFileNamer] = None,
+                 bin_limits: Optional[np.ndarray] = None):
 
         if file_namer is not None:
             self.file_namer = file_namer
+
+        if bin_limits is not None:
+            self.bin_limits = bin_limits
+
+    # Attribute getters and setters
 
     @property
     def method(self) -> Optional[ShearEstimationMethods]:
@@ -114,35 +192,219 @@ class ValidationPlotter(abc.ABC):
             self._xlim = deepcopy(self.ax.get_xlim())
         return self._xlim
 
+    @xlim.setter
+    def xlim(self, xlim: Tuple[float, float]) -> None:
+        self.ax.set_xlim(xlim[0], xlim[1])
+        self._xlim = xlim
+
     @property
     def ylim(self) -> Tuple[float, float]:
         if self._ylim is None:
             self._ylim = deepcopy(self.ax.get_ylim())
         return self._ylim
 
+    @ylim.setter
+    def ylim(self, ylim: Tuple[float, float]) -> None:
+        self.ax.set_ylim(ylim[0], ylim[1])
+        self._ylim = ylim
+
+    @property
+    def x_label(self) -> str:
+        if self._x_label is None:
+            self._x_label = self._get_x_label()
+        return self._x_label
+
+    @x_label.setter
+    def x_label(self, x_label: str) -> None:
+        self._x_label = x_label
+
+    @property
+    def y_label(self) -> str:
+        if self._y_label is None:
+            self._y_label = self._get_y_label()
+        return self._y_label
+
+    @y_label.setter
+    def y_label(self, y_label: str) -> None:
+        self._y_label = y_label
+
+    @property
+    def plot_title(self) -> str:
+        if self._plot_title is None:
+            self._plot_title = self._get_plot_title()
+        return self._plot_title
+
+    @plot_title.setter
+    def plot_title(self, plot_title: str) -> None:
+        self._plot_title = plot_title
+
+    @property
+    def legend_loc(self) -> str:
+        if self._legend_loc is None:
+            self._legend_loc = self._get_legend_loc()
+        return self._legend_loc
+
+    @legend_loc.setter
+    def legend_loc(self, legend_loc: str) -> None:
+        self._legend_loc = legend_loc
+
+    @property
+    def l_summary_text(self) -> Union[str, List[str]]:
+        if self._l_summary_text is None:
+            self._l_summary_text = self._get_l_summary_text()
+        return self._l_summary_text
+
+    @l_summary_text.setter
+    def l_summary_text(self, l_summary_text: Union[str, List[str]]) -> None:
+        self._l_summary_text = l_summary_text
+
+    @property
+    def msg_plot_saved(self) -> str:
+        if self._msg_plot_saved is None:
+            self._msg_plot_saved = self._get_msg_plot_saved()
+        return self._msg_plot_saved
+
+    @msg_plot_saved.setter
+    def msg_plot_saved(self, msg_plot_saved: str) -> None:
+        self._msg_plot_saved = msg_plot_saved
+
     # Public methods
 
-    def _save_plot(self) -> str:
+    def plot(self,
+             show: bool = False) -> Optional[str]:
+        """ Makes and saves the plot(s). This is a template method, where subclasses can override/inherit the various
+            methods it calls.
 
-        # Get the filename to save to
-        self.plot_filename = self.file_namer.filename
-        self.qualified_plot_filename = self.file_namer.qualified_filename
+            Parameters
+            ----------
+            show : bool, default=False
+                If True, will show the plot and wait for the user to close it before returning. This should only be done
+                in local versions of code, to test plot appearances, as it interruptes program execution.
 
-        # Save the figure and close it
-        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
-                    bbox_inches = "tight", pad_inches = 0.05)
-        logger.info(f"Saved {self.file_namer.type_name} plot {self.file_namer.instance_id} to "
-                    f"{self.qualified_plot_filename}")
+            Returns
+            -------
+            plot_filename : Optional[str]
+                If the plot was generated successfully, the workdir-relative name of the file it was saved to;
+                otherwise None
+        """
+
+        cancel_plotting = self._calc_plotting_data()
+        if cancel_plotting:
+            # We've received a signal to cancel plotting without raising an error, so return here
+            return
+
+        # Set up the figure
+        self._subplots_adjust()
+
+        # Draw the figure
+        self._draw_plot()
+
+        # Add the legend to the figure
+        self._draw_legend()
+
+        # Set the plot title and labels
+        self._set_title()
+        self._set_xy_labels()
+
+        # Write the text on the plot
+        self._write_summary_text()
+
+        # Save the plot (which generates a filename) and log it
+        self._save_plot()
+
+        logger.info(self.msg_plot_saved)
+
+        # Display the plot if requested
+        if show:
+            plt.show()
+
+        plt.close()
 
         return self.plot_filename
 
-    def density_scatter(self,
-                        l_x: np.ndarray,
-                        l_y: np.ndarray,
-                        sort: bool = True,
-                        bins: int = 20,
-                        colorbar: bool = False,
-                        **kwargs):
+    # Protected methods intended to be overridden as needed by child classes
+
+    @staticmethod
+    def _get_legend_loc() -> Optional[str]:
+        """ Overridable method to get location of the legend
+
+        Returns
+        -------
+        legend_loc : {None, "upper left", "upper right", "lower left", "lower right"}, default=None
+            The desired location of the legend. If None, no legend will be displayed
+        """
+        return None
+
+    @staticmethod
+    def _get_plot_title() -> str:
+        """ Overridable method to get the plot title
+        """
+        return ""
+
+    @staticmethod
+    def _get_x_label() -> str:
+        """ Overridable method to get the label for the X axis.
+        """
+        return ""
+
+    @staticmethod
+    def _get_y_label() -> str:
+        """ Overridable method to get the label for the Y axis.
+        """
+        return ""
+
+    @staticmethod
+    def _get_l_summary_text() -> List[str]:
+        """ Overridable method to get the summary text to be printed on the plot
+        """
+        return []
+
+    def _get_msg_plot_saved(self) -> str:
+        """ Overridable method to get the method to print to log that a plot has been saved
+        """
+        return f"Saved plot to {self.qualified_plot_filename}"
+
+    def _calc_plotting_data(self) -> Optional[bool]:
+        """ Overridable method to get all the data we want to plot
+
+        Returns
+        -------
+        cancel_plotting : bool
+            If this returns True, it will signal to the plot() method to cancel plotting without raising an exception.
+            This is useful in case you wish to e.g. not generate plots for any bins which have no data in them.
+        """
+        return False
+
+    def _subplots_adjust(self) -> None:
+        """ Set up the figure with a single subplot in a standard format.
+        """
+        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+
+    @abc.abstractmethod
+    def _draw_plot(self) -> None:
+        """ Abstract method for drawing the plot
+        """
+        pass
+
+    # Protected methods for use as needed by child classes
+
+    def _get_bin_info_str(self):
+        """ Get a string for the bin info, which can be added to the plot title.
+        """
+
+        bin_info_str = f" - {self.bin_parameter.value}"
+        if self.bin_parameter != BinParameters.TOT:
+            bin_info_str += f" {self.bin_limits}"
+
+        return bin_info_str
+
+    def _density_scatter(self,
+                         l_x: np.ndarray,
+                         l_y: np.ndarray,
+                         sort: bool = True,
+                         bins: int = 20,
+                         colorbar: bool = False,
+                         **kwargs) -> None:
         """ Scatter plot colored by 2d histogram, taken from https://stackoverflow.com/a/53865762/5099457
             Credit: Guillaume on StackOverflow
         """
@@ -178,30 +440,30 @@ class ValidationPlotter(abc.ABC):
             cbar = self.fig.colorbar(cm.ScalarMappable(norm = norm), ax = self.ax)
             cbar.ax.set_ylabel('Density')
 
-    def draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis on a plot.
         """
 
         self.ax.plot(self.xlim, [0, 0], label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws a y-axis on a plot.
         """
 
         self.ax.plot([0, 0], self.ylim, label = None, color = color, linestyle = linestyle, **kwargs)
 
-    def draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs):
+    def _draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis and y-axis on a plot.
         """
 
-        self.draw_x_axis(color, linestyle, **kwargs)
-        self.draw_y_axis(color, linestyle, **kwargs)
+        self._draw_x_axis(color, linestyle, **kwargs)
+        self._draw_y_axis(color, linestyle, **kwargs)
 
-    def draw_bestfit_line(self,
-                          linregress_results: LinregressResults,
-                          label: Optional[str] = None,
-                          color: str = "r",
-                          linestyle: str = "solid"):
+    def _draw_bestfit_line(self,
+                           linregress_results: LinregressResults,
+                           label: Optional[str] = None,
+                           color: Union[str, Tuple[float, float, float]] = "r",
+                           linestyle: str = "solid") -> None:
         """ Draw a line of bestfit on a plot.
         """
 
@@ -209,14 +471,14 @@ class ValidationPlotter(abc.ABC):
         bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
         self.ax.plot(bestfit_x, bestfit_y, label = label, color = color, linestyle = linestyle)
 
-    def reset_axes(self):
+    def _reset_axes(self):
         """ Resets the axes to saved xlim/ylim from when they were first accessed.
         """
 
         self.ax.set_xlim(*self.xlim)
         self.ax.set_ylim(*self.ylim)
 
-    def clear_plots(self):
+    def _clear_plots(self) -> None:
         """ Closes the plots and resets self.ax and self.fig.
         """
 
@@ -224,8 +486,55 @@ class ValidationPlotter(abc.ABC):
         self.ax = None
         self.fig = None
 
-    @abc.abstractmethod
-    def plot(self, *args, **kwargs):
-        """ Makes and saves the plot(s).
+    # Protected classes normally expected to be left alone, but which can be overridden if needed
+
+    def _save_plot(self) -> str:
+
+        # Get the filename to save to
+        self.plot_filename = self.file_namer.filename
+        self.qualified_plot_filename = self.file_namer.qualified_filename
+
+        # Save the figure and close it
+        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
+                    bbox_inches = "tight", pad_inches = 0.05)
+        logger.info(self.msg_plot_saved)
+
+        return self.plot_filename
+
+    def _write_summary_text(self) -> None:
+        """ Writes summary text on the plot. If self.l_summary_text a list of strings, each will be written on a
+            separate line. If it's just a string, it will be written on a single line
         """
-        pass
+
+        # If just one string, write it directly and return
+        if isinstance(self.l_summary_text, str):
+            self._write_summary_text_line(self.l_summary_text)
+
+        # Write each string on a separate line
+        for line_num, s in enumerate(self.l_summary_text):
+            self._write_summary_text_line(s, line_num = line_num)
+
+    def _write_summary_text_line(self,
+                                 s: str,
+                                 line_num: int = 0) -> None:
+        """ Writes a single line of summary text on the plot.
+        """
+
+        self.ax.text(s = s,
+                     x = self.SUM_TXT_X_ORIGIN,
+                     y = self.SUM_TXT_Y_ORIGIN + line_num * self.SUM_TXT_Y_STEP,
+                     horizontalalignment = self.SUM_TXT_HALIGN,
+                     verticalalignment = self.SUM_TXT_VALIGN,
+                     transform = self.ax.transAxes,
+                     fontsize = self.SUM_TEXT_FONTSIZE)
+
+    def _set_xy_labels(self) -> None:
+        self.ax.set_xlabel(self.x_label, fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(self.y_label, fontsize = self.AXISLABEL_FONTSIZE)
+
+    def _set_title(self) -> None:
+        plt.title(self.plot_title, fontsize = self.TITLE_FONTSIZE)
+
+    def _draw_legend(self) -> None:
+        if self.legend_loc is not None:
+            plt.legend(loc = self.legend_loc)

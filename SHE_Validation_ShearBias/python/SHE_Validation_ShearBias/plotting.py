@@ -20,9 +20,9 @@ __updated__ = "2021-08-31"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Sequence
+from typing import Dict, List, Optional, Sequence
 
-from matplotlib import pyplot as plt
+import numpy as np
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
@@ -34,15 +34,10 @@ from .file_io import ShearBiasPlotFileNamer
 
 logger = getLogger(__name__)
 
-# Plotting constants
-TITLE_FONTSIZE: float = 12
-AXISLABEL_FONTSIZE: float = 12
-TEXT_SIZE: float = 12
-PLOT_FORMAT: str = "png"
-
 
 class ShearBiasPlotter(ValidationPlotter):
-    """TODO: Add a docstring to this class."""
+    """ Class to handle plotting for Shear Bias validation tests.
+    """
 
     # Attributes set directly at init
     data_processor: ShearBiasTestCaseDataProcessor
@@ -65,10 +60,17 @@ class ShearBiasPlotter(ValidationPlotter):
 
     # Attributes calculated when plotting methods are called
     _d_bias_plot_filename: Dict[int, str]
+    component_index: Optional[int] = None
+    g_in: Optional[np.ndarray] = None
+    g_out: Optional[np.ndarray] = None
+    linregress_results: Optional[LinregressResults] = None
+    d_bias_strings: Optional[Dict[str, str]] = None
 
     def __init__(self,
                  data_processor: ShearBiasTestCaseDataProcessor,
                  bin_index: int,
+                 *args,
+                 **kwargs,
                  ) -> None:
 
         file_namer = ShearBiasPlotFileNamer(workdir = data_processor.workdir,
@@ -76,10 +78,11 @@ class ShearBiasPlotter(ValidationPlotter):
                                             bin_parameter = data_processor.bin_parameter,
                                             bin_index = bin_index)
 
-        super().__init__(file_namer = file_namer)
+        super().__init__(*args, file_namer = file_namer, **kwargs)
 
         # Set attrs directly
         self.data_processor = data_processor
+        self.data_processor.calc()
 
         # Init empty dicts for intermediate data used when plotting
         self._d_bias_plot_filename = {}
@@ -97,72 +100,81 @@ class ShearBiasPlotter(ValidationPlotter):
         else:
             self._d_bias_plot_filename = d_bias_plot_filename
 
-    # Private methods
+    # Protected method overrides
 
-    def _save_component_plot(self, i: int) -> None:
-        """ Save the plot for bias component i.
+    def _get_x_label(self) -> str:
+        """ Override parent method to get the label for the X axis.
+        """
+        return f"True g{self.component_index}"
+
+    def _get_y_label(self) -> str:
+        """ Override parent method to get the label for the Y axis.
+        """
+
+        return f"Estimated g{self.component_index}"
+
+    def _get_plot_title(self) -> str:
+        """ Overridable method to get the plot title
+        """
+
+        plot_title = f"{self.method.value} Shear Estimates: g{self.component_index} {self._get_bin_info_str()}"
+
+        return plot_title
+
+    def _get_l_summary_text(self) -> List[str]:
+        """ Override parent method to get summary text.
+        """
+
+        return [self.d_bias_strings[f"c{self.component_index}"],
+                self.d_bias_strings[f"m{self.component_index}"]]
+
+    def _calc_plotting_data(self):
+        """ Override parent method to get all the data we want to plot.
+        """
+
+        i = self.component_index
+
+        # Get the needed data from the data_processor
+        self.g_in = self.data_processor.d_g_in[i]
+        self.g_out = self.data_processor.d_g_out[i]
+        self.linregress_results: LinregressResults = self.data_processor.l_d_linregress_results[self.bin_index][i]
+        self.d_bias_strings = self.data_processor.l_d_bias_strings[self.bin_index]
+
+        return False
+
+    def _draw_plot(self):
+        """ Override parent method for drawing the plot.
+        """
+
+        # Plot data as a density scatter plot
+        self._density_scatter(self.g_in, self.g_out, s = 1)
+
+        # Draw the zero-axes
+        self._draw_axes()
+
+        # Draw the line of best-fit
+        self._draw_bestfit_line(self.linregress_results)
+
+        # Reset the axes, in case they changed after drawing the axes or bestfit line
+        self._reset_axes()
+
+    def _save_plot(self) -> None:
+        """ Override parent method to set up different name for each component plot and store results in dict.
         """
 
         # Set the instance id for this component
-        self.file_namer.instance_id_tail = f"g{i}"
+        self.file_namer.instance_id_tail = f"g{self.component_index}"
 
         # Use the parent method to save the plot and get the filename of it
         bias_plot_filename = super()._save_plot()
 
         # Record the filename for this plot in the filenames dict
-        self.d_bias_plot_filename[i] = bias_plot_filename
+        self.d_bias_plot_filename[self.component_index] = bias_plot_filename
 
-    def _plot_component_shear_bias(self,
-                                   i: int, ) -> None:
-        """ Plot shear bias for an individual component.
+    def plot(self, show: bool = False) -> None:
+        """ Override parent plot, and call it for both components
         """
 
-        # Get the needed data from the data_processor
-        g_in = self.data_processor.d_g_in[i]
-        g_out = self.data_processor.d_g_out[i]
-        linregress_results: LinregressResults = self.data_processor.l_d_linregress_results[self.bin_index][i]
-        d_bias_strings = self.data_processor.l_d_bias_strings[self.bin_index]
-
-        # Make a plot of the shear estimates
-
-        # Set up the figure, with a density scatter as a base
-
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
-
-        self.density_scatter(g_in, g_out, sort = True, bins = 20, colorbar = False, s = 1)
-
-        plot_title = f"{self.method} Shear Estimates: g{i}"
-        plt.title(plot_title, fontsize = TITLE_FONTSIZE)
-
-        self.ax.set_xlabel(f"True g{i}", fontsize = AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(f"Estimated g{i}", fontsize = AXISLABEL_FONTSIZE)
-
-        # Draw the zero-axes
-        self.draw_axes()
-
-        # Draw the line of best-fit
-        self.draw_bestfit_line(linregress_results)
-
-        # Reset the axes
-        self.reset_axes()
-
-        # Write the bias
-        self.ax.text(0.02, 0.98, d_bias_strings[f"c{i}"], horizontalalignment = 'left', verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-        self.ax.text(0.02, 0.93, d_bias_strings[f"m{i}"], horizontalalignment = 'left', verticalalignment = 'top',
-                     transform = self.ax.transAxes, fontsize = TEXT_SIZE)
-
-        # Save the plot
-        self._save_component_plot(i)
-
-        # Clear the plot to make way for future plots
-        self.clear_plots()
-
-    def plot(self) -> None:
-        """ Plot shear bias for both components.
-        """
-
-        self.data_processor.calc()
-
-        for i in (1, 2):
-            self._plot_component_shear_bias(i)
+        for self.component_index in (1, 2):
+            super().plot(show = show)
+            self._clear_plots()

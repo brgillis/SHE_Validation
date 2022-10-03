@@ -1133,7 +1133,9 @@ class ValidationResultsWriter:
     d_l_test_results: Optional[Dict[str, List[Any]]] = None
 
     dl_l_textfiles: Optional[StrDictOrList] = None
-    dl_dl_figures: Optional[StrDictOrList] = None
+    dl_dl_figures: Union[Dict[str, Optional[StrDictOrList]],
+                         List[Optional[StrDictOrList]],
+                         None] = None
     num_test_cases: Optional[int] = None
     l_test_case_info: Optional[List[Optional[TestCaseInfo]]] = None
     dl_num_requirements: Union[None, Dict[str, int], List[int]] = None

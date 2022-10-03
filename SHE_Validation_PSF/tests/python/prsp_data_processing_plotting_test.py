@@ -22,14 +22,21 @@ __updated__ = "2022-04-30"
 from copy import deepcopy
 
 import numpy as np
+from scipy.stats.stats import KstestResult
 
+from SHE_PPT.constants.classes import BinParameters
 from SHE_PPT.constants.config import ValidationConfigKeys
+from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.constants.default_config import DEFAULT_P_FAIL
+from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_PSF.constants.psf_res_sp_test_info import L_PSF_RES_SP_TEST_CASE_INFO
-from SHE_Validation_PSF.data_processing import (ESC_TF, run_psf_res_val_test,
+from SHE_Validation_PSF.data_processing import (run_psf_res_val_test,
                                                 run_psf_res_val_test_for_bin, )
+from SHE_Validation_PSF.file_io import PsfResSPCumHistFileNamer, PsfResSPHistFileNamer, PsfResSPScatterFileNamer
+from SHE_Validation_PSF.plotting import PsfResSPHistPlotter, PsfResSPScatterPlotter
 from SHE_Validation_PSF.testing.utility import SheValPsfTestCase
+from SHE_Validation_PSF.utility import ESC_TF
 
 
 class TestPsfDataProcessing(SheValPsfTestCase):
@@ -37,6 +44,8 @@ class TestPsfDataProcessing(SheValPsfTestCase):
     """
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
+
+    _NUM_TEST_POINTS: int = 1000
 
     def post_setup(self):
         """ Override parent setup, setting up data to work with here.
@@ -46,7 +55,10 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         # For the bin limits, add an extra bin we expect to be empty
         base_snr_bin_limits = pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS]
-        pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = np.append(base_snr_bin_limits, 2.5)
+        self.l_bin_limits = np.append(base_snr_bin_limits, 2.5)
+        pipeline_config[ValidationConfigKeys.VAL_SNR_BIN_LIMITS] = self.l_bin_limits
+
+        self.bin_parameter = BinParameters.SNR
 
         # self.mock_starcat_table is generated when the attributed is accessed
 
@@ -82,7 +94,9 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             assert 1.0 >= star_kstest_result.pvalue > DEFAULT_P_FAIL
             assert 1.0 >= group_kstest_result.pvalue > DEFAULT_P_FAIL
 
-            assert not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)
+            # Check both are different (unless both are close to 1.0)
+            assert ((np.isclose(star_kstest_result.pvalue, 1.0) and np.isclose(group_kstest_result.pvalue, 1.0)) or
+                    (not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)))
 
             # Now try with the bad and too-good data, and check that the p-values for each are lower
             star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
@@ -98,6 +112,67 @@ class TestPsfDataProcessing(SheValPsfTestCase):
             else:
                 assert star_too_good_kstest_result.pvalue > DEFAULT_P_FAIL
 
+    def test_plot_psf_res_sp_for_bin(self):
+        """ Test that a figure is properly generated for data in individual bins.
+        """
+
+        snr_test_case_info = find_test_case_info(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
+                                                 bin_parameters = BinParameters.SNR,
+                                                 return_one = True)
+
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = [snr_test_case_info],
+                                                            d_bin_limits = {BinParameters.SNR: self.l_bin_limits},
+                                                            detections_table = self.mock_starcat_table,
+                                                            bin_constraint_type = BinParameterBinConstraint)
+
+        l_l_test_case_object_ids = d_l_l_test_case_object_ids[snr_test_case_info.name]
+
+        for ref_star_cat in (None, self.mock_ref_starcat_table):
+
+            for bin_index in range(len(self.l_bin_limits) - 1):
+
+                l_test_case_object_ids = l_l_test_case_object_ids[bin_index]
+
+                for cumulative in (False, True):
+
+                    if cumulative:
+                        hist_file_namer_type = PsfResSPCumHistFileNamer
+                    else:
+                        hist_file_namer_type = PsfResSPHistFileNamer
+                    hist_file_namer = hist_file_namer_type(bin_parameter = self.bin_parameter,
+                                                           bin_index = bin_index,
+                                                           workdir = self.workdir)
+
+                    # Plot the histogram
+                    hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
+                                                       ref_star_cat = ref_star_cat,
+                                                       file_namer = hist_file_namer,
+                                                       bin_limits = self.l_bin_limits[bin_index:bin_index + 2],
+                                                       l_ids_in_bin = l_test_case_object_ids,
+                                                       l_ref_ids_in_bin = l_test_case_object_ids,
+                                                       ks_test_result = KstestResult(0.1412, 0.2),
+                                                       group_mode = False,
+                                                       cumulative = cumulative)
+                    hist_plotter.plot()
+
+            scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = self.bin_parameter,
+                                                          workdir = self.workdir)
+
+            if ref_star_cat is None:
+                l_ref_ids = None,
+            else:
+                l_ref_ids = ref_star_cat[ESC_TF.id]
+
+            # Plot the scatter plot
+            scatter_plotter = PsfResSPScatterPlotter(star_cat = self.mock_starcat_table,
+                                                     ref_star_cat = ref_star_cat,
+                                                     file_namer = scatter_file_namer,
+                                                     bin_limits = self.l_bin_limits,
+                                                     l_ids_in_bin = self.mock_starcat_table[ESC_TF.id],
+                                                     l_ref_ids_in_bin = l_ref_ids,
+                                                     group_mode = False, )
+            scatter_plotter.plot()
+
     def test_run_psf_res_val_test(self):
         """ Test that the function for testing across all bins works as expected.
         """
@@ -107,9 +182,10 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-            d_l_kstest_results = run_psf_res_val_test(star_cat = self.mock_starcat_table,
-                                                      ref_star_cat = ref_star_cat,
-                                                      d_l_bin_limits = d_l_bin_limits)
+            d_l_kstest_results, _ = run_psf_res_val_test(star_cat = self.mock_starcat_table,
+                                                         ref_star_cat = ref_star_cat,
+                                                         d_l_bin_limits = d_l_bin_limits,
+                                                         workdir = self.workdir)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]

@@ -122,7 +122,8 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
             # Plot for each bin index
             for bin_index in range(len(l_bin_limits) - 1):
                 shear_bias_plotter = ShearBiasPlotter(data_processor = shear_bias_data_processor,
-                                                      bin_index = bin_index)
+                                                      bin_index = bin_index,
+                                                      bin_limits = l_bin_limits[bin_index:bin_index + 2])
                 shear_bias_plotter.plot()
 
                 # Component index: filename

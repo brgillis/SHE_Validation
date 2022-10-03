@@ -49,6 +49,7 @@ New Features
   - Added option for comparison against a reference product. Test will check if provided product is consistent with or
     better than reference product if one is provided. If one isn't provided, test will check if chi-sq probabilities are
     consistent with uniform distribution.
+  - Creates and saves histograms and scatterplots of data
 
 
 New Config Features
@@ -59,6 +60,7 @@ Miscellaneous
 -------------
 - Refactored code to move generation of mock data and tables for unit testing to SHE_PPT
 - Added documentation for new executable SHE_Validation_ValidatePSFResStarPos
+- Refactored plotting code to use a template-method approach, to help reduce necessary boilerplate
 
 
 Changes in v9.0
