@@ -53,6 +53,58 @@ Distribution of PSF residuals at star positions as function of SNR.
 3. Estimate the distribution of residuals from the PSF recovery simulations.
 4. Compute difference between measured and simulated distributions, using a KS test.
 
+### Test Case: TC-SHE-100901-PSF-res-star-pos-SED
+
+Distribution of PSF residuals at star positions as function of SED.
+
+#### Test Procedure:
+
+1. Choose population of stars that is:
+   - binned as function of SED. The bin limits should be chosen to provide significant subsamples (e.g. quartiles) of
+     the dataset.
+2. From the residuals between the PSF image to the PSF model, calculate the distribution.
+3. Estimate the distribution of residuals from the PSF recovery simulations.
+4. Compute difference between measured and simulated distributions, using a KS test.
+
+### Test Case: TC-SHE-100902-PSF-res-star-pos-pix
+
+Distribution of PSF residuals at star positions as function of pixel position.
+
+#### Test Procedure:
+
+1. Choose population of stars that is:
+   - binned as function of pixel position. The bin limits should be chosen to provide significant subsamples (e.g.
+     quartiles) of the dataset.
+2. From the residuals between the PSF image to the PSF model, calculate the distribution.
+3. Estimate the distribution of residuals from the PSF recovery simulations.
+4. Compute difference between measured and simulated distributions, using a KS test.
+
+### Test Case: TC-SHE-100903-PSF-res-star-pos-epoch
+
+Distribution of PSF residuals at star positions as function of epoch.
+
+#### Test Procedure:
+
+1. Choose population of stars that is:
+   - binned as function of epoch. The bin limits should be chosen to provide significant subsamples (e.g. quartiles) of
+     the dataset.
+2. From the residuals between the PSF image to the PSF model, calculate the distribution.
+3. Estimate the distribution of residuals from the PSF recovery simulations.
+4. Compute difference between measured and simulated distributions, using a KS test.
+
+### Test Case: TC-SHE-100904-PSF-res-star-pos-solaspang
+
+Distribution of PSF residuals at star positions as function of solar aspect angle.
+
+#### Test Procedure:
+
+1. Choose population of stars that is:
+   - binned as function of solar aspect angle. The bin limits should be chosen to provide significant subsamples (e.g.
+     quartiles) of the dataset.
+2. From the residuals between the PSF image to the PSF model, calculate the distribution.
+3. Estimate the distribution of residuals from the PSF recovery simulations.
+4. Compute difference between measured and simulated distributions, using a KS test.
+
 
 ## PSF SED Validation
 
