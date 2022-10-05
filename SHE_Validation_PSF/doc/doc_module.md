@@ -113,7 +113,7 @@ Distribution of PSF residuals at star positions as function of solar aspect angl
 Parent: R-GDP-CAL-025
 
 The uncertainty on the bias in the ellipticity of an object arising from the transfer of the VIS PSF
-ellipticity model to the weak-lensing objects shall be smaller than 3.5x10^-5 (1-sigma)
+ellipticity model to the weak-lensing objects shall be smaller than 3.5x10^-5 (1-sigma).
 
 #### Requirement Comment from GDPRD
 
@@ -134,8 +134,7 @@ revision of this Requirement to an error has been proposed by SHE.]
 
 ### Validation Test: T-SHE-000002-PSF-lambda
 
-Estimate PSF model residuals at star positions and compare with suitable expected distribution (e.g. chi^2) with e.g.
-KS test.
+Approximate PSF from broad-band magnitudes compared to precise PSF from spectroscopic data.
 
 ### Rationale:
 
