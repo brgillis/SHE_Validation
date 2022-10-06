@@ -20,9 +20,7 @@ __updated__ = "2022-10-05"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation.constants.test_info import (RequirementInfo,
-                                                TestCaseInfo,
-                                                TestInfo, )
+from SHE_Validation.constants.test_info import RequirementInfo, TestCaseInfo, TestInfo
 
 # Metadata about the requirements
 PSF_LAMBDA_E_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-040",
