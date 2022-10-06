@@ -24,16 +24,17 @@
 
 from argparse import ArgumentParser, Namespace
 
-from SHE_Validation_PSF.validate_psf_model_err import run_validate_psf_model_err_from_args
-
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
                                       D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
+from SHE_Validation_PSF.validate_psf_model_err import run_validate_psf_model_err_from_args
 
 EXEC_NAME = "SHE_Validation_ValidatePSFModelErr"
+
+CA_L_SHE_STAR_CAT = "star_catalog_listfile"
 
 logger = log.getLogger(__name__)
 
@@ -54,6 +55,9 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input arguments
+    parser.add_input_arg(f"--{CA_L_SHE_STAR_CAT}", help=".json listfile of multiple .xml data products for SHE star "
+                                                        "catalogs for different realisations of the PSF fit drawn "
+                                                        "from its error distribution.")
 
     # Output arguments
     parser.add_test_result_arg()
@@ -63,6 +67,7 @@ def defineSpecificProgramOptions():
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args):
     """Main entry point function for program.
 
