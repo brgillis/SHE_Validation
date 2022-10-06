@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_PSF/SHE_Validation_ValidatePSFResInterp.py
+:file: python/SHE_Validation_PSF/ValidatePSFLambda.py
 
 :date: 10/06/22
 :author: Bryan Gillis
@@ -24,7 +24,7 @@
 
 from argparse import ArgumentParser, Namespace
 
-from SHE_Validation_PSF.validate_psf_res_interp import run_validate_psf_res_interp_from_args
+from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_args
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
@@ -33,7 +33,7 @@ from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 
-EXEC_NAME = "SHE_Validation_ValidatePSFResInterp"
+EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
 
 logger = log.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def mainMethod(args):
                                  d_config_cline_args=D_GLOBAL_CONFIG_CLINE_ARGS,
                                  s_config_keys_types={ValidationConfigKeys})
 
-    executor = SheValExecutor(run_from_args_function=run_validate_psf_res_interp_from_args,
+    executor = SheValExecutor(run_from_args_function=run_validate_psf_lambda_from_args,
                               log_options=ValLogOptions(executable_name=EXEC_NAME),
                               config_args=config_args)
 
