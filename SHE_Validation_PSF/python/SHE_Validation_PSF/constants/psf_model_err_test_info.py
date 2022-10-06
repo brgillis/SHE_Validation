@@ -1,8 +1,10 @@
-""" @file psf_model_err_test_info.py
+"""
+:file: python/SHE_Validation_PSF/psf_lambda_test_info.py
 
-    Created 06 October 2022 by Bryan Gillis
+:date: 10/05/22
+:author: Bryan Gillis
 
-    Default values for information about tests and test cases.
+Default values for information about the PSF-Model-Err test and test cases.
 """
 
 __updated__ = "2022-10-06"

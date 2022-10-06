@@ -1,11 +1,11 @@
-""" @file psf_lambda_test_info.py
-
-    Created 05 October 2022 by Bryan Gillis
-
-    Default values for information about tests and test cases.
 """
+:file: python/SHE_Validation_PSF/psf_lambda_test_info.py
 
-__updated__ = "2022-10-05"
+:date: 10/05/22
+:author: Bryan Gillis
+
+Default values for information about the PSF-Lambda test and test cases.
+"""
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
