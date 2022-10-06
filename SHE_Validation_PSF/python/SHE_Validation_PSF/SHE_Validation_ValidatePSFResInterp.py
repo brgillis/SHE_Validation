@@ -1,4 +1,11 @@
-#
+"""
+:file: python/SHE_Validation_PSF/SHE_Validation_ValidatePSFResInterp.py
+
+:date: 10/06/22
+:author: Bryan Gillis
+
+"""
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under
@@ -14,19 +21,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-#
-
-
-"""
-:file: python/SHE_Validation_PSF/SHE_Validation_ValidatePSFResInterp.py
-
-:date: 10/06/22
-:author: user
-
-"""
 
 import argparse
+
 import ElementsKernel.Logging as log
+
 
 def defineSpecificProgramOptions():
     """
