@@ -22,51 +22,78 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import argparse
+from argparse import ArgumentParser, Namespace
 
-import ElementsKernel.Logging as log
+from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_args
+
+from SHE_PPT import logging as log
+from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
+                                      D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
+from SHE_PPT.executor import ReadConfigArgs
+from SHE_Validation.argument_parser import ValidationArgumentParser
+from SHE_Validation.executor import SheValExecutor, ValLogOptions
+
+EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
+
+logger = log.getLogger(__name__)
 
 
+# noinspection PyPep8Naming
 def defineSpecificProgramOptions():
+    """Allows one to define the (command line and configuration file) options specific to this program. See the
+    Elements documentation for more details.
+
+    Returns
+    -------
+    parser: ArgumentParser
     """
-    @brief Allows to define the (command line and configuration file) options
-    specific to this program
 
-    @details See the Elements documentation for more details.
-    @return An  ArgumentParser.
-    """
+    logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
 
-    parser = argparse.ArgumentParser()
+    # Set up the argument parser, using built-in methods where possible
+    parser = ValidationArgumentParser()
 
-    #
-    # !!! Write your program options here !!!
-    # e.g. parser.add_argument('--string-value', type=str, help='A string option')
-    #
+    # Input arguments
+
+    # Output arguments
+    parser.add_test_result_arg()
+
+    logger.debug(f'# Exiting {EXEC_NAME} defineSpecificProgramOptions()')
 
     return parser
 
 
 def mainMethod(args):
+    """Main entry point function for program.
+
+    Parameters
+    ----------
+    args : Namespace
+        The parsed arguments for this program, as would be obtained through e.g. `args = parser.parse_args()`
     """
-    @brief The "main" method.
-    
-    @details This method is the entry point to the program. In this sense, it is
-    similar to a main (and it is why it is called mainMethod()).
+
+    config_args = ReadConfigArgs(d_config_defaults=D_GLOBAL_CONFIG_DEFAULTS,
+                                 d_config_types=D_GLOBAL_CONFIG_TYPES,
+                                 d_config_cline_args=D_GLOBAL_CONFIG_CLINE_ARGS,
+                                 s_config_keys_types={ValidationConfigKeys})
+
+    executor = SheValExecutor(run_from_args_function=run_validate_psf_lambda_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME),
+                              config_args=config_args)
+
+    executor.run(args, logger=logger, pass_args_as_dict=True)
+
+
+def main():
+    """Alternate entry point for non-Elements execution.
     """
 
-    logger = log.getLogger('SHE_Validation_ValidatePSFLambda')
+    parser = defineSpecificProgramOptions()
 
-    logger.info('#')
-    logger.info('# Entering SHE_Validation_ValidatePSFLambda mainMethod()')
-    logger.info('#')
+    args = parser.parse_args()
 
-    # !! Getting the option from the example option in defineSpecificProgramOption
-    # !! e.g string_option = args.string_value
+    mainMethod(args)
 
-    #
-    # !!! Write you main code here !!!
-    #
 
-    logger.info('#')
-    logger.info('# Exiting SHE_Validation_ValidatePSFLambda mainMethod()')
-    logger.info('#')
+if __name__ == "__main__":
+    main()
