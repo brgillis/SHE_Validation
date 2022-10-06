@@ -55,6 +55,7 @@ def defineSpecificProgramOptions():
     return parser
 
 
+# noinspection PyPep8Naming
 def mainMethod(args):
     """Main entry point function for program.
 
