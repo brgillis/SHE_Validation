@@ -24,7 +24,10 @@ from argparse import Namespace
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
-from SHE_Validation_PSF.ValidatePSFLambda import defineSpecificProgramOptions, mainMethod
+from SHE_Validation_PSF.ValidatePSFLambda import CA_BB_PSF, CA_REF_PSF, defineSpecificProgramOptions, mainMethod
+
+SHE_REF_PSF_PRODUCT_FILENAME = "reference_psf_product.xml"
+SHE_BB_PSF_PRODUCT_FILENAME = "broadband_psf_product.xml"
 
 
 class TestPsfLambdaRun(SheTestCase):
@@ -41,7 +44,10 @@ class TestPsfLambdaRun(SheTestCase):
         """
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
-        
+
+        setattr(args, CA_REF_PSF, SHE_REF_PSF_PRODUCT_FILENAME)
+        setattr(args, CA_BB_PSF, SHE_BB_PSF_PRODUCT_FILENAME)
+
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is

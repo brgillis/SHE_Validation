@@ -24,16 +24,18 @@
 
 from argparse import ArgumentParser, Namespace
 
-from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_args
-
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
                                       D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
+from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_args
 
 EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
+
+CA_REF_PSF = "reference_psfs"
+CA_BB_PSF = "broadband_psfs"
 
 logger = log.getLogger(__name__)
 
@@ -54,6 +56,8 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input arguments
+    parser.add_input_arg(f"--{CA_REF_PSF}", help="Reference PSFs, constructed from fully-detailed SEDs.")
+    parser.add_input_arg(f"--{CA_BB_PSF}", help="Broad-band PSFs, constructed from broad-band filter magnitudes.")
 
     # Output arguments
     parser.add_test_result_arg()
