@@ -5,9 +5,9 @@ SHE_Validation_ValidatePsfLambda
 
 **NOTE:** This program is not yet implemented. This documentation represents the intended functionality.
 
-This program performs the PSF Lambda validation test, T-SHE-000002-PSF-lambda, which validates
-requirements R-SHE-CAL-F-040 and R-SHE-CAL-F-050. This tests checks that PSFs can be adequately approximated from broad-
-band magnitudes.
+This program performs the PSF Lambda validation test, T-SHE-000002-PSF-lambda, which validates requirements
+R-SHE-CAL-F-040 and R-SHE-CAL-F-050. This tests checks that PSFs can be adequately approximated from broad-band
+magnitudes.
 
 
 Running the Program on EDEN/LODEEN
@@ -18,9 +18,9 @@ environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePsfLambda --workdir <dir> --star_catalog_product <filename>
-    --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config
-    <filename>] [--snr_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir <dir> --reference_psfs_product <filename>
+     --broadband_psfs_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>]
+     [--log-level <value>] [--pipeline_config <filename>]
 
 with the following arguments:
 
@@ -70,18 +70,16 @@ Input Arguments
      - Description
      - Required
      - Default
-   * - ``--star_catalog_product <filename>``
-     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
-       she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program on the
-       observation to be tested when configured to only report results for stars excluded from the fit
+   * - ``--reference_psfs_product <filename>``
+     - ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
+       she_psfmodelimage.html>`__, containing model PSF images generated from full SED information.
      - yes
      - N/A
-   * - ``--ref_star_catalog_product <filename>``
-     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
-       she_starcatalog.html>`__, containing reference star information based on the results of PF-SHE's PSF Fitting
-       program on simulations
-     - no
-     - None (will test for an ideal probability distribution instead of comparing with this)
+   * - ``--broadband_psfs_product <filename>``
+     - ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
+       she_psfmodelimage.html>`__, containing model PSF images generated from broad-band magnitudes.
+     - yes
+     - N/A
    * - ``--pipeline_config <filename>``
      - ``.xml`` data product or pointing to configuration file (described below), or .json listfile (Cardinality 0-1)
        either pointing to such a data product, or empty.
@@ -127,61 +125,33 @@ Options
      - If set, program will generate dummy output of the correct format and exit, instead of normal execution.
      - no
      - False
-   * - ``--snr_bin_limits "<value> <value> ..."`` OR ``--snr_bin_limits auto-<N>``
-     - Either: 1. List of quoted, space-separated values listing the bin limits for when binning by signal-to-noise
-       ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
-       data into.
-     - no
-     - ``auto-4``
-
-See `the table here <prog_ccvd.html#outputs>`__ for the specific definitions of values used for binning.
 
 
 Inputs
 ------
 
-``star_catalog_product``:
+``reference_psfs_product``:
 
-**Description:** The filename of a ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/
-dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__ in the workdir. This data product points to a ``.fits`` data table
-in the workdir with information on stars in the single observation to be tested, based on the processing performed by
-SHE's PSF Fitting program. This table contains the relevant information:
+**Description:** Filename of ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_psfmodelimage.html>`__, containing model PSF images generated from full SED information.
 
-* Object ID
-* Updated best-fit positions
-* Fit quality information
+**Details:** This product may contain any number of model PSF images, with a greater number leading to greater accuracy
+of this validation test. The model PSFs should be distributed over ranges of the following values:
 
-See the data product information linked above for a detailed description of the data product.
+* SED
+* Position in Field-of-View
+* Realisation of telescope model
 
-For use with this program, this product should have been created by the PSF Fitting program while configured to skip a
-fraction of stars in the fitting process and then output only those skipped objects in the star catalog product.
+For example, these values can be drawn from the details of simulated or real Euclid-Wide observations of stars.
 
-**Source:** At the present stage of development, this product is not yet being produced by PF-SHE's PSF Fitting program.
-When that program is updated to produce it, instructions for running it will be provided here.
+``reference_psfs_product``:
 
-``ref_star_catalog_product``:
+**Description:** Filename of ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_psfmodelimage.html>`__, containing model PSF images generated from broad-band magnitudes.
 
-**Description:** If provided, the filename of a ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.
-esa.int/dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__ in the workdir. This data product points to a ``.fits``
-data table in the workdir with information on stars in a simulated observation, based on the processing performed by
-SHE's PSF Fitting program. This table contains the relevant information:
-
-* Object ID
-* Updated best-fit positions
-* Fit quality information
-
-See the data product information linked above for a detailed description of the data product.
-
-This reference product should be selected to be the star catalog with the worst residual statistics found in all
-simulations. The provided ``star_catalog_product`` will be tested against this, and the test will pass if either the
-``star_catalog_product`` contains better residual statistics than this product, or the two are consistent in a
-two-sample Kolmogorov-Smirnov test.
-
-If this input port is not provided, instead the residual statistics in the ``star_catalog_product`` will be compared
-against an ideal distribution, by comparing the distribution of p-values to a uniform distribution.
-
-**Source:** At the present stage of development, this product is not yet being produced by PF-SHE's PSF Fitting program.
-When that program is updated to produce it, instructions for running it will be provided here.
+**Details:** This product must represent the same selection of stars as those in the `reference_psfs_product`. The only
+difference should be that the PSFs are generated using broad-band magnitudes (calculated from the full SED information)
+rather than directly from the SED information.
 
 ``pipeline_config``:
 
@@ -226,15 +196,6 @@ optionally any of the following which apply to this executable:
        ratio. Or 2. "auto-<N>" where <N> is the number of quantiles (of equal data volume) to automatically divide the
        data into.
      - Will use default bin limits, as listed above in the `Options`_ section above.
-   * - SHE_Validation_ValidatePsfLambda_snr_bin_limits
-     - As above, but this value applies only to this executable, and takes precedence if supplied.
-     - If a value is supplied to SHE_Validation_snr_bin_limits, that will be used. Otherwise, will use default bin
-       limits, as listed above in the `Options`_ section above.
-
-**NOTE:** Future development is expected to allow specification of bin limits for SED, pixel position, and solar aspect
-angle. This documentation will be updated when this is available.
-
-See `Bin Definitions <bin_definitions>`_ for the specific definitions of values used for binning.
 
 If both these arguments are supplied in the pipeline configuration file
 and the equivalent command-line arguments are set, the command-line
@@ -256,7 +217,7 @@ arguments will take precedence.
 Outputs
 -------
 
-.. _obs_test_results_product:
+.. _test_results_product:
 
 ``she_validation_test_results_product``:
 
@@ -266,8 +227,7 @@ test.
 
 **Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList
 element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test
-case. For this test, a test case is reported for all data binned together, plus one for binning on SNR. In the future
-this will expand to include more binning methods.
+case. For this test, only one test case is reported: TC-SHE-100004-PSF-lambda-R2.
 
 Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the
 SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic (either
@@ -287,10 +247,10 @@ The program can then be run with the following command in an EDEN 3.0 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePsfLambda --workdir $WORKDIR --star_catalog_product $SC_PRODUCT
-    --star_catalog_product $RSC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir $WORKDIR --broadband_psfs_product $RP_PRODUCT
+    --broadband_psfs_product $BP_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$SC_PRODUCT`` and ``$RSC_PRODUCT``
+where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$RP_PRODUCT`` and ``$BP_PRODUCT``
 correspond to the filenames of the prepared star catalog and reference star catalog products.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be
