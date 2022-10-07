@@ -72,8 +72,8 @@ Input Arguments
      - Default
    * - ``--star_catalog_listfile <filename>``
      - ``.json`` listfile of 2 or more ``.xml`` data products of type `DpdSheStarCatalog <https://euclid.esac.esa.int/
-     dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of
-     PF-SHE's PSF Fitting program, using multiple realisations of the fitted PSF model's error distribution
+       dm/dpdd/latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of
+       PF-SHE's PSF Fitting program, using multiple realisations of the fitted PSF model's error distribution
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
