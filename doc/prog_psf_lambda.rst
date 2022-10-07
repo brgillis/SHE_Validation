@@ -18,8 +18,8 @@ environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir <dir> --reference_psfs_product <filename>
-     --broadband_psfs_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir <dir> --reference_star_catalog_product <filename>
+     --broadband_star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>]
      [--log-level <value>] [--pipeline_config <filename>]
 
 with the following arguments:
@@ -70,14 +70,16 @@ Input Arguments
      - Description
      - Required
      - Default
-   * - ``--reference_psfs_product <filename>``
-     - ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
-       she_psfmodelimage.html>`__, containing model PSF images generated from full SED information.
+   * - ``--reference_star_catalog_product <filename>``
+     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
+       she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program,
+       using PSF images generated from full SED information.
      - yes
      - N/A
-   * - ``--broadband_psfs_product <filename>``
-     - ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
-       she_psfmodelimage.html>`__, containing model PSF images generated from broad-band magnitudes.
+   * - ``--broadband_star_catalog_product <filename>``
+     - ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/latest/shedpd/dpcards/
+       she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting program,
+       using PSF images generated from broad-band magnitudes.
      - yes
      - N/A
    * - ``--pipeline_config <filename>``
@@ -130,13 +132,14 @@ Options
 Inputs
 ------
 
-``reference_psfs_product``:
+``reference_star_catalog_product``:
 
-**Description:** Filename of ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/
-latest/shedpd/dpcards/she_psfmodelimage.html>`__, containing model PSF images generated from full SED information.
+**Description:** Filename of ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting
+program, using PSF images generated from full SED information.
 
-**Details:** This product may contain any number of model PSF images, with a greater number leading to greater accuracy
-of this validation test. The model PSFs should be distributed over ranges of the following values:
+**Details:** This product may contain data for any number of stars, with a greater number leading to greater accuracy
+of this validation test. The stars used should be distributed over ranges of the following values:
 
 * SED
 * Position in Field-of-View
@@ -144,14 +147,15 @@ of this validation test. The model PSFs should be distributed over ranges of the
 
 For example, these values can be drawn from the details of simulated or real Euclid-Wide observations of stars.
 
-``reference_psfs_product``:
+``broadband_star_catalog_product``:
 
-**Description:** Filename of ``.xml`` data product of type `DpdShePsfModelImage <https://euclid.esac.esa.int/dm/dpdd/
-latest/shedpd/dpcards/she_psfmodelimage.html>`__, containing model PSF images generated from broad-band magnitudes.
+**Description:** Filename of ``.xml`` data product of type `DpdSheStarCatalog <https://euclid.esac.esa.int/dm/dpdd/
+latest/shedpd/dpcards/she_starcatalog.html>`__, containing star information based on the results of PF-SHE's PSF Fitting
+program, using PSF images generated from broad-band magnitudes.
 
-**Details:** This product must represent the same selection of stars as those in the `reference_psfs_product`. The only
-difference should be that the PSFs are generated using broad-band magnitudes (calculated from the full SED information)
-rather than directly from the SED information.
+**Details:** This product must represent the same selection of stars as those in the `reference_star_catalog_product`.
+The only difference should be that the PSFs were generated using broad-band magnitudes (calculated from the full SED
+information) rather than directly from the SED information.
 
 ``pipeline_config``:
 
@@ -248,11 +252,12 @@ The program can then be run with the following command in an EDEN 3.0 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir $WORKDIR --broadband_psfs_product $RP_PRODUCT
-    --broadband_psfs_product $BP_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePsfLambda --workdir $WORKDIR --reference_star_catalog_product
+    $RSC_PRODUCT --broadband_star_catalog_product $BSC_PRODUCT --she_validation_test_results_product
+    she_validation_test_results_product.xml
 
-where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$RP_PRODUCT`` and ``$BP_PRODUCT``
-correspond to the filenames of the prepared star catalog and reference star catalog products.
+where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$RSC_PRODUCT`` and ``$BSC_PRODUCT``
+correspond to the filenames of the prepared reference and broad-band star catalog products.
 
 This command will generate a new data product with the filename ``she_validation_test_results_product.xml``. This can be
 opened with your text editor of choice to view the validation test results.

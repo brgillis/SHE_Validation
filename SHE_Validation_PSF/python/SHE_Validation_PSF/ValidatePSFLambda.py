@@ -34,8 +34,8 @@ from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_
 
 EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
 
-CA_REF_PSF = "reference_psfs_product"
-CA_BB_PSF = "broadband_psfs_product"
+CA_REF_STAR_CAT = "reference_star_catalog_product"
+CA_BB_STAR_CAT = "broadband_star_catalog_product"
 
 logger = log.getLogger(__name__)
 
@@ -56,8 +56,8 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input arguments
-    parser.add_input_arg(f"--{CA_REF_PSF}", help="Reference PSFs, constructed from fully-detailed SEDs.")
-    parser.add_input_arg(f"--{CA_BB_PSF}", help="Broad-band PSFs, constructed from broad-band filter magnitudes.")
+    parser.add_input_arg(f"--{CA_REF_STAR_CAT}", help="Reference PSFs, constructed from fully-detailed SEDs.")
+    parser.add_input_arg(f"--{CA_BB_STAR_CAT}", help="Broad-band PSFs, constructed from broad-band filter magnitudes.")
 
     # Output arguments
     parser.add_test_result_arg()
