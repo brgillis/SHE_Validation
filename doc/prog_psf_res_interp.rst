@@ -5,9 +5,9 @@ SHE_Validation_ValidatePSFResInterp
 
 **NOTE:** This program is not yet implemented. This documentation represents the intended functionality.
 
-This program performs the PSF Residual interpolated validation test, T-SHE-000001-PSF-res-star-pos, which validates
-requirement R-SHE-PRD-F-100. This tests checks if the residuals of modelled PSFs compared to stars not used for the fit
-are consistent with expectations.
+This program performs the PSF Residual interpolated validation test, T-SHE-000003-PSF-res-interp-star-pos, which
+validates requirements R-SHE-CAL-F-030 and R-SHE-PRD-F-090. This tests checks if the residuals of modelled PSFs compared
+to stars not used for the fit are consistent with expectations.
 
 
 Running the Program on EDEN/LODEEN
