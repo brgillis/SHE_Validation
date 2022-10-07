@@ -227,7 +227,8 @@ test.
 
 **Details:** This product contains details of the test results in the data product itself. The Data.ValidationTestList
 element contains a list of sheSingleValidationTestResult objects, each of which contains the result of a single test
-case. For this test, only one test case is reported: TC-SHE-100004-PSF-lambda-R2.
+case. For this test, two test cases are reported: TC-SHE-100003-PSF-lambda-ell, for the effect on ellipticity, and
+TC-SHE-100004-PSF-lambda-R2, for the effect on size.
 
 Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the
 SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic (either
