@@ -18,7 +18,7 @@ environment:
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePSFResInterp --workdir <dir> --star_catalog_product <filename>
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePSFResInterp --workdir <dir> --star_catalog_product <filename>
     --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config
     <filename>] [--snr_bin_limits "<value> <value> ..."]
 
@@ -256,7 +256,7 @@ arguments will take precedence.
 Outputs
 -------
 
-.. _obs_test_results_product:
+.. _test_results_product:
 
 ``she_validation_test_results_product``:
 
@@ -270,12 +270,8 @@ case. For this test, a test case is reported for all data binned together, plus 
 this will expand to include more binning methods.
 
 Each of these results objects lists the result of the test (``PASSED`` or ``FAILED``) and details of it in the
-SupplementaryInformation element. For this test, these details include the Kolmogorov-Smirnov test statistic (either
-from a one-tailed two-sample test, if a ``ref_star_catalog_product`` is provided, or a two-tailed one-sample test if
-not), the p-value of this statistic, and the threshold at which this triggers a failure. In the case of the ``tot`` test
-case, this is presented for the full data set. For the ``SNR`` test case, this is presented for each bin of data, and
-the test case is considered ``FAILED`` if the test fails for any individual bin that has sufficient data in it to run
-the test (i.e. bins are ignored if they have no objects in them).
+SupplementaryInformation element. For this test, these details include the difference in quadrupole statistics between
+reference and broad-band PSF models, approximate quantities, and their scatter (around zero by construction).
 
 Example
 -------
@@ -287,7 +283,7 @@ The program can then be run with the following command in an EDEN 3.0 environmen
 
 .. code:: bash
 
-    E-Run SHE_Validation 9,1 SHE_Validation_ValidatePSFResInterp --workdir $WORKDIR --star_catalog_product $SC_PRODUCT
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePSFResInterp --workdir $WORKDIR --star_catalog_product $SC_PRODUCT
     --star_catalog_product $RSC_PRODUCT --she_validation_test_results_product she_validation_test_results_product.xml
 
 where the variable ``$WORKDIR`` corresponds to the path to your workdir, and ``$SC_PRODUCT`` and ``$RSC_PRODUCT``
