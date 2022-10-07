@@ -34,8 +34,8 @@ from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_
 
 EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
 
-CA_REF_PSF = "reference_psfs"
-CA_BB_PSF = "broadband_psfs"
+CA_REF_PSF = "reference_psfs_product"
+CA_BB_PSF = "broadband_psfs_product"
 
 logger = log.getLogger(__name__)
 
