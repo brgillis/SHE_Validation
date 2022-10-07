@@ -15,7 +15,7 @@ To run the ``SHE_Validation_ValidatePSFResStarPos`` program with Elements, use t
 
 .. code:: bash
 
-    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePSFResStarPos --workdir <dir> --star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."]
+    E-Run SHE_Validation 9.1 SHE_Validation_ValidatePSFResStarPos --workdir <dir> --star_catalog_product <filename> --she_validation_test_results_product <filename> [--log-file <filename>] [--log-level <value>] [--ref_star_catalog_product <filename>] [--pipeline_config <filename>] [--snr_bin_limits "<value> <value> ..."]
 
 with the following arguments:
 
