@@ -187,7 +187,7 @@ class CtiRequirementWriter(RequirementWriter):
         if self.l_bin_limits is not None:
             bin_min = self.l_bin_limits[bin_index][0]
             bin_max = self.l_bin_limits[bin_index][1]
-            d_messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
+            d_messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:\n"
         d_messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
                              f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
                              f"{prop}_z = {getattr(self, f'l_{prop}_z')[bin_index]}\n" +
