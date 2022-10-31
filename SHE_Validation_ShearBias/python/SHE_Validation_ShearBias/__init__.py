@@ -22,9 +22,8 @@ __updated__ = "2021-07-16"
 
 from pkgutil import extend_path
 
-# noinspection PyUnresolvedReferences
-from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__, __maintainer__,
-                                     __status__, __url__, __version__, )
+from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__,  # noqa F401
+                                     __maintainer__, __status__, __url__, __version__, )  # noqa F401
 
 # noinspection PyUnboundLocalVariable
 __path__ = extend_path(__path__, __name__)

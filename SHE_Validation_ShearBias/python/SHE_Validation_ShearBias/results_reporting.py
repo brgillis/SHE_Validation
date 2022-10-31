@@ -190,7 +190,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
             extra_g2_message = extra_g2_message + "\n"
 
         method_bin_message: str = (f"Test results for method {self.method.value}, with {self.bin_parameter.value} "
-                                   f"bins.\n")
+                                   "bins.\n")
 
         # Set up result messages for each component
         d_messages: Dict[int, str] = {1: method_bin_message + extra_message + extra_g1_message + "\n",

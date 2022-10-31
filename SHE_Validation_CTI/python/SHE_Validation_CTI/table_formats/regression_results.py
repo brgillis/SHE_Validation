@@ -70,15 +70,15 @@ class SheRegressionResultsFormat(SheTableFormat):
 
         # Table column labels
 
-        self.index = self.set_column_properties(f"INDEX", dtype=int, fits_dtype=">i2")
-        self.method = self.set_column_properties(f"METHOD", dtype=str, fits_dtype="A", length=9)
+        self.index = self.set_column_properties("INDEX", dtype=int, fits_dtype=">i2")
+        self.method = self.set_column_properties("METHOD", dtype=str, fits_dtype="A", length=9)
 
-        self.weight = self.set_column_properties(f"WEIGHT")
-        self.slope = self.set_column_properties(f"M")
-        self.intercept = self.set_column_properties(f"B")
-        self.slope_err = self.set_column_properties(f"M_ERR")
-        self.intercept_err = self.set_column_properties(f"B_ERR")
-        self.slope_intercept_covar = self.set_column_properties(f"MB_COV")
+        self.weight = self.set_column_properties("WEIGHT")
+        self.slope = self.set_column_properties("M")
+        self.intercept = self.set_column_properties("B")
+        self.slope_err = self.set_column_properties("M_ERR")
+        self.intercept_err = self.set_column_properties("B_ERR")
+        self.slope_intercept_covar = self.set_column_properties("MB_COV")
 
         self._finalize_init()
 

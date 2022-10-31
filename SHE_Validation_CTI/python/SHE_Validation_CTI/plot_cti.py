@@ -48,8 +48,8 @@ class CtiPlotter(ValidationPlotter):
     SIGMA_DIGITS = 1
 
     # Overridden parent attributes
-    _x_label = f"Readout Register Distance (pix)"
-    _y_label = f"e1 (detector coordinates)"
+    _x_label = "Readout Register Distance (pix)"
+    _y_label = "e1 (detector coordinates)"
 
     # Attributes set directly at init
     _object_table: Table
@@ -128,7 +128,7 @@ class CtiPlotter(ValidationPlotter):
         """
 
         if self.method_name is None:
-            plot_title: str = f"CTI-PSF Validation"
+            plot_title: str = "CTI-PSF Validation"
         else:
             plot_title: str = f"{self.method_name} CTI-Gal Validation"
 
@@ -147,8 +147,8 @@ class CtiPlotter(ValidationPlotter):
         """ Override parent method to get summary text.
         """
 
-        return [self.d_linregress_strings[f"slope"],
-                self.d_linregress_strings[f"intercept"]]
+        return [self.d_linregress_strings["slope"],
+                self.d_linregress_strings["intercept"]]
 
     def _get_msg_plot_saved(self) -> str:
         """ Override parent method to get the method to print to log that a plot has been saved
