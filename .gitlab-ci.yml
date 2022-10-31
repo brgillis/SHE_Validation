@@ -1,11 +1,11 @@
 image: python:3.9
 
 before_script:
-  - python -m venv .venv
-  - source .venv/bin/activate
-  - pip install flake8
+    - python -m venv .venv
+    - source .venv/bin/activate
+    - pip install flake8
 
 PEP8:
-  stage: test
-  script:
-    - flake8 --max-line-length 120 SHE_Validation SHE_Validation_CTI SHE_Validation_PSF SHE_Validation_ShearBias SHE_Validation_DataQuality
+    stage: test
+    script:
+        - flake8 --max-line-length 120 SHE_Validation SHE_Validation_CTI SHE_Validation_PSF SHE_Validation_ShearBias SHE_Validation_DataQuality

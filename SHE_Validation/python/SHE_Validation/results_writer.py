@@ -1343,7 +1343,7 @@ class ValidationResultsWriter:
             d_l_bin_limits=self.d_l_bin_limits,
             d_l_test_results=self.d_l_test_results,
             d_requirement_writer_kwargs=self.d_requirement_writer_kwargs,
-        )
+            )
         self.l_test_case_objects[i] = test_case_object
 
     # Public methods
