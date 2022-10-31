@@ -326,7 +326,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
         if not (none_or_match_len(self.l_d_val) and none_or_match_len(self.l_d_val_err) and
                 none_or_match_len(self.l_d_val_target) and none_or_match_len(self.l_d_val_z)):
-            raise ValueError(f"Inconsistent array lengths in Shear Bias test results writing.")
+            raise ValueError("Inconsistent array lengths in Shear Bias test results writing.")
 
         # Fill out the fail sigma list of dicts, to help with mapping function calls
         self.l_d_fail_sigma = [{1: fail_sigma, 2: fail_sigma}] * self.num_bins

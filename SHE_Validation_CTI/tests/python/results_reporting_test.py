@@ -247,7 +247,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert (f"Maximum allowed slope_z = " +
+        assert ("Maximum allowed slope_z = " +
                 f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
