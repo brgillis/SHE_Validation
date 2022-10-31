@@ -1332,17 +1332,18 @@ class ValidationResultsWriter:
 
         # Create a test case writer and keep it in the list of writers
         test_case_object = deepcopy(base_test_case_object)
-        self.l_test_case_writers[i] = self.test_case_writer_type(parent_val_results_writer=self,
-                                                                 test_case_object=test_case_object,
-                                                                 test_case_info=test_case_info,
-                                                                 dl_l_textfiles=test_case_textfiles,
-                                                                 dl_dl_figures=test_case_figures,
-                                                                 num_requirements=num_requirements,
-                                                                 l_requirement_info=l_requirement_info,
-                                                                 d_l_bin_limits=self.d_l_bin_limits,
-                                                                 d_l_test_results=self.d_l_test_results,
-                                                                 d_requirement_writer_kwargs=  # noqa: E251
-                                                                 self.d_requirement_writer_kwargs)
+        self.l_test_case_writers[i] = self.test_case_writer_type(
+            parent_val_results_writer=self,
+            test_case_object=test_case_object,
+            test_case_info=test_case_info,
+            dl_l_textfiles=test_case_textfiles,
+            dl_dl_figures=test_case_figures,
+            num_requirements=num_requirements,
+            l_requirement_info=l_requirement_info,
+            d_l_bin_limits=self.d_l_bin_limits,
+            d_l_test_results=self.d_l_test_results,
+            d_requirement_writer_kwargs=self.d_requirement_writer_kwargs,
+        )
         self.l_test_case_objects[i] = test_case_object
 
     # Public methods
