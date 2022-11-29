@@ -80,7 +80,7 @@ class ValidationArgumentParser(SheArgumentParser):
     # Convenience functions to add options cline-args
 
     def add_bin_parameter_args(self,
-                               arg_type: ClineArgType = ClineArgType.INPUT,
+                               arg_type: ClineArgType = ClineArgType.OPTION,
                                l_bin_parameters: Iterable[BinParameters] = BinParameters):
         for bin_parameter in l_bin_parameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]

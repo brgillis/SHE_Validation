@@ -7,6 +7,7 @@
 
 __updated__ = "2021-08-27"
 
+from SHE_PPT.argument_parser import ClineArgType
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -39,8 +40,8 @@ class CtiGalArgumentParser(ValidationArgumentParser):
 
         # Output filename arguments
 
-        self.add_obs_test_result_arg()
-        self.add_exp_test_result_listfile_arg()
+        self.add_obs_test_result_arg(arg_type=ClineArgType.OUTPUT)
+        self.add_exp_test_result_listfile_arg(arg_type=ClineArgType.OUTPUT)
 
         # Optional arguments
 
