@@ -40,7 +40,7 @@ from SHE_PPT.products.she_validation_test_results import create_validation_test_
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.utility import join_without_none
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
-from SHE_Validation.binning.bin_constraints import get_ids_for_test_cases
+from SHE_Validation.binning.bin_constraints import GoodBinnedGalaxyMeasurementHBC, get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import add_bin_columns
 from SHE_Validation.binning.utility import get_d_l_bin_limits
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
@@ -294,7 +294,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                                         d_bin_limits=d_bin_limits,
                                                         detections_table=data_stack.detections_catalogue,
                                                         d_measurements_tables=shear_estimate_tables,
-                                                        data_stack=data_stack)
+                                                        data_stack=data_stack,
+                                                        bin_constraint_type=GoodBinnedGalaxyMeasurementHBC)
 
     for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
 
