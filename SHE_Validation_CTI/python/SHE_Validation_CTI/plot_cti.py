@@ -190,7 +190,7 @@ class CtiPlotter(ValidationPlotter):
 
         # Log the bias measurements, and save these strings for the plot
         logger.info(f"Linear regression for {self.opt_method_str}test case {self.bin_parameter.value}, "
-                    f"bin {list(self.bin_limits)}:")
+                    f"bin {self.bin_limits}:")
 
         self.d_linregress_strings: Dict[str, str] = {}
         for a, d in (("slope", self.SLOPE_DIGITS),

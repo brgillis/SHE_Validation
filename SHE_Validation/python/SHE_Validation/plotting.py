@@ -23,7 +23,7 @@ __updated__ = "2021-08-30"
 
 import abc
 from copy import deepcopy
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from matplotlib import cm, pyplot as plt
@@ -108,7 +108,7 @@ class ValidationPlotter(abc.ABC):
 
     # Attributes set directly at init
     file_namer: Optional[SheValFileNamer] = None
-    bin_limits: Optional[np.ndarray] = None
+    bin_limits: Optional[Tuple[float, float]] = None
 
     # Intermediate values used while plotting
 
@@ -134,13 +134,16 @@ class ValidationPlotter(abc.ABC):
     @abc.abstractmethod
     def __init__(self,
                  file_namer: Optional[SheValFileNamer] = None,
-                 bin_limits: Optional[np.ndarray] = None):
+                 bin_limits: Optional[Union[Tuple[float, float], Sequence[float]]] = None):
 
         if file_namer is not None:
             self.file_namer = file_namer
 
         if bin_limits is not None:
             self.bin_limits = bin_limits
+
+        # Silently coerce bin_limits into a tuple
+        self.bin_limits = tuple(self.bin_limits)
 
     # Attribute getters and setters
 
