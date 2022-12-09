@@ -26,6 +26,7 @@ from copy import deepcopy
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
+import matplotlib as mpl
 from matplotlib import cm, pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.figure import Axes, Figure
@@ -37,6 +38,10 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import LinregressResults
 from SHE_PPT.utility import is_nan_or_masked
 from .file_io import SheValFileNamer
+
+# Mutable module-level variable to store the initial value of MatPlotlib's mpl.rcParams['interactive'] variable,
+# so it can be restored after plotting
+p_interactive_mode_init = [None]
 
 logger = getLogger(__name__)
 
@@ -296,32 +301,48 @@ class ValidationPlotter(abc.ABC):
             # We've received a signal to cancel plotting without raising an error, so return here
             return
 
-        # Set up the figure
-        self._subplots_adjust()
+        # Cache the init interactive mode if not already cached
+        if p_interactive_mode_init[0] is None:
+            p_interactive_mode_init[0] = mpl.rcParams['interactive']
 
-        # Draw the figure
-        self._draw_plot()
+        # Use a try-finally block to ensure interactive mode is reset
 
-        # Add the legend to the figure
-        self._draw_legend()
+        try:
+            # If we're not showing the plot, disable interactive mode
+            if not show:
+                mpl.rcParams['interactive'] = False
 
-        # Set the plot title and labels
-        self._set_title()
-        self._set_xy_labels()
+            # Set up the figure
+            self._subplots_adjust()
 
-        # Write the text on the plot
-        self._write_summary_text()
+            # Draw the figure
+            self._draw_plot()
 
-        # Save the plot (which generates a filename) and log it
-        self._save_plot()
+            # Add the legend to the figure
+            self._draw_legend()
 
-        logger.info(self.msg_plot_saved)
+            # Set the plot title and labels
+            self._set_title()
+            self._set_xy_labels()
 
-        # Display the plot if requested
-        if show:
-            plt.show()
+            # Write the text on the plot
+            self._write_summary_text()
 
-        plt.close()
+            # Save the plot (which generates a filename) and log it
+            self._save_plot()
+
+            logger.info(self.msg_plot_saved)
+
+            # Display the plot if requested
+            if show:
+                plt.show()
+
+            plt.close()
+
+        finally:
+
+            # Restore the original interactive mode
+            mpl.rcParams['interactive'] = p_interactive_mode_init[0]
 
         return self.plot_filename
 
