@@ -109,7 +109,7 @@ def get_d_l_bin_limits(pipeline_config,
             # This signifies not relevant to this test or not yet set up. Fill in with the default limits just in
             # case
             if bin_parameter == BinParameters.TOT:
-                bin_limits_value = TOT_BIN_LIMITS
+                bin_limits_value = np.array(TOT_BIN_LIMITS)
             else:
                 bin_limits_value = DEFAULT_AUTO_BIN_LIMITS
         else:
@@ -151,6 +151,9 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
                                   num_quantiles: int = DEFAULT_N_BIN_LIMITS_QUANTILES) -> np.ndarray:
     """ Determines bin limits from an array of data and the desired number of quantiles to split the data into.
     """
+
+    # Quietly coerce l_data into an ndarray
+    l_data = np.asarray(l_data)
 
     # Use scipy to calculate bin limits via empirical qunatiles
     l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint=True)
