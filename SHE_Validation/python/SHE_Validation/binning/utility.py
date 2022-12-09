@@ -28,6 +28,7 @@ from astropy.table import Table
 from scipy.stats.mstats_basic import mquantiles
 
 from SHE_PPT.constants.classes import BinParameters
+from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
                                                      STR_AUTO_BIN_LIMITS_HEAD,
@@ -152,8 +153,13 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     """ Determines bin limits from an array of data and the desired number of quantiles to split the data into.
     """
 
-    # Quietly coerce l_data into an ndarray
-    l_data = np.asarray(l_data)
+    # Trim any inf, NaN, or masked values from l_data and coerce to an array
+    l_l_is_good = np.where(np.logical_not(is_inf_nan_or_masked(np.asarray(l_data))))
+    l_data = np.asarray(l_data)[l_l_is_good]
+
+    # Check for no good data, and return dummy bins if so
+    if len(l_data) == 0:
+        return np.linspace(-1e99, 1e99, num_quantiles + 1)
 
     # Use scipy to calculate bin limits via empirical qunatiles
     l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint=True)
