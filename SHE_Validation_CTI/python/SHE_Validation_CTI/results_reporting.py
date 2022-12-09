@@ -185,8 +185,8 @@ class CtiRequirementWriter(RequirementWriter):
             of the property to zero, and appends it to the dict of messages's entry for this property.
         """
         if self.l_bin_limits is not None:
-            bin_min = self.l_bin_limits[bin_index][0]
-            bin_max = self.l_bin_limits[bin_index][1]
+            bin_min = self.l_bin_limits[bin_index]
+            bin_max = self.l_bin_limits[bin_index + 1]
             d_messages[prop] += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:\n"
         d_messages[prop] += (f"{prop} = {getattr(self, f'l_{prop}')[bin_index]}\n" +
                              f"{prop}_err = {getattr(self, f'l_{prop}_err')[bin_index]}\n" +
@@ -541,7 +541,7 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
                                                                 List[float],
                                                                 List[float],
                                                                 List[float],
-                                                                List[List[float]]]:
+                                                                np.ndarray]:
         """ Sort the data out from the tables for this method.
         """
 
@@ -554,7 +554,6 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
         l_slope_err = [0.] * num_bins
         l_intercept = [0.] * num_bins
         l_intercept_err = [0.] * num_bins
-        l_bin_limits = [[0.]] * num_bins
 
         for bin_index, bin_test_case_regression_results_table in enumerate(l_test_case_regression_results_tables):
             if isinstance(bin_test_case_regression_results_table, table.Table):
@@ -565,13 +564,12 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
             l_slope_err[bin_index] = regression_results_row[RR_TF.slope_err]
             l_intercept[bin_index] = regression_results_row[RR_TF.intercept]
             l_intercept_err[bin_index] = regression_results_row[RR_TF.intercept_err]
-            l_bin_limits[bin_index] = l_test_case_bins[bin_index:bin_index + 2]
 
         # For the tot case, override the bin limits with None
         if test_case_info.bins == BinParameters.TOT:
             l_bin_limits = None
 
-        return l_slope, l_slope_err, l_intercept, l_intercept_err, l_bin_limits
+        return l_slope, l_slope_err, l_intercept, l_intercept_err, l_test_case_bins
 
     def write_test_case_objects(self):
         """ Writes all data for each requirement subobject, modifying self._test_object.
