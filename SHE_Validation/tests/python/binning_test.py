@@ -108,7 +108,7 @@ class TestBinConstraints:
         fitflags_data = np.ones(cls.TABLE_SIZE, dtype=int) * indices % 4
         cls.t_lmc[LMC_TF.fit_flags] = fitflags_data
 
-        # Set up d_bin_limits
+        # Set up d_l_bin_limits
         cls.d_l_bin_limits = {BinParameters.TOT: TOT_BIN_LIMITS}
         for bin_parameter in NON_GLOBAL_BIN_PARAMETERS:
             cls.d_l_bin_limits[bin_parameter] = np.linspace(start=cls.D_PAR_OFFSETS[bin_parameter],

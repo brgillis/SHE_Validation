@@ -21,6 +21,7 @@ __updated__ = "2021-08-27"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -32,7 +33,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.math import BiasMeasurements, DEFAULT_C_TARGET, DEFAULT_M_TARGET
 from SHE_PPT.pipeline_utility import ValidationConfigKeys
 from SHE_PPT.testing.mock_measurements_cat import D_D_L_D_INPUT_BIAS
-from SHE_Validation.constants.default_config import ExecutionMode, FailSigmaScaling
+from SHE_Validation.constants.default_config import ExecutionMode, FailSigmaScaling, TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.results_writer import (INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS, )
 from SHE_Validation.test_info_utility import find_test_case_info
@@ -94,7 +95,7 @@ class TestCase:
         self.pipeline_config[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA] = 5.
 
         # Get a dictionary of bin limits
-        self.d_bin_limits = mock_pipeline_config_factory.d_l_bin_limits
+        self.d_l_bin_limits = mock_pipeline_config_factory.d_l_bin_limits
 
     def test_fill_sb_val_results(self):
         """ Test of the fill_shear_bias_test_results function.
@@ -149,10 +150,17 @@ class TestCase:
         sb_test_results_product = products.she_validation_test_results.create_validation_test_results_product(
             num_tests=NUM_SHEAR_BIAS_TEST_CASES)
 
+        # Make sure d_l_bin_limits is appropriate for this stage
+        d_l_bin_limits = deepcopy(self.d_l_bin_limits)
+        for bin_parameter, val in d_l_bin_limits.items():
+            if isinstance(val, str):
+                # Was using auto bin limits, so replace with default bin limits
+                d_l_bin_limits[bin_parameter] = np.array(TOT_BIN_LIMITS)
+
         fill_shear_bias_test_results(test_result_product=sb_test_results_product,
                                      d_l_test_results=d_l_d_bias_measurements,
                                      pipeline_config=self.pipeline_config,
-                                     d_l_bin_limits=self.d_bin_limits,
+                                     d_l_bin_limits=d_l_bin_limits,
                                      workdir=self.workdir,
                                      dl_dl_plot_filenames=None,
                                      mode=ExecutionMode.LOCAL)
