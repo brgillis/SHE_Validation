@@ -808,12 +808,15 @@ class AnalysisWriter:
         else:
             dl_l_textfiles.append(self.directory_filename)
 
-    @staticmethod
-    def _write_dummy_data(qualified_filename: str) -> None:
+    def _write_dummy_data(self, qualified_filename: str) -> None:
         """ Write dummy data to a file.
         """
-        with open(qualified_filename, "w") as fo:
-            fo.write("Dummy data")
+        dummy_filename = f"{qualified_filename}-dummy_data.txt"
+        with open(dummy_filename, "w") as fo:
+            fo.write("No files were selected to be packed into tarball.\n")
+        self._tar_files(tarball_filename=qualified_filename,
+                        filenames=[dummy_filename],
+                        delete_files=True)
 
     def _tar_files(self,
                    tarball_filename: str,
