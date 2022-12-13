@@ -142,14 +142,16 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
     if not d_args[CA_DRY_RUN]:
         (d_exposure_regression_results_tables,
          d_observation_regression_results_tables,
-         plot_filenames) = validate_cti_gal(data_stack=data_stack,
-                                            shear_estimate_tables=d_shear_estimate_tables,
-                                            d_bin_limits=d_l_bin_limits,
-                                            workdir=workdir)
+         d_d_observation_plot_filenames,
+         l_d_d_exposure_plot_filenames) = validate_cti_gal(data_stack=data_stack,
+                                                           shear_estimate_tables=d_shear_estimate_tables,
+                                                           d_bin_limits=d_l_bin_limits,
+                                                           workdir=workdir)
     else:
         d_exposure_regression_results_tables = None
         d_observation_regression_results_tables = None
-        plot_filenames = None
+        d_d_observation_plot_filenames = None
+        l_d_d_exposure_plot_filenames = None
 
     logger.info("Creating and outputting validation test result data products.")
 
@@ -159,19 +161,24 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
      obs_test_result_product,
      vis_calibrated_frame_product) = load_from_vis_calibrated_frame(l_vis_calibrated_frame_product)
 
+    # Make sure l_d_d_exposure_plot_filenames is of the right size in dry-run case
+    if l_d_d_exposure_plot_filenames is None:
+        l_d_d_exposure_plot_filenames = [None] * len(l_exp_test_result_product)
+
     # Fill in the products with the results
     if not d_args[CA_DRY_RUN]:
 
         # Get the regression results tables for this test case
 
         # Fill in each exposure product in turn with results
-        for product_index, exp_test_result_product in enumerate(l_exp_test_result_product):
+        for exp_index, exp_test_result_product in enumerate(l_exp_test_result_product):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
                                             workdir=workdir,
-                                            regression_results_row_index=product_index,
+                                            regression_results_row_index=exp_index,
                                             d_l_test_results=d_exposure_regression_results_tables,
                                             pipeline_config=d_args[CA_PIPELINE_CONFIG],
                                             d_l_bin_limits=d_l_bin_limits,
+                                            dl_dl_figures=l_d_d_exposure_plot_filenames[exp_index],
                                             method_data_exists=method_data_exists)
 
         # And fill in the observation product
@@ -181,7 +188,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
                                         d_l_test_results=d_observation_regression_results_tables,
                                         pipeline_config=d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits=d_l_bin_limits,
-                                        dl_dl_figures=plot_filenames,
+                                        dl_dl_figures=d_d_observation_plot_filenames,
                                         method_data_exists=method_data_exists)
 
     # Write out the exposure test results products and listfile
@@ -270,7 +277,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                      d_bin_limits: Dict[BinParameters, np.ndarray],
                      workdir: str) -> Tuple[Dict[str, List[Union[Table, Row]]],
                                             Dict[str, List[Union[Table, Row]]],
-                                            Dict[str, Dict[str, str]]]:
+                                            Dict[str, Dict[str, str]],
+                                            List[Dict[str, Dict[str, str]]]]:
     """ Perform CTI-Gal validation tests on a loaded-in data_stack (SHEFrameStack object) and shear estimates tables
         for each shear estimation method.
     """
@@ -287,7 +295,10 @@ def validate_cti_gal(data_stack: SHEFrameStack,
     # Loop over each test case, filling in results tables for each and adding them to the results dict
     d_l_exposure_regression_results_tables: Dict[str, List[Table]] = {}
     d_l_observation_regression_results_tables: Dict[str, List[Table]] = {}
-    plot_filenames: Dict[str, Dict[str, str]] = {}
+    d_d_observation_plot_filenames: Dict[str, Dict[str, str]] = {}
+    l_d_d_exposure_plot_filenames: List[Dict[str, Dict[str, str]]] = []
+    for _ in enumerate(l_object_data_table):
+        l_d_d_exposure_plot_filenames.append({})
 
     # Get IDs for all bins
     d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
@@ -301,7 +312,9 @@ def validate_cti_gal(data_stack: SHEFrameStack,
 
         # Initialise for this test case
         method = test_case_info.method
-        plot_filenames[test_case_info.name] = {}
+        d_d_observation_plot_filenames[test_case_info.name] = {}
+        for exp_index, _ in enumerate(l_object_data_table):
+            l_d_d_exposure_plot_filenames[exp_index][test_case_info.name] = {}
         test_case_bin_limits = d_bin_limits[test_case_info.bins]
         num_bins = len(test_case_bin_limits) - 1
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[test_case_info.name]
@@ -342,7 +355,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                            object_data_table=object_data_table,
                                            bin_limits=bin_limits,
                                            l_test_case_object_ids=l_test_case_object_ids,
-                                           d_d_plot_filenames=plot_filenames,
+                                           d_d_plot_filenames=l_d_d_exposure_plot_filenames[exp_index],
                                            workdir=workdir)
 
             # With the exposures done, we'll now do a test for the observation as a whole on a merged table
@@ -364,7 +377,7 @@ def validate_cti_gal(data_stack: SHEFrameStack,
                                        object_data_table=merged_object_table,
                                        bin_limits=bin_limits,
                                        l_test_case_object_ids=l_test_case_object_ids,
-                                       d_d_plot_filenames=plot_filenames,
+                                       d_d_plot_filenames=d_d_observation_plot_filenames,
                                        workdir=workdir)
 
             l_exposure_regression_results_tables[bin_index] = exposure_regression_results_table
@@ -376,7 +389,8 @@ def validate_cti_gal(data_stack: SHEFrameStack,
             test_case_info.name] = l_observation_regression_results_tables
 
     # And we're done here, so return the results and object tables
-    return d_l_exposure_regression_results_tables, d_l_observation_regression_results_tables, plot_filenames
+    return (d_l_exposure_regression_results_tables, d_l_observation_regression_results_tables,
+            d_d_observation_plot_filenames, l_d_d_exposure_plot_filenames)
 
 
 def make_and_save_cti_gal_plot(method: ShearEstimationMethods,
