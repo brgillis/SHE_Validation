@@ -37,6 +37,7 @@ Deprecated Features
 
 Bug Fixes
 ---------
+- Plots for individual exposures are now properly saved for CTI-Gal validation test
 
 
 New Features
