@@ -159,8 +159,3 @@ class TestCtiGalRun(SheTestCase):
         # Check that we found the filenames for the plots and they all exist
         assert obs_plot_filename is not None
         assert os.path.isfile(os.path.join(workdir, obs_plot_filename))
-
-        for exp_index in range(EX_NUM_EXPOSURES):
-            assert l_exp_plot_filenames[exp_index] is not None
-            assert obs_plot_filename != l_exp_plot_filenames[exp_index]
-            assert os.path.isfile(os.path.join(workdir, l_exp_plot_filenames[exp_index]))
