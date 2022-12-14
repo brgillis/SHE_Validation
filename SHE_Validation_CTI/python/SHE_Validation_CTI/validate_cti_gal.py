@@ -140,16 +140,16 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
 
     # Run the validation
     if not d_args[CA_DRY_RUN]:
-        (d_exposure_regression_results_tables,
-         d_observation_regression_results_tables,
+        (d_l_exposure_regression_results_tables,
+         d_l_observation_regression_results_tables,
          d_d_observation_plot_filenames,
          l_d_d_exposure_plot_filenames) = validate_cti_gal(data_stack=data_stack,
                                                            shear_estimate_tables=d_shear_estimate_tables,
                                                            d_bin_limits=d_l_bin_limits,
                                                            workdir=workdir)
     else:
-        d_exposure_regression_results_tables = None
-        d_observation_regression_results_tables = None
+        d_l_exposure_regression_results_tables = None
+        d_l_observation_regression_results_tables = None
         d_d_observation_plot_filenames = None
         l_d_d_exposure_plot_filenames = None
 
@@ -175,7 +175,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
             fill_cti_gal_validation_results(test_result_product=exp_test_result_product,
                                             workdir=workdir,
                                             regression_results_row_index=exp_index,
-                                            d_l_test_results=d_exposure_regression_results_tables,
+                                            d_l_test_results=d_l_exposure_regression_results_tables,
                                             pipeline_config=d_args[CA_PIPELINE_CONFIG],
                                             d_l_bin_limits=d_l_bin_limits,
                                             dl_dl_figures=l_d_d_exposure_plot_filenames[exp_index],
@@ -185,7 +185,7 @@ def run_validate_cti_gal_from_args(d_args: Dict[str, Any]):
         fill_cti_gal_validation_results(test_result_product=obs_test_result_product,
                                         workdir=workdir,
                                         regression_results_row_index=0,
-                                        d_l_test_results=d_observation_regression_results_tables,
+                                        d_l_test_results=d_l_observation_regression_results_tables,
                                         pipeline_config=d_args[CA_PIPELINE_CONFIG],
                                         d_l_bin_limits=d_l_bin_limits,
                                         dl_dl_figures=d_d_observation_plot_filenames,
