@@ -62,14 +62,13 @@ def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
-    # From the base method, change default for adding bin columns
-    d_tum_extend_config_defaults = deepcopy(D_TUM_CONFIG_DEFAULTS)
-    d_tum_extend_config_defaults[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS] = True
+    # For this variant, force to always add bin columns
+    args.add_bin_columns = True
 
     executor = SheValExecutor(run_from_args_function=match_to_tu_from_args,
                               log_options=ValLogOptions(executable_name=EXEC_NAME,
                                                         s_store_true=S_TUM_STORE_TRUE),
-                              config_args=ReadConfigArgs(d_config_defaults=d_tum_extend_config_defaults,
+                              config_args=ReadConfigArgs(d_config_defaults=D_TUM_CONFIG_DEFAULTS,
                                                          d_config_types=D_TUM_CONFIG_TYPES,
                                                          d_config_cline_args=D_TUM_CONFIG_CLINE_ARGS,
                                                          s_config_keys_types=S_TUM_CONFIG_KEYS,
