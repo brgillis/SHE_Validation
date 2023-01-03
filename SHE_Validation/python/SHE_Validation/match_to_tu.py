@@ -445,10 +445,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
         logger.info(f"No valid rows in catalog for method {method.value}.")
         return
 
-    ra_se = shear_table[sem_tf.ra]
-    dec_se = shear_table[sem_tf.dec]
-    # noinspection PyUnresolvedReferences
-    sky_coord_se = SkyCoord(ra=ra_se * units.degree, dec=dec_se * units.degree)
+    sky_coord_se = SkyCoord(ra=shear_table[sem_tf.ra], dec=shear_table[sem_tf.dec])
 
     (best_obj_id_from_star,
      best_star_distance,
