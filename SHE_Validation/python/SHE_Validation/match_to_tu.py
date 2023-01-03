@@ -281,10 +281,9 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
         tu_output_product = file_io.read_xml_product(qualified_tu_output_product_filename)
 
         star_catalog_filenames = [get_data_filename_from_product(tu_output_product, "StarCatalog.StarCatalog."
-                                                                                    "DataStorage.StarCatalogFitsFile")]
+                                                                                    "DataStorage")]
         galaxy_catalog_filenames = [get_data_filename_from_product(tu_output_product, "GalaxyCatalog.GalaxyCatalog."
-                                                                                      "DataStorage."
-                                                                                      "GalaxyCatalogFitsFile")]
+                                                                                      "DataStorage.")]
 
     else:
 
