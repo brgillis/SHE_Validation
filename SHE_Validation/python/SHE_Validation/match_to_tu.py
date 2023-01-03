@@ -283,7 +283,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
         star_catalog_filenames = [get_data_filename_from_product(tu_output_product, "StarCatalog.StarCatalog."
                                                                                     "DataStorage")]
         galaxy_catalog_filenames = [get_data_filename_from_product(tu_output_product, "GalaxyCatalog.GalaxyCatalog."
-                                                                                      "DataStorage.")]
+                                                                                      "DataStorage")]
 
     else:
 
