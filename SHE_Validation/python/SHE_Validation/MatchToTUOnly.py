@@ -21,9 +21,7 @@ __updated__ = "2021-08-12"
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from argparse import ArgumentParser, Namespace
-from copy import deepcopy
 
-from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_PPT.executor import ReadConfigArgs
 from SHE_PPT.logging import getLogger
 from SHE_Validation.MatchToTU import (D_TUM_CONFIG_CLINE_ARGS, D_TUM_CONFIG_DEFAULTS, D_TUM_CONFIG_TYPES,
