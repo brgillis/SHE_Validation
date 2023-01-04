@@ -24,6 +24,7 @@ import os
 from typing import Any, Dict, List
 
 import numpy as np
+from astropy.table import Table
 
 from SHE_PPT import file_io
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG, CA_WORKDIR
@@ -82,9 +83,11 @@ def validate_shear_bias_from_args(d_args: Dict[str, Any], mode: ExecutionMode) -
                                                      workdir=workdir,
                                                      method=method)
 
-    # Get the bin limits from the pipeline_config
+    # Get the bin limits from the pipeline_config. Use the first LensMC table to determine auto bin limits FIXME
+    bin_data_table = Table.read(os.path.join(workdir, d_method_l_table_filenames[ShearEstimationMethods.LENSMC][0]))
     d_l_bin_limits: Dict[BinParameters, np.ndarray] = get_d_l_bin_limits(d_args[CA_PIPELINE_CONFIG],
-                                                                         d_local_bin_keys=D_SHEAR_BIAS_BIN_KEYS)
+                                                                         d_local_bin_keys=D_SHEAR_BIAS_BIN_KEYS,
+                                                                         bin_data_table=bin_data_table)
     # TODO: Figure out a bin data table here to use
 
     # Perform validation for each shear estimation method
