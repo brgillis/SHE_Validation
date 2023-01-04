@@ -25,7 +25,6 @@ from argparse import Namespace
 from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 import numpy as np
-from astropy import units
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.io.fits import table_to_hdu
