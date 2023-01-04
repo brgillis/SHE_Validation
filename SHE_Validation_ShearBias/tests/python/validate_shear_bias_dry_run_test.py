@@ -37,12 +37,10 @@ from SHE_Validation_ShearBias.ValidateShearBias import (defineSpecificProgramOpt
                                                         mainMethod, )
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME
 
-# noinspection PyProtectedMember
-
 logger = getLogger(__name__)
 
 
-class ShearBiasTestCase(SheTestCase):
+class TestShearBias(SheTestCase):
     """ Test case for Shear Bias validation test code
     """
 
