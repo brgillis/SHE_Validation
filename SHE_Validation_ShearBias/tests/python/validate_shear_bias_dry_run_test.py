@@ -23,6 +23,7 @@ __updated__ = "2021-08-31"
 import os
 import subprocess
 from argparse import Namespace
+from copy import deepcopy
 
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG
 from SHE_PPT.file_io import read_xml_product
@@ -65,27 +66,31 @@ class TestShearBias(SheTestCase):
 
     def test_shear_bias_dry_run(self):
 
+        args = deepcopy(self.args)
+
         # Ensure this is a dry run
-        setattr(self.args, CA_DRY_RUN, True)
+        setattr(args, CA_DRY_RUN, True)
 
         # Call to validation function
-        mainMethod(self.args)
+        mainMethod(args)
 
     def test_shear_bias_integration(self):
         """ Integration test of the full executable. Once we have a proper integration test set up,
             this should be skipped.
         """
 
+        args = deepcopy(self.args)
+
         # Ensure this is not a dry run
-        setattr(self.args, CA_DRY_RUN, False)
+        setattr(args, CA_DRY_RUN, False)
 
         # Call to validation function
-        mainMethod(self.args)
+        mainMethod(args)
 
         # Check the resulting data product and plot exist
 
         workdir = self.workdir
-        output_filename = getattr(self.args, CA_SHE_TEST_RESULTS)
+        output_filename = getattr(args, CA_SHE_TEST_RESULTS)
         qualified_output_filename = os.path.join(workdir, output_filename)
 
         assert os.path.isfile(qualified_output_filename)
