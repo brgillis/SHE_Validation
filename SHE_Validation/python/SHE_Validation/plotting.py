@@ -503,12 +503,18 @@ class ValidationPlotter(abc.ABC):
         self.ax.set_ylim(*self.ylim)
 
     def _clear_plots(self) -> None:
-        """ Closes the plots and resets self.ax and self.fig.
+        """ Closes the plots and resets all stored values
         """
 
         plt.close()
         self.ax = None
         self.fig = None
+        self.x_label = None
+        self.y_label = None
+        self.plot_title = None
+        self.legend_loc = None
+        self.l_summary_text = None
+        self.msg_plot_saved = None
 
     # Protected classes normally expected to be left alone, but which can be overridden if needed
 
