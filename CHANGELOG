@@ -38,6 +38,7 @@ Deprecated Features
 Bug Fixes
 ---------
 - Plots for individual exposures are now properly saved for CTI-Gal validation test
+- Fixed some formatting issues in output of CTI-Gal and Shear Bias validation test results
 
 
 New Features
