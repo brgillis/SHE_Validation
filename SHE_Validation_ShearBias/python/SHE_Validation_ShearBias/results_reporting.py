@@ -220,7 +220,7 @@ class ShearBiasRequirementWriter(RequirementWriter):
 
                 if self.l_bin_limits is not None:
                     d_messages[component_index] += (f"Results for bin {bin_index}, for values from {bin_min} to"
-                                                    f" {bin_max}:")
+                                                    f" {bin_max}:\n")
 
                 d_messages[component_index] += (
                         f"{self._prop}{component_index} = {val:.{REPORT_DIGITS}f}\n" +
