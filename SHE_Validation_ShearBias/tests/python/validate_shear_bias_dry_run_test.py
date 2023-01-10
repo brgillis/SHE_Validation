@@ -25,14 +25,18 @@ import subprocess
 from argparse import Namespace
 from copy import deepcopy
 
+from astropy import table
+
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.constants import PIPELINE_CONFIG_FILENAME
-from SHE_PPT.testing.mock_tum_cat import TUM_TABLE_PRODUCT_FILENAME, write_mock_tum_tables
+from SHE_PPT.testing.mock_tum_cat import (TUM_KSB_TABLE_FILENAME, TUM_LENSMC_TABLE_FILENAME, TUM_TABLE_PRODUCT_FILENAME,
+                                          write_mock_tum_tables, )
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.constants import SHE_BIAS_TEST_RESULT_FILENAME
+from SHE_Validation.testing.mock_data import MockBinTableGenerator
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation_ShearBias.ValidateShearBias import (defineSpecificProgramOptions,
                                                         mainMethod, )
@@ -63,6 +67,19 @@ class TestShearBias(SheTestCase):
 
         # Write the matched catalog we'll be using and its data product
         write_mock_tum_tables(self.workdir)
+
+        # We'll need to modify these tables to also include needed binning data
+        for tum_table_filename in (TUM_LENSMC_TABLE_FILENAME, TUM_KSB_TABLE_FILENAME):
+
+            qualified_tum_table_filename = os.path.join(self.workdir, tum_table_filename)
+
+            tum_table = table.Table.read(qualified_tum_table_filename)
+
+            num_rows = len(tum_table)
+            bin_table = MockBinTableGenerator(workdir=self.workdir, num_test_points=num_rows).get_mock_table()
+
+            tum_table_with_bin_data = table.join(tum_table, bin_table)
+            tum_table_with_bin_data.write(qualified_tum_table_filename, overwrite=True)
 
     def test_shear_bias_dry_run(self):
 
