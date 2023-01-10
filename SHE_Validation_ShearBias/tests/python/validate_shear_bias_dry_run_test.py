@@ -28,8 +28,8 @@ from copy import deepcopy
 from SHE_PPT.argument_parser import CA_DRY_RUN, CA_PIPELINE_CONFIG
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.logging import getLogger
-from SHE_PPT.testing.constants import MATCHED_TABLE_PRODUCT_FILENAME, PIPELINE_CONFIG_FILENAME
-from SHE_PPT.testing.mock_tum_cat import write_mock_tum_tables
+from SHE_PPT.testing.constants import PIPELINE_CONFIG_FILENAME
+from SHE_PPT.testing.mock_tum_cat import TUM_TABLE_PRODUCT_FILENAME, write_mock_tum_tables
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.constants import SHE_BIAS_TEST_RESULT_FILENAME
@@ -53,7 +53,7 @@ class TestShearBias(SheTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_SHE_MATCHED_CAT, MATCHED_TABLE_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_MATCHED_CAT, TUM_TABLE_PRODUCT_FILENAME)
         setattr(args, CA_PIPELINE_CONFIG, PIPELINE_CONFIG_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_BIAS_TEST_RESULT_FILENAME)
 
