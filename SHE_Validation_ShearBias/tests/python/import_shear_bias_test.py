@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from SHE_Validation_ShearBias import *  # noqa: F401,F403
+from SHE_Validation_ShearBias.constants import *  # noqa: F401,F403
+
 
 class TestImports:
 

@@ -1,4 +1,4 @@
-""" @file import_cti_gal_test.py
+""" @file import_test.py
 
     Created 20 August 2021
 
@@ -18,6 +18,11 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from SHE_Validation import *  # noqa: F401,F403
+from SHE_Validation.binning import *  # noqa: F401,F403
+from SHE_Validation.constants import *  # noqa: F401,F403
+from SHE_Validation.testing import *  # noqa: F401,F403
 
 
 class TestImports:
