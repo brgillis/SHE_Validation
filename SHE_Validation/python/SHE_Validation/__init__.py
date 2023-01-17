@@ -41,7 +41,8 @@ __status__ = 'Development'
 __description__ = 'Elements project for validation tests within PF-SHE.'
 __url__ = 'https://gitlab.euclid-sgs.uk/PF-SHE/SHE_Validation'
 
-# noinspection PyUnboundLocalVariable
-__path__ = extend_path(__path__, __name__)
+if '__path__' in locals():
+    # noinspection PyUnboundLocalVariable
+    __path__ = extend_path(__path__, __name__)
 
 del SHE_VALIDATION_VERSION_STRING, BG, RB, extend_path

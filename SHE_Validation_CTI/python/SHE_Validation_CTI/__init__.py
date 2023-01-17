@@ -24,8 +24,9 @@ from pkgutil import extend_path
 from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__, __maintainer__,
                                      __status__, __url__, __version__, )
 
-# noinspection PyUnboundLocalVariable
-__path__ = extend_path(__path__, __name__)
+if '__path__' in locals():
+    # noinspection PyUnboundLocalVariable
+    __path__ = extend_path(__path__, __name__)
 
 __description__ = 'Python package for unit tests relating to CTI.'
 

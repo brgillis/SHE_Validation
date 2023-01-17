@@ -26,7 +26,8 @@ from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __
 
 __description__ = 'Python package for unit tests relating to PSF.'
 
-# noinspection PyUnboundLocalVariable
-__path__ = extend_path(__path__, __name__)
+if '__path__' in locals():
+    # noinspection PyUnboundLocalVariable
+    __path__ = extend_path(__path__, __name__)
 
 del extend_path
