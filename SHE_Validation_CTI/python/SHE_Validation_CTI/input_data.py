@@ -1,8 +1,10 @@
-""" @file input_data.py
+"""
+:file: python/SHE_Validation_CTI/input_data.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Utility functions for CTI-Gal validation, for reading in and sorting input data
+Utility functions for CTI-Gal validation, for reading in and sorting input data
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

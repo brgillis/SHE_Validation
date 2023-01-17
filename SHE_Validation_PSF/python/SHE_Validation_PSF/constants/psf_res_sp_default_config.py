@@ -1,8 +1,10 @@
-""" @file psf_res_sp_default_config.py
+"""
+:file: python/SHE_Validation_PSF/psf_res_sp_default_config.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Constants relating to PSF-Res configuration
+Constants relating to PSF-Res configuration
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

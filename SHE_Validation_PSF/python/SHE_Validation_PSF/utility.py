@@ -1,8 +1,10 @@
-""" @file utility.py
+"""
+:file: python/SHE_Validation_PSF/utility.py
 
-    Created 18 May 2022
+:date: 18 May 2022
+:author: Bryan Gillis
 
-    Classes and functions for utility purposes for PSF Validation tests
+Classes and functions for utility purposes for PSF Validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

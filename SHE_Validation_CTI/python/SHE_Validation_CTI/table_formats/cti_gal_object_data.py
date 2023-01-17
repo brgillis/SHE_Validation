@@ -1,8 +1,10 @@
-""" @file table_formats/cti_gal_object_data.py
+"""
+:file: python/SHE_Validation_CTI/table_formats/cti_gal_object_data.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Table format definition for object data read in for the purpose of CTI-Gal Validation
+Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

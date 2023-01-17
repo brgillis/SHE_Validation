@@ -1,8 +1,10 @@
-""" @file test_info_utility.py
+"""
+:file: python/SHE_Validation/test_info_utility.py
 
-    Created 27 July 2021
+:date: 27 July 2021
+:author: Bryan Gillis
 
-    Utility functions related to requirement, test, and test case info
+Utility functions related to requirement, test, and test case info
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

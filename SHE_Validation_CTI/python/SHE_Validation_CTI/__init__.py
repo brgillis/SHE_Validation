@@ -1,8 +1,10 @@
-""" @file __init__.py
+"""
+:file: python/SHE_Validation_CTI/__init__.py
 
-    Created 24 April 2020
+:date: 24 April 2020
+:author: Bryan Gillis
 
-    SHE_Validation_CTI package, for validation tests and documentation related to CTI
+SHE_Validation_CTI package, for validation tests and documentation related to CTI
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

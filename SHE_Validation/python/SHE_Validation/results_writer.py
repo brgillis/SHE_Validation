@@ -1,8 +1,10 @@
-""" @file results_writer.py
+"""
+:file: python/SHE_Validation/results_writer.py
 
-    Created 17 December 2020
+:date: 17 December 2020
+:author: Bryan Gillis
 
-    (Base) classes for writing out results of validation tests
+(Base) classes for writing out results of validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

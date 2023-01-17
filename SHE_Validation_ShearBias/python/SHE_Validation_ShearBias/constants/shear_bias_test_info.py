@@ -1,8 +1,10 @@
-""" @file constants/shear_bias_test_info.py
+"""
+:file: python/SHE_Validation_ShearBias/constants/shear_bias_test_info.py
 
-    Created 15 July 2021
+:date: 15 July 2021
+:author: Bryan Gillis
 
-    Default values for information about Shear Bias tests and test cases
+Default values for information about Shear Bias tests and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

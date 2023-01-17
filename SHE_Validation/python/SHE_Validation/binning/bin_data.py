@@ -1,8 +1,10 @@
-""" @file binning/bin_data.py
+"""
+:file: python/SHE_Validation/binning/bin_data.py
 
-    Created 24 August 2021
+:date: 24 August 2021
+:author: Bryan Gillis
 
-    Table format and useful functions for determining bin data
+Table format and useful functions for determining bin data
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file argument_parser.py
+"""
+:file: python/SHE_Validation_PSF/argument_parser.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Classes for argument parsers for SHE PSF Validation executables
+Classes for argument parsers for SHE PSF Validation executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file plot_cti.py
+"""
+:file: python/SHE_Validation_CTI/plot_cti.py
 
-    Created 3 November 2021
+:date: 3 November 2021
+:author: Bryan Gillis
 
-    Code to make plots for CTI-related validation tests
+Code to make plots for CTI-related validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

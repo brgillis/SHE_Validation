@@ -1,8 +1,10 @@
-""" @file __init__.py
+"""
+:file: python/SHE_Validation/__init__.py
 
-    Created 24 April 2020
+:date: 24 April 2020
+:author: Bryan Gillis
 
-    SHE_Validation package, for general-purpose code within the SHE_Validation project
+SHE_Validation package, for general-purpose code within the SHE_Validation project
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

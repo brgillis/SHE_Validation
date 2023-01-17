@@ -1,8 +1,10 @@
-""" @file plotting.py
+"""
+:file: python/SHE_Validation_ShearBias/plotting.py
 
-    Created 8 July 2021
+:date: 8 July 2021
+:author: Bryan Gillis
 
-    Code to make plots for shear bias validation test
+Code to make plots for shear bias validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

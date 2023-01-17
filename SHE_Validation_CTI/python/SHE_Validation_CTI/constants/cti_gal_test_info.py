@@ -1,8 +1,10 @@
-""" @file constants/cti_gal_test_info.py
+"""
+:file: python/SHE_Validation_CTI/constants/cti_gal_test_info.py
 
-    Created 15 Dec 2020
+:date: 15 Dec 2020
+:author: Bryan Gillis
 
-    Default values for information about CTI-Gal tests and test cases
+Default values for information about CTI-Gal tests and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

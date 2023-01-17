@@ -1,8 +1,10 @@
-""" @file __init__.py
+"""
+:file: python/SHE_Validation_PSF/__init__.py
 
-    Created 24 Mar 2021
+:date: 24 Mar 2021
+:author: Bryan Gillis
 
-    SHE_Validation_PSF package, for validation tests and documentation related to PSF
+SHE_Validation_PSF package, for validation tests and documentation related to PSF
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

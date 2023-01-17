@@ -1,8 +1,10 @@
-""" @file testing/__init__.py
+"""
+:file: python/SHE_Validation/testing/__init__.py
 
-    Created 8 October 2021
+:date: 8 October 2021
+:author: Bryan Gillis
 
-    Standard package __init__.py
+Standard package __init__.py
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

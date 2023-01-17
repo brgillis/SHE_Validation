@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_DataQuality/validate_psf_model_err.py
+:file: python/SHE_Validation_PSF/python/SHE_Validation_DataQuality/validate_psf_model_err.py
 
 :date: 10/06/22
 :author: Bryan Gillis

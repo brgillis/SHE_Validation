@@ -1,8 +1,10 @@
-""" @file argument_parser.py
+"""
+:file: python/SHE_Validation_CTI/argument_parser.py
 
-    Created 28 October 2021
+:date: 28 October 2021
+:author: Bryan Gillis
 
-    Classes for argument parsers for SHE CTI Validation executables
+Classes for argument parsers for SHE CTI Validation executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

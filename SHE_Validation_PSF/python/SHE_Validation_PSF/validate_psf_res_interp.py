@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_DataQuality/validate_psf_res_interp.py
+:file: python/SHE_Validation_PSF/python/SHE_Validation_DataQuality/validate_psf_res_interp.py
 
 :date: 10/06/22
 :author: Bryan Gillis

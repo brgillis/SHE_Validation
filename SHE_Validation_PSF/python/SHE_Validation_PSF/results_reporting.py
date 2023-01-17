@@ -1,8 +1,10 @@
-""" @file results_reporting.py
+"""
+:file: python/SHE_Validation_PSF/results_reporting.py
 
-    Created 31 Mar 2022
+:date: 31 Mar 2022
+:author: Bryan Gillis
 
-    Functions to report results for PSF Residual validation
+Functions to report results for PSF Residual validation
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

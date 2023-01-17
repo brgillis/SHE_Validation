@@ -1,8 +1,10 @@
-""" @file ValidateShearBias.py
+"""
+:file: python/SHE_Validation_ShearBias/ValidateShearBias.py
 
-    Created 8 July 2021
+:date: 8 July 2021
+:author: Bryan Gillis
 
-    Executable for performing shear bias validation on data from one observation
+Executable for performing shear bias validation on data from one observation
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

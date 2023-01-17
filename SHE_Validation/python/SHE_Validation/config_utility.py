@@ -1,8 +1,10 @@
-""" @file config_utility.py
+"""
+:file: python/SHE_Validation/config_utility.py
 
-    Created 29 July 2021
+:date: 29 July 2021
+:author: Bryan Gillis
 
-    Utility functions related to configuration
+Utility functions related to configuration
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

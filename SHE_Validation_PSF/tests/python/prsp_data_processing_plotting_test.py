@@ -1,8 +1,10 @@
-""" @file data_processing_test.py
+"""
+:file: data_processing_test.py
 
-    Created 30 March 2022 by Bryan Gillis
+:date: 30 March 2022
+:author: Bryan Gillis
 
-    Unit tests of data processing within the PSF Residual validation test
+Unit tests of data processing within the PSF Residual validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

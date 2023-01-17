@@ -1,8 +1,10 @@
-""" @file executor.py
+"""
+:file: python/SHE_Validation_CTI/executor.py
 
-    Created 14 October 2021
+:date: 14 October 2021
+:author: Bryan Gillis
 
-    Class to handle primary execution of SHE_Validation Shear Bias executables
+Class to handle primary execution of SHE_Validation Shear Bias executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

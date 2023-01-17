@@ -1,8 +1,10 @@
-""" @file results_reporting_test.py
+"""
+:file: results_reporting_test.py
 
-    Created 1 April 2022
+:date: 1 April 2022
+:author: Bryan Gillis
 
-    Unit tests of the results_reporting.py module
+Unit tests of the results_reporting.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

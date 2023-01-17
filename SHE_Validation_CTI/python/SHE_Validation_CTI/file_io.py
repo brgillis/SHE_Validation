@@ -1,8 +1,10 @@
-""" @file file_io.py
+"""
+:file: python/SHE_Validation_CTI/file_io.py
 
-    Created 30 August 2021
+:date: 30 August 2021
+:author: Bryan Gillis
 
-    Utility functions and classes related to I/O for the CTI-Gal test case
+Utility functions and classes related to I/O for the CTI-Gal test case
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

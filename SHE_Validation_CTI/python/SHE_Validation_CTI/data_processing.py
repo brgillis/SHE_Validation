@@ -1,8 +1,10 @@
-""" @file data_processing.py
+"""
+:file: python/SHE_Validation_CTI/data_processing.py
 
-    Created 24 December 2020
+:date: 24 December 2020
+:author: Bryan Gillis
 
-    Utility functions for CTI-Gal validation, for processing the data
+Utility functions for CTI-Gal validation, for processing the data
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

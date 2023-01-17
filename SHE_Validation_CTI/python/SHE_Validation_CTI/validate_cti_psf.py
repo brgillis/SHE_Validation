@@ -1,8 +1,10 @@
-""" @file validate_cti_psf.py
+"""
+:file: python/SHE_Validation_CTI/validate_cti_psf.py
 
-    Created 24 November 2020 by Bryan Gillis
+:date: 24 November 2020
+:author: Bryan Gillis
 
-    Primary function code for performing CTI-Gal validation
+Primary function code for performing CTI-Gal validation
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

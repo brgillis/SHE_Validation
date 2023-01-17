@@ -1,8 +1,10 @@
-""" @file CalcCommonValData.py
+"""
+:file: python/SHE_Validation/CalcCommonValData.py
 
-    Created 10 May 2019
+:date: 10 May 2019
+:author: Bryan Gillis
 
-    Executable for collecting data common to validation executables and outputting it in a data table
+Executable for collecting data common to validation executables and outputting it in a data table
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

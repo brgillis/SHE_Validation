@@ -1,8 +1,10 @@
-""" @file validate_shear_bias_dry_run_test.py
+"""
+:file: validate_shear_bias_dry_run_test.py
 
-    Created 10 December 2020
+:date: 10 December 2020
+:author: Bryan Gillis
 
-    Unit tests the input/output interface of the Shear Bias validation task
+Unit tests the input/output interface of the Shear Bias validation task
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

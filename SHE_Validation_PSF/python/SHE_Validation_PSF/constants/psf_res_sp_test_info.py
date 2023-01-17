@@ -1,8 +1,10 @@
-""" @file psf_res_sp_test_info.py
+"""
+:file: python/SHE_Validation_PSF/psf_res_sp_test_info.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Default values for information about tests and test cases
+Default values for information about tests and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

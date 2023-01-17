@@ -1,8 +1,10 @@
-""" @file table_formats/__init__.py
+"""
+:file: python/SHE_Validation_CTI/table_formats/__init__.py
 
-    Created 14 Dec 2020
+:date: 14 Dec 2020
+:author: Bryan Gillis
 
-    Standard package __init__.py file
+Standard package __init__.py file
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

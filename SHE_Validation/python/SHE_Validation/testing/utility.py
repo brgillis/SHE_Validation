@@ -1,8 +1,10 @@
-""" @file testing/utility.py
+"""
+:file: python/SHE_Validation/testing/utility.py
 
-    Created 12 April 2022 by Bryan Gillis
+:date: 12 April 2022
+:author: Bryan Gillis
 
-    Utility functions and classes for testing of SHE_Validation code
+Utility functions and classes for testing of SHE_Validation code
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

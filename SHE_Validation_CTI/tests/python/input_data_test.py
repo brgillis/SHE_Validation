@@ -1,8 +1,10 @@
-""" @file input_data_test.py
+"""
+:file: input_data_test.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Unit tests of the input_data.py module
+Unit tests of the input_data.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

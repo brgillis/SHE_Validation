@@ -1,8 +1,10 @@
-""" @file binning/__init__.py
+"""
+:file: python/SHE_Validation/binning/__init__.py
 
-    Created 24 August 2021
+:date: 24 August 2021
+:author: Bryan Gillis
 
-    Standard package __init__.py
+Standard package __init__.py
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

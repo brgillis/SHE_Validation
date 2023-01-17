@@ -1,8 +1,10 @@
-""" @file constants/cti_psf_default_config.py
+"""
+:file: python/SHE_Validation_CTI/constants/cti_psf_default_config.py
 
-    Created 28 Octo 2021
+:date: 28 Octo 2021
+:author: Bryan Gillis
 
-    Constants relating to CTI-PSF configuration
+Constants relating to CTI-PSF configuration
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

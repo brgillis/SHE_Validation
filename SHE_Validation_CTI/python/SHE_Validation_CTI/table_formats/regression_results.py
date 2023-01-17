@@ -1,8 +1,10 @@
-""" @file table_formats/regression_results.py
+"""
+:file: python/SHE_Validation_CTI/table_formats/regression_results.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Table format definition for Regression Results for the purpose of CTI-Gal Validation
+Table format definition for Regression Results for the purpose of CTI-Gal Validation
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

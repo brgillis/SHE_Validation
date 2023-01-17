@@ -1,8 +1,10 @@
-""" @file file_io.py
+"""
+:file: python/SHE_Validation_PSF/file_io.py
 
-    Created 28 April 2022
+:date: 28 April 2022
+:author: Bryan Gillis
 
-    Classes and functions related to file I/O for PSF validation tests
+Classes and functions related to file I/O for PSF validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

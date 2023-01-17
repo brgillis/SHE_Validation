@@ -1,8 +1,10 @@
-""" @file constants/__init__.py
+"""
+:file: python/SHE_Validation_DataQuality/constants/__init__.py
 
-    Created 21 September 2022
+:date: 21 September 2022
+:author: Bryan Gillis
 
-    Standard package __init__.py
+Standard package __init__.py
 """
 
 # Copyright (C) 2012-2022 Euclid Science Ground Segment

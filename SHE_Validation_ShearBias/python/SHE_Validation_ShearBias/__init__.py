@@ -1,8 +1,10 @@
-""" @file __init__.py
+"""
+:file: python/SHE_Validation_ShearBias/__init__.py
 
-    Created 26 March 2021
+:date: 26 March 2021
+:author: Bryan Gillis
 
-    SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias
+SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

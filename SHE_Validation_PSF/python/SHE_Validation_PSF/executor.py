@@ -1,8 +1,10 @@
-""" @file executor.py
+"""
+:file: python/SHE_Validation_PSF/executor.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Class to handle primary execution of SHE_Validation_PSF executables
+Class to handle primary execution of SHE_Validation_PSF executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file ValidatePSFResStarPos.py
+"""
+:file: python/SHE_Validation_PSF/ValidatePSFResStarPos.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Entry-point module for the PSFResStarPos validation executable
+Entry-point module for the PSFResStarPos validation executable
 """
 
 #

@@ -1,8 +1,10 @@
-""" @file data_processing.py
+"""
+:file: python/SHE_Validation_ShearBias/data_processing.py
 
-    Created 8 July 2021
+:date: 8 July 2021
+:author: Bryan Gillis
 
-    Code to process data for shear bias validation tests
+Code to process data for shear bias validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

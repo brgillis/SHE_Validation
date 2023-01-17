@@ -1,8 +1,10 @@
-""" @file __init__.py
+"""
+:file: python/SHE_Validation_PSF/__init__.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Standard package __init__.py
+Standard package __init__.py
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

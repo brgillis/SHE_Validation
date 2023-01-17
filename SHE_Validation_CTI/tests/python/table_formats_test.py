@@ -1,8 +1,10 @@
-""" @file table_formats_test.py
+"""
+:file: table_formats_test.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Unit tests relating to table formats
+Unit tests relating to table formats
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file MatchToTU.py
+"""
+:file: python/SHE_Validation/MatchToTU.py
 
-    Created 10 May 2019
+:date: 10 May 2019
+:author: Bryan Gillis
 
-    Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs
+Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

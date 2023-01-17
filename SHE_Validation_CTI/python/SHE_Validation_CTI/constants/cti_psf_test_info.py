@@ -1,8 +1,10 @@
-""" @file constants/cti_psf_test_info.py
+"""
+:file: python/SHE_Validation_CTI/constants/cti_psf_test_info.py
 
-    Created 3 November 2021
+:date: 3 November 2021
+:author: Bryan Gillis
 
-    Default values for information about CTI-PSF tests and test cases
+Default values for information about CTI-PSF tests and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

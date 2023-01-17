@@ -1,8 +1,10 @@
-""" @file results_reporting.py
+"""
+:file: python/SHE_Validation_CTI/results_reporting.py
 
-    Created 17 December 2020
+:date: 17 December 2020
+:author: Bryan Gillis
 
-    Utility functions for CTI-Gal validation, for reporting results
+Utility functions for CTI-Gal validation, for reporting results
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

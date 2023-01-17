@@ -1,8 +1,10 @@
-""" @file calc_common_val_data.py
+"""
+:file: python/SHE_Validation/calc_common_val_data.py
 
-    Created 28 October 2021
+:date: 28 October 2021
+:author: Bryan Gillis
 
-    Code to implement calculation of data common to multiple validation executables
+Code to implement calculation of data common to multiple validation executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

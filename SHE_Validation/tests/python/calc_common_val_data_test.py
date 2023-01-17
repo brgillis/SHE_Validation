@@ -1,8 +1,10 @@
-""" @file calc_common_val_data_test.py
+"""
+:file: calc_common_val_data_test.py
 
-    Created 28 October 2021
+:date: 28 October 2021
+:author: Bryan Gillis
 
-    Unit tests of the calc_common_val_data.py module
+Unit tests of the calc_common_val_data.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

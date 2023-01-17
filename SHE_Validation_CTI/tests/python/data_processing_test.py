@@ -1,8 +1,10 @@
-""" @file data_processing_test.py
+"""
+:file: data_processing_test.py
 
-    Created 15 December 2020
+:date: 15 December 2020
+:author: Bryan Gillis
 
-    Unit tests of the data_processing.py module
+Unit tests of the data_processing.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

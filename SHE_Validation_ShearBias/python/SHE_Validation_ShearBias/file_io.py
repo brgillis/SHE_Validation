@@ -1,8 +1,10 @@
-""" @file file_io.py
+"""
+:file: python/SHE_Validation_ShearBias/file_io.py
 
-    Created 30 August 2021
+:date: 30 August 2021
+:author: Bryan Gillis
 
-    Utility functions and classes related to I/O for the ShearBias test case
+Utility functions and classes related to I/O for the ShearBias test case
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

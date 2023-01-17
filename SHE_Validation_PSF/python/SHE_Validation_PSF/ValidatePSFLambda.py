@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_PSF/ValidatePSFLambda.py
+:file: python/SHE_Validation_PSF/python/SHE_Validation_PSF/ValidatePSFLambda.py
 
 :date: 10/06/22
 :author: Bryan Gillis

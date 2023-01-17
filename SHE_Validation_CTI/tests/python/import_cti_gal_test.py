@@ -1,9 +1,11 @@
-""" @file import_cti_gal_test.py
+"""
+:file: import_cti_gal_test.py
 
-    Created 20 August 2021
+:date: 20 August 2021
+:author: Bryan Gillis
 
-    This module tests importing all modules in each package, to make sure nothing obvious goes wrong, even if the code
-    is otherwise untested.
+This module tests importing all modules in each package, to make sure nothing obvious goes wrong, even if the code
+is otherwise untested.
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

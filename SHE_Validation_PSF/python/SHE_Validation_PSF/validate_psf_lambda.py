@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_DataQuality/validate_psf_lambda.py
+:file: python/SHE_Validation_PSF/python/SHE_Validation_DataQuality/validate_psf_lambda.py
 
 :date: 10/06/22
 :author: Bryan Gillis

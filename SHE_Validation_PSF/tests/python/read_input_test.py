@@ -1,8 +1,10 @@
-""" @file read_input_test.py
+"""
+:file: read_input_test.py
 
-    Created 10 March 2022 by Bryan Gillis
+:date: 10 March 2022
+:author: Bryan Gillis
 
-    Unit tests of reading in input data for the PSF Residual validation test
+Unit tests of reading in input data for the PSF Residual validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

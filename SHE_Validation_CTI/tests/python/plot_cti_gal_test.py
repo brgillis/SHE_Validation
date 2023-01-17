@@ -1,8 +1,10 @@
-""" @file plot_cti_gal_test.py
+"""
+:file: plot_cti_gal_test.py
 
-    Created 12 July 2021
+:date: 12 July 2021
+:author: Bryan Gillis
 
-    Unit tests of the plot_cti.py module
+Unit tests of the plot_cti.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

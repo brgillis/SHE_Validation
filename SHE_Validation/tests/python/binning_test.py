@@ -1,8 +1,10 @@
-""" @file binning_test.py
+"""
+:file: binning_test.py
 
-    Created 14 December 2020
+:date: 14 December 2020
+:author: Bryan Gillis
 
-    Unit tests of the bin_constraints.py module
+Unit tests of the bin_constraints.py module
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

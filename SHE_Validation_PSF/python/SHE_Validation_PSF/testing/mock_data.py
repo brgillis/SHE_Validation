@@ -1,8 +1,10 @@
-""" @file testing/mock_data.py
+"""
+:file: python/SHE_Validation_PSF/testing/mock_data.py
 
-    Created 12 April 2022 by Bryan Gillis
+:date: 12 April 2022
+:author: Bryan Gillis
 
-    Utilities for creating mock data specifically for PSF validation tests
+Utilities for creating mock data specifically for PSF validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file validate_psf_res_integration_test.py
+"""
+:file: validate_psf_res_integration_test.py
 
-    Created 8 March 2022 by Bryan Gillis
+:date: 8 March 2022
+:author: Bryan Gillis
 
-    Unit tests the input/output interface of the PSF-Res validation task.
+Unit tests the input/output interface of the PSF-Res validation task.
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

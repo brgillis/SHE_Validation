@@ -1,8 +1,10 @@
-""" @file processing_plotting_test.py
+"""
+:file: processing_plotting_test.py
 
-    Created 12 July 2021
+:date: 12 July 2021
+:author: Bryan Gillis
 
-    Unit tests of the Shear Bias data processing and plotting
+Unit tests of the Shear Bias data processing and plotting
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file ValidateGlobalShearBias.py
+"""
+:file: python/SHE_Validation_ShearBias/ValidateGlobalShearBias.py
 
-    Created 8 July 2021
+:date: 8 July 2021
+:author: Bryan Gillis
 
-    Executable for performing shear bias validation on data from multiple observations
+Executable for performing shear bias validation on data from multiple observations
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

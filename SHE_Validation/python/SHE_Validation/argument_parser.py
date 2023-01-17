@@ -1,8 +1,10 @@
-""" @file argument_parser.py
+"""
+:file: python/SHE_Validation/argument_parser.py
 
-    Created 29 July 2021
+:date: 29 July 2021
+:author: Bryan Gillis
 
-    Base class for an argument parser for SHE Validation executables
+Base class for an argument parser for SHE Validation executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

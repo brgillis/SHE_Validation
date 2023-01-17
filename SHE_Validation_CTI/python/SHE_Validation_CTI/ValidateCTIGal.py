@@ -1,8 +1,10 @@
-""" @file ValidateCTIGal.py
+"""
+:file: python/SHE_Validation_CTI/ValidateCTIGal.py
 
-    Created 24 November 2020 by Bryan Gillis
+:date: 24 November 2020
+:author: Bryan Gillis
 
-    Entry-point file for CTI-Gal validation executable
+Entry-point file for CTI-Gal validation executable
 """
 
 #

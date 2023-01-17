@@ -1,8 +1,10 @@
-""" @file results_reporting.py
+"""
+:file: python/SHE_Validation_ShearBias/results_reporting.py
 
-    Created 15 July 2021
+:date: 15 July 2021
+:author: Bryan Gillis
 
-    Utility functions for Shear Bias validation, for reporting results
+Utility functions for Shear Bias validation, for reporting results
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

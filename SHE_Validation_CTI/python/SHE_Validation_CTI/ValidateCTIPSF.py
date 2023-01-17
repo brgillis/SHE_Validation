@@ -1,8 +1,10 @@
-""" @file ValidateCTIPSF.py
+"""
+:file: python/SHE_Validation_CTI/ValidateCTIPSF.py
 
-    Created 28 October 2021 by Bryan Gillis
+:date: 28 October 2021
+:author: Bryan Gillis
 
-    Entry-point file for CTI-PSF local validation executable
+Entry-point file for CTI-PSF local validation executable
 """
 
 #

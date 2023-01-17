@@ -1,8 +1,10 @@
-""" @file match_to_tu.py
+"""
+:file: python/SHE_Validation/match_to_tu.py
 
-    Created 10 May 2019
+:date: 10 May 2019
+:author: Bryan Gillis
 
-    Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs
+Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

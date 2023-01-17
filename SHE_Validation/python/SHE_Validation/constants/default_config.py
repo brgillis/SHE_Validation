@@ -1,8 +1,10 @@
-""" @file constants/default_config.py
+"""
+:file: python/SHE_Validation/constants/default_config.py
 
-    Created 15 July 2021
+:date: 15 July 2021
+:author: Bryan Gillis
 
-    Constants relating default configurations for validation tests
+Constants relating default configurations for validation tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

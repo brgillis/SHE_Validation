@@ -1,8 +1,10 @@
-""" @file constants/test_info.py
+"""
 
-    Created 27 July 2021
 
-    Default values for information about tests and test cases, generic across multiple tests
+:date: 27 July 2021
+:author: Bryan Gillis
+
+Default values for information about tests and test cases, generic across multiple tests
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

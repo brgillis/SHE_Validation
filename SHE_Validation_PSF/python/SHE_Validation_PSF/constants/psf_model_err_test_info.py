@@ -1,5 +1,5 @@
 """
-:file: python/SHE_Validation_PSF/psf_lambda_test_info.py
+:file: python/SHE_Validation_PSF/python/SHE_Validation_PSF/psf_lambda_test_info.py
 
 :date: 10/05/22
 :author: Bryan Gillis

@@ -1,8 +1,10 @@
-""" @file argument_parser.py
+"""
+:file: python/SHE_Validation_ShearBias/argument_parser.py
 
-    Created 29 July 2021
+:date: 29 July 2021
+:author: Bryan Gillis
 
-    Base class for an argument parser for SHE_Validation Shear Bias executables
+Base class for an argument parser for SHE_Validation Shear Bias executables
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,8 +1,10 @@
-""" @file binning/bin_constraints.py
+"""
+:file: python/SHE_Validation/binning/bin_constraints.py
 
-    Created 9 July 2021
+:date: 9 July 2021
+:author: Bryan Gillis
 
-    Common functions and classes to aid with binning data
+Common functions and classes to aid with binning data
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

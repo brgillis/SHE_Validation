@@ -1,8 +1,10 @@
-""" @file data_processing.py
+"""
+:file: python/SHE_Validation_PSF/data_processing.py
 
-    Created 23 March 2022 by Bryan Gillis
+:date: 23 March 2022
+:author: Bryan Gillis
 
-    Functions for data processing in PSF Residual validation test
+Functions for data processing in PSF Residual validation test
 """
 
 #
