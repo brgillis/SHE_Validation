@@ -25,8 +25,8 @@ import abc
 from copy import deepcopy
 from typing import Iterable, List, Optional, Sequence, Tuple, Union
 
-import numpy as np
 import matplotlib as mpl
+import numpy as np
 from matplotlib import cm, pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.figure import Axes, Figure
