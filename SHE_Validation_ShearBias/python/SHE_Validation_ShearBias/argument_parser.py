@@ -2,10 +2,8 @@
 
     Created 29 July 2021
 
-    Base class for an argument parser for SHE Validation executables.
+    Base class for an argument parser for SHE_Validation Shear Bias executables
 """
-
-__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +17,7 @@ __updated__ = "2021-08-27"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from SHE_PPT.argument_parser import ClineArgType
 from SHE_PPT.constants.config import ValidationConfigKeys
 from SHE_Validation.argument_parser import ValidationArgumentParser

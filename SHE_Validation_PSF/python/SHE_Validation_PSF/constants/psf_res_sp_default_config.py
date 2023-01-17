@@ -1,11 +1,9 @@
 """ @file psf_res_sp_default_config.py
 
-    Created 08 March 2022 by Bryan Gillis
+    Created 8 March 2022 by Bryan Gillis
 
     Constants relating to PSF-Res configuration
 """
-
-__updated__ = "2022-04-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

@@ -4,7 +4,7 @@
 :date: 10/05/22
 :author: Bryan Gillis
 
-Default values for information about the PSF-Lambda test and test cases.
+Default values for information about the PSF-Lambda test and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

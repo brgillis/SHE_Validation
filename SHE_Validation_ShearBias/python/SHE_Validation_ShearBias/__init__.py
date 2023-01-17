@@ -2,10 +2,8 @@
 
     Created 26 March 2021
 
-    SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias.
+    SHE_Validation_ShearBias package, for validation tests and documentation related to shear bias
 """
-
-__updated__ = "2021-07-16"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -26,7 +24,9 @@ from pkgutil import extend_path
 from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__, __maintainer__,
                                      __status__, __url__, __version__, )
 
+__description__ = 'Python package for unit tests relating to Shear Bias.'
+
 # noinspection PyUnboundLocalVariable
 __path__ = extend_path(__path__, __name__)
 
-__description__ = 'Python package for unit tests relating to Shear Bias.'
+del extend_path

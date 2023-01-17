@@ -4,6 +4,7 @@
 :date: 10/06/22
 :author: Bryan Gillis
 
+Integration test of the PSFLambda validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

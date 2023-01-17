@@ -4,8 +4,8 @@
 :date: 10/06/22
 :author: Bryan Gillis
 
+Core code for running the PSFLambda validation test
 """
-
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

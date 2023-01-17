@@ -4,7 +4,7 @@
 :date: 09/21/22
 :author: Bryan Gillis
 
-Default values for information about the SED-Exist test and test cases.
+Default values for information about the SED-Exist test and test cases
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

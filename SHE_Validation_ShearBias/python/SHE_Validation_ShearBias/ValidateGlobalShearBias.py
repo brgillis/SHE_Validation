@@ -2,10 +2,8 @@
 
     Created 8 July 2021
 
-    Executable for performing shear bias validation on data from one observation.
+    Executable for performing shear bias validation on data from multiple observations
 """
-
-__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

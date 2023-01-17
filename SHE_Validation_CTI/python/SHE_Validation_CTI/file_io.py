@@ -5,8 +5,6 @@
     Utility functions and classes related to I/O for the CTI-Gal test case
 """
 
-__updated__ = "2021-08-30"
-
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General

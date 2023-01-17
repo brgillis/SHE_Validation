@@ -2,10 +2,8 @@
 
     Created 27 July 2021
 
-    Utility functions related to requirement, test, and test case info.
+    Utility functions related to requirement, test, and test case info
 """
-
-__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

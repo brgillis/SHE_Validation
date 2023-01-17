@@ -2,10 +2,8 @@
 
     Created 8 July 2021
 
-    Code to implement shear bias validation test.
+    Code to implement shear bias validation test
 """
-
-__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

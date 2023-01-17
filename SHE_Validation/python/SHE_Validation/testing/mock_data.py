@@ -1,11 +1,9 @@
-""" @file mock_data.py
+""" @file testing/mock_data.py
 
     Created 15 October 2021.
 
-    Utilities to generate mock data for validation tests.
+    Utilities to generate mock data for validation tests
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

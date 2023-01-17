@@ -1,11 +1,9 @@
-""" @file bin_data.py
+""" @file binning/bin_data.py
 
     Created 24 August 2021
 
     Table format and useful functions for determining bin data
 """
-
-__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -18,8 +16,7 @@ __updated__ = "2021-08-25"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from typing import Iterable, Optional, Sequence
 

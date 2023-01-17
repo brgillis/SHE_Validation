@@ -4,9 +4,8 @@
 :date: 09/21/22
 :author: Bryan Gillis
 
+Entry-point module for DataProc validation test
 """
-
-__updated__ = "2022-04-08"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

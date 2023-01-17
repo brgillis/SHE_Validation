@@ -2,10 +2,8 @@
 
     Created 10 December 2020
 
-    Unit tests the input/output interface of the CTI-Gal validation task.
+    Unit tests the input/output interface of the CTI-Gal validation task
 """
-
-__updated__ = "2022-03-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

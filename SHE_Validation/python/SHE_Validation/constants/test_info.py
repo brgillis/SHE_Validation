@@ -1,11 +1,9 @@
-""" @file test_info.py
+""" @file constants/test_info.py
 
     Created 27 July 2021
 
-    Default values for information about tests and test cases, generic across multiple tests.
+    Default values for information about tests and test cases, generic across multiple tests
 """
-
-__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

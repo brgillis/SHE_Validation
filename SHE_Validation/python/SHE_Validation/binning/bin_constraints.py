@@ -1,11 +1,9 @@
-""" @file binning.py
+""" @file binning/bin_constraints.py
 
     Created 9 July 2021
 
-    Common functions and classes to aid with binning data.
+    Common functions and classes to aid with binning data
 """
-
-__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -18,8 +16,7 @@ __updated__ = "2021-08-31"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import abc
 from typing import Any, Dict, List, Optional, Sequence, Set, Type, Union

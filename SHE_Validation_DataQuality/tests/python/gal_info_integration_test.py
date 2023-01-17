@@ -4,6 +4,7 @@
 :date: 09/26/22
 :author: Bryan Gillis
 
+Integration test of the GalInfo validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

@@ -1,11 +1,9 @@
-""" @file cti_psf_default_config.py
+""" @file constants/cti_psf_default_config.py
 
     Created 28 Octo 2021
 
     Constants relating to CTI-PSF configuration
 """
-
-__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

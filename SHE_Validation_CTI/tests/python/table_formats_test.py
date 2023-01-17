@@ -2,10 +2,8 @@
 
     Created 14 December 2020
 
-    Unit tests relating to table formats.
+    Unit tests relating to table formats
 """
-
-__updated__ = "2021-08-17"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

@@ -5,8 +5,6 @@
     Classes and functions for utility purposes for PSF Validation tests
 """
 
-__updated__ = "2022-04-28"
-
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -18,8 +16,7 @@ __updated__ = "2022-04-28"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from copy import deepcopy
 from typing import List, Mapping, Optional, Sequence, Type, TypeVar, Union
 

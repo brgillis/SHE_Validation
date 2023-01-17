@@ -1,11 +1,9 @@
-""" @file utility.py
+""" @file testing/utility.py
 
     Created 12 April 2022 by Bryan Gillis
 
     Utility functions and classes for testing of SHE_Validation_PSF code
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +17,7 @@ __updated__ = "2021-10-05"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from typing import Dict, Optional
 
 import numpy as np

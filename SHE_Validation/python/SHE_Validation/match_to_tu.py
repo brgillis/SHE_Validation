@@ -2,10 +2,8 @@
 
     Created 10 May 2019
 
-    Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs.
+    Code to implement matching of shear estimates catalogs to SIM's TU galaxy and star catalogs
 """
-
-__updated__ = "2021-08-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

@@ -1,11 +1,9 @@
-""" @file utility.py
+""" @file binning/utility.py
 
-    Created 18 Oct 2021
+    Created 18 October 2021
 
-    Utility functions related to binning.
+    Utility functions related to binning
 """
-
-__updated__ = "2021-08-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

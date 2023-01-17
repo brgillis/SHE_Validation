@@ -1,11 +1,9 @@
-""" @file cti_gal_object_data.py
+""" @file table_formats/cti_gal_object_data.py
 
     Created 14 December 2020
 
     Table format definition for object data read in for the purpose of CTI-Gal Validation
 """
-
-__updated__ = "2021-08-25"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -18,9 +16,7 @@ __updated__ = "2021-08-25"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
-
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger

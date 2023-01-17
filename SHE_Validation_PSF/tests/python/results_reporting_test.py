@@ -5,8 +5,6 @@
     Unit tests of the results_reporting.py module
 """
 
-__updated__ = "2022-04-01"
-
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General

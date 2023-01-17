@@ -2,10 +2,8 @@
 
     Created 10 March 2022 by Bryan Gillis
 
-    Unit tests of reading in input data for the PSF Residual validation test.
+    Unit tests of reading in input data for the PSF Residual validation test
 """
-
-__updated__ = "2022-04-10"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +17,7 @@ __updated__ = "2022-04-10"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from argparse import Namespace
 from copy import deepcopy
 

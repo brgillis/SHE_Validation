@@ -1,11 +1,9 @@
-""" @file mock_data.py
+""" @file testing/mock_data.py
 
     Created 12 April 2022 by Bryan Gillis
 
-    Utilities for creating mock data specifically for PSF validation tests.
+    Utilities for creating mock data specifically for PSF validation tests
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

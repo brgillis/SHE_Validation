@@ -2,10 +2,8 @@
 
     Created 10 May 2019
 
-    Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs.
+    Executable for matching the output of the Analysis pipeline to SIM's True Universe catalogs
 """
-
-__updated__ = "2021-08-12"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +17,7 @@ __updated__ = "2021-08-12"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from argparse import ArgumentParser, Namespace
 
 from SHE_PPT.constants.config import AnalysisConfigKeys, ValidationConfigKeys

@@ -4,6 +4,7 @@
 :date: 10/06/22
 :author: Bryan Gillis
 
+Entry-point module for the PSFModelErr validation test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

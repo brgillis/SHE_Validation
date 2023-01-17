@@ -2,10 +2,8 @@
 
     Created 24 April 2020
 
-    SHE_Validation_CTI package, for validation tests and documentation related to CTI.
+    SHE_Validation_CTI package, for validation tests and documentation related to CTI
 """
-
-__updated__ = "2021-03-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -30,3 +28,5 @@ from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __
 __path__ = extend_path(__path__, __name__)
 
 __description__ = 'Python package for unit tests relating to CTI.'
+
+del extend_path

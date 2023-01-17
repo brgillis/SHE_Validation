@@ -4,10 +4,8 @@
 :date: 09/26/22
 :author: Bryan Gillis
 
+Core code for DataProc validation test
 """
-
-__updated__ = "2022-04-08"
-
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

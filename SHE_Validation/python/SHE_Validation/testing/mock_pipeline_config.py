@@ -1,11 +1,9 @@
-""" @file mock_pipeline_config.py
+""" @file testing/mock_pipeline_config.py
 
     Created 8 October 2021.
 
-    Utilities to generate, write, read, and cleanup mock pipeline configs for unit tests.
+    Utilities to generate, write, read, and cleanup mock pipeline configs for unit tests
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

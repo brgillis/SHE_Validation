@@ -1,11 +1,9 @@
 """ @file calc_common_val_data.py
 
-    Created 28 Oct 2021
+    Created 28 October 2021
 
     Code to implement calculation of data common to multiple validation executables
 """
-
-__updated__ = "2021-08-18"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

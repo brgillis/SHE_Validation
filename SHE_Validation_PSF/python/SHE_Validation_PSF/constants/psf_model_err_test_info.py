@@ -4,10 +4,8 @@
 :date: 10/05/22
 :author: Bryan Gillis
 
-Default values for information about the PSF-Model-Err test and test cases.
+Default values for information about the PSF-Model-Err test and test cases
 """
-
-__updated__ = "2022-10-06"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

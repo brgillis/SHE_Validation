@@ -2,10 +2,8 @@
 
     Created 24 November 2020 by Bryan Gillis
 
-    Entry-point file for CTI-Gal validation executable.
+    Entry-point file for CTI-Gal validation executable
 """
-
-__updated__ = "2021-08-20"
 
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment

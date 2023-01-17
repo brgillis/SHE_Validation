@@ -1,11 +1,9 @@
-""" @file shear_bias_test_info.py
+""" @file constants/shear_bias_test_info.py
 
     Created 15 July 2021
 
-    Constants relating to CTI-Gal test and test case
+    Constants relating to Shear Bias tests and test cases
 """
-
-__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

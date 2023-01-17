@@ -1,9 +1,9 @@
-""" @file __init__.py
+""" @file constants/__init__.py
 
     Created 6 Jan 2021
-"""
 
-__updated__ = "2021-08-27"
+    Standard package __init__.py
+"""
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -16,17 +16,11 @@ __updated__ = "2021-08-27"
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glob
-from os.path import basename, dirname, isfile
+from pkgutil import extend_path
 
-modules = glob.glob(dirname(__file__) + "/*.py")
-__all__ = [basename(f)[:-3]
-           for f in modules if isfile(f) and not f.endswith('__init__.py')]
+# noinspection PyUnboundLocalVariable
+__path__ = extend_path(__path__, __name__)
 
-# noinspection PyPep8
-from . import *
-
-del modules, dirname, basename, isfile, glob
+del extend_path

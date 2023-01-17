@@ -5,8 +5,6 @@
     Functions for data processing in PSF Residual validation test
 """
 
-__updated__ = "2022-04-23"
-
 #
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

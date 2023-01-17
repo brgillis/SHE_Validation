@@ -1,11 +1,9 @@
 """ @file executor.py
 
-    Created 14 Oct 2021
+    Created 14 October 2021
 
-    Class to handle primary execution of SHE_Validation Shear Bias executables.
+    Class to handle primary execution of SHE_Validation Shear Bias executables
 """
-
-__updated__ = "2021-10-14"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

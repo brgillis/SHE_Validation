@@ -1,11 +1,9 @@
-""" @file utility.py
+""" @file testing/utility.py
 
     Created 12 April 2022 by Bryan Gillis
 
     Utility functions and classes for testing of SHE_Validation code
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

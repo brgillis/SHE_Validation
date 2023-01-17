@@ -1,11 +1,9 @@
 """ @file plot_cti.py
 
-    Created 3 Nov 2021
+    Created 3 November 2021
 
-    Code to make plots for CTI-related validation tests.
+    Code to make plots for CTI-related validation tests
 """
-
-__updated__ = "2021-08-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

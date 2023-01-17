@@ -1,11 +1,9 @@
-""" @file cti_gal_test_info.py
+""" @file constants/cti_gal_default_config.py
 
     Created 15 Dec 2020
 
     Constants relating to CTI-Gal configuration
 """
-
-__updated__ = "2021-08-03"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

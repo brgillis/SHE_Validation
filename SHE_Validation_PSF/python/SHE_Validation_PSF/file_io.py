@@ -5,8 +5,6 @@
     Classes and functions related to file I/O for PSF validation tests
 """
 
-__updated__ = "2022-04-28"
-
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General

@@ -2,10 +2,8 @@
 
     Created 30 March 2022 by Bryan Gillis
 
-    Unit tests of data processing within the PSF Residual validation test.
+    Unit tests of data processing within the PSF Residual validation test
 """
-
-__updated__ = "2022-04-30"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -19,6 +17,7 @@ __updated__ = "2022-04-30"
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 from copy import deepcopy
 
 import numpy as np

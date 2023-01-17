@@ -1,11 +1,9 @@
-""" @file cti_psf_test_info.py
+""" @file constants/cti_psf_test_info.py
 
-    Created 3 Nov 2021
+    Created 3 November 2021
 
-    Default values for information about tests and test cases.
+    Default values for information about CTI-PSF tests and test cases
 """
-
-__updated__ = "2021-08-09"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

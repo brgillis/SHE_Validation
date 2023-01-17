@@ -1,11 +1,9 @@
-""" @file default_config.py
+""" @file constants/default_config.py
 
     Created 15 July 2021
 
     Constants relating default configurations for validation tests
 """
-
-__updated__ = "2021-08-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

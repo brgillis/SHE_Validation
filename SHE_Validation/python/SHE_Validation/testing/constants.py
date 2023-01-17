@@ -1,11 +1,9 @@
-""" @file constants.py
+""" @file testing/constants.py
 
     Created 15 October 2021.
 
-    Constant values used in testing.
+    Constant values used in testing
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

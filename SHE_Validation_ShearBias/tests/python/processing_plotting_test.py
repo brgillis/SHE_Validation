@@ -2,10 +2,8 @@
 
     Created 12 July 2021
 
-    Unit tests of the Shear Bias data processing and plotting.
+    Unit tests of the Shear Bias data processing and plotting
 """
-
-__updated__ = "2021-08-31"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

@@ -1,6 +1,8 @@
-""" @file __init__.py
+""" @file constants/__init__.py
 
     Created 21 September 2022
+
+    Standard package __init__.py
 """
 
 # Copyright (C) 2012-2022 Euclid Science Ground Segment
@@ -14,5 +16,11 @@
 # details.
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA 02110-1301 USA
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from pkgutil import extend_path
+
+# noinspection PyUnboundLocalVariable
+__path__ = extend_path(__path__, __name__)
+
+del extend_path

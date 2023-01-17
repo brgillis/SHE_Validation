@@ -1,11 +1,9 @@
 """ @file calc_common_val_data_test.py
 
-    Created 28 Oct 2021
+    Created 28 October 2021
 
     Unit tests of the calc_common_val_data.py module
 """
-
-__updated__ = "2021-08-26"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

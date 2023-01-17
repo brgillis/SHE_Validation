@@ -2,10 +2,8 @@
 
     Created 17 December 2020
 
-    Utility functions for CTI-Gal validation, for reporting results.
+    Utility functions for CTI-Gal validation, for reporting results
 """
-
-__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

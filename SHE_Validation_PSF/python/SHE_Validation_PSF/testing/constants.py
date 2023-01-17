@@ -1,11 +1,9 @@
-""" @file constants.py
+""" @file testing/constants.py
 
     Created 12 April 2022 by Bryan Gillis
 
-    Constant values used in PSF testing.
+    Constant values used in PSF testing
 """
-
-__updated__ = "2021-10-05"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #

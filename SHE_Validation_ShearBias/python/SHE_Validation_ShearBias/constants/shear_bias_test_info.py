@@ -1,11 +1,9 @@
-""" @file shear_bias_test_info.py
+""" @file constants/shear_bias_test_info.py
 
     Created 15 July 2021
 
-    Default values for information about tests and test cases.
+    Default values for information about Shear Bias tests and test cases
 """
-
-__updated__ = "2021-08-27"
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
