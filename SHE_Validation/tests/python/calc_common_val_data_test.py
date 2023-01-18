@@ -21,6 +21,7 @@ Unit tests of the calc_common_val_data.py module
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from argparse import Namespace
 
 import numpy as np
 from astropy.table import Table
@@ -45,13 +46,15 @@ class TestCCVD(SheTestCase):
 
     pipeline_config_factory_type = MockValPipelineConfigFactory
 
-    def _make_mock_args(self) -> None:
+    def _make_mock_args(self) -> Namespace:
         """ Get a mock argument parser we can use.
         """
         parser = defineSpecificProgramOptions()
-        self.args = parser.parse_args([])
+        args = parser.parse_args([])
 
-        setattr(self.args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_EXT_CAT, EXTENDED_CATALOG_PRODUCT_FILENAME)
+
+        return args
 
     def post_setup(self):
         # Set up the mock Shear Catalogs
