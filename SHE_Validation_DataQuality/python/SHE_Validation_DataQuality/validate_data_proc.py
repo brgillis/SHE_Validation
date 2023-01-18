@@ -23,6 +23,12 @@ Core code for DataProc validation test
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from SHE_PPT.argument_parser import CA_WORKDIR
+from SHE_PPT.file_io import write_xml_product
+from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
+from SHE_Validation.argument_parser import CA_SHE_REC_CAT, CA_SHE_REC_CHAINS, CA_SHE_TEST_RESULTS
+from SHE_Validation_DataQuality.constants.data_proc_test_info import DATA_PROC_TEST_CASE_INFO, NUM_DATA_PROC_TEST_CASES
+
 
 def run_validate_data_proc_from_args(d_args):
     """Dummy implementation of run function. TODO: Implement properly
@@ -33,4 +39,26 @@ def run_validate_data_proc_from_args(d_args):
         The command line arguments, parsed (e.g. via `args = parser.parse_args()` and turned into args dict (e.g. via
         `d_args = vars(args)`.
     """
-    pass
+
+    workdir = d_args[CA_WORKDIR]
+
+    # Load in the input data
+    data_proc_input = read_data_proc_input(rec_cat_filename=d_args[CA_SHE_REC_CAT],
+                                           rec_chains_filename=d_args[CA_SHE_REC_CHAINS],
+                                           workdir=workdir)
+
+    # Process the data, getting the results of the test, and put it into the required format
+    data_proc_test_results = run_data_proc_test(data_proc_input)
+    d_l_test_results = {DATA_PROC_TEST_CASE_INFO.name: [data_proc_test_results]}
+
+    # Create and fill the output data product to contain the results
+    test_result_product = create_dpd_she_validation_test_results(reference_product=data_proc_input.p_rec_cat,
+                                                                 num_tests=NUM_DATA_PROC_TEST_CASES)
+    test_results_writer = DataProcValidationResultsWriter(test_object=test_result_product,
+                                                          workdir=workdir,
+                                                          d_l_test_results=d_l_test_results, )
+
+    test_results_writer.write()
+
+    # Output the results to the desired location
+    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir=workdir)
