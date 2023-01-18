@@ -21,6 +21,7 @@ Default values for information about the data-proc test and test cases
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_Validation.constants.test_info import RequirementInfo, TestCaseInfo, TestInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_methods
 
 # Metadata about the requirement
 DATA_PROC_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-PRD-F-010",
@@ -38,7 +39,7 @@ DATA_PROC_TEST_CASE_INFO = TestCaseInfo(test_info=DATA_PROC_TEST_INFO,
                                         base_name="DataProc",
                                         base_description="Output calibrated shear estimates.")
 
-L_DATA_PROC_TEST_CASE_INFO = [DATA_PROC_TEST_CASE_INFO]
+L_DATA_PROC_TEST_CASE_INFO = make_test_case_info_for_methods([DATA_PROC_TEST_CASE_INFO])
 
 NUM_DATA_PROC_TEST_CASES = len(L_DATA_PROC_TEST_CASE_INFO)
 

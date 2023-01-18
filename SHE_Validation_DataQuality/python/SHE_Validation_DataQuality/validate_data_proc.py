@@ -50,7 +50,7 @@ def run_validate_data_proc_from_args(d_args):
 
     # This test is simple enough that the input can serve directly as the test results. We just need to put it in the
     # proper format
-    d_l_test_results = {DATA_PROC_TEST_CASE_INFO.name: [data_proc_input]}
+    d_l_test_results = get_data_proc_test_results(data_proc_input)
 
     # Create and fill the output data product to contain the results
     test_result_product = create_dpd_she_validation_test_results(reference_product=data_proc_input.p_rec_cat,
