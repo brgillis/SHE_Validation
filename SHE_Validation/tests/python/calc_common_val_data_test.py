@@ -41,7 +41,7 @@ from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFac
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
 
-class CCVDTestCase(SheTestCase):
+class TestCCVD(SheTestCase):
     """ Tests for calculating common validation data.
     """
 
