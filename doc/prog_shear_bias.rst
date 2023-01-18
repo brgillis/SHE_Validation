@@ -242,8 +242,7 @@ The table for objects best matched to galaxies includes useful additional data. 
 5. The filename of a ``.json`` listfile which contains the filename of a
    ``.xml`` data product as described above.
 
-Any of the latter three options may be used for equivalent
-functionality.
+Any of the latter three options may be used for equivalent functionality.
 
 The ``.txt`` pipeline configuration file may have any number of
 configuration arguments which apply to other executables, in addition to
