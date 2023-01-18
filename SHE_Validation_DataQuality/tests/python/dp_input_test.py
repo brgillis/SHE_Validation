@@ -25,7 +25,7 @@ import re
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.file_io import write_xml_product
+from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconciled_lensmc_chains
 from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
@@ -42,7 +42,8 @@ from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheRecon
 from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
 
 BAD_FILENAME = "junk"
-ERR_READING_FILE_PATTERN = re.compile(r"Error reading file (.+)\.")
+ERR_READING_FILE_PATTERN = compile_regex("Error reading file %s.")
+ERR_NO_FILE_PATTERN = compile_regex("[Errno 2] No such file or directory: '%s'")
 
 
 class TestDataProcInput(SheTestCase):
@@ -132,3 +133,49 @@ class TestDataProcInput(SheTestCase):
                                                            workdir=self.workdir)
         assert data_proc_input_none_chains.p_rec_chains is None
         assert data_proc_input_none_chains.err_p_rec_chains is None
+
+    def test_read_input_missing_cats(self):
+        """Test data is read in as expected when catalogs are missing.
+        """
+
+        # Make copies of the products which point to nonexistent catalogs
+
+        rec_cat_missing_filename = "rec_cat_missing.xml"
+
+        p_rec_cat = read_xml_product(SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME, workdir=self.workdir,
+                                     product_type=dpdSheReconciledMeasurements)
+        p_rec_cat.set_method_filename(ShearEstimationMethods.LENSMC, BAD_FILENAME)
+        write_xml_product(p_rec_cat, rec_cat_missing_filename, workdir=self.workdir)
+
+        rec_chains_missing_filename = "rec_chains_missing.xml"
+
+        p_rec_chains = read_xml_product(SHE_RECONCILED_CHAINS_PRODUCT_FILENAME, workdir=self.workdir,
+                                        product_type=dpdSheReconciledLensMcChains)
+        p_rec_chains.set_data_filename(BAD_FILENAME)
+        write_xml_product(p_rec_chains, rec_chains_missing_filename, workdir=self.workdir)
+
+        data_proc_input = read_data_proc_input(p_rec_cat_filename=rec_cat_missing_filename,
+                                               p_rec_chains_filename=rec_chains_missing_filename,
+                                               workdir=self.workdir)
+
+        # Check that the read-in input is as expected
+
+        assert isinstance(data_proc_input.p_rec_cat, dpdSheReconciledMeasurements), data_proc_input.err_p_rec_cat
+        assert data_proc_input.err_p_rec_cat is None
+
+        for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
+            if method == ShearEstimationMethods.LENSMC:
+                assert data_proc_input.d_rec_cat[method] is None
+                regex_match = re.match(ERR_NO_FILE_PATTERN, data_proc_input.d_err_rec_cat[method])
+                assert regex_match, f"Value '{data_proc_input.d_err_rec_cat[method]}' does not match regex pattern " \
+                                    f"{ERR_NO_FILE_PATTERN}"
+                assert regex_match.groups()[0] == os.path.join(self.workdir, DATA_SUBDIR, BAD_FILENAME)
+
+        assert isinstance(data_proc_input.p_rec_chains, dpdSheReconciledLensMcChains), data_proc_input.err_p_rec_chains
+        assert data_proc_input.err_p_rec_chains is None
+
+        assert data_proc_input.rec_chains is None
+        regex_match = re.match(ERR_NO_FILE_PATTERN, data_proc_input.err_rec_chains)
+        assert regex_match, f"Value '{data_proc_input.err_rec_chains}' does not match regex pattern " \
+                            f"{ERR_NO_FILE_PATTERN}"
+        assert regex_match.groups()[0] == os.path.join(self.workdir, DATA_SUBDIR, BAD_FILENAME)
