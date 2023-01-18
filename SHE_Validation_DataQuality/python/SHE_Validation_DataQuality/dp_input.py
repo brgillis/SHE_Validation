@@ -158,7 +158,7 @@ def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconc
 
     for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
 
-        method_cat_filename = dpdSheReconciledMeasurements.get_method_filename(method)
+        method_cat_filename = p_rec_cat.get_method_filename(method)
 
         # Check for if table isn't provided, and use custom error message instead
         if method_cat_filename is None:
@@ -192,7 +192,7 @@ def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdShe
 
     p_rec_chains: dpdSheReconciledLensMcChains = read_xml_product(p_rec_chains_filename,
                                                                   workdir=workdir,
-                                                                  product_type=dpdSheReconciledMeasurements)
+                                                                  product_type=dpdSheReconciledLensMcChains)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 
