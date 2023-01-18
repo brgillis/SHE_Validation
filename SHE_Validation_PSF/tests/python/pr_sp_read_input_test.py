@@ -1,5 +1,5 @@
 """
-:file: read_input_test.py
+:file: tests/python/pr_sp_read_input_test.py
 
 :date: 10 March 2022
 :author: Bryan Gillis

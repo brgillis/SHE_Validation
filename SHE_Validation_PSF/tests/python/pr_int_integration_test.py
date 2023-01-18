@@ -1,5 +1,5 @@
 """
-:file: tests/python/validate_psf_res_interp_integration_test.py
+:file: tests/python/pr_int_integration_test.py
 
 :date: 10/06/22
 :author: Bryan Gillis

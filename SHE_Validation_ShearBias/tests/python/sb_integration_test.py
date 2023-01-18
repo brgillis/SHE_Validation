@@ -1,5 +1,5 @@
 """
-:file: validate_shear_bias_dry_run_test.py
+:file: tests/python/sb_integration_test.py
 
 :date: 10 December 2020
 :author: Bryan Gillis

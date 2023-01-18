@@ -1,5 +1,5 @@
 """
-:file: binning_test.py
+:file: tests/python/binning_test.py
 
 :date: 14 December 2020
 :author: Bryan Gillis

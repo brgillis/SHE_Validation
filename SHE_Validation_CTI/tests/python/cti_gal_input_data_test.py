@@ -1,5 +1,5 @@
 """
-:file: input_data_test.py
+:file: tests/python/cti_gal_input_data_test.py
 
 :date: 14 December 2020
 :author: Bryan Gillis

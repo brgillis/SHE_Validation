@@ -1,5 +1,5 @@
 """
-:file: sb_results_reporting_test.py
+:file: tests/python/sb_results_reporting_test.py
 
 :date: 17 December 2020
 :author: Bryan Gillis

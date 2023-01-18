@@ -1,5 +1,5 @@
 """
-:file: plot_cti_gal_test.py
+:file: tests/python/cti_gal_plotting_test.py
 
 :date: 12 July 2021
 :author: Bryan Gillis

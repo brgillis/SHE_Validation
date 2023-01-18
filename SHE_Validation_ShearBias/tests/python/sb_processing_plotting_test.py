@@ -1,5 +1,5 @@
 """
-:file: processing_plotting_test.py
+:file: tests/python/sb_processing_plotting_test.py
 
 :date: 12 July 2021
 :author: Bryan Gillis

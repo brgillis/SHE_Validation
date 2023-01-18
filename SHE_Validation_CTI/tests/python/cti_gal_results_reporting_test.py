@@ -1,5 +1,5 @@
 """
-:file: results_reporting_test.py
+:file: tests/python/pr_sp_results_reporting_test.py
 
 :date: 17 December 2020
 :author: Bryan Gillis

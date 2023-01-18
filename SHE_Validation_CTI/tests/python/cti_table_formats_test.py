@@ -1,5 +1,5 @@
 """
-:file: table_formats_test.py
+:file: tests/python/cti_table_formats_test.py
 
 :date: 14 December 2020
 :author: Bryan Gillis

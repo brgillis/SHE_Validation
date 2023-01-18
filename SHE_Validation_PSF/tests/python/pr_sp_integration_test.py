@@ -1,5 +1,5 @@
 """
-:file: validate_psf_res_integration_test.py
+:file: tests/python/pr_sp_integration_test.py
 
 :date: 8 March 2022
 :author: Bryan Gillis

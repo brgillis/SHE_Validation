@@ -1,5 +1,5 @@
 """
-:file: validate_cti_gal_dry_run_test.py
+:file: tests/python/cti_gal_integration_test.py
 
 :date: 10 December 2020
 :author: Bryan Gillis

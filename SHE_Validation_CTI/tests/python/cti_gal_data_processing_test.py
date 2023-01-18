@@ -1,5 +1,5 @@
 """
-:file: data_processing_test.py
+:file: tests/python/cti_gal_data_processing_test.py
 
 :date: 15 December 2020
 :author: Bryan Gillis
