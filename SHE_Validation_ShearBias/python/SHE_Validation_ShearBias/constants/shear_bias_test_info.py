@@ -25,7 +25,7 @@ from enum import Enum
 from SHE_Validation.constants.test_info import (BinParameters, NAME_REPLACE_TAG, RequirementInfo,
                                                 TestCaseInfo,
                                                 TestInfo, )
-from SHE_Validation.test_info_utility import (make_test_case_info_for_bins_and_methods)
+from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 # Metadata about the requirements
 SHEAR_BIAS_M_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-070",

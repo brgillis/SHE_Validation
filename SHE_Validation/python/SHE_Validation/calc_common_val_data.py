@@ -31,7 +31,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
-from SHE_Validation.binning.bin_data import (add_binning_data, )
+from SHE_Validation.binning.bin_data import add_binning_data
 from SHE_Validation.file_io import SheValFileNamer
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 

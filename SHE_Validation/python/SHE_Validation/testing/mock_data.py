@@ -27,7 +27,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_data import MockDataGenerator
 from SHE_PPT.testing.mock_tables import MockTableGenerator
 from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
-from SHE_Validation.constants.default_config import (TOT_BIN_LIMITS)
+from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 
 logger = getLogger(__name__)
 

@@ -31,7 +31,7 @@ from SHE_PPT import mdb
 from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_PIPELINE_CONFIG, CA_SHE_STAR_CAT,
                                      CA_WORKDIR, )
 from SHE_PPT.constants.config import ValidationConfigKeys
-from SHE_PPT.file_io import (read_product_and_table, read_table_from_product, write_xml_product, )
+from SHE_PPT.file_io import read_product_and_table, read_table_from_product, write_xml_product
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.table_formats.she_star_catalog import TF as SHE_STAR_CAT_TF

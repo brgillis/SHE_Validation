@@ -29,7 +29,7 @@ from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHO
                                                         ShearEstimationMethods, )
 from SHE_PPT.file_io import TableLoader
 from SHE_PPT.logging import getLogger
-from SHE_PPT.math import (BiasMeasurements, LinregressResults, linregress_with_errors)
+from SHE_PPT.math import BiasMeasurements, LinregressResults, linregress_with_errors
 from SHE_PPT.pipeline_utility import ConfigKeys, ValidationConfigKeys
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat
 from SHE_PPT.table_utility import SheTableFormat

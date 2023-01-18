@@ -23,7 +23,7 @@ Integration test of the SedExist validation test
 from argparse import Namespace
 
 from SHE_PPT.argument_parser import CA_MER_CAT, CA_VIS_CAL_FRAME
-from SHE_PPT.constants.test_data import (MER_FINAL_CATALOG_LISTFILE_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
+from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_LISTFILE_FILENAME, VIS_CALIBRATED_FRAME_LISTFILE_FILENAME
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME

@@ -26,8 +26,8 @@ from copy import deepcopy
 import numpy as np
 from astropy.table import Table
 
-from SHE_PPT.constants.shear_estimation_methods import (D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods)
-from SHE_PPT.constants.test_data import (LENSMC_MEASUREMENTS_TABLE_FILENAME, )
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS, ShearEstimationMethods
+from SHE_PPT.constants.test_data import LENSMC_MEASUREMENTS_TABLE_FILENAME
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.utility import is_nan_or_masked

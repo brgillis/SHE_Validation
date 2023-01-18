@@ -41,7 +41,7 @@ from SHE_PPT.product_utility import get_data_filename_from_product
 from SHE_PPT.she_frame_stack import SHEFrameStack
 from SHE_PPT.table_formats.she_tu_matched import SheTUMatchedFormat, tf as tum_tf
 from SHE_PPT.utility import is_nan_or_masked
-from SHE_Validation.binning.bin_data import (add_binning_data, )
+from SHE_Validation.binning.bin_data import add_binning_data
 from SHE_Validation.utility import get_object_id_list_from_se_tables
 
 logger = getLogger(__name__)

@@ -29,7 +29,7 @@ import numpy as np
 from astropy.table import Column, Row, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.test_data import (MER_FINAL_CATALOG_TABLE_FILENAME, )
+from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_TABLE_FILENAME
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
 from SHE_PPT.table_utility import is_in_format
