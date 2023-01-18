@@ -7,6 +7,7 @@
 Tests of function to read in input data for the DataProc test
 """
 import os
+import re
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.misc import DATA_SUBDIR
@@ -35,7 +36,8 @@ from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILE
                                               SHE_RECONCILED_CHAINS_TABLE_FILENAME,
                                               SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME,
                                               SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME, )
-from SHE_Validation_DataQuality.dp_input import read_data_proc_input
+from SHE_Validation.testing.utility import compile_regex
+from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
 from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
 from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
 
@@ -75,6 +77,8 @@ class TestDataProcInput(SheTestCase):
         assert isinstance(data_proc_input.p_rec_cat, dpdSheReconciledMeasurements), data_proc_input.err_p_rec_cat
         assert data_proc_input.err_p_rec_cat is None
 
+        method_none_pattern = compile_regex(ERR_MEASUREMENTS_NONE)
+
         for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
             if method == ShearEstimationMethods.LENSMC:
                 assert is_in_format(table=data_proc_input.d_rec_cat[method],
@@ -83,7 +87,8 @@ class TestDataProcInput(SheTestCase):
                 assert data_proc_input.d_err_rec_cat[method] is None
             else:
                 assert data_proc_input.d_rec_cat[method] is None
-                assert isinstance(data_proc_input.d_err_rec_cat[method], str)
+                regex_match = re.match(method_none_pattern, data_proc_input.d_err_rec_cat[method])
+                assert regex_match.groups()[0] == method.value
 
         assert isinstance(data_proc_input.p_rec_chains, dpdSheReconciledLensMcChains), data_proc_input.err_p_rec_chains
         assert data_proc_input.err_p_rec_chains is None
