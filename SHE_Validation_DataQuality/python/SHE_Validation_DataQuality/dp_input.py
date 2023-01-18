@@ -37,6 +37,12 @@ from SHE_PPT.table_utility import is_in_format
 from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
 from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
 
+ERR_MEASUREMENTS_NONE = "No Shear Estimates table for method %s found in data product."
+ERR_MEASUREMENTS_FORMAT = "Shear Estimates table for method %s is not in expected format %s."
+
+ERR_CHAINS_NONE = "No Chains table found in data product."
+ERR_CHAINS_FORMAT = "Chains table for is not in expected format."
+
 
 @dataclass
 class DataProcInput:
@@ -163,7 +169,7 @@ def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconc
         # Check for if table isn't provided, and use custom error message instead
         if method_cat_filename is None:
             d_rec_cat[method] = None
-            d_err_rec_cat[method] = f"No Shear Estimates table for method {method.value} found in data product."
+            d_err_rec_cat[method] = ERR_MEASUREMENTS_NONE % method.value
             continue
 
         try:
@@ -171,7 +177,7 @@ def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconc
             method_cat = Table.read(os.path.join(workdir, method_cat_filename))
 
             if not is_in_format(method_cat, tf):
-                raise ValueError(f"Shear Estimates table for method {method.value} is not in expected format {tf}.")
+                raise ValueError(ERR_MEASUREMENTS_FORMAT % method.value, tf)
 
             d_rec_cat[method] = method_cat
             d_err_rec_cat[method] = None
@@ -205,7 +211,7 @@ def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdShe
     if chains_filename is None:
 
         rec_chains = None
-        err_rec_chains = "No Chains table found in data product."
+        err_rec_chains = ERR_CHAINS_NONE
 
     else:
         try:
@@ -213,7 +219,7 @@ def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdShe
             chains = Table.read(os.path.join(workdir, chains_filename))
 
             if not is_in_format(chains, lensmc_chains_table_format):
-                raise ValueError(f"Chains table for is not in expected format.")
+                raise ValueError(ERR_CHAINS_FORMAT)
 
             rec_chains = chains
             err_rec_chains = None
