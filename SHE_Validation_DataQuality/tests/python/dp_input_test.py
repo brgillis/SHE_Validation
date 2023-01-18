@@ -6,18 +6,6 @@
 
 Tests of function to read in input data for the DataProc test
 """
-import os
-import re
-
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.misc import DATA_SUBDIR
-from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.file_io import write_xml_product
-from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconciled_lensmc_chains
-from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
-from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_PPT.table_utility import is_in_format
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -31,6 +19,18 @@ from SHE_PPT.table_utility import is_in_format
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
+import re
+
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.constants.misc import DATA_SUBDIR
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.file_io import write_xml_product
+from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconciled_lensmc_chains
+from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
+from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
+from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
+from SHE_PPT.table_utility import is_in_format
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILENAME,
                                               SHE_RECONCILED_CHAINS_TABLE_FILENAME,
@@ -40,6 +40,9 @@ from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
 from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
 from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
+
+BAD_FILENAME = "junk"
+ERR_READING_FILE_PATTERN = re.compile(r"Error reading file (.+)\.")
 
 
 class TestDataProcInput(SheTestCase):
@@ -64,15 +67,15 @@ class TestDataProcInput(SheTestCase):
         p_rec_chains = create_dpd_she_reconciled_lensmc_chains(SHE_RECONCILED_CHAINS_TABLE_FILENAME)
         write_xml_product(p_rec_chains, SHE_RECONCILED_CHAINS_PRODUCT_FILENAME, workdir=self.workdir)
 
-    def test_read_input(self):
-        """Test that the program runs without raising any uncaught exceptions.
+    def test_read_input_default(self):
+        """Test that data is read in as expected in the default case (only LensMC data)
         """
 
         data_proc_input = read_data_proc_input(p_rec_cat_filename=SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME,
                                                p_rec_chains_filename=SHE_RECONCILED_CHAINS_PRODUCT_FILENAME,
                                                workdir=self.workdir)
 
-        # Check that the input is as expected
+        # Check that the read-in input is as expected
 
         assert isinstance(data_proc_input.p_rec_cat, dpdSheReconciledMeasurements), data_proc_input.err_p_rec_cat
         assert data_proc_input.err_p_rec_cat is None
@@ -95,3 +98,37 @@ class TestDataProcInput(SheTestCase):
 
         assert is_in_format(data_proc_input.rec_chains, lensmc_chains_table_format, verbose=True)
         assert data_proc_input.err_rec_chains is None
+
+    def test_read_input_missing_products(self):
+        """Test data is read in as expected when products are missing.
+        """
+
+        data_proc_input = read_data_proc_input(p_rec_cat_filename=BAD_FILENAME,
+                                               p_rec_chains_filename=BAD_FILENAME,
+                                               workdir=self.workdir)
+
+        # Check that the read-in input is as expected
+
+        assert data_proc_input.p_rec_cat is None
+        cat_regex_match = re.match(ERR_READING_FILE_PATTERN, data_proc_input.err_p_rec_cat)
+        assert cat_regex_match
+        assert cat_regex_match.groups()[0] == os.path.join(self.workdir, BAD_FILENAME)
+
+        assert data_proc_input.d_rec_cat is None
+        assert data_proc_input.d_err_rec_cat is None
+
+        assert data_proc_input.p_rec_chains is None
+        chains_regex_match = re.match(ERR_READING_FILE_PATTERN, data_proc_input.err_p_rec_chains)
+        assert chains_regex_match
+        assert cat_regex_match.groups()[0] == os.path.join(self.workdir, BAD_FILENAME)
+
+        assert data_proc_input.rec_chains is None
+        assert data_proc_input.err_rec_chains is None
+
+        # Check that if the chains filename is None, it isn't flagged as an error
+
+        data_proc_input_none_chains = read_data_proc_input(p_rec_cat_filename=BAD_FILENAME,
+                                                           p_rec_chains_filename=None,
+                                                           workdir=self.workdir)
+        assert data_proc_input_none_chains.p_rec_chains is None
+        assert data_proc_input_none_chains.err_p_rec_chains is None
