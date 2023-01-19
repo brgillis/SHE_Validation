@@ -139,14 +139,14 @@ def read_data_proc_input(p_rec_cat_filename, p_rec_chains_filename, workdir):
             rec_chains = None
             err_rec_chains = None
 
-    return DataProcInput(p_rec_cat,
-                         err_p_rec_cat,
-                         d_rec_cat,
-                         d_err_rec_cat,
-                         p_rec_chains,
-                         err_p_rec_chains,
-                         rec_chains,
-                         err_rec_chains)
+    return DataProcInput(p_rec_cat=p_rec_cat,
+                         err_p_rec_cat=err_p_rec_cat,
+                         d_rec_cat=d_rec_cat,
+                         d_err_rec_cat=d_err_rec_cat,
+                         p_rec_chains=p_rec_chains,
+                         err_p_rec_chains=err_p_rec_chains,
+                         rec_chains=rec_chains,
+                         err_rec_chains=err_rec_chains)
 
 
 def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconciledMeasurements,
