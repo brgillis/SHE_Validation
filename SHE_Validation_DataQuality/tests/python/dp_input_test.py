@@ -52,7 +52,7 @@ class TestDataProcInput(SheTestCase):
     """
 
     def post_setup(self):
-        """ Override parent setup, downloading data to work with here.
+        """ Override parent setup, creating data to work with in the workdir
         """
 
         # Create mock products to test
