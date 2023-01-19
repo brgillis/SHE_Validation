@@ -6,7 +6,7 @@
 
 Tests of function to read in input data for the DataProc test
 """
-
+from copy import deepcopy
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -82,6 +82,26 @@ class TestDataProcDataProcessing(SheTestCase):
 
             assert method_test_results.rec_cat_passed, f"{method=}"
             assert method_test_results.err_rec_cat is None, f"{method=}"
+
+            assert method_test_results.p_rec_chains_passed, f"{method=}"
+            assert method_test_results.err_p_rec_chains is None, f"{method=}"
+
+            assert method_test_results.rec_chains_passed, f"{method=}"
+            assert method_test_results.err_rec_chains is None, f"{method=}"
+
+    def test_no_chains(self):
+        """Unit test of the `get_data_proc_test_results` method in a case where chains are deliberately not provided
+        """
+        missing_chains_input = deepcopy(self.good_input)
+        missing_chains_input.p_rec_chains = None
+        missing_chains_input.rec_chains = None
+
+        d_l_test_results = get_data_proc_test_results(missing_chains_input)
+
+        # Check that all results are as expected
+        for method in ShearEstimationMethods:
+
+            method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
             assert method_test_results.err_p_rec_chains is None, f"{method=}"
