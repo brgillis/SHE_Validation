@@ -66,6 +66,8 @@ class DataProcInput:
     err_p_rec_cat: str or None
         The text of any exceptions raised when attempting to read in the Reconciled Chains data product, or else None
     rec_chains: Table or None
+        The Reconciled Chains catalog, if successfully read in, otherwise None
+    err_rec_chains: Table or None
         The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, or else None
     """
 
