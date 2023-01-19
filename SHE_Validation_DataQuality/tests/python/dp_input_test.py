@@ -6,6 +6,7 @@
 
 Tests of function to read in input data for the DataProc test
 """
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
