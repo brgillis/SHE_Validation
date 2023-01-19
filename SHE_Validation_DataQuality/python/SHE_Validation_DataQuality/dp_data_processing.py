@@ -24,7 +24,7 @@ Code for processing data in the DataProc validation test
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, TYPE_CHECKING, Tuple
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import numpy as np
 from astropy.table import Table
