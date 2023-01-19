@@ -117,7 +117,10 @@ def get_data_proc_test_results(data_proc_input):
     for method in ShearEstimationMethods:
 
         # Determine method-specific results
-        err_rec_cat = data_proc_input.d_err_rec_cat[method]
+        if data_proc_input.d_err_rec_cat is None:
+            err_rec_cat = None
+        else:
+            err_rec_cat = data_proc_input.d_err_rec_cat[method]
         rec_cat_passed = p_rec_cat_passed and (err_rec_cat is None) and (data_proc_input.d_rec_cat[method] is not None)
 
         d_l_test_results[method] = [DataProcTestResults(p_rec_cat_passed=p_rec_cat_passed,
