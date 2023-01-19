@@ -91,6 +91,28 @@ class TestDataProcDataProcessing(SheTestCase):
 
             assert method_test_results.global_passed, f"{method=}"
 
+    def test_missing_cat_prod(self):
+        """Unit test of the `get_data_proc_test_results` method in a case where the catalog data product is missing
+        """
+        missing_cat_prod_input = deepcopy(self.good_input)
+        missing_cat_prod_input.p_rec_cat = None
+        missing_cat_prod_input.err_p_rec_cat = MSG_P_CAT_ERR
+
+        d_l_test_results = get_data_proc_test_results(missing_cat_prod_input)
+
+        # Check that all results are as expected
+        for method in ShearEstimationMethods:
+
+            method_test_results = d_l_test_results[method][0]
+
+            assert not method_test_results.p_rec_cat_passed, f"{method=}"
+            assert method_test_results.err_p_rec_cat == MSG_P_CAT_ERR, f"{method=}"
+
+            assert not method_test_results.rec_cat_passed, f"{method=}"
+            assert method_test_results.err_rec_cat is None, f"{method=}"
+
+            assert not method_test_results.global_passed, f"{method=}"
+
     def test_missing_rec_cats(self):
         """Unit test of the `get_data_proc_test_results` method in a case where some catalogs are missing.
         """
@@ -154,6 +176,28 @@ class TestDataProcDataProcessing(SheTestCase):
             assert method_test_results.err_rec_chains is None, f"{method=}"
 
             assert method_test_results.global_passed, f"{method=}"
+
+    def test_missing_chains_prod(self):
+        """Unit test of the `get_data_proc_test_results` method in a case where the chains data product is missing
+        """
+        missing_chains_prod_input = deepcopy(self.good_input)
+        missing_chains_prod_input.p_rec_chains = None
+        missing_chains_prod_input.err_p_rec_chains = MSG_P_CHAINS_ERR
+
+        d_l_test_results = get_data_proc_test_results(missing_chains_prod_input)
+
+        # Check that all results are as expected
+        for method in ShearEstimationMethods:
+
+            method_test_results = d_l_test_results[method][0]
+
+            assert not method_test_results.p_rec_chains_passed, f"{method=}"
+            assert method_test_results.err_p_rec_chains == MSG_P_CHAINS_ERR, f"{method=}"
+
+            assert not method_test_results.rec_chains_passed, f"{method=}"
+            assert method_test_results.err_rec_chains is None, f"{method=}"
+
+            assert not method_test_results.global_passed, f"{method=}"
 
     def test_missing_chains_cat(self):
         """Unit test of the `get_data_proc_test_results` method in a case where the chains catalog is missing
