@@ -20,31 +20,18 @@ Tests of function to read in input data for the DataProc test
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-import re
 from typing import Dict
 
 from astropy.table import Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
-from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconciled_lensmc_chains
 from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_PPT.table_utility import is_in_format
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILENAME,
-                                              SHE_RECONCILED_CHAINS_TABLE_FILENAME,
-                                              SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME,
-                                              SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME, )
-from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_data_processing import get_data_proc_test_results
-from SHE_Validation_DataQuality.dp_input import DataProcInput, ERR_MEASUREMENTS_NONE, read_data_proc_input
-from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
-from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
+from SHE_Validation_DataQuality.dp_input import DataProcInput
 
 MSG_P_CAT_ERR = "1"
 MSG_KSB_CAT_ERR = "KSB-2"
@@ -58,7 +45,7 @@ class TestDataProcDataProcessing(SheTestCase):
     """
 
     def post_setup(self):
-        """ Override parent setup, creating common data for each test
+        """Override parent setup, creating common data for each test
         """
 
         p_rec_cat = create_dpd_she_reconciled_measurements()
