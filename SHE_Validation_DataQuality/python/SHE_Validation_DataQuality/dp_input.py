@@ -63,7 +63,7 @@ class DataProcInput:
         None
     p_rec_chains: dpdSheReconciledLensMcChains or None
         The Reconciled Chains data product, if successfully read in, otherwise None
-    err_p_rec_cat: str or None
+    err_p_rec_chains: str or None
         The text of any exceptions raised when attempting to read in the Reconciled Chains data product, or else None
     rec_chains: Table or None
         The Reconciled Chains catalog, if successfully read in, otherwise None
