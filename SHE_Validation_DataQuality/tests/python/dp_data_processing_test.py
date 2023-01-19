@@ -112,3 +112,45 @@ class TestDataProcDataProcessing(SheTestCase):
             assert method_test_results.err_rec_chains is None, f"{method=}"
 
             assert method_test_results.global_passed, f"{method=}"
+
+    def test_missing_rec_cats(self):
+        """Unit test of the `get_data_proc_test_results` method in a case where some catalogs are missing.
+        """
+        missing_cats_input = deepcopy(self.good_input)
+
+        missing_cats_input.d_rec_cat[ShearEstimationMethods.KSB] = None
+        missing_cats_input.d_rec_cat[ShearEstimationMethods.LENSMC] = None
+
+        missing_cats_input.d_err_rec_cat = {ShearEstimationMethods.KSB: MSG_KSB_CAT_ERR,
+                                            ShearEstimationMethods.LENSMC: MSG_LENSMC_CAT_ERR}
+
+        d_l_test_results = get_data_proc_test_results(missing_cats_input)
+
+        # Check that all results are as expected
+        for method in ShearEstimationMethods:
+
+            method_test_results = d_l_test_results[method][0]
+
+            assert method_test_results.p_rec_cat_passed, f"{method=}"
+            assert method_test_results.err_p_rec_cat is None, f"{method=}"
+
+            if method == ShearEstimationMethods.KSB:
+
+                assert not method_test_results.rec_cat_passed, f"{method=}"
+                assert method_test_results.err_rec_cat == MSG_KSB_CAT_ERR, f"{method=}"
+
+                assert not method_test_results.global_passed, f"{method=}"
+
+            elif method == ShearEstimationMethods.LENSMC:
+
+                assert not method_test_results.rec_cat_passed, f"{method=}"
+                assert method_test_results.err_rec_cat == MSG_LENSMC_CAT_ERR, f"{method=}"
+
+                assert not method_test_results.global_passed, f"{method=}"
+
+            else:
+
+                assert method_test_results.rec_cat_passed, f"{method=}"
+                assert method_test_results.err_rec_cat is None, f"{method=}"
+
+                assert method_test_results.global_passed, f"{method=}"
