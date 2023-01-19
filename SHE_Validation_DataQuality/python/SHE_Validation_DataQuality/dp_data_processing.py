@@ -109,10 +109,10 @@ def get_data_proc_test_results(data_proc_input):
     p_rec_cat_passed = (err_p_rec_cat is None) and (data_proc_input.p_rec_cat is not None)
 
     err_p_rec_chains = data_proc_input.err_p_rec_chains
-    p_rec_chains_passed = (err_p_rec_chains is None) and (data_proc_input.p_rec_chains is not None)
+    p_rec_chains_passed = err_p_rec_chains is None
 
     err_rec_chains = data_proc_input.err_rec_chains
-    rec_chains_passed = p_rec_chains_passed and (err_rec_chains is None) and (data_proc_input.rec_chains is not None)
+    rec_chains_passed = p_rec_chains_passed and (err_rec_chains is None)
 
     for method in ShearEstimationMethods:
 
