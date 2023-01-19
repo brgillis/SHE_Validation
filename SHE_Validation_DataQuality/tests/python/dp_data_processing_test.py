@@ -89,6 +89,8 @@ class TestDataProcDataProcessing(SheTestCase):
             assert method_test_results.rec_chains_passed, f"{method=}"
             assert method_test_results.err_rec_chains is None, f"{method=}"
 
+            assert method_test_results.global_passed, f"{method=}"
+
     def test_no_chains(self):
         """Unit test of the `get_data_proc_test_results` method in a case where chains are deliberately not provided
         """
@@ -108,3 +110,5 @@ class TestDataProcDataProcessing(SheTestCase):
 
             assert method_test_results.rec_chains_passed, f"{method=}"
             assert method_test_results.err_rec_chains is None, f"{method=}"
+
+            assert method_test_results.global_passed, f"{method=}"
