@@ -48,7 +48,7 @@ ERR_NO_FILE_PATTERN = compile_regex("[Errno 2] No such file or directory: '%s'")
 
 
 class TestDataProcInput(SheTestCase):
-    """Test case for DataProc validation test integration tests.
+    """Test case for DataProc validation test reading of input data
     """
 
     def post_setup(self):
