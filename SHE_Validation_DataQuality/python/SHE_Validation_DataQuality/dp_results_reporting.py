@@ -50,8 +50,8 @@ class DataProcRequirementWriter(RequirementWriter):
     def _interpret_test_results(self) -> None:
         """Override to use the pvalue as the value and a constant target
         """
-        self.l_val = [test_results.global_result for test_results in self.l_test_results]
-        self.l_val_target = np.ones_like(np.all(self.l_val), dtype=bool)
+        self.l_val = [test_results.global_passed for test_results in self.l_test_results]
+        self.l_val_target = np.ones_like(self.l_val, dtype=bool)
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """Override to implement desired reporting format of messages. Since this doesn't do any binning,

@@ -985,7 +985,10 @@ class TestCaseWriter:
         base_requirement_object: Any = test_case_object.ValidatedRequirements.Requirement[0]
         analysis_object: Any = test_case_object.AnalysisResult.AnalysisFiles
 
-        l_bin_limits = d_l_bin_limits[self.test_case_info.bin_parameter]
+        if d_l_bin_limits:
+            l_bin_limits = d_l_bin_limits[self.test_case_info.bin_parameter]
+        else:
+            l_bin_limits = TOT_BIN_LIMITS
         try:
             l_test_results = d_l_test_results[self.test_case_info.name]
         except KeyError:

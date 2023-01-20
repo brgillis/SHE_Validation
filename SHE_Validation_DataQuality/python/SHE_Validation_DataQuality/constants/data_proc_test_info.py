@@ -43,5 +43,7 @@ L_DATA_PROC_TEST_CASE_INFO = make_test_case_info_for_methods([DATA_PROC_TEST_CAS
 
 NUM_DATA_PROC_TEST_CASES = len(L_DATA_PROC_TEST_CASE_INFO)
 
-# Dict associated the test cases to requirements
-D_L_DATA_PROC_REQUIREMENT_INFO = {DATA_PROC_TEST_CASE_INFO.name: DATA_PROC_REQUIREMENT_INFO}
+# Create a dict of the requirement info
+D_L_DATA_PROC_REQUIREMENT_INFO = {}
+for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+    D_L_DATA_PROC_REQUIREMENT_INFO[test_case_info.name] = DATA_PROC_REQUIREMENT_INFO
