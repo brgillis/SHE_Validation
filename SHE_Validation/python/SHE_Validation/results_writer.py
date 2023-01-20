@@ -40,6 +40,7 @@ from ST_DataModelBindings.dpd.she.validationtestresults_stub import dpdSheValida
 from ST_DataModelBindings.sys.dss_stub import dataContainer
 from . import __version__
 from .constants.default_config import ExecutionMode, FailSigmaScaling, TOT_BIN_LIMITS
+from .constants.misc import MSG_INFO, MSG_WARNING
 from .constants.test_info import BinParameters, RequirementInfo, TestCaseInfo
 
 # Set up a custom type definition for when either a dict or list is accepted
@@ -60,14 +61,12 @@ DIRECTORY_KEY: str = "Directory"
 RESULT_PASS: str = "PASSED"
 RESULT_FAIL: str = "FAILED"
 
-COMMENT_LEVEL_INFO: str = "INFO"
-COMMENT_LEVEL_WARNING: str = "WARNING"
-COMMENT_MULTIPLE: str = "Multiple notes; see SupplementaryInformation."
+MSG_MULTIPLE: str = "Multiple notes; see SupplementaryInformation."
 
-INFO_MULTIPLE: str = f"{COMMENT_LEVEL_INFO}: {COMMENT_MULTIPLE}"
+INFO_MULTIPLE: str = f"{MSG_INFO}: {MSG_MULTIPLE}"
 
 WARNING_TEST_NOT_RUN: str = "WARNING: Test not run."
-WARNING_MULTIPLE: str = f"{COMMENT_LEVEL_WARNING}: {COMMENT_MULTIPLE}"
+WARNING_MULTIPLE: str = f"{MSG_WARNING}: {MSG_MULTIPLE}"
 WARNING_BAD_DATA: str = "WARNING: Bad data; see SupplementaryInformation"
 
 KEY_REASON: str = "REASON"
@@ -424,11 +423,11 @@ class RequirementWriter:
 
         # If the slope passes but the intercept doesn't, we should raise a warning
         if warning:
-            comment_level = COMMENT_LEVEL_WARNING
+            comment_level = MSG_WARNING
         else:
-            comment_level = COMMENT_LEVEL_INFO
+            comment_level = MSG_INFO
 
-        self.requirement_object.Comment = f"{comment_level}: " + COMMENT_MULTIPLE
+        self.requirement_object.Comment = f"{comment_level}: " + MSG_MULTIPLE
 
         # Add supplementary info
         self.add_supplementary_info(l_supplementary_info=l_supplementary_info)
