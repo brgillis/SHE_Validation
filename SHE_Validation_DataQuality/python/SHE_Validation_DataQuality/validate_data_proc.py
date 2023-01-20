@@ -30,6 +30,7 @@ from SHE_Validation.argument_parser import CA_SHE_REC_CAT, CA_SHE_REC_CHAINS, CA
 from SHE_Validation_DataQuality.constants.data_proc_test_info import DATA_PROC_TEST_CASE_INFO, NUM_DATA_PROC_TEST_CASES
 from SHE_Validation_DataQuality.dp_data_processing import get_data_proc_test_results
 from SHE_Validation_DataQuality.dp_input import read_data_proc_input
+from SHE_Validation_DataQuality.dp_results_reporting import DataProcValidationResultsWriter
 
 
 def run_validate_data_proc_from_args(d_args):

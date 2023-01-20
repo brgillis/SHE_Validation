@@ -31,6 +31,7 @@ from astropy.table import Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_Validation.constants.misc import MSG_ERROR, MSG_INFO
+from SHE_Validation_DataQuality.constants.data_proc_test_info import L_DATA_PROC_TEST_CASE_INFO
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.dp_input import DataProcInput  # noqa F401
@@ -100,13 +101,13 @@ def get_data_proc_test_results(data_proc_input):
 
     Returns
     -------
-    Dict[ShearEstimationMethods, List[DataProcTestResults]]
-        A dict of the test results for each shear estimation method. The result is returned as a dict of lists of one
-        element each for consistency of format with other validation tests
+    Dict[str, List[DataProcTestResults]]
+        A dict of the test results for each shear estimation method (indexed by the test case name). The result is
+        returned as a dict of lists of one element each for consistency of format with other validation tests
     """
 
     # Prepare an output dict, which we'll fill in for each method
-    d_l_test_results: Dict[ShearEstimationMethods, List[DataProcTestResults]] = {}
+    d_l_test_results: Dict[str, List[DataProcTestResults]] = {}
 
     # Determine results common to all methods
 
@@ -124,7 +125,9 @@ def get_data_proc_test_results(data_proc_input):
         msg_p_rec_chains = MSG_NO_CHAINS
         msg_rec_chains = MSG_NO_CHAINS
 
-    for method in ShearEstimationMethods:
+    for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+
+        method = test_case_info.method
 
         # Determine method-specific results
         if data_proc_input.d_err_rec_cat is None or method not in data_proc_input.d_err_rec_cat:
@@ -133,14 +136,14 @@ def get_data_proc_test_results(data_proc_input):
             msg_rec_cat = _convert_err_to_msg(data_proc_input.d_err_rec_cat[method])
         rec_cat_passed = p_rec_cat_passed and (msg_rec_cat is None) and (data_proc_input.d_rec_cat[method] is not None)
 
-        d_l_test_results[method] = [DataProcTestResults(p_rec_cat_passed=p_rec_cat_passed,
-                                                        msg_p_rec_cat=msg_p_rec_cat,
-                                                        rec_cat_passed=rec_cat_passed,
-                                                        msg_rec_cat=msg_rec_cat,
-                                                        p_rec_chains_passed=p_rec_chains_passed,
-                                                        msg_p_rec_chains=msg_p_rec_chains,
-                                                        rec_chains_passed=rec_chains_passed,
-                                                        msg_rec_chains=msg_rec_chains)]
+        d_l_test_results[test_case_info.name] = [DataProcTestResults(p_rec_cat_passed=p_rec_cat_passed,
+                                                                     msg_p_rec_cat=msg_p_rec_cat,
+                                                                     rec_cat_passed=rec_cat_passed,
+                                                                     msg_rec_cat=msg_rec_cat,
+                                                                     p_rec_chains_passed=p_rec_chains_passed,
+                                                                     msg_p_rec_chains=msg_p_rec_chains,
+                                                                     rec_chains_passed=rec_chains_passed,
+                                                                     msg_rec_chains=msg_rec_chains)]
 
     return d_l_test_results
 
