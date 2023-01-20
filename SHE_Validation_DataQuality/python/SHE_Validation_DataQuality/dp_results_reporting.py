@@ -28,7 +28,10 @@ from typing import List, Optional
 import numpy as np
 
 from SHE_PPT.logging import getLogger
-from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS, RequirementWriter
+from SHE_Validation.results_writer import (AnalysisWriter, RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
+                                           ValidationResultsWriter, )
+from SHE_Validation_DataQuality.constants.data_proc_test_info import (D_L_DATA_PROC_REQUIREMENT_INFO,
+                                                                      L_DATA_PROC_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.dp_data_processing import DataProcTestResults
 
 logger = getLogger(__name__)
@@ -97,3 +100,23 @@ class DataProcRequirementWriter(RequirementWriter):
 
         # Make an array of test results
         self.l_test_pass = deepcopy(self.l_val)
+
+
+class DataProcTestCaseWriter(TestCaseWriter):
+    """ TestCaseWriter specialized for the PSF-Res validation test.
+    """
+
+    # Class members
+
+    # Types of child objects, overriding those in base class
+    requirement_writer_type = DataProcRequirementWriter
+
+
+class DataProcValidationResultsWriter(ValidationResultsWriter):
+    """ ValidationResultsWriter specialized for the PSF-Res validation test.
+    """
+
+    # Types of child classes
+    test_case_writer_type = DataProcTestCaseWriter
+    l_test_case_info = L_DATA_PROC_TEST_CASE_INFO
+    dl_l_requirement_info = D_L_DATA_PROC_REQUIREMENT_INFO
