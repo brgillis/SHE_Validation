@@ -38,6 +38,15 @@ logger = getLogger(__name__)
 
 STR_DP_STAT = ""
 
+STR_P_REC_CAT = "Reconciled Shear Estimates Data Product"
+STR_REC_CAT = "Reconciled Shear Estimates Catalog"
+STR_P_REC_CHAINS = "Reconciled Chains Data Product"
+STR_REC_CHAINS = "Reconciled Chains Catalog"
+
+MSG_PRESENT_AND_VALID = "Presence and validity of %s: "
+MSG_DETAILS = "Details: "
+MSG_NA = "N/A"
+
 
 class DataProcRequirementWriter(RequirementWriter):
     """ Class for managing reporting of results for a single Shear Bias requirement
@@ -63,25 +72,25 @@ class DataProcRequirementWriter(RequirementWriter):
 
         # Construct the message similarly for each thing we test for the presence and validity of
 
-        for (attr_base, name) in (("p_rec_cat", "Reconciled Shear Estimates Data Product"),
-                                  ("rec_cat", "Reconciled Shear Estimates Catalog"),
-                                  ("p_rec_chains", "Reconciled Chains Data Product"),
-                                  ("rec_chains", "Reconciled Chains Catalog"),):
+        for (attr_base, name) in (("p_rec_cat", STR_P_REC_CAT),
+                                  ("rec_cat", STR_REC_CAT),
+                                  ("p_rec_chains", STR_P_REC_CHAINS),
+                                  ("rec_chains", STR_REC_CHAINS),):
 
-            message += f"Presence and validity of {name}: "
+            message += MSG_PRESENT_AND_VALID % name
 
             if getattr(test_results, f"{attr_base}_passed"):
                 message += RESULT_PASS
             else:
                 message += RESULT_FAIL
 
-            message += "\nDetails: "
+            message += f"\n{MSG_DETAILS}"
 
             attr_message = getattr(test_results, f"msg_{attr_base}")
             if attr_message:
                 message += f"\"{attr_message}\"\n\n"
             else:
-                message += "N/A\n\n"
+                message += f"{MSG_NA}\n\n"
 
         # Trim the final newline character that was added to the message
         message = message[:-1]
