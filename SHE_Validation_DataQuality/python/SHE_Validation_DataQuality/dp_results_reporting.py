@@ -6,6 +6,7 @@
 
 Code for reporting the results of the DataProc validation test in a data product
 """
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under
@@ -22,13 +23,12 @@ Code for reporting the results of the DataProc validation test in a data product
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from copy import deepcopy
 from typing import List, Optional
 
 import numpy as np
 
 from SHE_PPT.logging import getLogger
-from SHE_Validation.results_writer import (AnalysisWriter, RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
+from SHE_Validation.results_writer import (RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
                                            ValidationResultsWriter, get_result_string, )
 from SHE_Validation_DataQuality.constants.data_proc_test_info import (D_L_DATA_PROC_REQUIREMENT_INFO,
                                                                       L_DATA_PROC_TEST_CASE_INFO, )
