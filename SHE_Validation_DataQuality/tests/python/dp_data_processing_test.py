@@ -32,6 +32,7 @@ from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconcil
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.misc import MSG_ERROR
+from SHE_Validation_DataQuality.constants.data_proc_test_info import L_DATA_PROC_TEST_CASE_INFO
 from SHE_Validation_DataQuality.dp_data_processing import MSG_NO_CHAINS, get_data_proc_test_results
 from SHE_Validation_DataQuality.dp_input import DataProcInput
 
@@ -80,9 +81,11 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(self.good_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert method_test_results.p_rec_cat_passed, f"{method=}"
             assert method_test_results.msg_p_rec_cat is None, f"{method=}"
@@ -108,9 +111,11 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(missing_cat_prod_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert not method_test_results.p_rec_cat_passed, f"{method=}"
             assert method_test_results.msg_p_rec_cat == ERR_P_CAT, f"{method=}"
@@ -134,21 +139,23 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(missing_cats_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert method_test_results.p_rec_cat_passed, f"{method=}"
             assert method_test_results.msg_p_rec_cat is None, f"{method=}"
 
-            if method == ShearEstimationMethods.KSB:
+            if method == ShearEstimationMethods.KSB.value:
 
                 assert not method_test_results.rec_cat_passed, f"{method=}"
                 assert method_test_results.msg_rec_cat == ERR_KSB_CAT, f"{method=}"
 
                 assert not method_test_results.global_passed, f"{method=}"
 
-            elif method == ShearEstimationMethods.LENSMC:
+            elif method == ShearEstimationMethods.LENSMC.value:
 
                 assert not method_test_results.rec_cat_passed, f"{method=}"
                 assert method_test_results.msg_rec_cat == ERR_LENSMC_CAT, f"{method=}"
@@ -172,9 +179,11 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(missing_chains_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
             assert method_test_results.msg_p_rec_chains == MSG_NO_CHAINS, f"{method=}"
@@ -194,9 +203,11 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(missing_chains_prod_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert not method_test_results.p_rec_chains_passed, f"{method=}"
             assert method_test_results.msg_p_rec_chains == ERR_P_CHAINS, f"{method=}"
@@ -216,9 +227,11 @@ class TestDataProcDataProcessing(SheTestCase):
         d_l_test_results = get_data_proc_test_results(missing_chains_cat_input)
 
         # Check that all results are as expected
-        for method in ShearEstimationMethods:
+        for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method.value
 
-            method_test_results = d_l_test_results[method][0]
+            method_test_results = d_l_test_results[name][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
             assert method_test_results.msg_p_rec_chains is None, f"{method=}"
