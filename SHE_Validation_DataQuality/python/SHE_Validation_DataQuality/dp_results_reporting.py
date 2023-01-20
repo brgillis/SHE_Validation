@@ -63,7 +63,10 @@ class DataProcRequirementWriter(RequirementWriter):
 
         # Construct the message similarly for each thing we test for the presence and validity of
 
-        for (attr_base, name) in (("p_rec_cat", "Reconciled Shear Estimates Data Product"),):
+        for (attr_base, name) in (("p_rec_cat", "Reconciled Shear Estimates Data Product"),
+                                  ("rec_cat", "Reconciled Shear Estimates Catalog"),
+                                  ("p_rec_chains", "Reconciled Chains Data Product"),
+                                  ("rec_chains", "Reconciled Chains Catalog"),):
 
             message += f"Presence and validity of {name}: "
 
