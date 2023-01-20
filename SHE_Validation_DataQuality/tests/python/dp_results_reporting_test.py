@@ -20,17 +20,21 @@ Tests of code to output test results to in-memory data product for DataProc vali
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import pytest
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.data_proc_test_info import (L_DATA_PROC_TEST_CASE_INFO,
                                                                       NUM_DATA_PROC_TEST_CASES, )
 from SHE_Validation_DataQuality.dp_data_processing import DataProcTestResults
-from SHE_Validation_DataQuality.dp_results_reporting import DataProcValidationResultsWriter
+from SHE_Validation_DataQuality.dp_results_reporting import (DataProcValidationResultsWriter, MSG_DETAILS,
+                                                             MSG_NA, MSG_PRESENT_AND_VALID,
+                                                             STR_P_REC_CAT, STR_P_REC_CHAINS, STR_REC_CAT,
+                                                             STR_REC_CHAINS, )
 
 MSG_REC_CAT = "ERROR: rec_cat message"
 MSG_P_REC_CHAINS = "ERROR: p_rec_chains message"
@@ -39,6 +43,8 @@ MSG_P_REC_CHAINS = "ERROR: p_rec_chains message"
 class TestDataProcResultsReporting(SheTestCase):
     """Test case for DataProc validation test results reporting
     """
+
+    lensmc_id: Optional[str] = None
 
     def post_setup(self):
         """Override parent setup, creating common data for each test
@@ -52,6 +58,7 @@ class TestDataProcResultsReporting(SheTestCase):
 
             # Do things a bit different for LensMC
             if method == ShearEstimationMethods.LENSMC:
+                self.lensmc_id = test_case_info.id
                 rec_cat_passed = False
                 msg_rec_cat = MSG_REC_CAT
             else:
@@ -93,3 +100,36 @@ class TestDataProcResultsReporting(SheTestCase):
 
             assert test_case_info.id in test_result.TestId
             assert test_result.TestDescription == test_case_info.description
+
+    def test_results(self, test_result_product):
+        """ Test that the filled results are as expected
+        """
+
+        for test_results in test_result_product.Data.ValidationTestList:
+
+            assert test_results.GlobalResult == RESULT_FAIL
+
+            requirement_object = test_results.ValidatedRequirements.Requirement[0]
+            assert requirement_object.Comment == INFO_MULTIPLE
+            assert requirement_object.MeasuredValue[0].Value.FloatValue == 0.
+            assert requirement_object.ValidationResult == RESULT_FAIL
+
+            supp_info = requirement_object.SupplementaryInformation
+            supp_info_string = supp_info.Parameter[0].StringValue
+
+            # Check that expected strings for all results are present
+            assert (f"{MSG_PRESENT_AND_VALID % STR_P_REC_CAT}{RESULT_PASS}\n"
+                    f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
+
+            if test_results.TestId == self.lensmc_id:
+                assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CAT}{RESULT_FAIL}\n"
+                        f"{MSG_DETAILS}\"{MSG_REC_CAT}\"" in supp_info_string)
+            else:
+                assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CAT}{RESULT_PASS}\n"
+                        f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
+
+            assert (f"{MSG_PRESENT_AND_VALID % STR_P_REC_CHAINS}{RESULT_FAIL}\n"
+                    f"{MSG_DETAILS}\"{MSG_P_REC_CHAINS}\"" in supp_info_string)
+
+            assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CHAINS}{RESULT_FAIL}\n"
+                    f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
