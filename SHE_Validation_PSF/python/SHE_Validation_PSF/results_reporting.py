@@ -44,7 +44,7 @@ STR_KS_STAT = "KS Statistic"
 
 
 class PsfResRequirementWriter(RequirementWriter):
-    """ Class for managing reporting of results for a single Shear Bias requirement
+    """ Class for managing reporting of results for a single PSF Residual (Star Pos) requirement
     """
 
     target_type = TargetType.MIN
