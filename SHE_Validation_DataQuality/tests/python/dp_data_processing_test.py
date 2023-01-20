@@ -6,7 +6,7 @@
 
 Tests of function to read in input data for the DataProc test
 """
-from copy import deepcopy
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -20,6 +20,7 @@ from copy import deepcopy
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 from typing import Dict
 
 from astropy.table import Table
@@ -31,7 +32,7 @@ from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconcil
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.misc import MSG_ERROR
-from SHE_Validation_DataQuality.dp_data_processing import get_data_proc_test_results
+from SHE_Validation_DataQuality.dp_data_processing import MSG_NO_CHAINS, get_data_proc_test_results
 from SHE_Validation_DataQuality.dp_input import DataProcInput
 
 MSG_P_CAT = "1"
@@ -176,10 +177,10 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
-            assert method_test_results.msg_p_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_p_rec_chains == MSG_NO_CHAINS, f"{method=}"
 
             assert method_test_results.rec_chains_passed, f"{method=}"
-            assert method_test_results.msg_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_rec_chains == MSG_NO_CHAINS, f"{method=}"
 
             assert method_test_results.global_passed, f"{method=}"
 

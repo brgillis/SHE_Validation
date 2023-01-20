@@ -119,6 +119,11 @@ def get_data_proc_test_results(data_proc_input):
     msg_rec_chains = _convert_err_to_msg(data_proc_input.err_rec_chains)
     rec_chains_passed = p_rec_chains_passed and (msg_rec_chains is None)
 
+    # Check for case where chains weren't supplied, and make a note of that if so
+    if msg_p_rec_chains is None and data_proc_input.p_rec_chains is None:
+        msg_p_rec_chains = MSG_NO_CHAINS
+        msg_rec_chains = MSG_NO_CHAINS
+
     for method in ShearEstimationMethods:
 
         # Determine method-specific results
