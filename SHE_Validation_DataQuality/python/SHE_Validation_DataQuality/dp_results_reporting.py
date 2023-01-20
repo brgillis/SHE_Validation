@@ -6,7 +6,6 @@
 
 Code for reporting the results of the DataProc validation test in a data product
 """
-
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under
@@ -23,7 +22,10 @@ Code for reporting the results of the DataProc validation test in a data product
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from copy import deepcopy
 from typing import List, Optional
+
+import numpy as np
 
 from SHE_PPT.logging import getLogger
 from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS, RequirementWriter
@@ -40,6 +42,13 @@ class DataProcRequirementWriter(RequirementWriter):
 
     value_name: str = STR_DP_STAT
     l_test_results: Optional[List[DataProcTestResults]]
+
+    # Protected methods
+    def _interpret_test_results(self) -> None:
+        """Override to use the pvalue as the value and a constant target
+        """
+        self.l_val = [test_results.global_result for test_results in self.l_test_results]
+        self.l_val_target = np.ones_like(np.all(self.l_val), dtype=bool)
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """Override to implement desired reporting format of messages. Since this doesn't do any binning,
@@ -72,3 +81,19 @@ class DataProcRequirementWriter(RequirementWriter):
         message = message[:-1]
 
         return message
+
+    def _determine_results(self):
+        """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
+            and self.measured_value
+        """
+
+        if self.l_good_data is not None and self.l_test_pass is not None and self.measured_value is not None:
+            return
+
+        self.measured_value = np.all(self.l_val)
+
+        # For this test, we consider all data to be "good" for the purposes of outputting results
+        self.l_good_data = np.ones_like(np.all(self.l_val), dtype=bool)
+
+        # Make an array of test results
+        self.l_test_pass = deepcopy(self.l_val)
