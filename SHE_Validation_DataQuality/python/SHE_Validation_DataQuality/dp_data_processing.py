@@ -30,9 +30,12 @@ import numpy as np
 from astropy.table import Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_Validation.constants.misc import MSG_ERROR, MSG_INFO
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.dp_input import DataProcInput  # noqa F401
+
+MSG_NO_CHAINS = f"{MSG_INFO}: No chains product was provided."
 
 
 @dataclass
@@ -43,22 +46,24 @@ class DataProcTestResults:
     ----------
     p_rec_cat_passed: bool
         Whether the check for a valid Reconciled Shear Measurements data product passed
-    err_p_rec_cat: str or None
+    msg_p_rec_cat: str or None
         The text of any exceptions raised when attempting to read in the Reconciled Shear Measurements data product,
-        or else None
+        any other messages, or else None
     rec_cat_passed: bool
         Whether the check for a valid Reconciled Shear Measurements catalog passed
-    err_rec_cat: str or None
-        The text of any exceptions raised when attempting to read each Reconciled Shear Measurements catalog, or else
-        None
+    msg_rec_cat: str or None
+        The text of any exceptions raised when attempting to read each Reconciled Shear Measurements catalog,
+        any other messages, or else None
     p_rec_chains_passed: bool
         Whether the check for a valid Chains data product passed
-    err_p_rec_chains: str or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains data product, or else None
+    msg_p_rec_chains: str or None
+        The text of any exceptions raised when attempting to read in the Reconciled Chains data product,
+        any other messages, or else None
     rec_chains_passed: bool
         Whether the check for a valid Chains catalog passed
-    err_rec_chains: Table or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, or else None
+    msg_rec_chains: Table or None
+        The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, any other
+        messages, or else None
 
     Methods
     -------
@@ -67,16 +72,16 @@ class DataProcTestResults:
     """
 
     p_rec_cat_passed: bool
-    err_p_rec_cat: Optional[str]
+    msg_p_rec_cat: Optional[str]
 
     rec_cat_passed: bool
-    err_rec_cat: Optional[str]
+    msg_rec_cat: Optional[str]
 
     p_rec_chains_passed: bool
-    err_p_rec_chains: Optional[str]
+    msg_p_rec_chains: Optional[str]
 
     rec_chains_passed: bool
-    err_rec_chains: Optional[str]
+    msg_rec_chains: Optional[str]
 
     @property
     def global_passed(self) -> bool:
@@ -105,31 +110,40 @@ def get_data_proc_test_results(data_proc_input):
 
     # Determine results common to all methods
 
-    err_p_rec_cat = data_proc_input.err_p_rec_cat
-    p_rec_cat_passed = (err_p_rec_cat is None) and (data_proc_input.p_rec_cat is not None)
+    msg_p_rec_cat = _convert_err_to_msg(data_proc_input.err_p_rec_cat)
+    p_rec_cat_passed = (msg_p_rec_cat is None) and (data_proc_input.p_rec_cat is not None)
 
-    err_p_rec_chains = data_proc_input.err_p_rec_chains
-    p_rec_chains_passed = err_p_rec_chains is None
+    msg_p_rec_chains = _convert_err_to_msg(data_proc_input.err_p_rec_chains)
+    p_rec_chains_passed = msg_p_rec_chains is None
 
-    err_rec_chains = data_proc_input.err_rec_chains
-    rec_chains_passed = p_rec_chains_passed and (err_rec_chains is None)
+    msg_rec_chains = _convert_err_to_msg(data_proc_input.err_rec_chains)
+    rec_chains_passed = p_rec_chains_passed and (msg_rec_chains is None)
 
     for method in ShearEstimationMethods:
 
         # Determine method-specific results
         if data_proc_input.d_err_rec_cat is None or method not in data_proc_input.d_err_rec_cat:
-            err_rec_cat = None
+            msg_rec_cat = None
         else:
-            err_rec_cat = data_proc_input.d_err_rec_cat[method]
-        rec_cat_passed = p_rec_cat_passed and (err_rec_cat is None) and (data_proc_input.d_rec_cat[method] is not None)
+            msg_rec_cat = _convert_err_to_msg(data_proc_input.d_err_rec_cat[method])
+        rec_cat_passed = p_rec_cat_passed and (msg_rec_cat is None) and (data_proc_input.d_rec_cat[method] is not None)
 
         d_l_test_results[method] = [DataProcTestResults(p_rec_cat_passed=p_rec_cat_passed,
-                                                        err_p_rec_cat=err_p_rec_cat,
+                                                        msg_p_rec_cat=msg_p_rec_cat,
                                                         rec_cat_passed=rec_cat_passed,
-                                                        err_rec_cat=err_rec_cat,
+                                                        msg_rec_cat=msg_rec_cat,
                                                         p_rec_chains_passed=p_rec_chains_passed,
-                                                        err_p_rec_chains=err_p_rec_chains,
+                                                        msg_p_rec_chains=msg_p_rec_chains,
                                                         rec_chains_passed=rec_chains_passed,
-                                                        err_rec_chains=err_rec_chains)]
+                                                        msg_rec_chains=msg_rec_chains)]
 
     return d_l_test_results
+
+
+def _convert_err_to_msg(err: Optional[str]) -> Optional[str]:
+    """Private method to convert an optional error string to an optional message string (which will be prepended with
+    "ERROR:")
+    """
+    if err is None:
+        return None
+    return f"{MSG_ERROR}: {err}"

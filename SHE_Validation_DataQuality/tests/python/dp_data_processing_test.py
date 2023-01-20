@@ -30,14 +30,20 @@ from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconci
 from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_Validation.constants.misc import MSG_ERROR
 from SHE_Validation_DataQuality.dp_data_processing import get_data_proc_test_results
 from SHE_Validation_DataQuality.dp_input import DataProcInput
 
-MSG_P_CAT_ERR = "1"
-MSG_KSB_CAT_ERR = "KSB-2"
-MSG_LENSMC_CAT_ERR = "LENSMC-2"
-MSG_P_CHAINS_ERR = "3"
-MSG_CHAINS_ERR = "4"
+MSG_P_CAT = "1"
+ERR_P_CAT = f"{MSG_ERROR}: {MSG_P_CAT}"
+MSG_KSB_CAT = "KSB-2"
+ERR_KSB_CAT = f"{MSG_ERROR}: {MSG_KSB_CAT}"
+MSG_LENSMC_CAT = "LENSMC-2"
+ERR_LENSMC_CAT = f"{MSG_ERROR}: {MSG_LENSMC_CAT}"
+MSG_P_CHAINS = "3"
+ERR_P_CHAINS = f"{MSG_ERROR}: {MSG_P_CHAINS}"
+MSG_CHAINS = "4"
+ERR_CHAINS = f"{MSG_ERROR}: {MSG_CHAINS}"
 
 
 class TestDataProcDataProcessing(SheTestCase):
@@ -78,16 +84,16 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_cat_passed, f"{method=}"
-            assert method_test_results.err_p_rec_cat is None, f"{method=}"
+            assert method_test_results.msg_p_rec_cat is None, f"{method=}"
 
             assert method_test_results.rec_cat_passed, f"{method=}"
-            assert method_test_results.err_rec_cat is None, f"{method=}"
+            assert method_test_results.msg_rec_cat is None, f"{method=}"
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
-            assert method_test_results.err_p_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_p_rec_chains is None, f"{method=}"
 
             assert method_test_results.rec_chains_passed, f"{method=}"
-            assert method_test_results.err_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_rec_chains is None, f"{method=}"
 
             assert method_test_results.global_passed, f"{method=}"
 
@@ -96,7 +102,7 @@ class TestDataProcDataProcessing(SheTestCase):
         """
         missing_cat_prod_input = deepcopy(self.good_input)
         missing_cat_prod_input.p_rec_cat = None
-        missing_cat_prod_input.err_p_rec_cat = MSG_P_CAT_ERR
+        missing_cat_prod_input.err_p_rec_cat = MSG_P_CAT
 
         d_l_test_results = get_data_proc_test_results(missing_cat_prod_input)
 
@@ -106,10 +112,10 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert not method_test_results.p_rec_cat_passed, f"{method=}"
-            assert method_test_results.err_p_rec_cat == MSG_P_CAT_ERR, f"{method=}"
+            assert method_test_results.msg_p_rec_cat == ERR_P_CAT, f"{method=}"
 
             assert not method_test_results.rec_cat_passed, f"{method=}"
-            assert method_test_results.err_rec_cat is None, f"{method=}"
+            assert method_test_results.msg_rec_cat is None, f"{method=}"
 
             assert not method_test_results.global_passed, f"{method=}"
 
@@ -121,8 +127,8 @@ class TestDataProcDataProcessing(SheTestCase):
         missing_cats_input.d_rec_cat[ShearEstimationMethods.KSB] = None
         missing_cats_input.d_rec_cat[ShearEstimationMethods.LENSMC] = None
 
-        missing_cats_input.d_err_rec_cat = {ShearEstimationMethods.KSB: MSG_KSB_CAT_ERR,
-                                            ShearEstimationMethods.LENSMC: MSG_LENSMC_CAT_ERR}
+        missing_cats_input.d_err_rec_cat = {ShearEstimationMethods.KSB: MSG_KSB_CAT,
+                                            ShearEstimationMethods.LENSMC: MSG_LENSMC_CAT}
 
         d_l_test_results = get_data_proc_test_results(missing_cats_input)
 
@@ -132,26 +138,26 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_cat_passed, f"{method=}"
-            assert method_test_results.err_p_rec_cat is None, f"{method=}"
+            assert method_test_results.msg_p_rec_cat is None, f"{method=}"
 
             if method == ShearEstimationMethods.KSB:
 
                 assert not method_test_results.rec_cat_passed, f"{method=}"
-                assert method_test_results.err_rec_cat == MSG_KSB_CAT_ERR, f"{method=}"
+                assert method_test_results.msg_rec_cat == ERR_KSB_CAT, f"{method=}"
 
                 assert not method_test_results.global_passed, f"{method=}"
 
             elif method == ShearEstimationMethods.LENSMC:
 
                 assert not method_test_results.rec_cat_passed, f"{method=}"
-                assert method_test_results.err_rec_cat == MSG_LENSMC_CAT_ERR, f"{method=}"
+                assert method_test_results.msg_rec_cat == ERR_LENSMC_CAT, f"{method=}"
 
                 assert not method_test_results.global_passed, f"{method=}"
 
             else:
 
                 assert method_test_results.rec_cat_passed, f"{method=}"
-                assert method_test_results.err_rec_cat is None, f"{method=}"
+                assert method_test_results.msg_rec_cat is None, f"{method=}"
 
                 assert method_test_results.global_passed, f"{method=}"
 
@@ -170,10 +176,10 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
-            assert method_test_results.err_p_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_p_rec_chains is None, f"{method=}"
 
             assert method_test_results.rec_chains_passed, f"{method=}"
-            assert method_test_results.err_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_rec_chains is None, f"{method=}"
 
             assert method_test_results.global_passed, f"{method=}"
 
@@ -182,7 +188,7 @@ class TestDataProcDataProcessing(SheTestCase):
         """
         missing_chains_prod_input = deepcopy(self.good_input)
         missing_chains_prod_input.p_rec_chains = None
-        missing_chains_prod_input.err_p_rec_chains = MSG_P_CHAINS_ERR
+        missing_chains_prod_input.err_p_rec_chains = MSG_P_CHAINS
 
         d_l_test_results = get_data_proc_test_results(missing_chains_prod_input)
 
@@ -192,10 +198,10 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert not method_test_results.p_rec_chains_passed, f"{method=}"
-            assert method_test_results.err_p_rec_chains == MSG_P_CHAINS_ERR, f"{method=}"
+            assert method_test_results.msg_p_rec_chains == ERR_P_CHAINS, f"{method=}"
 
             assert not method_test_results.rec_chains_passed, f"{method=}"
-            assert method_test_results.err_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_rec_chains is None, f"{method=}"
 
             assert not method_test_results.global_passed, f"{method=}"
 
@@ -204,7 +210,7 @@ class TestDataProcDataProcessing(SheTestCase):
         """
         missing_chains_cat_input = deepcopy(self.good_input)
         missing_chains_cat_input.rec_chains = None
-        missing_chains_cat_input.err_rec_chains = MSG_CHAINS_ERR
+        missing_chains_cat_input.err_rec_chains = MSG_CHAINS
 
         d_l_test_results = get_data_proc_test_results(missing_chains_cat_input)
 
@@ -214,9 +220,9 @@ class TestDataProcDataProcessing(SheTestCase):
             method_test_results = d_l_test_results[method][0]
 
             assert method_test_results.p_rec_chains_passed, f"{method=}"
-            assert method_test_results.err_p_rec_chains is None, f"{method=}"
+            assert method_test_results.msg_p_rec_chains is None, f"{method=}"
 
             assert not method_test_results.rec_chains_passed, f"{method=}"
-            assert method_test_results.err_rec_chains == MSG_CHAINS_ERR, f"{method=}"
+            assert method_test_results.msg_rec_chains == ERR_CHAINS, f"{method=}"
 
             assert not method_test_results.global_passed, f"{method=}"
