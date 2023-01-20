@@ -29,7 +29,7 @@ import numpy as np
 
 from SHE_PPT.logging import getLogger
 from SHE_Validation.results_writer import (AnalysisWriter, RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
-                                           ValidationResultsWriter, )
+                                           ValidationResultsWriter, get_result_string, )
 from SHE_Validation_DataQuality.constants.data_proc_test_info import (D_L_DATA_PROC_REQUIREMENT_INFO,
                                                                       L_DATA_PROC_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.dp_data_processing import DataProcTestResults
@@ -57,10 +57,9 @@ class DataProcRequirementWriter(RequirementWriter):
 
     # Protected methods
     def _interpret_test_results(self) -> None:
-        """Override to use the pvalue as the value and a constant target
+        """Override to set values to None, to ensure we don't print out data on it
         """
-        self.l_val = [test_results.global_passed for test_results in self.l_test_results]
-        self.l_val_target = np.ones_like(self.l_val, dtype=bool)
+        self.l_val = None
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """Override to implement desired reporting format of messages. Since this doesn't do any binning,
@@ -92,26 +91,39 @@ class DataProcRequirementWriter(RequirementWriter):
             else:
                 message += f"{MSG_NA}\n\n"
 
-        # Trim the final newline character that was added to the message
-        message = message[:-1]
-
         return message
 
     def _determine_results(self):
-        """ Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
-            and self.measured_value
+        """Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
+        and self.measured_value
         """
 
         if self.l_good_data is not None and self.l_test_pass is not None and self.measured_value is not None:
             return
 
-        self.measured_value = np.all(self.l_val)
+        # Make an array of test results
+        self.l_test_pass = [test_results.global_passed for test_results in self.l_test_results]
+
+        self.measured_value = np.all(self.l_test_pass)
 
         # For this test, we consider all data to be "good" for the purposes of outputting results
-        self.l_good_data = np.ones_like(np.all(self.l_val), dtype=bool)
+        self.l_good_data = np.ones_like(np.all(self.l_test_pass), dtype=bool)
 
-        # Make an array of test results
-        self.l_test_pass = deepcopy(self.l_val)
+    def _determine_overall_results(self):
+        """Override determination of overall results. This implementation simplifies things a bit since we don't have
+        bins, and also avoids setting self.l_val, which ensures no extra unwanted lines will be output to
+        SupplementaryInfo.
+        """
+
+        # Get the list of results for bins
+        self.l_result = list(map(get_result_string, self.l_test_pass))
+
+        # Get the overall results
+        self.good_data = True
+
+        self.test_pass = np.all(self.l_test_pass)
+
+        self.result = get_result_string(self.test_pass)
 
 
 class DataProcTestCaseWriter(TestCaseWriter):
