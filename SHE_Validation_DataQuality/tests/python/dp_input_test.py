@@ -28,7 +28,7 @@ from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
+from SHE_PPT.products.she_measurements import create_dpd_she_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.table_utility import is_in_format
@@ -59,7 +59,7 @@ class TestDataProcInput(SheTestCase):
         she_cat = lensmc_measurements_table_format.init_table(size=1)
         she_cat.write(os.path.join(self.workdir, LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
-        p_she_cat = create_dpd_she_validated_measurements(LensMC_filename=LENSMC_MEASUREMENTS_TABLE_FILENAME)
+        p_she_cat = create_dpd_she_measurements(LensMC_filename=LENSMC_MEASUREMENTS_TABLE_FILENAME)
         write_xml_product(p_she_cat, MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir)
 
         she_chains = lensmc_chains_table_format.init_table(size=1)

@@ -34,7 +34,7 @@ from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_utility import is_in_format
-from ST_DataModelBindings.dpd.she.validatedmeasurements_stub import dpdSheValidatedMeasurements
+from ST_DataModelBindings.dpd.she.measurements_stub import dpdSheMeasurements
 from ST_DataModelBindings.dpd.she.lensmcchains_stub import dpdSheLensMcChains
 
 ERR_MEASUREMENTS_NONE = "No Shear Estimates table for method %s found in data product."
@@ -50,7 +50,7 @@ class DataProcInput:
 
     Attributes
     ----------
-    p_she_cat: dpdSheValidatedMeasurements or None
+    p_she_cat: dpdSheMeasurements or None
         The Shear Measurements data product, if successfully read in, otherwise None
     err_p_she_cat: str or None
         The text of any exceptions raised when attempting to read in the Shear Measurements data product,
@@ -71,7 +71,7 @@ class DataProcInput:
         The text of any exceptions raised when attempting to read in the Chains catalog, or else None
     """
 
-    p_she_cat: dpdSheValidatedMeasurements
+    p_she_cat: dpdSheMeasurements
     err_p_she_cat: Optional[str]
 
     d_she_cat: Optional[Dict[ShearEstimationMethods, Optional[Table]]]
@@ -149,15 +149,15 @@ def read_data_proc_input(p_she_cat_filename, p_she_chains_filename, workdir):
                          err_she_chains=err_she_chains)
 
 
-def _read_p_she_cat(p_she_cat_filename: str, workdir: str) -> Tuple[dpdSheValidatedMeasurements,
+def _read_p_she_cat(p_she_cat_filename: str, workdir: str) -> Tuple[dpdSheMeasurements,
                                                                     Dict[ShearEstimationMethods, Optional[Table]],
                                                                     Dict[ShearEstimationMethods, Optional[str]]]:
     """Private function to read in the Shear Measurements catalog data product and associated catalogs.
     """
 
-    p_she_cat: dpdSheValidatedMeasurements = read_xml_product(p_she_cat_filename,
-                                                              workdir=workdir,
-                                                              product_type=dpdSheValidatedMeasurements)
+    p_she_cat: dpdSheMeasurements = read_xml_product(p_she_cat_filename,
+                                                     workdir=workdir,
+                                                     product_type=dpdSheMeasurements)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 
