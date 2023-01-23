@@ -24,7 +24,7 @@ from argparse import Namespace
 
 from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_PRODUCT_FILENAME
 from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, CA_SHE_REC_CHAINS, CA_SHE_TEST_RESULTS
+from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILENAME,
                                               SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME,
                                               SHE_TEST_RESULTS_PRODUCT_FILENAME, )
@@ -46,8 +46,8 @@ class TestGalInfoRun(SheTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_SHE_REC_CAT, SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME)
-        setattr(args, CA_SHE_REC_CHAINS, SHE_RECONCILED_CHAINS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_CAT, SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_CHAINS, SHE_RECONCILED_CHAINS_PRODUCT_FILENAME)
         setattr(args, CA_MER_CAT_PROD, MER_FINAL_CATALOG_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 

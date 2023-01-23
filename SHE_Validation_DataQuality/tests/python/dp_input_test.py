@@ -27,8 +27,8 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import read_xml_product, write_xml_product
-from SHE_PPT.products.she_reconciled_lensmc_chains import create_dpd_she_reconciled_lensmc_chains
-from SHE_PPT.products.she_reconciled_measurements import create_dpd_she_reconciled_measurements
+from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
+from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.table_utility import is_in_format
@@ -39,8 +39,8 @@ from SHE_Validation.testing.mock_data import (SHE_RECONCILED_CHAINS_PRODUCT_FILE
                                               SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME, )
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
-from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
-from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
+from ST_DataModelBindings.dpd.she.raw.lensmcchains_stub import dpdSheLensMcChains
+from ST_DataModelBindings.dpd.she.raw.validatedmeasurements_stub import dpdSheValidatedMeasurements
 
 BAD_FILENAME = "junk"
 ERR_READING_FILE_PATTERN = compile_regex("Error reading file %s.")
@@ -60,13 +60,13 @@ class TestDataProcInput(SheTestCase):
         rec_cat = lensmc_measurements_table_format.init_table(size=1)
         rec_cat.write(os.path.join(self.workdir, DATA_SUBDIR, SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME))
 
-        p_rec_cat = create_dpd_she_reconciled_measurements(LensMC_filename=SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME)
+        p_rec_cat = create_dpd_she_validated_measurements(LensMC_filename=SHE_RECONCILED_MEASUREMENTS_TABLE_FILENAME)
         write_xml_product(p_rec_cat, SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME, workdir=self.workdir)
 
         rec_chains = lensmc_chains_table_format.init_table(size=1)
         rec_chains.write(os.path.join(self.workdir, DATA_SUBDIR, SHE_RECONCILED_CHAINS_TABLE_FILENAME))
 
-        p_rec_chains = create_dpd_she_reconciled_lensmc_chains(SHE_RECONCILED_CHAINS_TABLE_FILENAME)
+        p_rec_chains = create_dpd_she_lensmc_chains(SHE_RECONCILED_CHAINS_TABLE_FILENAME)
         write_xml_product(p_rec_chains, SHE_RECONCILED_CHAINS_PRODUCT_FILENAME, workdir=self.workdir)
 
     def test_read_input_default(self):
@@ -79,7 +79,7 @@ class TestDataProcInput(SheTestCase):
 
         # Check that the read-in input is as expected
 
-        assert isinstance(data_proc_input.p_rec_cat, dpdSheReconciledMeasurements), data_proc_input.err_p_rec_cat
+        assert isinstance(data_proc_input.p_rec_cat, dpdSheValidatedMeasurements), data_proc_input.err_p_rec_cat
         assert data_proc_input.err_p_rec_cat is None
 
         method_none_pattern = compile_regex(ERR_MEASUREMENTS_NONE)
@@ -95,7 +95,7 @@ class TestDataProcInput(SheTestCase):
                 regex_match = re.match(method_none_pattern, data_proc_input.d_err_rec_cat[method])
                 assert regex_match.groups()[0] == method.value
 
-        assert isinstance(data_proc_input.p_rec_chains, dpdSheReconciledLensMcChains), data_proc_input.err_p_rec_chains
+        assert isinstance(data_proc_input.p_rec_chains, dpdSheLensMcChains), data_proc_input.err_p_rec_chains
         assert data_proc_input.err_p_rec_chains is None
 
         assert is_in_format(data_proc_input.rec_chains, lensmc_chains_table_format, verbose=True)
@@ -144,14 +144,14 @@ class TestDataProcInput(SheTestCase):
         rec_cat_missing_filename = "rec_cat_missing.xml"
 
         p_rec_cat = read_xml_product(SHE_RECONCILED_MEASUREMENTS_PRODUCT_FILENAME, workdir=self.workdir,
-                                     product_type=dpdSheReconciledMeasurements)
+                                     product_type=dpdSheValidatedMeasurements)
         p_rec_cat.set_method_filename(ShearEstimationMethods.LENSMC, BAD_FILENAME)
         write_xml_product(p_rec_cat, rec_cat_missing_filename, workdir=self.workdir)
 
         rec_chains_missing_filename = "rec_chains_missing.xml"
 
         p_rec_chains = read_xml_product(SHE_RECONCILED_CHAINS_PRODUCT_FILENAME, workdir=self.workdir,
-                                        product_type=dpdSheReconciledLensMcChains)
+                                        product_type=dpdSheLensMcChains)
         p_rec_chains.set_data_filename(BAD_FILENAME)
         write_xml_product(p_rec_chains, rec_chains_missing_filename, workdir=self.workdir)
 
@@ -161,7 +161,7 @@ class TestDataProcInput(SheTestCase):
 
         # Check that the read-in input is as expected
 
-        assert isinstance(data_proc_input.p_rec_cat, dpdSheReconciledMeasurements), data_proc_input.err_p_rec_cat
+        assert isinstance(data_proc_input.p_rec_cat, dpdSheValidatedMeasurements), data_proc_input.err_p_rec_cat
         assert data_proc_input.err_p_rec_cat is None
 
         for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
@@ -172,7 +172,7 @@ class TestDataProcInput(SheTestCase):
                                     f"{ERR_NO_FILE_PATTERN}"
                 assert regex_match.groups()[0] == os.path.join(self.workdir, DATA_SUBDIR, BAD_FILENAME)
 
-        assert isinstance(data_proc_input.p_rec_chains, dpdSheReconciledLensMcChains), data_proc_input.err_p_rec_chains
+        assert isinstance(data_proc_input.p_rec_chains, dpdSheLensMcChains), data_proc_input.err_p_rec_chains
         assert data_proc_input.err_p_rec_chains is None
 
         assert data_proc_input.rec_chains is None

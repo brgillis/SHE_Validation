@@ -34,8 +34,8 @@ from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_utility import is_in_format
-from ST_DataModelBindings.dpd.she.reconciledlensmcchains_stub import dpdSheReconciledLensMcChains
-from ST_DataModelBindings.dpd.she.reconciledmeasurements_stub import dpdSheReconciledMeasurements
+from ST_DataModelBindings.dpd.she.validatedmeasurements_stub import dpdSheValidatedMeasurements
+from ST_DataModelBindings.dpd.she.lensmcchains_stub import dpdSheLensMcChains
 
 ERR_MEASUREMENTS_NONE = "No Shear Estimates table for method %s found in data product."
 ERR_MEASUREMENTS_FORMAT = "Shear Estimates table for method %s is not in expected format %s."
@@ -50,7 +50,7 @@ class DataProcInput:
 
     Attributes
     ----------
-    p_rec_cat: dpdSheReconciledMeasurements or None
+    p_rec_cat: dpdSheValidatedMeasurements or None
         The Reconciled Shear Measurements data product, if successfully read in, otherwise None
     err_p_rec_cat: str or None
         The text of any exceptions raised when attempting to read in the Reconciled Shear Measurements data product,
@@ -61,7 +61,7 @@ class DataProcInput:
     d_err_rec_cat: Dict[ShearEstimationMethod, str or None] or None
         The text of any exceptions raised when attempting to read each Reconciled Shear Measurements catalog, or else
         None
-    p_rec_chains: dpdSheReconciledLensMcChains or None
+    p_rec_chains: dpdSheLensMcChains or None
         The Reconciled Chains data product, if successfully read in, otherwise None
     err_p_rec_chains: str or None
         The text of any exceptions raised when attempting to read in the Reconciled Chains data product, or else None
@@ -71,13 +71,13 @@ class DataProcInput:
         The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, or else None
     """
 
-    p_rec_cat: dpdSheReconciledMeasurements
+    p_rec_cat: dpdSheValidatedMeasurements
     err_p_rec_cat: Optional[str]
 
     d_rec_cat: Optional[Dict[ShearEstimationMethods, Optional[Table]]]
     d_err_rec_cat: Optional[Dict[ShearEstimationMethods, Optional[str]]]
 
-    p_rec_chains: Optional[dpdSheReconciledLensMcChains]
+    p_rec_chains: Optional[dpdSheLensMcChains]
     err_p_rec_chains: Optional[str]
 
     rec_chains: Optional[Table]
@@ -149,15 +149,15 @@ def read_data_proc_input(p_rec_cat_filename, p_rec_chains_filename, workdir):
                          err_rec_chains=err_rec_chains)
 
 
-def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconciledMeasurements,
+def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheValidatedMeasurements,
                                                                     Dict[ShearEstimationMethods, Optional[Table]],
                                                                     Dict[ShearEstimationMethods, Optional[str]]]:
     """Private function to read in the Reconciled Shear Measurements catalog data product and associated catalogs.
     """
 
-    p_rec_cat: dpdSheReconciledMeasurements = read_xml_product(p_rec_cat_filename,
-                                                               workdir=workdir,
-                                                               product_type=dpdSheReconciledMeasurements)
+    p_rec_cat: dpdSheValidatedMeasurements = read_xml_product(p_rec_cat_filename,
+                                                              workdir=workdir,
+                                                              product_type=dpdSheValidatedMeasurements)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 
@@ -192,15 +192,15 @@ def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheReconc
     return p_rec_cat, d_rec_cat, d_err_rec_cat
 
 
-def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdSheReconciledLensMcChains,
+def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdSheLensMcChains,
                                                                           Optional[Table],
                                                                           Optional[str]]:
     """Private function to read in the Reconciled Chains catalog data product and associated catalogs.
     """
 
-    p_rec_chains: dpdSheReconciledLensMcChains = read_xml_product(p_rec_chains_filename,
-                                                                  workdir=workdir,
-                                                                  product_type=dpdSheReconciledLensMcChains)
+    p_rec_chains: dpdSheLensMcChains = read_xml_product(p_rec_chains_filename,
+                                                        workdir=workdir,
+                                                        product_type=dpdSheLensMcChains)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 

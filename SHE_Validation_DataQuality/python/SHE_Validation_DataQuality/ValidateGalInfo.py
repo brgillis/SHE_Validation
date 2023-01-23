@@ -29,7 +29,7 @@ from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
                                       D_GLOBAL_CONFIG_TYPES, ReconciliationConfigKeys, )
 from SHE_PPT.executor import ReadConfigArgs
-from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_REC_CAT, CA_SHE_REC_CHAINS, ValidationArgumentParser
+from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation_DataQuality.validate_gal_info import run_validate_gal_info_from_args
 
@@ -54,10 +54,10 @@ def defineSpecificProgramOptions():
     parser = ValidationArgumentParser()
 
     # Input arguments
-    parser.add_input_arg(f"--{CA_SHE_REC_CAT}",
+    parser.add_input_arg(f"--{CA_SHE_CAT}",
                          type=str,
                          help="Filename of the input reconciled shear measurements .xml data product to be checked.")
-    parser.add_input_arg(f"--{CA_SHE_REC_CHAINS}",
+    parser.add_input_arg(f"--{CA_SHE_CHAINS}",
                          type=str,
                          default=None,
                          help="(Optional) Filename of the input reconciled shear measurement chains .xml data product "

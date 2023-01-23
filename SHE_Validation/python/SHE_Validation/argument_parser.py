@@ -29,11 +29,11 @@ CA_MER_CAT_PROD = "mer_final_catalog"
 
 CA_PHZ_CAT_LIST = "phz_catalog_listfile"
 
+CA_SHE_CAT = "she_measurements_product"
+CA_SHE_CHAINS = "she_chains_product"
 CA_SHE_EXT_CAT = "extended_catalog"
 CA_SHE_MATCHED_CAT = "matched_catalog"
 CA_SHE_MATCHED_CAT_LIST = "matched_catalog_listfile"
-CA_SHE_REC_CAT = "reconciled_catalog"
-CA_SHE_REC_CHAINS = "reconciled_chains"
 CA_SHE_TEST_RESULTS = "she_validation_test_results_product"
 CA_SHE_OBS_TEST_RESULTS = "she_observation_cti_gal_validation_test_results_product"
 CA_SHE_EXP_TEST_RESULTS_LIST = "she_exposure_cti_gal_validation_test_results_listfile"
