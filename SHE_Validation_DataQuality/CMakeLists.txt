@@ -61,9 +61,9 @@ elements_install_python_modules()
 # elements_add_python_program(PythonProgramExample
 #                             ElementsExamples.PythonProgramExample)
 #===============================================================================
-elements_add_python_program(ValidateGalInfo SHE_Validation_DataQuality.ValidateGalInfo)
-elements_add_python_program(ValidateDataProc SHE_Validation_DataQuality.ValidateDataProc)
-elements_add_python_program(ValidateSedExist SHE_Validation_DataQuality.ValidateSedExist)
+elements_add_python_program(SHE_Validation_ValidateGalInfo SHE_Validation_DataQuality.ValidateGalInfo)
+elements_add_python_program(SHE_Validation_ValidateDataProc SHE_Validation_DataQuality.ValidateDataProc)
+elements_add_python_program(SHE_Validation_ValidateSedExist SHE_Validation_DataQuality.ValidateSedExist)
 
 #===============================================================================
 # Add the elements_install_conf_files macro
