@@ -118,8 +118,8 @@ class TestDataProcResultsReporting(SheTestCase):
             supp_info_string = supp_info.Parameter[0].StringValue
 
             # Check that expected strings for all results are present
-            assert (f"{MSG_PRESENT_AND_VALID % STR_P_SHE_CAT}{RESULT_PASS}\n"
-                    f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
+            assert supp_info_string.startswith(f"{MSG_PRESENT_AND_VALID % STR_P_SHE_CAT}{RESULT_PASS}\n"
+                                               f"{MSG_DETAILS}{MSG_NA}")
 
             if test_results.TestId == self.lensmc_id:
                 assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CAT}{RESULT_FAIL}\n"

@@ -181,8 +181,7 @@ class CtiRequirementWriter(RequirementWriter):
                                         prop: str,
                                         d_messages: Dict[str, str]):
         """ Writes a bin-specific message to be stored in the output product's SupplementaryInfo based on a comparison
-        method
-            of the property to zero, and appends it to the dict of messages's entry for this property.
+        method of the property to zero, and appends it to the dict of messages's entry for this property.
         """
         if self.l_bin_limits is not None:
             bin_min = self.l_bin_limits[bin_index]

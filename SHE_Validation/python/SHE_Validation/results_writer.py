@@ -528,12 +528,8 @@ class RequirementWriter:
         """ Overridable method which appends supplementary info for each bin.
         """
 
-        if self.l_bin_limits is not None:
-            bin_min = self.l_bin_limits[bin_index]
-            bin_max = self.l_bin_limits[bin_index + 1]
-            message += f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
-
         # Add details for each parameter, using overridable methods to allow customization here
+        message += self._get_bin_limits_message_for_bin(bin_index)
         message += self._get_val_message_for_bin(bin_index)
         message += self._get_val_err_message_for_bin(bin_index)
         message += self._get_val_z_message_for_bin(bin_index)
@@ -541,6 +537,15 @@ class RequirementWriter:
         message += self._get_result_message_for_bin(bin_index)
 
         return message
+
+    def _get_bin_limits_message_for_bin(self, bin_index: int = 0) -> str:
+        """ Overridable method to write the message in the SupplementaryInfo detailing the bin limits.
+        """
+        if self.l_val is None or self.l_bin_limits is None:
+            return ""
+        bin_min = self.l_bin_limits[bin_index]
+        bin_max = self.l_bin_limits[bin_index + 1]
+        return f"Results for bin {bin_index}, for values from {bin_min} to {bin_max}:"
 
     def _get_val_message_for_bin(self, bin_index: int = 0) -> str:
         """ Overridable method to write the message in the SupplementaryInfo detailing the test value.
