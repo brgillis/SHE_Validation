@@ -33,11 +33,11 @@ from SHE_Validation_DataQuality.constants.data_proc_test_info import (L_DATA_PRO
 from SHE_Validation_DataQuality.dp_data_processing import DataProcTestResults
 from SHE_Validation_DataQuality.dp_results_reporting import (DataProcValidationResultsWriter, MSG_DETAILS,
                                                              MSG_NA, MSG_PRESENT_AND_VALID,
-                                                             STR_P_REC_CAT, STR_P_REC_CHAINS, STR_REC_CAT,
-                                                             STR_REC_CHAINS, )
+                                                             STR_P_SHE_CAT, STR_P_SHE_CHAINS, STR_SHE_CAT,
+                                                             STR_SHE_CHAINS, )
 
-MSG_REC_CAT = "ERROR: rec_cat message"
-MSG_P_REC_CHAINS = "ERROR: p_rec_chains message"
+MSG_SHE_CAT = "ERROR: she_cat message"
+MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
 
 
 class TestDataProcResultsReporting(SheTestCase):
@@ -59,20 +59,20 @@ class TestDataProcResultsReporting(SheTestCase):
             # Do things a bit different for LensMC
             if method == ShearEstimationMethods.LENSMC:
                 self.lensmc_id = test_case_info.id
-                rec_cat_passed = False
-                msg_rec_cat = MSG_REC_CAT
+                she_cat_passed = False
+                msg_she_cat = MSG_SHE_CAT
             else:
-                rec_cat_passed = True
-                msg_rec_cat = None
+                she_cat_passed = True
+                msg_she_cat = None
 
-            self.d_l_test_results[name] = [DataProcTestResults(p_rec_cat_passed=True,
-                                                               msg_p_rec_cat=None,
-                                                               rec_cat_passed=rec_cat_passed,
-                                                               msg_rec_cat=msg_rec_cat,
-                                                               p_rec_chains_passed=False,
-                                                               msg_p_rec_chains=MSG_P_REC_CHAINS,
-                                                               rec_chains_passed=False,
-                                                               msg_rec_chains=None, )]
+            self.d_l_test_results[name] = [DataProcTestResults(p_she_cat_passed=True,
+                                                               msg_p_she_cat=None,
+                                                               she_cat_passed=she_cat_passed,
+                                                               msg_she_cat=msg_she_cat,
+                                                               p_she_chains_passed=False,
+                                                               msg_p_she_chains=MSG_P_SHE_CHAINS,
+                                                               she_chains_passed=False,
+                                                               msg_she_chains=None, )]
 
     @pytest.fixture(scope='class')
     def test_result_product(self, class_setup):
@@ -118,18 +118,18 @@ class TestDataProcResultsReporting(SheTestCase):
             supp_info_string = supp_info.Parameter[0].StringValue
 
             # Check that expected strings for all results are present
-            assert (f"{MSG_PRESENT_AND_VALID % STR_P_REC_CAT}{RESULT_PASS}\n"
+            assert (f"{MSG_PRESENT_AND_VALID % STR_P_SHE_CAT}{RESULT_PASS}\n"
                     f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
 
             if test_results.TestId == self.lensmc_id:
-                assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CAT}{RESULT_FAIL}\n"
-                        f"{MSG_DETAILS}\"{MSG_REC_CAT}\"" in supp_info_string)
+                assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CAT}{RESULT_FAIL}\n"
+                        f"{MSG_DETAILS}\"{MSG_SHE_CAT}\"" in supp_info_string)
             else:
-                assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CAT}{RESULT_PASS}\n"
+                assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CAT}{RESULT_PASS}\n"
                         f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
 
-            assert (f"{MSG_PRESENT_AND_VALID % STR_P_REC_CHAINS}{RESULT_FAIL}\n"
-                    f"{MSG_DETAILS}\"{MSG_P_REC_CHAINS}\"" in supp_info_string)
+            assert (f"{MSG_PRESENT_AND_VALID % STR_P_SHE_CHAINS}{RESULT_FAIL}\n"
+                    f"{MSG_DETAILS}\"{MSG_P_SHE_CHAINS}\"" in supp_info_string)
 
-            assert (f"{MSG_PRESENT_AND_VALID % STR_REC_CHAINS}{RESULT_FAIL}\n"
+            assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CHAINS}{RESULT_FAIL}\n"
                     f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)

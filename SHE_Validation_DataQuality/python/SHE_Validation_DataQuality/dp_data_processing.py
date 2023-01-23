@@ -45,25 +45,25 @@ class DataProcTestResults:
 
     Attributes
     ----------
-    p_rec_cat_passed: bool
-        Whether the check for a valid Reconciled Shear Measurements data product passed
-    msg_p_rec_cat: str or None
-        The text of any exceptions raised when attempting to read in the Reconciled Shear Measurements data product,
+    p_she_cat_passed: bool
+        Whether the check for a valid Shear Measurements data product passed
+    msg_p_she_cat: str or None
+        The text of any exceptions raised when attempting to read in the Shear Measurements data product,
         any other messages, or else None
-    rec_cat_passed: bool
-        Whether the check for a valid Reconciled Shear Measurements catalog passed
-    msg_rec_cat: str or None
-        The text of any exceptions raised when attempting to read each Reconciled Shear Measurements catalog,
+    she_cat_passed: bool
+        Whether the check for a valid Shear Measurements catalog passed
+    msg_she_cat: str or None
+        The text of any exceptions raised when attempting to read each Shear Measurements catalog,
         any other messages, or else None
-    p_rec_chains_passed: bool
+    p_she_chains_passed: bool
         Whether the check for a valid Chains data product passed
-    msg_p_rec_chains: str or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains data product,
+    msg_p_she_chains: str or None
+        The text of any exceptions raised when attempting to read in the Chains data product,
         any other messages, or else None
-    rec_chains_passed: bool
+    she_chains_passed: bool
         Whether the check for a valid Chains catalog passed
-    msg_rec_chains: Table or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, any other
+    msg_she_chains: Table or None
+        The text of any exceptions raised when attempting to read in the Chains catalog, any other
         messages, or else None
 
     Methods
@@ -72,23 +72,23 @@ class DataProcTestResults:
         (Read-only property) Whether the test case as a whole passed
     """
 
-    p_rec_cat_passed: bool
-    msg_p_rec_cat: Optional[str]
+    p_she_cat_passed: bool
+    msg_p_she_cat: Optional[str]
 
-    rec_cat_passed: bool
-    msg_rec_cat: Optional[str]
+    she_cat_passed: bool
+    msg_she_cat: Optional[str]
 
-    p_rec_chains_passed: bool
-    msg_p_rec_chains: Optional[str]
+    p_she_chains_passed: bool
+    msg_p_she_chains: Optional[str]
 
-    rec_chains_passed: bool
-    msg_rec_chains: Optional[str]
+    she_chains_passed: bool
+    msg_she_chains: Optional[str]
 
     @property
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
         """
-        return np.all((self.p_rec_cat_passed, self.rec_cat_passed, self.p_rec_chains_passed, self.rec_chains_passed))
+        return np.all((self.p_she_cat_passed, self.she_cat_passed, self.p_she_chains_passed, self.she_chains_passed))
 
 
 def get_data_proc_test_results(data_proc_input):
@@ -111,39 +111,39 @@ def get_data_proc_test_results(data_proc_input):
 
     # Determine results common to all methods
 
-    msg_p_rec_cat = _convert_err_to_msg(data_proc_input.err_p_rec_cat)
-    p_rec_cat_passed = (msg_p_rec_cat is None) and (data_proc_input.p_rec_cat is not None)
+    msg_p_she_cat = _convert_err_to_msg(data_proc_input.err_p_she_cat)
+    p_she_cat_passed = (msg_p_she_cat is None) and (data_proc_input.p_she_cat is not None)
 
-    msg_p_rec_chains = _convert_err_to_msg(data_proc_input.err_p_rec_chains)
-    p_rec_chains_passed = msg_p_rec_chains is None
+    msg_p_she_chains = _convert_err_to_msg(data_proc_input.err_p_she_chains)
+    p_she_chains_passed = msg_p_she_chains is None
 
-    msg_rec_chains = _convert_err_to_msg(data_proc_input.err_rec_chains)
-    rec_chains_passed = p_rec_chains_passed and (msg_rec_chains is None)
+    msg_she_chains = _convert_err_to_msg(data_proc_input.err_she_chains)
+    she_chains_passed = p_she_chains_passed and (msg_she_chains is None)
 
     # Check for case where chains weren't supplied, and make a note of that if so
-    if msg_p_rec_chains is None and data_proc_input.p_rec_chains is None:
-        msg_p_rec_chains = MSG_NO_CHAINS
-        msg_rec_chains = MSG_NO_CHAINS
+    if msg_p_she_chains is None and data_proc_input.p_she_chains is None:
+        msg_p_she_chains = MSG_NO_CHAINS
+        msg_she_chains = MSG_NO_CHAINS
 
     for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
 
         method = test_case_info.method
 
         # Determine method-specific results
-        if data_proc_input.d_err_rec_cat is None or method not in data_proc_input.d_err_rec_cat:
-            msg_rec_cat = None
+        if data_proc_input.d_err_she_cat is None or method not in data_proc_input.d_err_she_cat:
+            msg_she_cat = None
         else:
-            msg_rec_cat = _convert_err_to_msg(data_proc_input.d_err_rec_cat[method])
-        rec_cat_passed = p_rec_cat_passed and (msg_rec_cat is None) and (data_proc_input.d_rec_cat[method] is not None)
+            msg_she_cat = _convert_err_to_msg(data_proc_input.d_err_she_cat[method])
+        she_cat_passed = p_she_cat_passed and (msg_she_cat is None) and (data_proc_input.d_she_cat[method] is not None)
 
-        d_l_test_results[test_case_info.name] = [DataProcTestResults(p_rec_cat_passed=p_rec_cat_passed,
-                                                                     msg_p_rec_cat=msg_p_rec_cat,
-                                                                     rec_cat_passed=rec_cat_passed,
-                                                                     msg_rec_cat=msg_rec_cat,
-                                                                     p_rec_chains_passed=p_rec_chains_passed,
-                                                                     msg_p_rec_chains=msg_p_rec_chains,
-                                                                     rec_chains_passed=rec_chains_passed,
-                                                                     msg_rec_chains=msg_rec_chains)]
+        d_l_test_results[test_case_info.name] = [DataProcTestResults(p_she_cat_passed=p_she_cat_passed,
+                                                                     msg_p_she_cat=msg_p_she_cat,
+                                                                     she_cat_passed=she_cat_passed,
+                                                                     msg_she_cat=msg_she_cat,
+                                                                     p_she_chains_passed=p_she_chains_passed,
+                                                                     msg_p_she_chains=msg_p_she_chains,
+                                                                     she_chains_passed=she_chains_passed,
+                                                                     msg_she_chains=msg_she_chains)]
 
     return d_l_test_results
 

@@ -56,16 +56,16 @@ def defineSpecificProgramOptions():
     # Input arguments
     parser.add_input_arg(f"--{CA_SHE_CAT}",
                          type=str,
-                         help="Filename of the input reconciled shear measurements .xml data product to be checked.")
+                         help="Filename of the input shear measurements .xml data product to be checked.")
     parser.add_input_arg(f"--{CA_SHE_CHAINS}",
                          type=str,
                          default=None,
-                         help="(Optional) Filename of the input reconciled shear measurement chains .xml data product "
+                         help="(Optional) Filename of the input shear measurement chains .xml data product "
                               "to be checked.")
     parser.add_input_arg(f"--{CA_MER_CAT_PROD}",
                          type=str,
                          help="Filename of the input MER Final Catalog .xml data product for the same tile as the "
-                              "reconciled shear measurements data product.")
+                              "shear measurements data product.")
 
     # Output arguments
     parser.add_test_result_arg()

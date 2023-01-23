@@ -50,49 +50,49 @@ class DataProcInput:
 
     Attributes
     ----------
-    p_rec_cat: dpdSheValidatedMeasurements or None
-        The Reconciled Shear Measurements data product, if successfully read in, otherwise None
-    err_p_rec_cat: str or None
-        The text of any exceptions raised when attempting to read in the Reconciled Shear Measurements data product,
+    p_she_cat: dpdSheValidatedMeasurements or None
+        The Shear Measurements data product, if successfully read in, otherwise None
+    err_p_she_cat: str or None
+        The text of any exceptions raised when attempting to read in the Shear Measurements data product,
         or else None
-    d_rec_cat: Dict[ShearEstimationMethod, Table or None] or None
-        A dictionary of the Reconciled Shear Measurements catalogs for each shear estimation method, if successfully
+    d_she_cat: Dict[ShearEstimationMethod, Table or None] or None
+        A dictionary of the Shear Measurements catalogs for each shear estimation method, if successfully
         read in, otherwise None
-    d_err_rec_cat: Dict[ShearEstimationMethod, str or None] or None
-        The text of any exceptions raised when attempting to read each Reconciled Shear Measurements catalog, or else
+    d_err_she_cat: Dict[ShearEstimationMethod, str or None] or None
+        The text of any exceptions raised when attempting to read each Shear Measurements catalog, or else
         None
-    p_rec_chains: dpdSheLensMcChains or None
-        The Reconciled Chains data product, if successfully read in, otherwise None
-    err_p_rec_chains: str or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains data product, or else None
-    rec_chains: Table or None
-        The Reconciled Chains catalog, if successfully read in, otherwise None
-    err_rec_chains: Table or None
-        The text of any exceptions raised when attempting to read in the Reconciled Chains catalog, or else None
+    p_she_chains: dpdSheLensMcChains or None
+        The Chains data product, if successfully read in, otherwise None
+    err_p_she_chains: str or None
+        The text of any exceptions raised when attempting to read in the Chains data product, or else None
+    she_chains: Table or None
+        The Chains catalog, if successfully read in, otherwise None
+    err_she_chains: Table or None
+        The text of any exceptions raised when attempting to read in the Chains catalog, or else None
     """
 
-    p_rec_cat: dpdSheValidatedMeasurements
-    err_p_rec_cat: Optional[str]
+    p_she_cat: dpdSheValidatedMeasurements
+    err_p_she_cat: Optional[str]
 
-    d_rec_cat: Optional[Dict[ShearEstimationMethods, Optional[Table]]]
-    d_err_rec_cat: Optional[Dict[ShearEstimationMethods, Optional[str]]]
+    d_she_cat: Optional[Dict[ShearEstimationMethods, Optional[Table]]]
+    d_err_she_cat: Optional[Dict[ShearEstimationMethods, Optional[str]]]
 
-    p_rec_chains: Optional[dpdSheLensMcChains]
-    err_p_rec_chains: Optional[str]
+    p_she_chains: Optional[dpdSheLensMcChains]
+    err_p_she_chains: Optional[str]
 
-    rec_chains: Optional[Table]
-    err_rec_chains: Optional[str]
+    she_chains: Optional[Table]
+    err_she_chains: Optional[str]
 
 
-def read_data_proc_input(p_rec_cat_filename, p_rec_chains_filename, workdir):
+def read_data_proc_input(p_she_cat_filename, p_she_chains_filename, workdir):
     """Read in the products and filenames that the DataProc test checks for.
 
     Parameters
     ----------
-    p_rec_cat_filename : str
-        Workdir-relative filename of the Reconciled Shear Measurements catalog data product
-    p_rec_chains_filename : str or None
-        Workdir-relative filename of the Reconciled Chains catalog data product
+    p_she_cat_filename : str
+        Workdir-relative filename of the Shear Measurements catalog data product
+    p_she_chains_filename : str or None
+        Workdir-relative filename of the Chains catalog data product
     workdir : str
         Fully-qualified path to the workdir
 
@@ -107,71 +107,71 @@ def read_data_proc_input(p_rec_cat_filename, p_rec_chains_filename, workdir):
 
     try:
 
-        p_rec_cat, d_rec_cat, d_err_rec_cat = _read_p_rec_cat(p_rec_cat_filename, workdir)
-        err_p_rec_cat = None
+        p_she_cat, d_she_cat, d_err_she_cat = _read_p_she_cat(p_she_cat_filename, workdir)
+        err_p_she_cat = None
 
     except Exception as e:
 
-        p_rec_cat = None
-        err_p_rec_cat = str(e)
-        d_rec_cat = None
-        d_err_rec_cat = None
+        p_she_cat = None
+        err_p_she_cat = str(e)
+        d_she_cat = None
+        d_err_she_cat = None
 
-    # The Reconciled Chains product is optional, so we don't consider it an error if it's not present
-    if p_rec_chains_filename is None:
+    # The Chains product is optional, so we don't consider it an error if it's not present
+    if p_she_chains_filename is None:
 
-        p_rec_chains = None
-        err_p_rec_chains = None
-        rec_chains = None
-        err_rec_chains = None
+        p_she_chains = None
+        err_p_she_chains = None
+        she_chains = None
+        err_she_chains = None
 
     else:
 
         try:
 
-            p_rec_chains, rec_chains, err_rec_chains = _read_p_rec_chains(p_rec_chains_filename, workdir)
-            err_p_rec_chains = None
+            p_she_chains, she_chains, err_she_chains = _read_p_she_chains(p_she_chains_filename, workdir)
+            err_p_she_chains = None
 
         except Exception as e:
 
-            p_rec_chains = None
-            err_p_rec_chains = str(e)
-            rec_chains = None
-            err_rec_chains = None
+            p_she_chains = None
+            err_p_she_chains = str(e)
+            she_chains = None
+            err_she_chains = None
 
-    return DataProcInput(p_rec_cat=p_rec_cat,
-                         err_p_rec_cat=err_p_rec_cat,
-                         d_rec_cat=d_rec_cat,
-                         d_err_rec_cat=d_err_rec_cat,
-                         p_rec_chains=p_rec_chains,
-                         err_p_rec_chains=err_p_rec_chains,
-                         rec_chains=rec_chains,
-                         err_rec_chains=err_rec_chains)
+    return DataProcInput(p_she_cat=p_she_cat,
+                         err_p_she_cat=err_p_she_cat,
+                         d_she_cat=d_she_cat,
+                         d_err_she_cat=d_err_she_cat,
+                         p_she_chains=p_she_chains,
+                         err_p_she_chains=err_p_she_chains,
+                         she_chains=she_chains,
+                         err_she_chains=err_she_chains)
 
 
-def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheValidatedMeasurements,
+def _read_p_she_cat(p_she_cat_filename: str, workdir: str) -> Tuple[dpdSheValidatedMeasurements,
                                                                     Dict[ShearEstimationMethods, Optional[Table]],
                                                                     Dict[ShearEstimationMethods, Optional[str]]]:
-    """Private function to read in the Reconciled Shear Measurements catalog data product and associated catalogs.
+    """Private function to read in the Shear Measurements catalog data product and associated catalogs.
     """
 
-    p_rec_cat: dpdSheValidatedMeasurements = read_xml_product(p_rec_cat_filename,
+    p_she_cat: dpdSheValidatedMeasurements = read_xml_product(p_she_cat_filename,
                                                               workdir=workdir,
                                                               product_type=dpdSheValidatedMeasurements)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 
-    d_rec_cat: Dict[ShearEstimationMethods, Optional[Table]] = {}
-    d_err_rec_cat: Dict[ShearEstimationMethods, Optional[str]] = {}
+    d_she_cat: Dict[ShearEstimationMethods, Optional[Table]] = {}
+    d_err_she_cat: Dict[ShearEstimationMethods, Optional[str]] = {}
 
     for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
 
-        method_cat_filename = p_rec_cat.get_method_filename(method)
+        method_cat_filename = p_she_cat.get_method_filename(method)
 
         # Check for if table isn't provided, and use custom error message instead
         if method_cat_filename is None:
-            d_rec_cat[method] = None
-            d_err_rec_cat[method] = ERR_MEASUREMENTS_NONE % method.value
+            d_she_cat[method] = None
+            d_err_she_cat[method] = ERR_MEASUREMENTS_NONE % method.value
             continue
 
         try:
@@ -181,39 +181,39 @@ def _read_p_rec_cat(p_rec_cat_filename: str, workdir: str) -> Tuple[dpdSheValida
             if not is_in_format(method_cat, tf):
                 raise ValueError(ERR_MEASUREMENTS_FORMAT % method.value, tf)
 
-            d_rec_cat[method] = method_cat
-            d_err_rec_cat[method] = None
+            d_she_cat[method] = method_cat
+            d_err_she_cat[method] = None
 
         except Exception as e:
 
-            d_rec_cat[method] = None
-            d_err_rec_cat[method] = str(e)
+            d_she_cat[method] = None
+            d_err_she_cat[method] = str(e)
 
-    return p_rec_cat, d_rec_cat, d_err_rec_cat
+    return p_she_cat, d_she_cat, d_err_she_cat
 
 
-def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdSheLensMcChains,
+def _read_p_she_chains(p_she_chains_filename: str, workdir: str) -> Tuple[dpdSheLensMcChains,
                                                                           Optional[Table],
                                                                           Optional[str]]:
-    """Private function to read in the Reconciled Chains catalog data product and associated catalogs.
+    """Private function to read in the Chains catalog data product and associated catalogs.
     """
 
-    p_rec_chains: dpdSheLensMcChains = read_xml_product(p_rec_chains_filename,
+    p_she_chains: dpdSheLensMcChains = read_xml_product(p_she_chains_filename,
                                                         workdir=workdir,
                                                         product_type=dpdSheLensMcChains)
 
     # Read in each catalog to a dict, and keep track of any error messages in an error dict
 
-    chains_filename = p_rec_chains.get_data_filename()
+    chains_filename = p_she_chains.get_data_filename()
 
-    rec_chains: Optional[Table]
-    err_rec_chains: Optional[str]
+    she_chains: Optional[Table]
+    err_she_chains: Optional[str]
 
     # Check for if table isn't provided, and use custom error message instead
     if chains_filename is None:
 
-        rec_chains = None
-        err_rec_chains = ERR_CHAINS_NONE
+        she_chains = None
+        err_she_chains = ERR_CHAINS_NONE
 
     else:
         try:
@@ -223,12 +223,12 @@ def _read_p_rec_chains(p_rec_chains_filename: str, workdir: str) -> Tuple[dpdShe
             if not is_in_format(chains, lensmc_chains_table_format):
                 raise ValueError(ERR_CHAINS_FORMAT)
 
-            rec_chains = chains
-            err_rec_chains = None
+            she_chains = chains
+            err_she_chains = None
 
         except Exception as e:
 
-            rec_chains = None
-            err_rec_chains = str(e)
+            she_chains = None
+            err_she_chains = str(e)
 
-    return p_rec_chains, rec_chains, err_rec_chains
+    return p_she_chains, she_chains, err_she_chains

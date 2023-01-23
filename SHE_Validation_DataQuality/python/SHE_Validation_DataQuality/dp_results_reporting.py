@@ -38,10 +38,10 @@ logger = getLogger(__name__)
 
 STR_DP_STAT = ""
 
-STR_P_REC_CAT = "Reconciled Shear Estimates Data Product"
-STR_REC_CAT = "Reconciled Shear Estimates Catalog"
-STR_P_REC_CHAINS = "Reconciled Chains Data Product"
-STR_REC_CHAINS = "Reconciled Chains Catalog"
+STR_P_SHE_CAT = "Shear Estimates Data Product"
+STR_SHE_CAT = "Shear Estimates Catalog"
+STR_P_SHE_CHAINS = "Chains Data Product"
+STR_SHE_CHAINS = "Chains Catalog"
 
 MSG_PRESENT_AND_VALID = "Presence and validity of %s: "
 MSG_DETAILS = "Details: "
@@ -71,10 +71,10 @@ class DataProcRequirementWriter(RequirementWriter):
 
         # Construct the message similarly for each thing we test for the presence and validity of
 
-        for (attr_base, name) in (("p_rec_cat", STR_P_REC_CAT),
-                                  ("rec_cat", STR_REC_CAT),
-                                  ("p_rec_chains", STR_P_REC_CHAINS),
-                                  ("rec_chains", STR_REC_CHAINS),):
+        for (attr_base, name) in (("p_she_cat", STR_P_SHE_CAT),
+                                  ("she_cat", STR_SHE_CAT),
+                                  ("p_she_chains", STR_P_SHE_CHAINS),
+                                  ("she_chains", STR_SHE_CHAINS),):
 
             message += MSG_PRESENT_AND_VALID % name
 
