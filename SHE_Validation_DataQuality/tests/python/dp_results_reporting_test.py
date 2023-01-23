@@ -75,7 +75,7 @@ class TestDataProcResultsReporting(SheTestCase):
                                                                msg_she_chains=None, )]
 
     @pytest.fixture(scope='class')
-    def test_result_product(self, class_setup):
+    def p_test_results(self, class_setup):
         test_result_product = create_dpd_she_validation_test_results(num_tests=NUM_DATA_PROC_TEST_CASES)
         test_results_writer = DataProcValidationResultsWriter(test_object=test_result_product,
                                                               workdir=self.workdir,
@@ -84,28 +84,28 @@ class TestDataProcResultsReporting(SheTestCase):
 
         return test_result_product
 
-    def test_meta(self, test_result_product):
+    def test_meta(self, p_test_results):
         """ Test that results can be written to a product without any errors, and test case metadata in it is correct.
         """
 
         # Write the product
 
         # Check that the results are as expected
-        test_result_product.validateBinding()
+        p_test_results.validateBinding()
 
         # Check metadata for all test cases
         for test_case_index, test_case_info in enumerate(L_DATA_PROC_TEST_CASE_INFO):
 
-            test_result = test_result_product.Data.ValidationTestList[test_case_index]
+            test_result = p_test_results.Data.ValidationTestList[test_case_index]
 
             assert test_case_info.id in test_result.TestId
             assert test_result.TestDescription == test_case_info.description
 
-    def test_results(self, test_result_product):
+    def test_results(self, p_test_results):
         """ Test that the filled results are as expected
         """
 
-        for test_results in test_result_product.Data.ValidationTestList:
+        for test_results in p_test_results.Data.ValidationTestList:
 
             assert test_results.GlobalResult == RESULT_FAIL
 
@@ -123,13 +123,13 @@ class TestDataProcResultsReporting(SheTestCase):
 
             if test_results.TestId == self.lensmc_id:
                 assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CAT}{RESULT_FAIL}\n"
-                        f"{MSG_DETAILS}\"{MSG_SHE_CAT}\"" in supp_info_string)
+                        f"{MSG_DETAILS}{MSG_SHE_CAT}" in supp_info_string)
             else:
                 assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CAT}{RESULT_PASS}\n"
                         f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)
 
             assert (f"{MSG_PRESENT_AND_VALID % STR_P_SHE_CHAINS}{RESULT_FAIL}\n"
-                    f"{MSG_DETAILS}\"{MSG_P_SHE_CHAINS}\"" in supp_info_string)
+                    f"{MSG_DETAILS}{MSG_P_SHE_CHAINS}" in supp_info_string)
 
             assert (f"{MSG_PRESENT_AND_VALID % STR_SHE_CHAINS}{RESULT_FAIL}\n"
                     f"{MSG_DETAILS}{MSG_NA}" in supp_info_string)

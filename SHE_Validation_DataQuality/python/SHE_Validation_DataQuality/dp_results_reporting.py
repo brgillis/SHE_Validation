@@ -87,7 +87,7 @@ class DataProcRequirementWriter(RequirementWriter):
 
             attr_message = getattr(test_results, f"msg_{attr_base}")
             if attr_message:
-                message += f"\"{attr_message}\"\n\n"
+                message += f"{attr_message}\n\n"
             else:
                 message += f"{MSG_NA}\n\n"
 
