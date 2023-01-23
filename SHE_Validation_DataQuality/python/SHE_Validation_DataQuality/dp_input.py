@@ -34,6 +34,7 @@ from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD
 from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_utility import is_in_format
+from SHE_PPT.utility import is_any_type_of_none
 from ST_DataModelBindings.dpd.she.measurements_stub import dpdSheMeasurements
 from ST_DataModelBindings.dpd.she.lensmcchains_stub import dpdSheLensMcChains
 
@@ -169,7 +170,7 @@ def _read_p_she_cat(p_she_cat_filename: str, workdir: str) -> Tuple[dpdSheMeasur
         method_cat_filename = p_she_cat.get_method_filename(method)
 
         # Check for if table isn't provided, and use custom error message instead
-        if method_cat_filename is None:
+        if is_any_type_of_none(method_cat_filename):
             d_she_cat[method] = None
             d_err_she_cat[method] = ERR_MEASUREMENTS_NONE % method.value
             continue
@@ -210,7 +211,7 @@ def _read_p_she_chains(p_she_chains_filename: str, workdir: str) -> Tuple[dpdShe
     err_she_chains: Optional[str]
 
     # Check for if table isn't provided, and use custom error message instead
-    if chains_filename is None:
+    if is_any_type_of_none(chains_filename):
 
         she_chains = None
         err_she_chains = ERR_CHAINS_NONE
