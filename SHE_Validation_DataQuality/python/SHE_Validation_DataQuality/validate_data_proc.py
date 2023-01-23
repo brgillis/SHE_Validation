@@ -55,8 +55,9 @@ def run_validate_data_proc_from_args(d_args):
     d_l_test_results = get_data_proc_test_results(data_proc_input)
 
     # Create and fill the output data product to contain the results
-    test_result_product = create_dpd_she_validation_test_results(reference_product=data_proc_input.p_she_cat,
-                                                                 num_tests=NUM_DATA_PROC_TEST_CASES)
+    test_result_product = create_dpd_she_validation_test_results(num_tests=NUM_DATA_PROC_TEST_CASES)
+    test_result_product.Data.TileIndex = data_proc_input.p_she_cat.Data.TileList[0]
+
     test_results_writer = DataProcValidationResultsWriter(test_object=test_result_product,
                                                           workdir=workdir,
                                                           d_l_test_results=d_l_test_results, )
