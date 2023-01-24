@@ -107,7 +107,7 @@ class TestDataProcInput(SheDQTestCase):
         assert data_proc_input.p_she_chains is None
         chains_regex_match = re.match(ERR_READING_FILE_PATTERN, data_proc_input.err_p_she_chains)
         assert chains_regex_match
-        assert cat_regex_match.groups()[0] == os.path.join(self.workdir, BAD_FILENAME)
+        assert chains_regex_match.groups()[0] == os.path.join(self.workdir, BAD_FILENAME)
 
         assert data_proc_input.she_chains is None
         assert data_proc_input.err_she_chains is None
