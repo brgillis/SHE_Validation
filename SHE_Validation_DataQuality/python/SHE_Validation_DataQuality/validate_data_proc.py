@@ -34,7 +34,7 @@ from SHE_Validation_DataQuality.dp_results_reporting import DataProcValidationRe
 
 
 def run_validate_data_proc_from_args(d_args):
-    """Dummy implementation of run function. TODO: Implement properly
+    """Core executable code for DataProc validation test.
 
     Parameters
     ----------
