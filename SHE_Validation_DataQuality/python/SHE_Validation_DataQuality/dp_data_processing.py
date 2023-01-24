@@ -29,7 +29,6 @@ from typing import Dict, List, Optional, TYPE_CHECKING
 import numpy as np
 from astropy.table import Table
 
-from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_Validation.constants.misc import MSG_ERROR, MSG_INFO
 from SHE_Validation_DataQuality.constants.data_proc_test_info import L_DATA_PROC_TEST_CASE_INFO
 
