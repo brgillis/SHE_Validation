@@ -21,6 +21,7 @@ Default values for information about the gal-info test and test cases
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_Validation.constants.test_info import RequirementInfo, TestCaseInfo, TestInfo
+from SHE_Validation.test_info_utility import make_test_case_info_for_methods
 
 # Metadata about the requirement
 GAL_INFO_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-PRD-F-180",
@@ -63,9 +64,10 @@ GAL_INFO_DATA_TEST_CASE_INFO = TestCaseInfo(test_info=GAL_INFO_TEST_INFO,
                                             base_description="Test that all SHE measurements in shear catalogue have "
                                                              "a measurement or are flagged appropriately.")
 
-L_GAL_INFO_TEST_CASE_INFO = [GAL_INFO_N_TEST_CASE_INFO,
-                             GAL_INFO_DATA_TEST_CASE_INFO]
+L_GAL_INFO_TEST_CASE_INFO = make_test_case_info_for_methods([GAL_INFO_N_TEST_CASE_INFO,
+                                                             GAL_INFO_DATA_TEST_CASE_INFO])
 
-# Dict associated the test cases to requirements
-D_L_GAL_INFO_REQUIREMENT_INFO = {GAL_INFO_N_TEST_CASE_INFO.name: GAL_INFO_REQUIREMENT_INFO,
-                                 GAL_INFO_DATA_TEST_CASE_INFO.name: GAL_INFO_REQUIREMENT_INFO}
+# Create a dict of the requirement info
+D_L_GAL_INFO_REQUIREMENT_INFO = {}
+for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
+    D_L_GAL_INFO_REQUIREMENT_INFO[test_case_info.name] = GAL_INFO_REQUIREMENT_INFO
