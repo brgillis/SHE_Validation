@@ -29,8 +29,12 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
-                                              SHE_CHAINS_TABLE_FILENAME, )
+from SHE_Validation.testing.mock_data import SHE_CHAINS_PRODUCT_FILENAME, SHE_CHAINS_TABLE_FILENAME
+from SHE_Validation.testing.utility import compile_regex
+
+BAD_FILENAME = "junk"
+ERR_READING_FILE_PATTERN = compile_regex("Error reading file %s.")
+ERR_NO_FILE_PATTERN = compile_regex("[Errno 2] No such file or directory: '%s'")
 
 
 class SheDQTestCase(SheTestCase):

@@ -34,13 +34,10 @@ from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
 from SHE_Validation.testing.mock_data import SHE_CHAINS_PRODUCT_FILENAME
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
-from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
+from SHE_Validation_DataQuality.testing.utility import (BAD_FILENAME, ERR_NO_FILE_PATTERN, ERR_READING_FILE_PATTERN,
+                                                        SheDQTestCase, )
 from ST_DataModelBindings.dpd.she.raw.lensmcchains_stub import dpdSheLensMcChains
 from ST_DataModelBindings.dpd.she.raw.measurements_stub import dpdSheMeasurements
-
-BAD_FILENAME = "junk"
-ERR_READING_FILE_PATTERN = compile_regex("Error reading file %s.")
-ERR_NO_FILE_PATTERN = compile_regex("[Errno 2] No such file or directory: '%s'")
 
 
 class TestDataProcInput(SheDQTestCase):
