@@ -6,7 +6,7 @@
 
 Integration test of the DataProc validation test
 """
-import os
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -22,20 +22,15 @@ import os
 
 from argparse import Namespace
 
-from SHE_PPT.file_io import write_xml_product
-from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.products.she_measurements import create_dpd_she_measurements
-from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_PPT.testing.constants import LENSMC_MEASUREMENTS_TABLE_FILENAME, MEASUREMENTS_TABLE_PRODUCT_FILENAME
-from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.testing.constants import MEASUREMENTS_TABLE_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
-                                              SHE_CHAINS_TABLE_FILENAME, SHE_TEST_RESULTS_PRODUCT_FILENAME, )
+                                              SHE_TEST_RESULTS_PRODUCT_FILENAME, )
 from SHE_Validation_DataQuality.ValidateDataProc import defineSpecificProgramOptions, mainMethod
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
-class TestDataProcRun(SheTestCase):
+class TestDataProcRun(SheDQTestCase):
     """Test case for DataProc validation test integration tests.
     """
 
@@ -64,19 +59,8 @@ class TestDataProcRun(SheTestCase):
         """ Override parent setup, creating data to work with in the workdir
         """
 
-        # Create mock products to test
-
-        she_cat = lensmc_measurements_table_format.init_table(size=1)
-        she_cat.write(os.path.join(self.workdir, LENSMC_MEASUREMENTS_TABLE_FILENAME))
-
-        p_she_cat = create_dpd_she_measurements(LensMC_filename=LENSMC_MEASUREMENTS_TABLE_FILENAME)
-        write_xml_product(p_she_cat, MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir)
-
-        she_chains = lensmc_chains_table_format.init_table(size=1)
-        she_chains.write(os.path.join(self.workdir, SHE_CHAINS_TABLE_FILENAME))
-
-        p_she_chains = create_dpd_she_lensmc_chains(SHE_CHAINS_TABLE_FILENAME)
-        write_xml_product(p_she_chains, SHE_CHAINS_PRODUCT_FILENAME, workdir=self.workdir)
+        # Create mock products and data to test
+        self.make_data_proc_input()
 
     def test_data_proc_run(self, local_setup):
         """Test that the program runs without raising any uncaught exceptions.

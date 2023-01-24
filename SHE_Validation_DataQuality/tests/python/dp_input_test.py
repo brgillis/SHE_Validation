@@ -27,26 +27,23 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.file_io import read_xml_product, write_xml_product
-from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.products.she_measurements import create_dpd_she_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.table_utility import is_in_format
-from SHE_PPT.testing.constants import LENSMC_MEASUREMENTS_TABLE_FILENAME, MEASUREMENTS_TABLE_PRODUCT_FILENAME
-from SHE_PPT.testing.utility import SheTestCase
-from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
-                                              SHE_CHAINS_TABLE_FILENAME, )
+from SHE_PPT.testing.constants import MEASUREMENTS_TABLE_PRODUCT_FILENAME
+from SHE_Validation.testing.mock_data import SHE_CHAINS_PRODUCT_FILENAME
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 from ST_DataModelBindings.dpd.she.raw.lensmcchains_stub import dpdSheLensMcChains
-from ST_DataModelBindings.dpd.she.raw.validatedmeasurements_stub import dpdSheValidatedMeasurements
+from ST_DataModelBindings.dpd.she.raw.measurements_stub import dpdSheMeasurements
 
 BAD_FILENAME = "junk"
 ERR_READING_FILE_PATTERN = compile_regex("Error reading file %s.")
 ERR_NO_FILE_PATTERN = compile_regex("[Errno 2] No such file or directory: '%s'")
 
 
-class TestDataProcInput(SheTestCase):
+class TestDataProcInput(SheDQTestCase):
     """Test case for DataProc validation test reading of input data
     """
 
@@ -54,19 +51,8 @@ class TestDataProcInput(SheTestCase):
         """ Override parent setup, creating data to work with in the workdir
         """
 
-        # Create mock products to test
-
-        she_cat = lensmc_measurements_table_format.init_table(size=1)
-        she_cat.write(os.path.join(self.workdir, LENSMC_MEASUREMENTS_TABLE_FILENAME))
-
-        p_she_cat = create_dpd_she_measurements(LensMC_filename=LENSMC_MEASUREMENTS_TABLE_FILENAME)
-        write_xml_product(p_she_cat, MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir)
-
-        she_chains = lensmc_chains_table_format.init_table(size=1)
-        she_chains.write(os.path.join(self.workdir, SHE_CHAINS_TABLE_FILENAME))
-
-        p_she_chains = create_dpd_she_lensmc_chains(SHE_CHAINS_TABLE_FILENAME)
-        write_xml_product(p_she_chains, SHE_CHAINS_PRODUCT_FILENAME, workdir=self.workdir)
+        # Create mock products and data to test
+        self.make_data_proc_input()
 
     def test_read_input_default(self):
         """Test that data is read in as expected in the default case (only LensMC data)
@@ -78,7 +64,7 @@ class TestDataProcInput(SheTestCase):
 
         # Check that the read-in input is as expected
 
-        assert isinstance(data_proc_input.p_she_cat, dpdSheValidatedMeasurements), data_proc_input.err_p_she_cat
+        assert isinstance(data_proc_input.p_she_cat, dpdSheMeasurements), data_proc_input.err_p_she_cat
         assert data_proc_input.err_p_she_cat is None
 
         method_none_pattern = compile_regex(ERR_MEASUREMENTS_NONE)
@@ -143,7 +129,7 @@ class TestDataProcInput(SheTestCase):
         she_cat_missing_filename = "she_cat_missing.xml"
 
         p_she_cat = read_xml_product(MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir,
-                                     product_type=dpdSheValidatedMeasurements)
+                                     product_type=dpdSheMeasurements)
         p_she_cat.set_method_filename(ShearEstimationMethods.LENSMC, BAD_FILENAME)
         write_xml_product(p_she_cat, she_cat_missing_filename, workdir=self.workdir)
 
@@ -160,7 +146,7 @@ class TestDataProcInput(SheTestCase):
 
         # Check that the read-in input is as expected
 
-        assert isinstance(data_proc_input.p_she_cat, dpdSheValidatedMeasurements), data_proc_input.err_p_she_cat
+        assert isinstance(data_proc_input.p_she_cat, dpdSheMeasurements), data_proc_input.err_p_she_cat
         assert data_proc_input.err_p_she_cat is None
 
         for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
