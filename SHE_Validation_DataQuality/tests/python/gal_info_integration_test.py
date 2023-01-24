@@ -22,16 +22,16 @@ Integration test of the GalInfo validation test
 
 from argparse import Namespace
 
-from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_PRODUCT_FILENAME
-from SHE_PPT.testing.constants import MEASUREMENTS_TABLE_PRODUCT_FILENAME
-from SHE_PPT.testing.utility import SheTestCase
+from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
+from SHE_PPT.testing.mock_mer_final_cat import MFC_TABLE_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_TEST_RESULTS_PRODUCT_FILENAME, )
 from SHE_Validation_DataQuality.ValidateGalInfo import defineSpecificProgramOptions, mainMethod
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
-class TestGalInfoRun(SheTestCase):
+class TestGalInfoRun(SheDQTestCase):
     """Test case for GalInfo validation test integration tests.
     """
 
@@ -46,9 +46,9 @@ class TestGalInfoRun(SheTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_SHE_CAT, MEASUREMENTS_TABLE_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_CAT, EST_TABLE_PRODUCT_FILENAME)
         setattr(args, CA_SHE_CHAINS, SHE_CHAINS_PRODUCT_FILENAME)
-        setattr(args, CA_MER_CAT_PROD, MER_FINAL_CATALOG_PRODUCT_FILENAME)
+        setattr(args, CA_MER_CAT_PROD, MFC_TABLE_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 
         # The pipeline_config attribute of args isn't set here. This is because when parser.parse_args() is
@@ -56,6 +56,13 @@ class TestGalInfoRun(SheTestCase):
         # valid value, which will result in all defaults for configurable parameters being used.
 
         return args
+
+    def post_setup(self):
+        """ Override parent setup, creating data to work with in the workdir
+        """
+
+        # Create mock products and data to test
+        self.make_gal_info_input()
 
     def test_gal_info_run(self, local_setup):
         """Test that the program runs without raising any uncaught exceptions.

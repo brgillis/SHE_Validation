@@ -22,18 +22,13 @@ Utility functions and classes for testing of SHE_Validation_DataQuality code
 
 import os
 
-from SHE_PPT.table_formats.mer_final_catalog import mer_final_catalog_format
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateTableGenerator
-from SHE_PPT.testing.mock_mer_final_cat import (MFC_TABLE_FILENAME, MFC_TABLE_PRODUCT_FILENAME,
-                                                MockMFCGalaxyTableGenerator, )
+from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
 
 from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.products.she_measurements import create_dpd_she_measurements
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_PPT.testing.constants import LENSMC_MEASUREMENTS_TABLE_FILENAME, MEASUREMENTS_TABLE_PRODUCT_FILENAME
 from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_CHAINS_TABLE_FILENAME, )
 
