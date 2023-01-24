@@ -23,8 +23,8 @@ Core code for GalInfo validation test
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_PPT.argument_parser import CA_MER_CAT, CA_WORKDIR
-from SHE_Validation.argument_parser import CA_SHE_CAT, CA_SHE_CHAINS
+from SHE_PPT.argument_parser import CA_WORKDIR
+from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS
 from SHE_Validation_DataQuality.gi_input import read_gal_info_input
 
 
@@ -43,7 +43,7 @@ def run_validate_gal_info_from_args(d_args):
     # Load in the input data
     gal_info_input = read_gal_info_input(p_she_cat_filename=d_args[CA_SHE_CAT],
                                          p_she_chains_filename=d_args[CA_SHE_CHAINS],
-                                         p_mer_cat_filename=d_args[CA_MER_CAT],
+                                         p_mer_cat_filename=d_args[CA_MER_CAT_PROD],
                                          workdir=workdir)
 
     # This test requires the MER Final Catalog table, so raise an exception if it doesn't exist
