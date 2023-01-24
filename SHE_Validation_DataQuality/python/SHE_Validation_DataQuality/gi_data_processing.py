@@ -26,7 +26,7 @@ Code for processing data in the GalInfo validation test
 import abc
 
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 import numpy as np
 from astropy.table import Table
@@ -174,14 +174,18 @@ def get_gal_info_test_results(gal_info_input):
     return d_l_test_results
 
 
-def _get_gal_info_n_test_results(she_cat: Table, mer_cat: Table) -> GalInfoNTestResults:
+def _get_gal_info_n_test_results(she_cat: Optional[Table], mer_cat: Table) -> GalInfoNTestResults:
     """Private implementation of determining test results for the GalInfo-N test case.
     """
 
     l_mer_ids = mer_cat[mfc_tf.ID]
-    l_she_ids = she_cat[sem_tf.ID]
-
     n_in = len(l_mer_ids)
+
+    # Check for case where we don't have a SHE catalog
+    if she_cat is None:
+        return GalInfoNTestResults(n_in=n_in, l_missing_ids=[])
+
+    l_she_ids = she_cat[sem_tf.ID]
 
     # Use set difference to find IDs that aren't present in the SHE catalog
     l_missing_ids = np.setdiff1d(l_mer_ids, l_she_ids)
@@ -189,9 +193,13 @@ def _get_gal_info_n_test_results(she_cat: Table, mer_cat: Table) -> GalInfoNTest
     return GalInfoNTestResults(n_in=n_in, l_missing_ids=l_missing_ids)
 
 
-def _get_gal_info_data_test_results(she_cat: Table) -> GalInfoDataTestResults:
+def _get_gal_info_data_test_results(she_cat: Optional[Table]) -> GalInfoDataTestResults:
     """Private implementation of determining test results for the GalInfo-Data test case.
     """
+
+    # Check for case where we don't have a SHE catalog
+    if she_cat is None:
+        return GalInfoDataTestResults(l_invalid_ids=[])
 
     # First, we check for any objects which are flagged as failures - these are all considered to be flagged properly
     l_flagged_fail = she_cat[sem_tf.fit_flags] & failure_flags
