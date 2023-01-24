@@ -25,6 +25,7 @@ Core code for GalInfo validation test
 
 from SHE_PPT.argument_parser import CA_WORKDIR
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS
+from SHE_Validation_DataQuality.gi_data_processing import get_gal_info_test_results
 from SHE_Validation_DataQuality.gi_input import read_gal_info_input
 
 
@@ -51,3 +52,6 @@ def run_validate_gal_info_from_args(d_args):
         raise ValueError(f"MER Final Catalog product could not be read. Exception was: {gal_info_input.err_p_mer_cat}")
     if not gal_info_input.mer_cat:
         raise ValueError(f"MER Final Catalog table could not be read. Exception was: {gal_info_input.err_mer_cat}")
+
+    # Process the data to get the test results
+    d_l_test_results = get_gal_info_test_results(gal_info_input)
