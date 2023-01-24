@@ -202,7 +202,21 @@ def _get_gal_info_data_test_results(she_cat: Table) -> GalInfoDataTestResults:
     # We'll now do a check on each required column to ensure that it has valid data, then get the final results by
     # combining the checks
     l_l_checks: List[np.ndarray] = []
-    for colname, min_value, max_value in ((sem_tf.g1, -1, 1),):
+    colname: str
+    min_value: float
+    max_value: float
+    for colname, min_value, max_value in ((sem_tf.g1, -1, 1),
+                                          (sem_tf.g2, -1, 1),
+                                          (sem_tf.weight, 0., 1e99),
+                                          (sem_tf.fit_class, -np.inf, np.inf),
+                                          (sem_tf.re, 0., 1e99),):
+        # Explanation of min/max values:
+        # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
+        #   flagged instead, so we limit to values between those
+        # - g1/g2: These are physically limited to between -1 and 1 exclusive
+        # - weight: 0 would indicate no weight, or not to be used, but this should be flagged as a failure instead
+        # - fit_class: Any integer value is valid
+        # - re: Size is physically limited to be greater than 0
 
         # Confirm the value is not Inf, NaN, or masked
         l_good_value_check = np.logical_not(is_inf_nan_or_masked(good_she_cat[colname]))
