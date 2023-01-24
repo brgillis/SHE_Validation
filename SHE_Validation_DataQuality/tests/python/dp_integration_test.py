@@ -22,7 +22,7 @@ Integration test of the DataProc validation test
 
 from argparse import Namespace
 
-from SHE_PPT.testing.constants import MEASUREMENTS_TABLE_PRODUCT_FILENAME
+from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_TEST_RESULTS_PRODUCT_FILENAME, )
@@ -45,7 +45,7 @@ class TestDataProcRun(SheDQTestCase):
         parser = defineSpecificProgramOptions()
         args = parser.parse_args([])
 
-        setattr(args, CA_SHE_CAT, MEASUREMENTS_TABLE_PRODUCT_FILENAME)
+        setattr(args, CA_SHE_CAT, EST_TABLE_PRODUCT_FILENAME)
         setattr(args, CA_SHE_CHAINS, SHE_CHAINS_PRODUCT_FILENAME)
         setattr(args, CA_SHE_TEST_RESULTS, SHE_TEST_RESULTS_PRODUCT_FILENAME)
 

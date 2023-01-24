@@ -30,7 +30,7 @@ from SHE_PPT.file_io import read_xml_product, write_xml_product
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.table_utility import is_in_format
-from SHE_PPT.testing.constants import MEASUREMENTS_TABLE_PRODUCT_FILENAME
+from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
 from SHE_Validation.testing.mock_data import SHE_CHAINS_PRODUCT_FILENAME
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import ERR_MEASUREMENTS_NONE, read_data_proc_input
@@ -58,7 +58,7 @@ class TestDataProcInput(SheDQTestCase):
         """Test that data is read in as expected in the default case (only LensMC data)
         """
 
-        data_proc_input = read_data_proc_input(p_she_cat_filename=MEASUREMENTS_TABLE_PRODUCT_FILENAME,
+        data_proc_input = read_data_proc_input(p_she_cat_filename=EST_TABLE_PRODUCT_FILENAME,
                                                p_she_chains_filename=SHE_CHAINS_PRODUCT_FILENAME,
                                                workdir=self.workdir)
 
@@ -128,7 +128,7 @@ class TestDataProcInput(SheDQTestCase):
 
         she_cat_missing_filename = "she_cat_missing.xml"
 
-        p_she_cat = read_xml_product(MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir,
+        p_she_cat = read_xml_product(EST_TABLE_PRODUCT_FILENAME, workdir=self.workdir,
                                      product_type=dpdSheMeasurements)
         p_she_cat.set_method_filename(ShearEstimationMethods.LENSMC, BAD_FILENAME)
         write_xml_product(p_she_cat, she_cat_missing_filename, workdir=self.workdir)

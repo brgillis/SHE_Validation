@@ -22,6 +22,10 @@ Utility functions and classes for testing of SHE_Validation_DataQuality code
 
 import os
 
+from SHE_PPT.table_formats.mer_final_catalog import mer_final_catalog_format
+from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateTableGenerator
+from SHE_PPT.testing.mock_mer_final_cat import (MFC_TABLE_FILENAME, MFC_TABLE_PRODUCT_FILENAME,
+                                                MockMFCGalaxyTableGenerator, )
 from SHE_PPT.testing.utility import SheTestCase
 
 from SHE_PPT.file_io import write_xml_product
@@ -38,17 +42,25 @@ class SheDQTestCase(SheTestCase):
     """A test case which provides useful utilities for DataQuality validation tests.
     """
 
+    TABLE_SIZE = 10
+
     def make_data_proc_input(self):
         """Makes data in the workdir needed to run DataProc validation tests.
         """
-        she_cat = lensmc_measurements_table_format.init_table(size=1)
-        she_cat.write(os.path.join(self.workdir, LENSMC_MEASUREMENTS_TABLE_FILENAME))
 
-        p_she_cat = create_dpd_she_measurements(LensMC_filename=LENSMC_MEASUREMENTS_TABLE_FILENAME)
-        write_xml_product(p_she_cat, MEASUREMENTS_TABLE_PRODUCT_FILENAME, workdir=self.workdir)
+        MockShearEstimateTableGenerator(num_test_points=self.TABLE_SIZE, workdir=self.workdir).write_mock_product()
 
-        she_chains = lensmc_chains_table_format.init_table(size=1)
+        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE)
         she_chains.write(os.path.join(self.workdir, SHE_CHAINS_TABLE_FILENAME))
 
         p_she_chains = create_dpd_she_lensmc_chains(SHE_CHAINS_TABLE_FILENAME)
         write_xml_product(p_she_chains, SHE_CHAINS_PRODUCT_FILENAME, workdir=self.workdir)
+
+    def make_gal_info_input(self):
+        """Makes data in the workdir needed to run GalInfo validation tests.
+        """
+
+        # Create the DataProc info, since this data is a superset of that
+        self.make_data_proc_input()
+
+        MockMFCGalaxyTableGenerator(num_test_points=self.TABLE_SIZE, workdir=self.workdir).write_mock_product()
