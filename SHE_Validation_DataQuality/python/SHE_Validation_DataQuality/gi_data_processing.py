@@ -31,8 +31,11 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 import numpy as np
 from astropy.table import Table
 
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
+from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_measurements import tf as sem_tf
 from SHE_PPT.utility import is_inf_nan_or_masked
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
@@ -182,18 +185,20 @@ def get_gal_info_test_results(gal_info_input):
     d_l_test_results: Dict[str, List[GalInfoTestResults]] = {}
 
     for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
+        method = test_case_info.method
+        name = test_case_info.name
 
-        method_she_cat = gal_info_input.d_she_cat[test_case_info.method]
+        method_she_cat = gal_info_input.d_she_cat[method]
 
         # Split execution depending on which test case we're running
 
         if test_case_info.test_case_id.startswith(GAL_INFO_N_TEST_CASE_INFO.base_test_case_id):
 
-            return _get_gal_info_n_test_results(method_she_cat, she_chains, mer_cat)
+            d_l_test_results[name] = [_get_gal_info_n_test_results(method_she_cat, she_chains, mer_cat)]
 
         elif test_case_info.test_case_id.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
 
-            return _get_gal_info_data_test_results(method_she_cat, she_chains)
+            d_l_test_results[name] = [_get_gal_info_data_test_results(method_she_cat, she_chains, method)]
 
         else:
 
@@ -231,7 +236,8 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
 
 
 def _get_gal_info_data_test_results(she_cat: Optional[Table],
-                                    she_chains: Optional[Table]) -> GalInfoDataTestResults:
+                                    she_chains: Optional[Table],
+                                    method: ShearEstimationMethods) -> GalInfoDataTestResults:
     """Private implementation of determining test results for the GalInfo-Data test case.
     """
 
@@ -245,9 +251,14 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             d_l_invalid_ids[cat_type] = np.ndarray([], dtype=int)
             continue
 
+        if cat_type == MEAS_KEY:
+            tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+        else:
+            tf = lensmc_chains_table_format
+
         # First, we check for any objects which are flagged as failures - these are all considered to be flagged
         # properly
-        l_flagged_fail = cat[sem_tf.fit_flags] & failure_flags
+        l_flagged_fail = cat[tf.fit_flags] & failure_flags
 
         # Exclude the objects marked as failures from the remaining analysis
         good_cat = cat[~l_flagged_fail]
@@ -258,11 +269,11 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         colname: str
         min_value: float
         max_value: float
-        for colname, min_value, max_value in ((sem_tf.g1, -1, 1),
-                                              (sem_tf.g2, -1, 1),
-                                              (sem_tf.weight, 0., 1e99),
-                                              (sem_tf.fit_class, -np.inf, np.inf),
-                                              (sem_tf.re, 0., 1e99),):
+        for colname, min_value, max_value in ((tf.g1, -1, 1),
+                                              (tf.g2, -1, 1),
+                                              (tf.weight, 0., 1e99),
+                                              (tf.fit_class, -np.inf, np.inf),
+                                              (tf.re, 0., 1e99),):
             # Explanation of min/max values:
             # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
             #   flagged instead, so we limit to values between those
