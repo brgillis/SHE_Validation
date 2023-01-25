@@ -4,7 +4,7 @@
 :date: 01/19/23
 :author: Bryan Gillis
 
-Tests of function to read in input data for the DataProc test
+Tests of function to process data and determine test results for the DataProc test
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
