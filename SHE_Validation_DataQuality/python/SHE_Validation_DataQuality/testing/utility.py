@@ -61,7 +61,8 @@ class SheDQTestCase(SheTestCase):
 
         MockShearEstimateTableGenerator(num_test_points=self.TABLE_SIZE, workdir=self.workdir).write_mock_product()
 
-        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE)
+        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE,
+                                                           optional_columns=[lensmc_chains_table_format.re])
         she_chains.write(os.path.join(self.workdir, SHE_CHAINS_TABLE_FILENAME))
 
         p_she_chains = create_dpd_she_lensmc_chains(SHE_CHAINS_TABLE_FILENAME)
@@ -82,7 +83,8 @@ class SheDQTestCase(SheTestCase):
 
         p_she_cat = create_dpd_she_validated_measurements()
         p_she_chains = create_dpd_she_lensmc_chains()
-        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE)
+        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE,
+                                                           optional_columns=[lensmc_chains_table_format.re])
 
         d_she_cat: Dict[ShearEstimationMethods, Table] = {}
         for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():

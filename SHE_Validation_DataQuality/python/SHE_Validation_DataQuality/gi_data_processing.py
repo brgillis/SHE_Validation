@@ -26,7 +26,7 @@ Code for processing data in the GalInfo validation test
 import abc
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
+from typing import Dict, List, MutableSequence, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 from astropy.table import Table
@@ -37,7 +37,7 @@ from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_measurements import tf as sem_tf
-from SHE_PPT.utility import is_inf_nan_or_masked
+from SHE_PPT.utility import is_inf_nan_or_masked, is_inf_or_nan
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
@@ -251,6 +251,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             d_l_invalid_ids[cat_type] = np.ndarray([], dtype=int)
             continue
 
+        # Some different setup between measurements and chains catalogs
         if cat_type == MEAS_KEY:
             tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         else:
@@ -269,11 +270,12 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         colname: str
         min_value: float
         max_value: float
-        for colname, min_value, max_value in ((tf.g1, -1, 1),
-                                              (tf.g2, -1, 1),
-                                              (tf.weight, 0., 1e99),
-                                              (tf.fit_class, -np.inf, np.inf),
-                                              (tf.re, 0., 1e99),):
+        is_chain: bool
+        for colname, min_value, max_value, is_chain in ((tf.g1, -1, 1, True),
+                                                        (tf.g2, -1, 1, True),
+                                                        (tf.weight, 0., 1e99, False),
+                                                        (tf.fit_class, -np.inf, np.inf, False),
+                                                        (tf.re, 0., 1e99, True),):
             # Explanation of min/max values:
             # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
             #   flagged instead, so we limit to values between those
@@ -282,12 +284,23 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             # - fit_class: Any integer value is valid
             # - re: Size is physically limited to be greater than 0
 
+            # For chains, we need to use slightly-different methods, which reduce the multi-dimensional array
+            # properly, to do checks on values
+            if cat_type == MEAS_KEY or not is_chain:
+                bad_value_test = _meas_bad_value
+                min_value_test = _meas_min_value
+                max_value_test = _meas_max_value
+            else:
+                bad_value_test = _chains_bad_value
+                min_value_test = _chains_min_value
+                max_value_test = _chains_max_value
+
             # Confirm the value is not Inf, NaN, or masked
-            l_good_value_check = np.logical_not(is_inf_nan_or_masked(good_cat[colname]))
+            l_good_value_check = np.logical_not(bad_value_test(good_cat[colname]))
 
             # Confirm the value is between the minimum and maximum, exclusive
-            l_min_check = good_cat[colname] > min_value
-            l_max_check = good_cat[colname] < max_value
+            l_min_check = min_value_test(good_cat[colname], min_value)
+            l_max_check = max_value_test(good_cat[colname], max_value)
 
             # Store the checks in the ongoing list
             l_l_checks.append(l_good_value_check)
@@ -301,3 +314,27 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_KEY],
                                   l_invalid_ids_chains=d_l_invalid_ids[CHAINS_KEY])
+
+
+def _meas_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
+    return is_inf_nan_or_masked(a)
+
+
+def _chains_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
+    return np.any(is_inf_or_nan(a), axis=1)
+
+
+def _meas_min_value(a: np.ndarray, min_value: float) -> Union[np.ndarray, MutableSequence[bool]]:
+    return a > min_value
+
+
+def _chains_min_value(a: np.ndarray, min_value: float) -> Union[np.ndarray, MutableSequence[bool]]:
+    return np.all(a > min_value, axis=1)
+
+
+def _meas_max_value(a: np.ndarray, max_value: float) -> Union[np.ndarray, MutableSequence[bool]]:
+    return a < max_value
+
+
+def _chains_max_value(a: np.ndarray, max_value: float) -> Union[np.ndarray, MutableSequence[bool]]:
+    return np.all(a < max_value, axis=1)
