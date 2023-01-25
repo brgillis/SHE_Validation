@@ -45,7 +45,7 @@ class TestGalInfoInput(SheDQTestCase):
         """
 
         # Create mock products and data to test
-        self.make_gal_info_input()
+        self.make_gal_info_input_files()
 
     def test_read_input_default(self):
         """Test that data is read in as expected in the default case (only LensMC data)

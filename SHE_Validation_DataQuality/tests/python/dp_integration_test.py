@@ -60,7 +60,7 @@ class TestDataProcRun(SheDQTestCase):
         """
 
         # Create mock products and data to test
-        self.make_data_proc_input()
+        self.make_data_proc_input_files()
 
     def test_data_proc_run(self, local_setup):
         """Test that the program runs without raising any uncaught exceptions.

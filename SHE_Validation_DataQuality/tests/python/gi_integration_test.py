@@ -62,7 +62,7 @@ class TestGalInfoRun(SheDQTestCase):
         """
 
         # Create mock products and data to test
-        self.make_gal_info_input()
+        self.make_gal_info_input_files()
 
     def test_gal_info_run(self, local_setup):
         """Test that the program runs without raising any uncaught exceptions.
