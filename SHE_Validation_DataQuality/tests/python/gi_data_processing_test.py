@@ -6,7 +6,7 @@
 
 Tests of function to process data and determine test results for the GalInfo test
 """
-
+from SHE_PPT.constants.classes import ShearEstimationMethods
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -44,8 +44,12 @@ class TestGalInfoGalInfoessing(SheDQTestCase):
         # Check that all results are as expected
         for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
             name = test_case_info.name
+            method = test_case_info.method
             id = test_case_info.id
 
             test_results = d_l_test_results[name][0]
 
-            assert test_results.global_passed, f"{name=}"
+            if method == ShearEstimationMethods.LENSMC:
+                assert test_results.global_passed, f"{name=}"
+            else:
+                assert not test_results.global_passed, f"{name=}"
