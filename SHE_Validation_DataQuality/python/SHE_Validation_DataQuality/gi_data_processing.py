@@ -42,6 +42,9 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
 
+MEAS_KEY = "meas"
+CHAINS_KEY = "chains"
+
 
 @dataclass
 class GalInfoTestResults(abc.ABC):
@@ -69,33 +72,45 @@ class GalInfoNTestResults(GalInfoTestResults):
     ---------
     n_in: int
         The number of weak lensing objects in the input catalog
-    l_missing_ids: Sequence[int]
+    l_missing_ids_meas: Sequence[int]
         A sequence of the IDs of all weak lensing objects in the input catalog which are not present in the output
-        catalog
+        measurements catalog
+    l_missing_ids_chains: Sequence[int]
+        A sequence of the IDs of all weak lensing objects in the input catalog which are not present in the output
+        chains catalog
 
     Methods
     -------
-    n_out: int
-        (Read-only property) The number of objects in the output catalog
+    n_out_meas: int
+        (Read-only property) The number of objects in the output measurements catalog
+    n_out_chains: int
+        (Read-only property) The number of objects in the output chains catalog
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
     """
 
     n_in: int
 
-    l_missing_ids: Sequence[int]
+    l_missing_ids_meas: Sequence[int]
+    l_missing_ids_chains: Sequence[int]
 
     @property
-    def n_out(self) -> int:
-        """The number of objects in the output catalog
+    def n_out_meas(self) -> int:
+        """The number of objects in the output measurements catalog
         """
-        return self.n_in - len(self.l_missing_ids)
+        return self.n_in - len(self.l_missing_ids_meas)
+
+    @property
+    def n_out_chains(self) -> int:
+        """The number of objects in the output chains catalog
+        """
+        return self.n_in - len(self.l_missing_ids_chains)
 
     @property
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
         """
-        return self.n_in == self.n_out
+        return self.n_in == self.n_out_meas
 
 
 @dataclass
@@ -104,30 +119,41 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
     Attributes
     ---------
-    l_invalid_ids: Sequence[int]
-        A sequence of the IDs of all objects in the output catalog which have invalid data
+    l_invalid_ids_meas: Sequence[int]
+        A sequence of the IDs of all objects in the output measurements catalog which have invalid data
+    l_invalid_ids_chains: Sequence[int]
+        A sequence of the IDs of all objects in the output chains catalog which have invalid data
 
     Methods
     -------
-    n_inv: int
-        (Read-only property) The number of objects in the output catalog with invalid data
+    n_inv_meas: int
+        (Read-only property) The number of objects in the output measurements catalog with invalid data
+    n_inv_chains: int
+        (Read-only property) The number of objects in the output chains catalog with invalid data
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
     """
 
-    l_invalid_ids: Sequence[int]
+    l_invalid_ids_meas: Sequence[int]
+    l_invalid_ids_chains: Sequence[int]
 
     @property
-    def n_inv(self) -> int:
-        """The number of objects in the output catalog with invalid data
+    def n_inv_meas(self) -> int:
+        """The number of objects in the output measurements catalog with invalid data
         """
-        return len(self.l_invalid_ids)
+        return len(self.l_invalid_ids_meas)
+
+    @property
+    def n_inv_chains(self) -> int:
+        """The number of objects in the output chains catalog with invalid data
+        """
+        return len(self.l_invalid_ids_chains)
 
     @property
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
         """
-        return self.n_inv == 0
+        return self.n_inv_meas == 0
 
 
 def get_gal_info_test_results(gal_info_input):
@@ -150,6 +176,8 @@ def get_gal_info_test_results(gal_info_input):
     good_mfc_rows = gal_info_input.mer_cat[mfc_tf.vis_det] == 1
     mer_cat = gal_info_input.mer_cat[good_mfc_rows]
 
+    she_chains = gal_info_input.she_chains
+
     # Prepare an output dict, which we'll fill in for each method
     d_l_test_results: Dict[str, List[GalInfoTestResults]] = {}
 
@@ -161,11 +189,11 @@ def get_gal_info_test_results(gal_info_input):
 
         if test_case_info.test_case_id.startswith(GAL_INFO_N_TEST_CASE_INFO.base_test_case_id):
 
-            return _get_gal_info_n_test_results(method_she_cat, mer_cat)
+            return _get_gal_info_n_test_results(method_she_cat, she_chains, mer_cat)
 
         elif test_case_info.test_case_id.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
 
-            return _get_gal_info_data_test_results(method_she_cat)
+            return _get_gal_info_data_test_results(method_she_cat, she_chains)
 
         else:
 
@@ -174,73 +202,91 @@ def get_gal_info_test_results(gal_info_input):
     return d_l_test_results
 
 
-def _get_gal_info_n_test_results(she_cat: Optional[Table], mer_cat: Table) -> GalInfoNTestResults:
+def _get_gal_info_n_test_results(she_cat: Optional[Table],
+                                 she_chains: Optional[Table],
+                                 mer_cat: Table) -> GalInfoNTestResults:
     """Private implementation of determining test results for the GalInfo-N test case.
     """
 
     l_mer_ids = mer_cat[mfc_tf.ID]
     n_in = len(l_mer_ids)
 
-    # Check for case where we don't have a SHE catalog
-    if she_cat is None:
-        return GalInfoNTestResults(n_in=n_in, l_missing_ids=[])
+    d_l_missing_ids: Dict[str, np.ndarray] = {}
 
-    l_she_ids = she_cat[sem_tf.ID]
+    for cat, cat_type in ((she_cat, MEAS_KEY),
+                          (she_chains, CHAINS_KEY)):
+        # Check for case where we don't have a catalog provided
+        if cat is None:
+            d_l_missing_ids[cat_type] = np.ndarray([], dtype=int)
+            continue
 
-    # Use set difference to find IDs that aren't present in the SHE catalog
-    l_missing_ids = np.setdiff1d(l_mer_ids, l_she_ids)
+        l_she_ids = cat[sem_tf.ID]
 
-    return GalInfoNTestResults(n_in=n_in, l_missing_ids=l_missing_ids)
+        # Use set difference to find IDs that aren't present in the SHE catalog
+        d_l_missing_ids[cat_type] = np.setdiff1d(l_mer_ids, l_she_ids)
+
+    return GalInfoNTestResults(n_in=n_in,
+                               l_missing_ids_meas=d_l_missing_ids[MEAS_KEY],
+                               l_missing_ids_chains=d_l_missing_ids[CHAINS_KEY])
 
 
-def _get_gal_info_data_test_results(she_cat: Optional[Table]) -> GalInfoDataTestResults:
+def _get_gal_info_data_test_results(she_cat: Optional[Table],
+                                    she_chains: Optional[Table]) -> GalInfoDataTestResults:
     """Private implementation of determining test results for the GalInfo-Data test case.
     """
 
-    # Check for case where we don't have a SHE catalog
-    if she_cat is None:
-        return GalInfoDataTestResults(l_invalid_ids=[])
+    d_l_invalid_ids: Dict[str, np.ndarray] = {}
 
-    # First, we check for any objects which are flagged as failures - these are all considered to be flagged properly
-    l_flagged_fail = she_cat[sem_tf.fit_flags] & failure_flags
+    for cat, cat_type in ((she_cat, MEAS_KEY),
+                          (she_chains, CHAINS_KEY)):
 
-    # Exclude the objects marked as failures from the remaining analysis
-    good_she_cat = she_cat[~l_flagged_fail]
+        # Check for case where we don't have a catalog provided
+        if cat is None:
+            d_l_invalid_ids[cat_type] = np.ndarray([], dtype=int)
+            continue
 
-    # We'll now do a check on each required column to ensure that it has valid data, then get the final results by
-    # combining the checks
-    l_l_checks: List[np.ndarray] = []
-    colname: str
-    min_value: float
-    max_value: float
-    for colname, min_value, max_value in ((sem_tf.g1, -1, 1),
-                                          (sem_tf.g2, -1, 1),
-                                          (sem_tf.weight, 0., 1e99),
-                                          (sem_tf.fit_class, -np.inf, np.inf),
-                                          (sem_tf.re, 0., 1e99),):
-        # Explanation of min/max values:
-        # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
-        #   flagged instead, so we limit to values between those
-        # - g1/g2: These are physically limited to between -1 and 1 exclusive
-        # - weight: 0 would indicate no weight, or not to be used, but this should be flagged as a failure instead
-        # - fit_class: Any integer value is valid
-        # - re: Size is physically limited to be greater than 0
+        # First, we check for any objects which are flagged as failures - these are all considered to be flagged
+        # properly
+        l_flagged_fail = cat[sem_tf.fit_flags] & failure_flags
 
-        # Confirm the value is not Inf, NaN, or masked
-        l_good_value_check = np.logical_not(is_inf_nan_or_masked(good_she_cat[colname]))
+        # Exclude the objects marked as failures from the remaining analysis
+        good_cat = cat[~l_flagged_fail]
 
-        # Confirm the value is between the minimum and maximum, exclusive
-        l_min_check = good_she_cat[colname] > min_value
-        l_max_check = good_she_cat[colname] < max_value
+        # We'll now do a check on each required column to ensure that it has valid data, then get the final results by
+        # combining the checks
+        l_l_checks: List[np.ndarray] = []
+        colname: str
+        min_value: float
+        max_value: float
+        for colname, min_value, max_value in ((sem_tf.g1, -1, 1),
+                                              (sem_tf.g2, -1, 1),
+                                              (sem_tf.weight, 0., 1e99),
+                                              (sem_tf.fit_class, -np.inf, np.inf),
+                                              (sem_tf.re, 0., 1e99),):
+            # Explanation of min/max values:
+            # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
+            #   flagged instead, so we limit to values between those
+            # - g1/g2: These are physically limited to between -1 and 1 exclusive
+            # - weight: 0 would indicate no weight, or not to be used, but this should be flagged as a failure instead
+            # - fit_class: Any integer value is valid
+            # - re: Size is physically limited to be greater than 0
 
-        # Store the checks in the ongoing list
-        l_l_checks.append(l_good_value_check)
-        l_l_checks.append(l_min_check)
-        l_l_checks.append(l_max_check)
+            # Confirm the value is not Inf, NaN, or masked
+            l_good_value_check = np.logical_not(is_inf_nan_or_masked(good_cat[colname]))
 
-    l_pass_all_checks = np.logical_and.reduce(l_l_checks)
+            # Confirm the value is between the minimum and maximum, exclusive
+            l_min_check = good_cat[colname] > min_value
+            l_max_check = good_cat[colname] < max_value
 
-    # Now, get a list of IDs which failed checks to output
-    l_invalid_ids = she_cat[~l_pass_all_checks][sem_tf.ID]
+            # Store the checks in the ongoing list
+            l_l_checks.append(l_good_value_check)
+            l_l_checks.append(l_min_check)
+            l_l_checks.append(l_max_check)
 
-    return GalInfoDataTestResults(l_invalid_ids=l_invalid_ids)
+        l_pass_all_checks = np.logical_and.reduce(l_l_checks)
+
+        # Now, get a list of IDs which failed checks to output
+        d_l_invalid_ids[cat_type] = she_cat[~l_pass_all_checks][sem_tf.ID]
+
+    return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_KEY],
+                                  l_invalid_ids_chains=d_l_invalid_ids[CHAINS_KEY])
