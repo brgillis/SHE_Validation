@@ -20,7 +20,7 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation_DataQuality.constants.gal_info_test_info import L_GAL_INFO_TEST_CASE_INFO
+from SHE_Validation_DataQuality.constants.gal_info_test_info import GAL_INFO_N_TEST_CASE_INFO, L_GAL_INFO_TEST_CASE_INFO
 from SHE_Validation_DataQuality.gi_data_processing import get_gal_info_test_results
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
@@ -49,7 +49,10 @@ class TestGalInfoGalInfoessing(SheDQTestCase):
 
             test_results = d_l_test_results[name][0]
 
-            if method == ShearEstimationMethods.LENSMC:
-                assert test_results.global_passed, f"{name=}"
+            if id.startswith(GAL_INFO_N_TEST_CASE_INFO.base_test_case_id):
+                if method == ShearEstimationMethods.LENSMC:
+                    assert test_results.global_passed, f"{name=}"
+                else:
+                    assert not test_results.global_passed, f"{name=}"
             else:
-                assert not test_results.global_passed, f"{name=}"
+                assert test_results.global_passed, f"{name=}"

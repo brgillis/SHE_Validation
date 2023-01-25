@@ -222,7 +222,7 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
                           (she_chains, CHAINS_KEY)):
         # Check for case where we don't have a catalog provided
         if cat is None:
-            d_l_missing_ids[cat_type] = np.ndarray([], dtype=int)
+            d_l_missing_ids[cat_type] = np.array(l_mer_ids, dtype=int)
             continue
 
         l_she_ids = cat[sem_tf.ID]
@@ -248,7 +248,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
         # Check for case where we don't have a catalog provided
         if cat is None:
-            d_l_invalid_ids[cat_type] = np.ndarray([], dtype=int)
+            d_l_invalid_ids[cat_type] = np.ndarray(shape=(0,), dtype=int)
             continue
 
         # Some different setup between measurements and chains catalogs
@@ -310,7 +310,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         l_pass_all_checks = np.logical_and.reduce(l_l_checks)
 
         # Now, get a list of IDs which failed checks to output
-        d_l_invalid_ids[cat_type] = she_cat[~l_pass_all_checks][sem_tf.ID]
+        d_l_invalid_ids[cat_type] = good_cat[~l_pass_all_checks][sem_tf.ID]
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_KEY],
                                   l_invalid_ids_chains=d_l_invalid_ids[CHAINS_KEY])

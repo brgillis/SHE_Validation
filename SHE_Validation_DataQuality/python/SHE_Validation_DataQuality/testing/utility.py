@@ -86,9 +86,13 @@ class SheDQTestCase(SheTestCase):
         she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE,
                                                            optional_columns=[lensmc_chains_table_format.re])
 
-        d_she_cat: Dict[ShearEstimationMethods, Table] = {}
-        for method, tf in D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS.items():
-            d_she_cat[method] = tf.init_table(size=self.TABLE_SIZE)
+        d_she_cat: Dict[ShearEstimationMethods, Optional[Table]] = {}
+        for method in ShearEstimationMethods:
+            if method == ShearEstimationMethods.LENSMC:
+                d_she_cat[method] = MockShearEstimateTableGenerator(num_test_points=self.TABLE_SIZE,
+                                                                    method=method).get_mock_table()
+            else:
+                d_she_cat[method] = None
 
         # Make a mock input object with good data
         self.good_dp_input = DataProcInput(p_she_cat=p_she_cat,
