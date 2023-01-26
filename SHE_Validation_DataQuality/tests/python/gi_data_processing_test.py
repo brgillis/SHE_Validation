@@ -25,7 +25,7 @@ from SHE_Validation_DataQuality.gi_data_processing import get_gal_info_test_resu
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
-class TestGalInfoGalInfoessing(SheDQTestCase):
+class TestGalInfoDataProcessing(SheDQTestCase):
     """Test case for GalInfo validation test data processing
     """
 
