@@ -18,18 +18,22 @@
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Type
 
 import numpy as np
 
-from SHE_PPT.constants.classes import BinParameters
+from SHE_PPT.constants.classes import BinParameters, ShearEstimationMethods
 from SHE_PPT.flags import flag_success, flag_unclassified_failure
 from SHE_PPT.logging import getLogger
-from SHE_PPT.testing.mock_data import MockDataGenerator
+from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
+from SHE_PPT.table_formats.she_lensmc_chains import SheLensMcChainsFormat, lensmc_chains_table_format
+from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
+from SHE_PPT.testing.mock_data import MockDataGenerator, NUM_TEST_POINTS
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateDataGenerator
-from SHE_PPT.testing.mock_tables import MockTableGenerator
+from SHE_PPT.testing.mock_tables import MockDataGeneratorType, MockTableGenerator
 from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
+from ST_DataModelBindings.dpd.she.raw.lensmcchains_stub import dpdSheLensMcChains
 
 logger = getLogger(__name__)
 
@@ -37,6 +41,8 @@ SHE_CHAINS_PRODUCT_FILENAME = "she_chains.xml"
 SHE_CHAINS_TABLE_FILENAME = "data/she_chains.fits"
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
+
+CHAINS_SEED = 5351
 
 FIT_CLASS_GAL = 0
 FIT_CLASS_STAR = 1
@@ -148,3 +154,100 @@ class ExtendedMockMeasDataGenerator(MockShearEstimateDataGenerator):
                                                     flag_unclassified_failure)
         else:
             self.data[self.tf.fit_flags] = flag_success * np.ones_like(self._indices)
+
+
+class ExtendedMockChainsDataGenerator(MockDataGenerator):
+    """A MockDataGenerator for generating LensMC chains data.
+    """
+
+    # Overring base class default values
+    tf: SheLensMcChainsFormat
+    seed: int = CHAINS_SEED
+
+    # New attributes for this subclass
+    mock_measurements_data_generator: ExtendedMockMeasDataGenerator
+
+    # Attributes used while generating data
+    _meas_data: Optional[Dict[str, np.ndarray]] = None
+
+    def __init__(self,
+                 mock_measurements_data_generator: Optional[ExtendedMockMeasDataGenerator] = None,
+                 *args, **kwargs):
+        """ Override init so we can add an input argument for mock_measurements_data_generator.
+        """
+        super().__init__(*args, **kwargs)
+
+        if mock_measurements_data_generator is None:
+            self.mock_measurements_data_generator = ExtendedMockMeasDataGenerator(method=ShearEstimationMethods.LENSMC,
+                                                                                  num_test_points=self.num_test_points,
+                                                                                  seed=self.seed)
+        else:
+            self.mock_measurements_data_generator = mock_measurements_data_generator
+            self.num_test_points = self.mock_measurements_data_generator.num_test_points
+            self.seed = self.mock_measurements_data_generator.seed
+
+        self.tf = lensmc_chains_table_format
+
+    def _generate_unique_data(self):
+        """ Generate chains data based off of the measurements data.
+        """
+
+        # Get the data generated from the measurements catalog and its table format
+        self._meas_data = self.mock_measurements_data_generator.get_data()
+        m_tf = lensmc_measurements_table_format
+
+        # Copy over data where appropriate
+        self.data[self.tf.ID] = self._meas_data[m_tf.ID]
+        self.data[self.tf.fit_flags] = self._meas_data[m_tf.fit_flags]
+        self.data[self.tf.weight] = self._meas_data[m_tf.weight]
+        self.data[self.tf.fit_class] = self._meas_data[m_tf.fit_class]
+
+        # Generate random chains for g1, g2, and re
+
+        # TODO
+
+
+class ExtendedMockChainsTableGenerator(MockTableGenerator):
+    """ A class to handle the generation of mock mer final catalog tables.
+    """
+
+    mock_data_generator_type: Type[MockDataGeneratorType] = ExtendedMockChainsDataGenerator
+
+    def create_product(self) -> dpdSheLensMcChains:
+        return create_dpd_she_lensmc_chains()
+
+    # Attributes with overriding types
+    tf: Optional[SheLensMcChainsFormat] = lensmc_chains_table_format
+    seed: int = CHAINS_SEED
+    table_filename: str = SHE_CHAINS_TABLE_FILENAME
+    product_filename: str = SHE_CHAINS_PRODUCT_FILENAME
+
+    # New attributes
+    method: ShearEstimationMethods = ShearEstimationMethods.LENSMC
+
+    def __init__(self,
+                 *args,
+                 mock_data_generator: Optional[MockDataGeneratorType] = None,
+                 mock_measurements_data_generator: Optional[ExtendedMockMeasDataGenerator] = None,
+                 seed: Optional[int] = None,
+                 num_test_points: Optional[int] = None,
+                 **kwargs, ):
+        # Initialize new attributes for this subtype
+
+        # Set up the mock data generator with the proper type
+
+        self.seed = seed if seed is not None else self.seed
+        self.num_test_points = num_test_points if num_test_points is not None else self.num_test_points
+
+        if mock_data_generator is None:
+            mock_data_generator = self.mock_data_generator_type(
+                mock_measurements_data_generator=mock_measurements_data_generator,
+                num_test_points=self.num_test_points,
+                seed=self.seed)
+        else:
+            self.seed = mock_data_generator.seed
+            self.num_test_points = mock_data_generator.num_test_points
+
+        super().__init__(*args,
+                         mock_data_generator=mock_data_generator,
+                         **kwargs)

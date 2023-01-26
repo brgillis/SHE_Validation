@@ -36,7 +36,8 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_Validation.testing.mock_data import (ExtendedMockMeasDataGenerator, SHE_CHAINS_PRODUCT_FILENAME,
+from SHE_Validation.testing.mock_data import (ExtendedMockChainsTableGenerator, ExtendedMockMeasDataGenerator,
+                                              SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_CHAINS_TABLE_FILENAME, )
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import DataProcInput
@@ -84,17 +85,20 @@ class SheDQTestCase(SheTestCase):
 
         p_she_cat = create_dpd_she_validated_measurements()
         p_she_chains = create_dpd_she_lensmc_chains()
-        she_chains = lensmc_chains_table_format.init_table(size=self.TABLE_SIZE,
-                                                           optional_columns=[lensmc_chains_table_format.re])
 
         d_she_cat: Dict[ShearEstimationMethods, Optional[Table]] = {}
+        mock_measurements_data_generator: Optional[ExtendedMockMeasDataGenerator] = None
         for method in ShearEstimationMethods:
             if method == ShearEstimationMethods.LENSMC:
+                mock_measurements_data_generator = ExtendedMockMeasDataGenerator(num_test_points=self.TABLE_SIZE,
+                                                                                 method=method)
                 d_she_cat[method] = MockShearEstimateTableGenerator(
-                    mock_data_generator=ExtendedMockMeasDataGenerator(num_test_points=self.TABLE_SIZE,
-                                                                      method=method)).get_mock_table()
+                    mock_data_generator=mock_measurements_data_generator).get_mock_table()
             else:
                 d_she_cat[method] = None
+
+        she_chains = ExtendedMockChainsTableGenerator(
+            mock_measurements_data_generator=mock_measurements_data_generator).get_mock_table()
 
         # Make a mock input object with good data
         self.good_dp_input = DataProcInput(p_she_cat=p_she_cat,
