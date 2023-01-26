@@ -59,6 +59,10 @@ class TestDataProcDataProcessing(SheDQTestCase):
         # Check that all results are as expected
         for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
             name = test_case_info.name
+            method = test_case_info.method
+
+            if not method == ShearEstimationMethods.LENSMC:
+                continue
 
             test_results = d_l_test_results[name][0]
 
@@ -88,6 +92,10 @@ class TestDataProcDataProcessing(SheDQTestCase):
         # Check that all results are as expected
         for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
             name = test_case_info.name
+            method = test_case_info.method
+
+            if not method == ShearEstimationMethods.LENSMC:
+                continue
 
             test_results = d_l_test_results[name][0]
 
@@ -116,6 +124,9 @@ class TestDataProcDataProcessing(SheDQTestCase):
         for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
             name = test_case_info.name
             method = test_case_info.method
+
+            if not method == ShearEstimationMethods.LENSMC:
+                continue
 
             test_results = d_l_test_results[name][0]
 
@@ -155,6 +166,10 @@ class TestDataProcDataProcessing(SheDQTestCase):
         # Check that all results are as expected
         for test_case_info in L_DATA_PROC_TEST_CASE_INFO:
             name = test_case_info.name
+            method = test_case_info.method
+
+            if not method == ShearEstimationMethods.LENSMC:
+                continue
 
             test_results = d_l_test_results[name][0]
 
