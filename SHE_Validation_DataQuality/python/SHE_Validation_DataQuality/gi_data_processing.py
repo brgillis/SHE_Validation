@@ -169,7 +169,7 @@ def get_gal_info_test_results(gal_info_input):
 
     Returns
     -------
-    Dict[str, List[GalInfoTestResults]]
+    Dict[str, List[GalInfoNTestResults or GalInfoDataTestResults]]
         A dict of the test results for each shear estimation method (indexed by the test case name). The result is
         returned as a dict of lists of one element each for consistency of format with other validation tests
     """
