@@ -26,24 +26,24 @@ from SHE_Validation.constants.test_info import (BinParameters, ID_NUMBER_REPLACE
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 
 # Metadata about the requirement
-PSF_RES_SP_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-PRD-F-100",
-                                              description = ("The distribution of chi-squared (chi-squared) values for "
-                                                             "each star with respect to the model, over the population "
-                                                             "of stars, shall be consistent (TBD) with the chi-squared "
-                                                             "distribution."),
-                                              parameter = ("TBD - Statistic representing how well PSF residual "
-                                                           "chi-squared statistics match expected distributions."))
+PSF_RES_SP_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-PRD-F-100",
+                                              description=("The distribution of chi-squared (chi-squared) values for "
+                                                           "each star with respect to the model, over the population "
+                                                           "of stars, shall be consistent (TBD) with the chi-squared "
+                                                           "distribution."),
+                                              parameter=("TBD - Statistic representing how well PSF residual "
+                                                         "chi-squared statistics match expected distributions."))
 
 # Metadata about the test
-PSF_RES_SP_TEST_INFO = TestInfo(test_id = "T-SHE-000001-PSF-res-star-pos",
-                                description = ("Consistency of PSF residual chi-squared values with expected "
-                                               "distributions."))
+PSF_RES_SP_TEST_INFO = TestInfo(test_id="T-SHE-000001-PSF-res-star-pos",
+                                description=("Consistency of PSF residual chi-squared values with expected "
+                                             "distributions."))
 
-BASE_PSF_RES_SP_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-PSF-res-star-"
-                                                                  f"{NAME_REPLACE_TAG}",
-                                              base_name = f"PR-{NAME_REPLACE_TAG}",
-                                              base_description = PSF_RES_SP_TEST_INFO.description,
-                                              base_id_number = 100001)
+BASE_PSF_RES_SP_TEST_CASE_INFO = TestCaseInfo(base_test_case_id=f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-PSF-res-star-"
+                                                                f"{NAME_REPLACE_TAG}",
+                                              base_name=f"PR-{NAME_REPLACE_TAG}",
+                                              base_description=PSF_RES_SP_TEST_INFO.description,
+                                              base_id_number=100001)
 
 PSF_RES_SP_VAL_NAME = "p"
 
@@ -52,7 +52,7 @@ PSF_RES_SP_VAL_NAME = "p"
 L_PSF_RES_SP_BIN_PARAMETERS = (BinParameters.TOT, BinParameters.SNR)
 
 L_PSF_RES_SP_TEST_CASE_INFO = make_test_case_info_for_bins(BASE_PSF_RES_SP_TEST_CASE_INFO,
-                                                           l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+                                                           l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
 
 NUM_PSF_RES_SP_TEST_CASES = len(L_PSF_RES_SP_TEST_CASE_INFO)
 

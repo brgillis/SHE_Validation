@@ -63,7 +63,7 @@ def select_true_universe_sources(catalog_filenames, ra_range, dec_range, path):
 
     for filename in catalog_filenames:
 
-        qualified_filename = file_io.find_file(filename, path = path)
+        qualified_filename = file_io.find_file(filename, path=path)
 
         logger.debug("Reading overlapping sources from " + qualified_filename + ".")
 
@@ -115,8 +115,8 @@ def match_to_tu_from_args(args):
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
     d_shear_tables, _ = read_d_method_tables(args.she_validated_measurements_product,
-                                             workdir = workdir,
-                                             log_info = True)
+                                             workdir=workdir,
+                                             log_info=True)
 
     # Determine the ra/dec range covered by the shear estimates file
 
@@ -124,10 +124,10 @@ def match_to_tu_from_args(args):
     (ra_range,
      dec_range) = determine_coord_range(d_shear_tables, match_threshold)
 
-    ra_limits = np.linspace(ra_range[0], ra_range[1], num = int(
-        (ra_range[1] - ra_range[0]) / max_coverage) + 2, endpoint = True)
-    dec_limits = np.linspace(dec_range[0], dec_range[1], num = int(
-        (dec_range[1] - dec_range[0]) / max_coverage) + 2, endpoint = True)
+    ra_limits = np.linspace(ra_range[0], ra_range[1], num=int(
+        (ra_range[1] - ra_range[0]) / max_coverage) + 2, endpoint=True)
+    dec_limits = np.linspace(dec_range[0], dec_range[1], num=int(
+        (dec_range[1] - dec_range[0]) / max_coverage) + 2, endpoint=True)
 
     star_matched_tables: Dict[ShearEstimationMethods, List[Table]] = {}
     gal_matched_tables: Dict[ShearEstimationMethods, List[Table]] = {}
@@ -154,10 +154,10 @@ def match_to_tu_from_args(args):
     # Read in the data stack
     if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
         s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-        data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = args.data_images,
-                                                                 detections_listfile_filename = args.detections_tables,
-                                                                 object_id_list = s_object_ids,
-                                                                 workdir = workdir)
+        data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename=args.data_images,
+                                                                 detections_listfile_filename=args.detections_tables,
+                                                                 object_id_list=s_object_ids,
+                                                                 workdir=workdir)
     else:
         data_stack: Optional[SHEFrameStack] = None
 
@@ -178,16 +178,16 @@ def match_to_tu_from_args(args):
 
         # Update each galaxy table with data necessary for binning if desired
         if args.pipeline_config[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS]:
-            add_binning_data(t = gal_matched_table,
-                             data_stack = data_stack)
+            add_binning_data(t=gal_matched_table,
+                             data_stack=data_stack)
 
         unmatched_table = d_shear_tables[method]
 
         method_filename = file_io.get_allowed_filename("SHEAR-SIM-MATCHED-CAT",
-                                                       instance_id = method.name + "-" + str(os.getpid()),
-                                                       extension = ".fits",
-                                                       version = SHE_Validation.__version__,
-                                                       subdir = "data", )
+                                                       instance_id=method.name + "-" + str(os.getpid()),
+                                                       extension=".fits",
+                                                       version=SHE_Validation.__version__,
+                                                       subdir="data", )
         matched_catalog_product.set_method_filename(method, method_filename)
 
         # Turn each table into an HDU and add it to an HDU list
@@ -202,13 +202,13 @@ def match_to_tu_from_args(args):
         # Write out the HDU list to a file
         logger.info(
             f"Writing output matched catalog for method {method.value} to {os.path.join(workdir, method_filename)}")
-        hdulist.writeto(os.path.join(workdir, method_filename), overwrite = True)
+        hdulist.writeto(os.path.join(workdir, method_filename), overwrite=True)
 
     # Write the data product
     file_io.write_xml_product(matched_catalog_product,
                               args.matched_catalog,
-                              workdir = workdir,
-                              log_info = True)
+                              workdir=workdir,
+                              log_info=True)
 
 
 def determine_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
@@ -276,7 +276,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
     # If possible, get the catalogs for this observation from a provided TU output product
     if args.tu_output_product is not None:
         qualified_tu_output_product_filename = file_io.find_file(args.tu_output_product,
-                                                                 path = search_path)
+                                                                 path=search_path)
         tu_output_product = file_io.read_xml_product(qualified_tu_output_product_filename)
 
         star_catalog_filenames = [tu_output_product.get_star_filename()]
@@ -288,7 +288,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
 
         if args.tu_star_catalog_list is not None:
             qualified_tu_star_catalog_list = file_io.find_file(args.tu_star_catalog_list,
-                                                               path = search_path)
+                                                               path=search_path)
             tu_star_catalog_product_filenames = read_listfile(qualified_tu_star_catalog_list)
         elif args.tu_star_catalog is not None:
             tu_star_catalog_product_filenames = [args.tu_star_catalog]
@@ -297,7 +297,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
 
         if args.tu_galaxy_catalog_list is not None:
             qualified_tu_galaxy_catalog_list = file_io.find_file(args.tu_galaxy_catalog_list,
-                                                                 path = search_path)
+                                                                 path=search_path)
             tu_galaxy_catalog_product_filenames = read_listfile(qualified_tu_galaxy_catalog_list)
         elif args.tu_galaxy_catalog is not None:
             tu_galaxy_catalog_product_filenames = [args.tu_galaxy_catalog]
@@ -310,7 +310,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
         star_catalog_filenames = []
         for tu_star_catalog_product_filename in tu_star_catalog_product_filenames:
             qualified_star_catalog_product_filename = file_io.find_file(tu_star_catalog_product_filename,
-                                                                        path = search_path)
+                                                                        path=search_path)
             logger.info("Reading in True Universe star catalog product from " + qualified_star_catalog_product_filename)
             star_catalog_product = file_io.read_xml_product(qualified_star_catalog_product_filename)
             star_catalog_filenames.append(star_catalog_product.get_data_filename())
@@ -318,7 +318,7 @@ def get_catalog_filenames(args: Namespace, search_path: str) -> Tuple[List[str],
         galaxy_catalog_filenames = []
         for tu_galaxy_catalog_product_filename in tu_galaxy_catalog_product_filenames:
             qualified_galaxy_catalog_product_filename = file_io.find_file(tu_galaxy_catalog_product_filename,
-                                                                          path = search_path)
+                                                                          path=search_path)
             logger.info("Reading in True Universe galaxy catalog product from " +
                         qualified_galaxy_catalog_product_filename)
             galaxy_catalog_product = file_io.read_xml_product(qualified_galaxy_catalog_product_filename)
@@ -339,16 +339,16 @@ def match_within_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
     """ Performs a catalog match to galaxy and star catalogs within a limited range of ra/dec coordinates.
     """
     # Read in the star and galaxy catalogs from the overlapping area
-    overlapping_star_catalog = select_true_universe_sources(catalog_filenames = star_catalog_filenames,
-                                                            ra_range = local_ra_range,
-                                                            dec_range = local_dec_range,
-                                                            path = search_path)
+    overlapping_star_catalog = select_true_universe_sources(catalog_filenames=star_catalog_filenames,
+                                                            ra_range=local_ra_range,
+                                                            dec_range=local_dec_range,
+                                                            path=search_path)
     logger.info("Found " + str(len(overlapping_star_catalog)) + " stars in overlapping region.")
 
-    overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames = galaxy_catalog_filenames,
-                                                              ra_range = local_ra_range,
-                                                              dec_range = local_dec_range,
-                                                              path = search_path)
+    overlapping_galaxy_catalog = select_true_universe_sources(catalog_filenames=galaxy_catalog_filenames,
+                                                              ra_range=local_ra_range,
+                                                              dec_range=local_dec_range,
+                                                              path=search_path)
     logger.info("Found " + str(len(overlapping_galaxy_catalog)) + " galaxies in overlapping region.")
 
     # Remove unused columns in the star table
@@ -390,27 +390,27 @@ def match_within_coord_range(shear_tables: Dict[ShearEstimationMethods, Table],
     # Set up star and galaxy tables for matching
     ra_star = overlapping_star_catalog["RA"]
     dec_star = overlapping_star_catalog["DEC"]
-    sky_coord_star = SkyCoord(ra = ra_star, dec = dec_star)
-    overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name = tum_tf.tu_star_index))
+    sky_coord_star = SkyCoord(ra=ra_star, dec=dec_star)
+    overlapping_star_catalog.add_column(Column(np.arange(len(ra_star)), name=tum_tf.tu_star_index))
 
     ra_gal = overlapping_galaxy_catalog[tum_tf.tu_ra]
     dec_gal = overlapping_galaxy_catalog[tum_tf.tu_dec]
-    sky_coord_gal = SkyCoord(ra = ra_gal, dec = dec_gal)
-    overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name = tum_tf.tu_gal_index))
+    sky_coord_gal = SkyCoord(ra=ra_gal, dec=dec_gal)
+    overlapping_galaxy_catalog.add_column(Column(np.arange(len(ra_gal)), name=tum_tf.tu_gal_index))
 
     # Perform match to SIM's tables for each method
     for method in ShearEstimationMethods:
-        match_for_method_in_coord_range(method = method,
-                                        shear_tables = shear_tables,
-                                        gal_matched_tables = gal_matched_tables,
-                                        star_matched_tables = star_matched_tables,
-                                        sky_coord_gal = sky_coord_gal,
-                                        sky_coord_star = sky_coord_star,
-                                        local_ra_range = local_ra_range,
-                                        local_dec_range = local_dec_range,
-                                        overlapping_galaxy_catalog = overlapping_galaxy_catalog,
-                                        overlapping_star_catalog = overlapping_star_catalog,
-                                        match_threshold = match_threshold)
+        match_for_method_in_coord_range(method=method,
+                                        shear_tables=shear_tables,
+                                        gal_matched_tables=gal_matched_tables,
+                                        star_matched_tables=star_matched_tables,
+                                        sky_coord_gal=sky_coord_gal,
+                                        sky_coord_star=sky_coord_star,
+                                        local_ra_range=local_ra_range,
+                                        local_dec_range=local_dec_range,
+                                        overlapping_galaxy_catalog=overlapping_galaxy_catalog,
+                                        overlapping_star_catalog=overlapping_star_catalog,
+                                        match_threshold=match_threshold)
 
 
 def match_for_method_in_coord_range(method: ShearEstimationMethods,
@@ -445,7 +445,7 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
     ra_se = shear_table[sem_tf.ra]
     dec_se = shear_table[sem_tf.dec]
     # noinspection PyUnresolvedReferences
-    sky_coord_se = SkyCoord(ra = ra_se * units.degree, dec = dec_se * units.degree)
+    sky_coord_se = SkyCoord(ra=ra_se * units.degree, dec=dec_se * units.degree)
 
     (best_obj_id_from_star,
      best_star_distance,
@@ -468,47 +468,47 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
 
     # Mask out with -99 if the distance is outside the threshold or it better matches to the
     # other type of object
-    best_star_id = get_filtered_best_match(best_tu_distance = best_star_distance,
-                                           best_distance = best_distance,
-                                           other_distance = best_gal_distance,
-                                           best_tu_id = best_star_id,
-                                           best_obj_id_from_tu = best_obj_id_from_star,
-                                           in_range = in_range,
-                                           match_threshold = match_threshold,
-                                           prioritize = False)
+    best_star_id = get_filtered_best_match(best_tu_distance=best_star_distance,
+                                           best_distance=best_distance,
+                                           other_distance=best_gal_distance,
+                                           best_tu_id=best_star_id,
+                                           best_obj_id_from_tu=best_obj_id_from_star,
+                                           in_range=in_range,
+                                           match_threshold=match_threshold,
+                                           prioritize=False)
 
-    best_gal_id = get_filtered_best_match(best_tu_distance = best_gal_distance,
-                                          best_distance = best_distance,
-                                          other_distance = best_star_distance,
-                                          best_tu_id = best_gal_id,
-                                          best_obj_id_from_tu = best_obj_id_from_gal,
-                                          in_range = in_range,
-                                          match_threshold = match_threshold,
-                                          prioritize = True)
+    best_gal_id = get_filtered_best_match(best_tu_distance=best_gal_distance,
+                                          best_distance=best_distance,
+                                          other_distance=best_star_distance,
+                                          best_tu_id=best_gal_id,
+                                          best_obj_id_from_tu=best_obj_id_from_gal,
+                                          in_range=in_range,
+                                          match_threshold=match_threshold,
+                                          prioritize=True)
 
     # Add columns to the shear estimates table so we can match to it
     if tum_tf.tu_star_index in shear_table.colnames and len(best_star_id) > 0:
         shear_table[tum_tf.tu_star_index] = best_star_id
     else:
-        shear_table.add_column(Column(best_star_id, name = tum_tf.tu_star_index))
+        shear_table.add_column(Column(best_star_id, name=tum_tf.tu_star_index))
 
     if tum_tf.tu_gal_index in shear_table.colnames and len(best_gal_id) > 0:
         shear_table[tum_tf.tu_gal_index] = best_gal_id
     else:
-        shear_table.add_column(Column(best_gal_id, name = tum_tf.tu_gal_index))
+        shear_table.add_column(Column(best_gal_id, name=tum_tf.tu_gal_index))
 
     # Match to the star and galaxy tables
     if len(sky_coord_star) > 0:
-        star_matched_table = join(shear_table, overlapping_star_catalog, keys = tum_tf.tu_star_index)
+        star_matched_table = join(shear_table, overlapping_star_catalog, keys=tum_tf.tu_star_index)
         logger.info("Matched " + str(len(star_matched_table)) + " objects to stars.")
     else:
-        star_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
+        star_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
 
     if len(sky_coord_gal) > 0:
-        gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys = tum_tf.tu_gal_index)
+        gal_matched_table = join(shear_table, overlapping_galaxy_catalog, keys=tum_tf.tu_gal_index)
         logger.info("Matched " + str(len(gal_matched_table)) + " objects to galaxies.")
     else:
-        gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype = bool)]
+        gal_matched_table = shear_table[False * np.ones(len(shear_table), dtype=bool)]
 
     # Remove matched rows from the shear table
     matched_rows = np.logical_or(best_star_id > 0, best_gal_id > 0)
@@ -529,8 +529,8 @@ def match_for_method_in_coord_range(method: ShearEstimationMethods,
 
     # Add extra useful columns to the galaxy-matched table for analysis
 
-    add_galaxy_analysis_columns(gal_matched_table = gal_matched_table,
-                                sem_tf = sem_tf)
+    add_galaxy_analysis_columns(gal_matched_table=gal_matched_table,
+                                sem_tf=sem_tf)
 
 
 def find_best_match(sky_coord_se,
@@ -543,12 +543,12 @@ def find_best_match(sky_coord_se,
         best_tu_id, best_tu_distance, _ = sky_coord_se.match_to_catalog_sky(sky_coord_tu)
 
         # Perform the reverse match as well, and only use a symmetric best-match table
-        best_obj_id_from_tu, _best_distance_from_tu, _ = sky_coord_tu.match_to_catalog_sky(
+        best_obj_id_from_tu, _, _ = sky_coord_tu.match_to_catalog_sky(
             sky_coord_se)
 
     else:
         best_tu_id, best_tu_distance = [], []
-        best_obj_id_from_tu, _best_distance_from_tu = [], []
+        best_obj_id_from_tu, _ = [], []
 
     return np.array(best_obj_id_from_tu), np.array(best_tu_distance), np.array(best_tu_id)
 
@@ -580,7 +580,7 @@ def get_filtered_best_match(best_tu_distance: np.ndarray,
         best_tu_id = np.where(symmetric_tu_match, best_tu_id, -99)
 
     else:
-        best_tu_id = np.zeros(len(in_range), dtype = int)
+        best_tu_id = np.zeros(len(in_range), dtype=int)
 
     return best_tu_id
 
@@ -593,28 +593,28 @@ def add_galaxy_analysis_columns(gal_matched_table: Table,
     gal_matched_table.add_column(
         Column(
             np.arctan2(gal_matched_table[sem_tf.g2].data, gal_matched_table[sem_tf.g1].data) * 90 / np.pi,
-            name = sem_tf.tu_g_beta))
+            name=sem_tf.tu_g_beta))
     g_mag = np.sqrt(gal_matched_table[sem_tf.g1].data ** 2 + gal_matched_table[sem_tf.g2].data ** 2)
-    gal_matched_table.add_column(Column(g_mag, name = sem_tf.tu_g_mag))
+    gal_matched_table.add_column(Column(g_mag, name=sem_tf.tu_g_mag))
 
     # Details about the input shear
     g1_in = -gal_matched_table[sem_tf.tu_gamma1] / (1 - gal_matched_table[sem_tf.tu_kappa])
     g2_in = gal_matched_table[sem_tf.tu_gamma2] / (1 - gal_matched_table[sem_tf.tu_kappa])
     gal_matched_table.add_column(
-        Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name = sem_tf.g_beta))
+        Column(np.arctan2(g2_in, g1_in) * 90 / np.pi, name=sem_tf.g_beta))
     gal_matched_table.add_column(
-        Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name = sem_tf.g_mag))
+        Column(np.sqrt(g1_in ** 2 + g2_in ** 2), name=sem_tf.g_mag))
 
     # Details about the input bulge shape
     bulge_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
     regularized_bulge_angle = np.where(bulge_angle < -90, bulge_angle + 180,
                                        np.where(bulge_angle > 90, bulge_angle - 180, bulge_angle))
     gal_matched_table.add_column(Column(regularized_bulge_angle,
-                                        name = sem_tf.tu_bulge_beta))
+                                        name=sem_tf.tu_bulge_beta))
 
     # Details about the input disk shape
     disk_angle = gal_matched_table[sem_tf.tu_disk_angle] + 90
     regularized_disk_angle = np.where(disk_angle < -90, disk_angle + 180,
                                       np.where(disk_angle > 90, disk_angle - 180, disk_angle))
     gal_matched_table.add_column(Column(regularized_disk_angle,
-                                        name = sem_tf.tu_disk_beta))
+                                        name=sem_tf.tu_disk_beta))

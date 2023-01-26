@@ -80,40 +80,40 @@ DEFAULT_SIZE_BIN_LIMITS = "0 30 45 75 140 300 1e99"
 # Separate default dicts to allow choice of using fixed or auto defaults relatively easily
 D_VALIDATION_CONFIG_FIXED_DEFAULTS: Dict[ConfigKeys, Any] = {
     **D_GLOBAL_CONFIG_DEFAULTS,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS   : DEFAULT_SNR_BIN_LIMITS,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS    : DEFAULT_BG_BIN_LIMITS,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: DEFAULT_SNR_BIN_LIMITS,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS: DEFAULT_BG_BIN_LIMITS,
     ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: DEFAULT_COLOUR_BIN_LIMITS,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS  : DEFAULT_SIZE_BIN_LIMITS,
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS : TOT_BIN_LIMITS_STR,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: DEFAULT_SIZE_BIN_LIMITS,
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS: TOT_BIN_LIMITS_STR,
     }
 
 D_VALIDATION_CONFIG_AUTO_DEFAULTS: Dict[ConfigKeys, Any] = {
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS   : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS    : DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
     ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS  : DEFAULT_AUTO_BIN_LIMITS,
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS : DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS: DEFAULT_AUTO_BIN_LIMITS,
     }
 
 D_VALIDATION_CONFIG_DEFAULTS: Dict[ConfigKeys, Any] = {
     **D_GLOBAL_CONFIG_DEFAULTS,
     **D_VALIDATION_CONFIG_AUTO_DEFAULTS,
-    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : DEFAULT_GLOBAL_FAIL_SIGMA,
-    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : DEFAULT_LOCAL_FAIL_SIGMA,
+    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: DEFAULT_GLOBAL_FAIL_SIGMA,
+    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: DEFAULT_LOCAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: DEFAULT_FAIL_SIGMA_SCALING,
     }
 
 # Types
 D_VALIDATION_CONFIG_TYPES: Dict[ConfigKeys, Union[Type, EnumMeta]] = {
     **D_GLOBAL_CONFIG_TYPES,
-    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : float,
-    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : float,
+    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: float,
+    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: float,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: FailSigmaScaling,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : (np.ndarray, str),
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : (np.ndarray, str),
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : (np.ndarray, str),
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : (np.ndarray, str),
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS  : (np.ndarray, str),
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: (np.ndarray, str),
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS: (np.ndarray, str),
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: (np.ndarray, str),
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: (np.ndarray, str),
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS: (np.ndarray, str),
     }
 
 # Command-line arguments
@@ -125,12 +125,12 @@ CA_FAIL_SIGMA_SCALING = "fail_sigma_scaling"
 
 D_VALIDATION_CONFIG_CLINE_ARGS: Dict[ConfigKeys, str] = {
     **D_GLOBAL_CONFIG_CLINE_ARGS,
-    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA : CA_GLOBAL_FAIL_SIGMA,
-    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA  : CA_LOCAL_FAIL_SIGMA,
+    ValidationConfigKeys.VAL_GLOBAL_FAIL_SIGMA: CA_GLOBAL_FAIL_SIGMA,
+    ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA: CA_LOCAL_FAIL_SIGMA,
     ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING: CA_FAIL_SIGMA_SCALING,
-    ValidationConfigKeys.VAL_SNR_BIN_LIMITS    : D_BIN_PARAMETER_META[BinParameters.SNR].cline_arg,
-    ValidationConfigKeys.VAL_BG_BIN_LIMITS     : D_BIN_PARAMETER_META[BinParameters.BG].cline_arg,
-    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS : D_BIN_PARAMETER_META[BinParameters.COLOUR].cline_arg,
-    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS   : D_BIN_PARAMETER_META[BinParameters.SIZE].cline_arg,
-    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS  : D_BIN_PARAMETER_META[BinParameters.EPOCH].cline_arg,
+    ValidationConfigKeys.VAL_SNR_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.SNR].cline_arg,
+    ValidationConfigKeys.VAL_BG_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.BG].cline_arg,
+    ValidationConfigKeys.VAL_COLOUR_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.COLOUR].cline_arg,
+    ValidationConfigKeys.VAL_SIZE_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.SIZE].cline_arg,
+    ValidationConfigKeys.VAL_EPOCH_BIN_LIMITS: D_BIN_PARAMETER_META[BinParameters.EPOCH].cline_arg,
     }

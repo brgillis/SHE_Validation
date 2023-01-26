@@ -38,9 +38,9 @@ class PsfResArgumentParser(ValidationArgumentParser):
 
         self.add_star_catalog_arg()
 
-        self.add_arg_with_type(f"--{CA_REF_SHE_STAR_CAT}", type = str, arg_type = ClineArgType.INPUT,
-                               help = f".xml data product for SHE star catalog from simulations, to which the "
-                                      f"product provided to the --{CA_SHE_STAR_CAT} input port should be compared.")
+        self.add_arg_with_type(f"--{CA_REF_SHE_STAR_CAT}", type=str, arg_type=ClineArgType.INPUT,
+                               help=f".xml data product for SHE star catalog from simulations, to which the "
+                                    f"product provided to the --{CA_SHE_STAR_CAT} input port should be compared.")
 
         # Output filename arguments
 
@@ -48,4 +48,4 @@ class PsfResArgumentParser(ValidationArgumentParser):
 
         # Optional arguments
 
-        self.add_bin_parameter_args(l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+        self.add_bin_parameter_args(l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)

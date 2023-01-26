@@ -97,7 +97,7 @@ class PsfResRequirementWriter(RequirementWriter):
         self.l_good_data = np.logical_not(l_bad_val)
 
         # Make an array of test results
-        self.l_test_pass = val_over_target(val = self.l_val, val_target = self.l_val_target)
+        self.l_test_pass = val_over_target(val=self.l_val, val_target=self.l_val_target)
 
 
 class PsfResAnalysisWriter(AnalysisWriter):

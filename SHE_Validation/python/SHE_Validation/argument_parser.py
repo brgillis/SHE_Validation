@@ -39,37 +39,37 @@ class ValidationArgumentParser(SheArgumentParser):
     # Convenience functions to add input filename cline-args
 
     def add_extended_catalog_arg(self, arg_type: ClineArgType = ClineArgType.INPUT):
-        self.add_arg_with_type(f'--{CA_SHE_EXT_CAT}', type = str, arg_type = arg_type,
-                               help = '.xml data product for extended MER Final Catalog, containing binning '
-                                      'data.')
+        self.add_arg_with_type(f'--{CA_SHE_EXT_CAT}', type=str, arg_type=arg_type,
+                               help='.xml data product for extended MER Final Catalog, containing binning '
+                                    'data.')
 
     def add_matched_catalog_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
-        self.add_arg_with_type(f'--{CA_SHE_MATCHED_CAT}', type = str, arg_type = arg_type,
-                               help = '.xml data product for Shear Estimates catalog matched to TU catalog.')
+        self.add_arg_with_type(f'--{CA_SHE_MATCHED_CAT}', type=str, arg_type=arg_type,
+                               help='.xml data product for Shear Estimates catalog matched to TU catalog.')
 
     def add_matched_catalog_listfile_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
-        self.add_arg_with_type(f'--{CA_SHE_MATCHED_CAT_LIST}', type = str, arg_type = arg_type,
-                               help = '.json listfile containing filenames of matched catalog products.')
+        self.add_arg_with_type(f'--{CA_SHE_MATCHED_CAT_LIST}', type=str, arg_type=arg_type,
+                               help='.json listfile containing filenames of matched catalog products.')
 
     # Convenience functions to add output filename cline-args
 
     def add_test_result_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
-        self.add_arg_with_type(f'--{CA_SHE_TEST_RESULTS}', type = str, arg_type = arg_type,
-                               default = "she_validation_test_results_product.xml",
-                               help = 'Desired filename of output .xml data product for validation test '
-                                      'results.')
+        self.add_arg_with_type(f'--{CA_SHE_TEST_RESULTS}', type=str, arg_type=arg_type,
+                               default="she_validation_test_results_product.xml",
+                               help='Desired filename of output .xml data product for validation test '
+                                    'results.')
 
     def add_obs_test_result_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
-        self.add_arg_with_type(f'--{CA_SHE_OBS_TEST_RESULTS}', type = str, arg_type = arg_type,
-                               default = "she_observation_cti_gal_validation_test_results_product.xml",
-                               help = 'Desired filename of output .xml data product for observation validation '
-                                      'test results.')
+        self.add_arg_with_type(f'--{CA_SHE_OBS_TEST_RESULTS}', type=str, arg_type=arg_type,
+                               default="she_observation_cti_gal_validation_test_results_product.xml",
+                               help='Desired filename of output .xml data product for observation validation '
+                                    'test results.')
 
     def add_exp_test_result_listfile_arg(self, arg_type: ClineArgType = ClineArgType.INPUT) -> None:
-        self.add_arg_with_type(f'--{CA_SHE_EXP_TEST_RESULTS_LIST}', type = str, arg_type = arg_type,
-                               default = "she_exposure_cti_gal_validation_test_results_listfile.xml",
-                               help = 'Desired filename of output .json listfile for exposure validation test '
-                                      'results.')
+        self.add_arg_with_type(f'--{CA_SHE_EXP_TEST_RESULTS_LIST}', type=str, arg_type=arg_type,
+                               default="she_exposure_cti_gal_validation_test_results_listfile.xml",
+                               help='Desired filename of output .json listfile for exposure validation test '
+                                    'results.')
 
     # Convenience functions to add options cline-args
 
@@ -79,7 +79,7 @@ class ValidationArgumentParser(SheArgumentParser):
         for bin_parameter in l_bin_parameters:
             bin_parameter_meta: BinParameterMeta = D_BIN_PARAMETER_META[bin_parameter]
             self.add_arg_with_type(f'--{bin_parameter_meta.cline_arg}',
-                                   type = str,
-                                   default = None,
-                                   arg_type = arg_type,
-                                   help = bin_parameter_meta.help_text)
+                                   type=str,
+                                   default=None,
+                                   arg_type=arg_type,
+                                   help=bin_parameter_meta.help_text)

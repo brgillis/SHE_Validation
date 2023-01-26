@@ -51,12 +51,12 @@ from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF
 
 logger = getLogger(__name__)
 
-D_EX_TEST_CASE_IDS = {BinParameters.TOT   : "TC-SHE--1-CTI-gal-tot",
-                      BinParameters.SNR   : "TC-SHE-100028-CTI-gal-SNR",
-                      BinParameters.BG    : "TC-SHE-100029-CTI-gal-bg",
-                      BinParameters.SIZE  : "TC-SHE-100030-CTI-gal-size",
+D_EX_TEST_CASE_IDS = {BinParameters.TOT: "TC-SHE--1-CTI-gal-tot",
+                      BinParameters.SNR: "TC-SHE-100028-CTI-gal-SNR",
+                      BinParameters.BG: "TC-SHE-100029-CTI-gal-bg",
+                      BinParameters.SIZE: "TC-SHE-100030-CTI-gal-size",
                       BinParameters.COLOUR: "TC-SHE-100031-CTI-gal-col",
-                      BinParameters.EPOCH : "TC-SHE-100032-CTI-gal-epoch"}
+                      BinParameters.EPOCH: "TC-SHE-100032-CTI-gal-epoch"}
 
 
 class TestCtiResultsReporting(SheTestCase):
@@ -68,9 +68,9 @@ class TestCtiResultsReporting(SheTestCase):
     def post_setup(self):
 
         # Make a pipeline_config using the default values
-        self.pipeline_config = read_config(config_filename = None, config_keys = (GlobalConfigKeys,
-                                                                                  ValidationConfigKeys,),
-                                           d_defaults = D_CTI_GAL_CONFIG_DEFAULTS, d_types = D_CTI_GAL_CONFIG_TYPES)
+        self.pipeline_config = read_config(config_filename=None, config_keys=(GlobalConfigKeys,
+                                                                              ValidationConfigKeys,),
+                                           d_defaults=D_CTI_GAL_CONFIG_DEFAULTS, d_types=D_CTI_GAL_CONFIG_TYPES)
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
 
         # Make a dictionary of bin limits
@@ -83,7 +83,7 @@ class TestCtiResultsReporting(SheTestCase):
                 bin_limits_string = D_VALIDATION_CONFIG_FIXED_DEFAULTS[bins_config_key]
 
             bin_limits_list = list(map(float, bin_limits_string.strip().split()))
-            bin_limits_array = np.array(bin_limits_list, dtype = float)
+            bin_limits_array = np.array(bin_limits_list, dtype=float)
 
             self.d_bin_limits[test_case_info.bins] = bin_limits_array
 
@@ -103,9 +103,9 @@ class TestCtiResultsReporting(SheTestCase):
 
         # Test with no scaling - all sigma should be unchanged
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
-        ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
-                                                       l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_l_bin_limits = self.d_bin_limits)
+        ns_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                       d_l_bin_limits=self.d_bin_limits)
 
         for test_case in L_CTI_GAL_TEST_CASE_INFO:
             assert np.isclose(ns_fail_sigma_calculator.d_scaled_local_sigma[test_case.name], base_local_fail_sigma)
@@ -114,17 +114,17 @@ class TestCtiResultsReporting(SheTestCase):
         # Test with other scaling types, and check that the fail sigmas increase with number of tries
 
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.BINS
-        bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
-                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_l_bin_limits = self.d_bin_limits)
+        bin_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_l_bin_limits=self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASES
-        tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
-                                                       l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                       d_l_bin_limits = self.d_bin_limits)
+        tc_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                       l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                       d_l_bin_limits=self.d_bin_limits)
         test_pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.TEST_CASE_BINS
-        tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config = test_pipeline_config,
-                                                        l_test_case_info = L_CTI_GAL_TEST_CASE_INFO,
-                                                        d_l_bin_limits = self.d_bin_limits)
+        tcb_fail_sigma_calculator = FailSigmaCalculator(pipeline_config=test_pipeline_config,
+                                                        l_test_case_info=L_CTI_GAL_TEST_CASE_INFO,
+                                                        d_l_bin_limits=self.d_bin_limits)
 
         first_tc_global_fail_sigma = None
         first_tc_local_fail_sigma = None
@@ -208,7 +208,7 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert (f"Maximum allowed slope_z = " +
+        assert ("Maximum allowed slope_z = " +
                 f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
@@ -247,16 +247,16 @@ class TestCtiResultsReporting(SheTestCase):
         assert f"slope = {3.}\n" in exp_slope_info_string
         assert f"slope_err = {2.}\n" in exp_slope_info_string
         assert f"slope_z = {3. / 2.}\n" in exp_slope_info_string
-        assert (f"Maximum allowed slope_z = " +
+        assert ("Maximum allowed slope_z = " +
                 f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_PASS}\n" in exp_slope_info_string
 
         # Check for bad bin data
-        assert f"slope = nan\n" in exp_slope_info_string
-        assert f"slope_err = nan\n" in exp_slope_info_string
-        assert f"slope_z = nan\n" in exp_slope_info_string
-        assert (f"Maximum allowed slope_z = " +
+        assert "slope = nan\n" in exp_slope_info_string
+        assert "slope_err = nan\n" in exp_slope_info_string
+        assert "slope_z = nan\n" in exp_slope_info_string
+        assert ("Maximum allowed slope_z = " +
                 f"{D_CTI_GAL_CONFIG_DEFAULTS[ValidationConfigKeys.VAL_LOCAL_FAIL_SIGMA]:{Z_FORMAT}}\n"
                 in exp_slope_info_string)
         assert f"Result: {RESULT_FAIL}\n" in exp_slope_info_string
@@ -357,23 +357,23 @@ class TestCtiResultsReporting(SheTestCase):
         """
 
         # With the observation, test saying we have no data
-        obs_results_table = RR_TF.init_table(product_type = "OBS", size = 1)
+        obs_results_table = RR_TF.init_table(product_type="OBS", size=1)
 
         obs_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests = NUM_CTI_GAL_TEST_CASES)
+            num_tests=NUM_CTI_GAL_TEST_CASES)
 
         d_obs_results_tables = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1
             d_obs_results_tables[test_case_info.name] = [obs_results_table] * num_bins
 
-        fill_cti_gal_validation_results(test_result_product = obs_product,
-                                        regression_results_row_index = 0,
-                                        d_l_test_results = d_obs_results_tables,
-                                        pipeline_config = self.pipeline_config,
-                                        d_l_bin_limits = self.d_bin_limits,
-                                        workdir = self.workdir,
-                                        method_data_exists = False)
+        fill_cti_gal_validation_results(test_result_product=obs_product,
+                                        regression_results_row_index=0,
+                                        d_l_test_results=d_obs_results_tables,
+                                        pipeline_config=self.pipeline_config,
+                                        d_l_bin_limits=self.d_bin_limits,
+                                        workdir=self.workdir,
+                                        method_data_exists=False)
 
         # Check that the product validates its binding
         obs_product.validateBinding()
@@ -401,7 +401,7 @@ class TestCtiResultsReporting(SheTestCase):
             else:
                 assert obs_info.Parameter[0].StringValue == MSG_NO_DATA
 
-    @pytest.fixture(scope = 'class')
+    @pytest.fixture(scope='class')
     def lmc_indices(self, l_exp_results: List[Any]):
         # Figure out the index for LensMC Tot and colour test results and MomentsML tot test results and save it
         # for each check
@@ -429,22 +429,22 @@ class TestCtiResultsReporting(SheTestCase):
         assert momentsml_global_test_case_index >= 0
         return lensmc_colour_test_case_index, lensmc_global_test_case_index
 
-    @pytest.fixture(scope = 'class')
+    @pytest.fixture(scope='class')
     def l_exp_results(self, class_setup):
         d_exp_results_tables = self.create_exp_results_tables()
         # Create the exposure output data products
         l_exp_results = [None] * self.num_exposures
         for exp_index, exp_results in enumerate(self.exp_results_list):
             exp_product = products.she_validation_test_results.create_validation_test_results_product(
-                num_tests = NUM_CTI_GAL_TEST_CASES)
+                num_tests=NUM_CTI_GAL_TEST_CASES)
 
-            fill_cti_gal_validation_results(test_result_product = exp_product,
-                                            regression_results_row_index = exp_index,
-                                            d_l_test_results = d_exp_results_tables,
-                                            pipeline_config = self.pipeline_config,
-                                            d_l_bin_limits = self.d_bin_limits,
-                                            workdir = self.workdir,
-                                            method_data_exists = True)
+            fill_cti_gal_validation_results(test_result_product=exp_product,
+                                            regression_results_row_index=exp_index,
+                                            d_l_test_results=d_exp_results_tables,
+                                            pipeline_config=self.pipeline_config,
+                                            d_l_bin_limits=self.d_bin_limits,
+                                            workdir=self.workdir,
+                                            method_data_exists=True)
 
             l_exp_results[exp_index] = exp_product
         return l_exp_results
@@ -464,7 +464,7 @@ class TestCtiResultsReporting(SheTestCase):
                                  RegResults(np.NaN, np.NaN, np.NaN, np.NaN), ]
         self.num_exposures = len(self.exp_results_list)
         # Set up mock input data and fill the products for each set of possible results
-        base_exp_results_table = RR_TF.init_table(product_type = "EXP", size = len(self.exp_results_list))
+        base_exp_results_table = RR_TF.init_table(product_type="EXP", size=len(self.exp_results_list))
         d_exp_results_tables: Dict[str, List[Optional[Table]]] = {}
         for test_case_info in L_CTI_GAL_TEST_CASE_INFO:
             num_bins = len(self.d_bin_limits[test_case_info.bins]) - 1

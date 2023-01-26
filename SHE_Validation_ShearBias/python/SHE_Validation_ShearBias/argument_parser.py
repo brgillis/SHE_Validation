@@ -43,10 +43,10 @@ class ShearValidationArgumentParser(ValidationArgumentParser):
         self.add_test_result_arg()
 
         # Options
-        self.add_arg_with_type(f'--{CA_MAX_G_IN}', type = float, default = None, arg_type = ClineArgType.OPTION,
-                               help = 'Maximum value of input shear to allow.')
-        self.add_arg_with_type(f'--{CA_BOOTSTRAP_ERRORS}', type = bool, default = None, arg_type = ClineArgType.OPTION,
-                               help = 'If set to True, will use bootstrap calculation for errors.')
-        self.add_arg_with_type(f'--{CA_REQ_FITCLASS_ZERO}', type = bool, default = None, arg_type = ClineArgType.OPTION,
-                               help = 'If set to true, will only include objects identified as galaxies ('
-                                      'FITCLASS==0) in analysis.')
+        self.add_arg_with_type(f'--{CA_MAX_G_IN}', type=float, default=None, arg_type=ClineArgType.OPTION,
+                               help='Maximum value of input shear to allow.')
+        self.add_arg_with_type(f'--{CA_BOOTSTRAP_ERRORS}', type=bool, default=None, arg_type=ClineArgType.OPTION,
+                               help='If set to True, will use bootstrap calculation for errors.')
+        self.add_arg_with_type(f'--{CA_REQ_FITCLASS_ZERO}', type=bool, default=None, arg_type=ClineArgType.OPTION,
+                               help='If set to true, will only include objects identified as galaxies ('
+                                    'FITCLASS==0) in analysis.')

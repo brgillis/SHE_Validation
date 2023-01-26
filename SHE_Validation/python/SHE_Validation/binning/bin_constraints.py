@@ -208,7 +208,7 @@ class RangeBinConstraint(BinConstraint):
         if self.bin_colname is None:
             if isinstance(data, Row):
                 return True
-            return True * np.ones(len(data), dtype = bool)
+            return True * np.ones(len(data), dtype=bool)
 
         # First check for any NaN or masked values, and exclude them from the bin
         l_nan_or_masked = is_nan_or_masked(data[self.bin_colname])
@@ -224,7 +224,7 @@ class RangeBinConstraint(BinConstraint):
             l_max_check = self.bin_limits[1] > data[self.bin_colname]
 
         l_min_and_max_check = np.logical_and(l_min_check, l_max_check)
-            
+
         l_in_bin = np.where(l_nan_or_masked, False, l_min_and_max_check)
 
         return l_in_bin
@@ -384,7 +384,7 @@ class HeteroBinConstraint:
         """
 
         l_s_ids_in_bin: List[Set[int]] = [
-            set(bin_constraint.get_ids_in_bin(table, *args, l_full_ids = l_full_ids, **kwargs))
+            set(bin_constraint.get_ids_in_bin(table, *args, l_full_ids=l_full_ids, **kwargs))
             for bin_constraint, table in zip(self.l_bin_constraints, l_tables)]
         return np.array(list(set.intersection(*l_s_ids_in_bin)))
 
@@ -423,7 +423,7 @@ class BinParameterBinConstraint(RangeBinConstraint):
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
 
-        super().__init__(bin_limits = bin_limits)
+        super().__init__(bin_limits=bin_limits)
 
         # Set parameters from the test_case_info object
         if test_case_info:
@@ -502,7 +502,7 @@ class FitclassZeroBinConstraint(ValueBinConstraint):
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        super().__init__(bin_colname = tf.fit_class)
+        super().__init__(bin_colname=tf.fit_class)
 
 
 class FitflagsBinConstraint(BitFlagsBinConstraint):
@@ -517,7 +517,7 @@ class FitflagsBinConstraint(BitFlagsBinConstraint):
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        super().__init__(bin_colname = tf.fit_flags)
+        super().__init__(bin_colname=tf.fit_flags)
 
 
 class WeightBinConstraint(RangeBinConstraint):
@@ -533,7 +533,7 @@ class WeightBinConstraint(RangeBinConstraint):
         """ Get the bin colname from the shear estimation method.
         """
         tf: SheMeasurementsFormat = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
-        super().__init__(bin_colname = tf.weight)
+        super().__init__(bin_colname=tf.weight)
 
 
 # Convenience multi bin constraints
@@ -548,11 +548,11 @@ class VisDetBinParameterBinConstraint(MultiBinConstraint):
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS) -> None:
         vis_det_bc = VisDetBinConstraint()
-        bin_parameter_bc = BinParameterBinConstraint(test_case_info = test_case_info,
-                                                     bin_parameter = bin_parameter,
-                                                     bin_limits = bin_limits)
+        bin_parameter_bc = BinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
 
-        super().__init__(l_bin_constraints = [vis_det_bc, bin_parameter_bc])
+        super().__init__(l_bin_constraints=[vis_det_bc, bin_parameter_bc])
 
 
 class GoodMeasurementBinConstraint(MultiBinConstraint):
@@ -560,10 +560,10 @@ class GoodMeasurementBinConstraint(MultiBinConstraint):
     """
 
     def __init__(self, method: ShearEstimationMethods) -> None:
-        fitflags_bc = FitflagsBinConstraint(method = method)
-        weight_bc = WeightBinConstraint(method = method)
+        fitflags_bc = FitflagsBinConstraint(method=method)
+        weight_bc = WeightBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [fitflags_bc, weight_bc])
+        super().__init__(l_bin_constraints=[fitflags_bc, weight_bc])
 
 
 class GoodGalaxyMeasurementBinConstraint(MultiBinConstraint):
@@ -571,11 +571,11 @@ class GoodGalaxyMeasurementBinConstraint(MultiBinConstraint):
     """
 
     def __init__(self, method: ShearEstimationMethods) -> None:
-        fitclass_zero_bc = FitclassZeroBinConstraint(method = method)
-        fitflags_bc = FitflagsBinConstraint(method = method)
-        weight_bc = WeightBinConstraint(method = method)
+        fitclass_zero_bc = FitclassZeroBinConstraint(method=method)
+        fitflags_bc = FitflagsBinConstraint(method=method)
+        weight_bc = WeightBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [fitclass_zero_bc, fitflags_bc, weight_bc])
+        super().__init__(l_bin_constraints=[fitclass_zero_bc, fitflags_bc, weight_bc])
 
 
 class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
@@ -588,15 +588,15 @@ class GoodBinnedMeasurementBinConstraint(MultiBinConstraint):
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
 
-        det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
-                                               bin_parameter = bin_parameter,
-                                               bin_limits = bin_limits)
+        det_bin_bc = BinParameterBinConstraint(test_case_info=test_case_info,
+                                               bin_parameter=bin_parameter,
+                                               bin_limits=bin_limits)
         if method is None:
             method = test_case_info.method
 
-        good_meas_bc = GoodMeasurementBinConstraint(method = method)
+        good_meas_bc = GoodMeasurementBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
+        super().__init__(l_bin_constraints=[det_bin_bc, good_meas_bc])
 
 
 class GoodBinnedGalaxyMeasurementBinConstraint(MultiBinConstraint):
@@ -608,12 +608,12 @@ class GoodBinnedGalaxyMeasurementBinConstraint(MultiBinConstraint):
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
-        det_bin_bc = BinParameterBinConstraint(test_case_info = test_case_info,
-                                               bin_parameter = bin_parameter,
-                                               bin_limits = bin_limits)
-        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method = method)
+        det_bin_bc = BinParameterBinConstraint(test_case_info=test_case_info,
+                                               bin_parameter=bin_parameter,
+                                               bin_limits=bin_limits)
+        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
+        super().__init__(l_bin_constraints=[det_bin_bc, good_meas_bc])
 
 
 # Convenience hetero bin constraints
@@ -628,12 +628,12 @@ class GoodBinnedMeasurementHBC(HeteroBinConstraint):
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
-        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
-                                                     bin_parameter = bin_parameter,
-                                                     bin_limits = bin_limits)
-        good_meas_bc = GoodMeasurementBinConstraint(method = method)
+        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
+        good_meas_bc = GoodMeasurementBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
+        super().__init__(l_bin_constraints=[det_bin_bc, good_meas_bc])
 
 
 class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
@@ -645,12 +645,12 @@ class GoodBinnedGalaxyMeasurementHBC(HeteroBinConstraint):
                  test_case_info: Optional[TestCaseInfo] = None,
                  bin_parameter: Optional[BinParameters] = None,
                  bin_limits: Sequence[float] = TOT_BIN_LIMITS, ) -> None:
-        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info = test_case_info,
-                                                     bin_parameter = bin_parameter,
-                                                     bin_limits = bin_limits)
-        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method = method)
+        det_bin_bc = VisDetBinParameterBinConstraint(test_case_info=test_case_info,
+                                                     bin_parameter=bin_parameter,
+                                                     bin_limits=bin_limits)
+        good_meas_bc = GoodGalaxyMeasurementBinConstraint(method=method)
 
-        super().__init__(l_bin_constraints = [det_bin_bc, good_meas_bc])
+        super().__init__(l_bin_constraints=[det_bin_bc, good_meas_bc])
 
 
 # Functions to apply bin constraints
@@ -666,12 +666,12 @@ def _get_ids_in_bin(bin_parameter: BinParameters,
                     ) -> Sequence[int]:
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
-    bin_constraint: BinConstraint = bin_constraint_type(bin_parameter = bin_parameter, bin_limits = bin_limits)
+    bin_constraint: BinConstraint = bin_constraint_type(bin_parameter=bin_parameter, bin_limits=bin_limits)
 
     # Get IDs for this bin, and add it to the list
-    l_binned_ids = bin_constraint.get_ids_in_bin(t = detections_table,
-                                                 l_full_ids = l_full_ids,
-                                                 data_stack = data_stack)
+    l_binned_ids = bin_constraint.get_ids_in_bin(t=detections_table,
+                                                 l_full_ids=l_full_ids,
+                                                 data_stack=data_stack)
 
     return l_binned_ids
 
@@ -688,14 +688,14 @@ def _get_ids_in_hetero_bin(bin_parameter: BinParameters,
                            ) -> Sequence[int]:
     # Get the bin limits, and make a bin constraint
     bin_limits: Sequence[float] = full_bin_limits[bin_index:bin_index + 2]
-    bin_constraint: HeteroBinConstraint = bin_constraint_type(method = method,
-                                                              bin_parameter = bin_parameter,
-                                                              bin_limits = bin_limits, )
+    bin_constraint: HeteroBinConstraint = bin_constraint_type(method=method,
+                                                              bin_parameter=bin_parameter,
+                                                              bin_limits=bin_limits, )
 
     # Get IDs for this bin, and add it to the list
-    l_binned_ids = bin_constraint.get_ids_in_bin(l_tables = [detections_table, measurements_table],
-                                                 l_full_ids = l_full_ids,
-                                                 data_stack = data_stack)
+    l_binned_ids = bin_constraint.get_ids_in_bin(l_tables=[detections_table, measurements_table],
+                                                 l_full_ids=l_full_ids,
+                                                 data_stack=data_stack)
 
     return l_binned_ids
 
@@ -730,13 +730,13 @@ def get_ids_for_bins(d_bin_limits: Dict[BinParameters, Sequence[float]],
         # Loop over bins, getting IDs for each and adding them to the list
         for bin_index in range(num_bins):
 
-            l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter = bin_parameter,
-                                                          bin_constraint_type = bin_constraint_type,
-                                                          full_bin_limits = full_bin_limits,
-                                                          bin_index = bin_index,
-                                                          detections_table = detections_table,
-                                                          l_full_ids = l_full_ids,
-                                                          data_stack = data_stack)
+            l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter=bin_parameter,
+                                                          bin_constraint_type=bin_constraint_type,
+                                                          full_bin_limits=full_bin_limits,
+                                                          bin_index=bin_index,
+                                                          detections_table=detections_table,
+                                                          l_full_ids=l_full_ids,
+                                                          data_stack=data_stack)
             l_l_binned_ids[bin_index] = l_binned_ids
 
         # Add the list to the output dictionary
@@ -781,14 +781,14 @@ def get_ids_for_test_cases(l_test_case_info: Sequence[TestCaseInfo],
         # Loop over bins, getting IDs for each and adding them to the list
         for bin_index in range(num_bins):
 
-            l_l_binned_ids[bin_index] = _get_l_binned_ids(test_case_info = test_case_info,
-                                                          bin_constraint_type = bin_constraint_type,
-                                                          full_bin_limits = full_bin_limits,
-                                                          bin_index = bin_index,
-                                                          detections_table = detections_table,
-                                                          l_full_ids = l_full_ids,
-                                                          d_measurements_tables = d_measurements_tables,
-                                                          data_stack = data_stack)
+            l_l_binned_ids[bin_index] = _get_l_binned_ids(test_case_info=test_case_info,
+                                                          bin_constraint_type=bin_constraint_type,
+                                                          full_bin_limits=full_bin_limits,
+                                                          bin_index=bin_index,
+                                                          detections_table=detections_table,
+                                                          l_full_ids=l_full_ids,
+                                                          d_measurements_tables=d_measurements_tables,
+                                                          data_stack=data_stack)
 
         # Add the list to the output dictionary
         d_l_l_binned_ids[test_case_info.name] = l_l_binned_ids
@@ -813,23 +813,23 @@ def _get_l_binned_ids(test_case_info: TestCaseInfo,
             # If we don't have data for a given method, return no IDs for it
             l_binned_ids: Sequence[int] = []
         else:
-            l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter = test_case_info.bin_parameter,
-                                                                 method = test_case_info.method,
-                                                                 bin_constraint_type = bin_constraint_type,
-                                                                 full_bin_limits = full_bin_limits,
-                                                                 bin_index = bin_index,
-                                                                 detections_table = detections_table,
-                                                                 l_full_ids = l_full_ids,
-                                                                 measurements_table = measurements_table,
-                                                                 data_stack = data_stack)
+            l_binned_ids: Sequence[int] = _get_ids_in_hetero_bin(bin_parameter=test_case_info.bin_parameter,
+                                                                 method=test_case_info.method,
+                                                                 bin_constraint_type=bin_constraint_type,
+                                                                 full_bin_limits=full_bin_limits,
+                                                                 bin_index=bin_index,
+                                                                 detections_table=detections_table,
+                                                                 l_full_ids=l_full_ids,
+                                                                 measurements_table=measurements_table,
+                                                                 data_stack=data_stack)
     else:
-        l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter = test_case_info.bin_parameter,
-                                                      bin_constraint_type = bin_constraint_type,
-                                                      full_bin_limits = full_bin_limits,
-                                                      bin_index = bin_index,
-                                                      detections_table = detections_table,
-                                                      l_full_ids = l_full_ids,
-                                                      data_stack = data_stack)
+        l_binned_ids: Sequence[int] = _get_ids_in_bin(bin_parameter=test_case_info.bin_parameter,
+                                                      bin_constraint_type=bin_constraint_type,
+                                                      full_bin_limits=full_bin_limits,
+                                                      bin_index=bin_index,
+                                                      detections_table=detections_table,
+                                                      l_full_ids=l_full_ids,
+                                                      data_stack=data_stack)
     return l_binned_ids
 
 
@@ -849,7 +849,7 @@ def get_table_of_ids(t: Table,
 
     # Return an empty table if the ID list is empty
     if len(l_ids) == 0:
-        return t[np.zeros_like(t[id_colname], dtype = bool)]
+        return t[np.zeros_like(t[id_colname], dtype=bool)]
 
     try:
         table_in_bin: Table = t.loc[l_ids]
@@ -888,9 +888,9 @@ class BinnedTableLoader(TableLoader):
         else:
             t = self.get()
 
-        return get_table_of_ids(t = t,
-                                l_ids = l_ids,
-                                id_colname = self.id_colname)
+        return get_table_of_ids(t=t,
+                                l_ids=l_ids,
+                                id_colname=self.id_colname)
 
     def get_table_for_all(self,
                           keep_open: bool = True,
@@ -954,15 +954,15 @@ class BinnedMultiTableLoader(MultiTableLoader):
 
             t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
 
-            l_binned_tables[i] = get_table_of_ids(t = t,
-                                                  l_ids = l_ids,
-                                                  id_colname = self.id_colname)
+            l_binned_tables[i] = get_table_of_ids(t=t,
+                                                  l_ids=l_ids,
+                                                  id_colname=self.id_colname)
 
         # Check that we have at least one table
         if len(l_binned_tables) == 0:
             return None
 
-        return table_vstack(tables = l_binned_tables)
+        return table_vstack(tables=l_binned_tables)
 
     def get_table_for_all(self,
                           keep_open: bool = True,
@@ -979,7 +979,7 @@ class BinnedMultiTableLoader(MultiTableLoader):
         if len(l_binned_tables) == 0:
             return None
 
-        return table_vstack(tables = l_binned_tables)
+        return table_vstack(tables=l_binned_tables)
 
     def get_table_for_bin_constraint(self,
                                      bin_constraint: BinConstraint,
@@ -1000,10 +1000,10 @@ class BinnedMultiTableLoader(MultiTableLoader):
             t: Table = self.__get_with_keep_open(file_loader, keep_open, *args, **kwargs)
 
             # Get a list of IDs for this bin constraint
-            l_binned_tables[i] = bin_constraint.get_rows_in_bin(t = t)
+            l_binned_tables[i] = bin_constraint.get_rows_in_bin(t=t)
 
         # Check that we have at least one table
         if len(l_binned_tables) == 0:
             return None
 
-        return table_vstack(tables = l_binned_tables)
+        return table_vstack(tables=l_binned_tables)

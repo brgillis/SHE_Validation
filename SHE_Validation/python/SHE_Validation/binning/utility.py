@@ -21,19 +21,21 @@ __updated__ = "2021-08-06"
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
-from typing import Dict, Union
+from typing import Dict, TYPE_CHECKING, Union
 
 import numpy as np
 from astropy.table import Table
 from scipy.stats.mstats_basic import mquantiles
 
 from SHE_PPT.constants.classes import BinParameters
-from SHE_PPT.constants.config import ConfigKeys
 from SHE_Validation.binning.bin_data import BIN_TF
 from SHE_Validation.constants.default_config import (DEFAULT_AUTO_BIN_LIMITS, DEFAULT_N_BIN_LIMITS_QUANTILES,
                                                      STR_AUTO_BIN_LIMITS_HEAD,
                                                      TOT_BIN_LIMITS, )
 from SHE_Validation.constants.test_info import D_BIN_PARAMETER_META
+
+if TYPE_CHECKING:
+    from SHE_PPT.constants.config import ConfigKeys  # noqa F401
 
 # Dict relating the "global" config key for each bin parameter - that is, the key for providing the default value of
 # bin limits if no overriding local key is provided.
@@ -151,8 +153,8 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
     """
 
     # Use scipy to calculate bin limits via empirical qunatiles
-    l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint = True)
-    l_quantiles: np.ndarray = mquantiles(l_data, prob = l_prob, alphap = 0, betap = 1)
+    l_prob: np.ndarray = np.linspace(0, 1, num_quantiles + 1, endpoint=True)
+    l_quantiles: np.ndarray = mquantiles(l_data, prob=l_prob, alphap=0, betap=1)
 
     # Override the first and last limit with -1e99 and 1e99 respectively
     l_quantiles[0] = -1e99
@@ -191,8 +193,8 @@ def get_auto_bin_limits_from_data(l_data: np.ndarray,
         l_quantiles_up[bin_index + 1] = (closest_value_above + bin_max) / 2
 
     # Count the number in each bin, for each way to set quantiles
-    l_num_in_bin_down = np.zeros(num_quantiles, dtype = int)
-    l_num_in_bin_up = np.zeros(num_quantiles, dtype = int)
+    l_num_in_bin_down = np.zeros(num_quantiles, dtype=int)
+    l_num_in_bin_up = np.zeros(num_quantiles, dtype=int)
     for bin_index in range(num_quantiles):
         bin_down_lo: float = l_quantiles_down[bin_index]
         bin_down_hi: float = l_quantiles_down[bin_index + 1]

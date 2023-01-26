@@ -66,16 +66,16 @@ def mainMethod(args: Namespace) -> None:
     d_tum_extend_config_defaults = deepcopy(D_TUM_CONFIG_DEFAULTS)
     d_tum_extend_config_defaults[ValidationConfigKeys.TUM_ADD_BIN_COLUMNS] = True
 
-    executor = SheValExecutor(run_from_args_function = match_to_tu_from_args,
-                              log_options = ValLogOptions(executable_name = EXEC_NAME,
-                                                          s_store_true = S_TUM_STORE_TRUE),
-                              config_args = ReadConfigArgs(d_config_defaults = d_tum_extend_config_defaults,
-                                                           d_config_types = D_TUM_CONFIG_TYPES,
-                                                           d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
-                                                           s_config_keys_types = S_TUM_CONFIG_KEYS,
-                                                           ))
+    executor = SheValExecutor(run_from_args_function=match_to_tu_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME,
+                                                        s_store_true=S_TUM_STORE_TRUE),
+                              config_args=ReadConfigArgs(d_config_defaults=d_tum_extend_config_defaults,
+                                                         d_config_types=D_TUM_CONFIG_TYPES,
+                                                         d_config_cline_args=D_TUM_CONFIG_CLINE_ARGS,
+                                                         s_config_keys_types=S_TUM_CONFIG_KEYS,
+                                                         ))
 
-    executor.run(args, logger = logger)
+    executor.run(args, logger=logger)
 
 
 def main() -> None:

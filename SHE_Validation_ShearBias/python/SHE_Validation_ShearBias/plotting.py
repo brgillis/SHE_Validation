@@ -73,12 +73,12 @@ class ShearBiasPlotter(ValidationPlotter):
                  **kwargs,
                  ) -> None:
 
-        file_namer = ShearBiasPlotFileNamer(workdir = data_processor.workdir,
-                                            method = data_processor.method,
-                                            bin_parameter = data_processor.bin_parameter,
-                                            bin_index = bin_index)
+        file_namer = ShearBiasPlotFileNamer(workdir=data_processor.workdir,
+                                            method=data_processor.method,
+                                            bin_parameter=data_processor.bin_parameter,
+                                            bin_index=bin_index)
 
-        super().__init__(*args, file_namer = file_namer, **kwargs)
+        super().__init__(*args, file_namer=file_namer, **kwargs)
 
         # Set attrs directly
         self.data_processor = data_processor
@@ -147,7 +147,7 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         # Plot data as a density scatter plot
-        self._density_scatter(self.g_in, self.g_out, s = 1)
+        self._density_scatter(self.g_in, self.g_out, s=1)
 
         # Draw the zero-axes
         self._draw_axes()
@@ -176,5 +176,5 @@ class ShearBiasPlotter(ValidationPlotter):
         """
 
         for self.component_index in (1, 2):
-            super().plot(show = show)
+            super().plot(show=show)
             self._clear_plots()

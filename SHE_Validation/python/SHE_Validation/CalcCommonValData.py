@@ -55,7 +55,7 @@ class CCVDArgumentParser(ValidationArgumentParser):
         self.add_measurements_arg()
 
         # Output filenames
-        self.add_extended_catalog_arg(arg_type = ClineArgType.OUTPUT)
+        self.add_extended_catalog_arg(arg_type=ClineArgType.OUTPUT)
 
 
 # noinspection PyPep8Naming
@@ -84,15 +84,15 @@ def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
-    executor = SheValExecutor(run_from_args_function = calc_common_val_data_from_args,
-                              log_options = ValLogOptions(executable_name = EXEC_NAME),
-                              config_args = ReadConfigArgs(d_config_defaults = D_CCVD_CONFIG_DEFAULTS,
-                                                           d_config_types = D_CCVD_CONFIG_TYPES,
-                                                           d_config_cline_args = D_CCVD_CONFIG_CLINE_ARGS,
-                                                           s_config_keys_types = S_CCVD_CONFIG_KEYS,
-                                                           ))
+    executor = SheValExecutor(run_from_args_function=calc_common_val_data_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME),
+                              config_args=ReadConfigArgs(d_config_defaults=D_CCVD_CONFIG_DEFAULTS,
+                                                         d_config_types=D_CCVD_CONFIG_TYPES,
+                                                         d_config_cline_args=D_CCVD_CONFIG_CLINE_ARGS,
+                                                         s_config_keys_types=S_CCVD_CONFIG_KEYS,
+                                                         ))
 
-    executor.run(args, logger = logger, pass_args_as_dict = True)
+    executor.run(args, logger=logger, pass_args_as_dict=True)
 
 
 def main() -> None:

@@ -54,34 +54,34 @@ class TUMatchArgumentParser(ValidationArgumentParser):
         self.add_measurements_arg()
         self.add_data_images_arg()
 
-        self.add_argument('--detections_tables', type = str, default = None,
-                          help = 'INPUT (optional): .json listfile containing filenames of detections table products. '
-                                 'Only needs to be set if adding bin columns.')
+        self.add_argument('--detections_tables', type=str, default=None,
+                          help='INPUT (optional): .json listfile containing filenames of detections table products. '
+                               'Only needs to be set if adding bin columns.')
 
-        self.add_argument('--tu_galaxy_catalog_list', type = str, default = None,
-                          help = 'INPUT: Filename for True Universe Galaxy Catalog listfile (.json).')
-        self.add_argument('--tu_star_catalog_list', type = str, default = None,
-                          help = 'INPUT: Filename for True Universe Star Catalog listfile (.json).')
+        self.add_argument('--tu_galaxy_catalog_list', type=str, default=None,
+                          help='INPUT: Filename for True Universe Galaxy Catalog listfile (.json).')
+        self.add_argument('--tu_star_catalog_list', type=str, default=None,
+                          help='INPUT: Filename for True Universe Star Catalog listfile (.json).')
 
-        self.add_argument('--tu_galaxy_catalog', type = str, default = None,
-                          help = 'INPUT: Filename for True Universe Galaxy Catalog data product (XML data product)')
-        self.add_argument('--tu_star_catalog', type = str, default = None,
-                          help = 'INPUT: Filename for True Universe Star Catalog data product (XML data product)')
+        self.add_argument('--tu_galaxy_catalog', type=str, default=None,
+                          help='INPUT: Filename for True Universe Galaxy Catalog data product (XML data product)')
+        self.add_argument('--tu_star_catalog', type=str, default=None,
+                          help='INPUT: Filename for True Universe Star Catalog data product (XML data product)')
 
-        self.add_argument('--tu_output_product', type = str, default = None,
-                          help = 'INPUT: Filename for True Universe Output Product data product (XML data product)')
+        self.add_argument('--tu_output_product', type=str, default=None,
+                          help='INPUT: Filename for True Universe Output Product data product (XML data product)')
 
         # Output filenames
-        self.add_argument('--matched_catalog', type = str,
-                          help = 'OUTPUT: Desired filename for output matched catalog data product (XML data product).')
+        self.add_argument('--matched_catalog', type=str,
+                          help='OUTPUT: Desired filename for output matched catalog data product (XML data product).')
 
         # Optional arguments (can't be used with pipeline runner)
-        self.add_argument('--sim_path', type = str, default = "/mnt/cephfs/share/SC8/SIM",
-                          help = "OPTION: Path to where the SIM data is stored")
-        self.add_argument('--match_threshold', type = float, default = 0.3,
-                          help = "OPTION: Maximum distance allowed for a match in units of arcsec.")
-        self.add_argument('--add_bin_columns', action = "store_true", default = False,
-                          help = "OPTION: If set, will add columns to the output catalog with data used for binning.")
+        self.add_argument('--sim_path', type=str, default="/mnt/cephfs/share/SC8/SIM",
+                          help="OPTION: Path to where the SIM data is stored")
+        self.add_argument('--match_threshold', type=float, default=0.3,
+                          help="OPTION: Maximum distance allowed for a match in units of arcsec.")
+        self.add_argument('--add_bin_columns', action="store_true", default=False,
+                          help="OPTION: If set, will add columns to the output catalog with data used for binning.")
 
 
 # noinspection PyPep8Naming
@@ -110,16 +110,16 @@ def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
-    executor = SheValExecutor(run_from_args_function = match_to_tu_from_args,
-                              log_options = ValLogOptions(executable_name = EXEC_NAME,
-                                                          s_store_true = S_TUM_STORE_TRUE),
-                              config_args = ReadConfigArgs(d_config_defaults = D_TUM_CONFIG_DEFAULTS,
-                                                           d_config_types = D_TUM_CONFIG_TYPES,
-                                                           d_config_cline_args = D_TUM_CONFIG_CLINE_ARGS,
-                                                           s_config_keys_types = S_TUM_CONFIG_KEYS,
-                                                           ))
+    executor = SheValExecutor(run_from_args_function=match_to_tu_from_args,
+                              log_options=ValLogOptions(executable_name=EXEC_NAME,
+                                                        s_store_true=S_TUM_STORE_TRUE),
+                              config_args=ReadConfigArgs(d_config_defaults=D_TUM_CONFIG_DEFAULTS,
+                                                         d_config_types=D_TUM_CONFIG_TYPES,
+                                                         d_config_cline_args=D_TUM_CONFIG_CLINE_ARGS,
+                                                         s_config_keys_types=S_TUM_CONFIG_KEYS,
+                                                         ))
 
-    executor.run(args, logger = logger)
+    executor.run(args, logger=logger)
 
 
 def main() -> None:

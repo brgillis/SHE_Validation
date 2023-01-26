@@ -65,10 +65,10 @@ def mainMethod(args: Namespace) -> None:
     """ Main entry point method
     """
 
-    executor = CtiGalValExecutor(run_from_args_function = run_validate_cti_gal_from_args,
-                                 log_options = ValLogOptions(executable_name = EXEC_NAME), )
+    executor = CtiGalValExecutor(run_from_args_function=run_validate_cti_gal_from_args,
+                                 log_options=ValLogOptions(executable_name=EXEC_NAME), )
 
-    executor.run(args, logger = logger, pass_args_as_dict = True)
+    executor.run(args, logger=logger, pass_args_as_dict=True)
 
 
 def main() -> None:

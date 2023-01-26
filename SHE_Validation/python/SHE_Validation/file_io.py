@@ -118,12 +118,12 @@ class SheValFileNamer(SheFileNamer):
         else:
             bin_id_tail: Optional[str] = None
 
-        self._instance_id_body = join_without_none(l_s = [method_value,
-                                                          self.exp_index,
-                                                          bin_id_tail,
-                                                          self.bin_index,
-                                                          os.getpid()],
-                                                   default = None)
+        self._instance_id_body = join_without_none(l_s=[method_value,
+                                                        self.exp_index,
+                                                        bin_id_tail,
+                                                        self.bin_index,
+                                                        os.getpid()],
+                                                   default=None)
 
     # Public methods
 

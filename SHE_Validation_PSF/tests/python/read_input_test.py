@@ -112,7 +112,7 @@ class TestPsfResReadInput(SheValPsfTestCase):
                 psf_res_sp_input.p_ref_star_cat.Header.ProductId.value())
 
         ex_mock_ref_star_cat = deepcopy(self.mock_ref_starcat_table)
-        add_bin_columns(ex_mock_ref_star_cat, data_stack = None, l_bin_parameters = L_PSF_RES_SP_BIN_PARAMETERS)
+        add_bin_columns(ex_mock_ref_star_cat, data_stack=None, l_bin_parameters=L_PSF_RES_SP_BIN_PARAMETERS)
 
         assert np.all(ex_mock_ref_star_cat == psf_res_sp_input.ref_star_cat)
 
@@ -132,8 +132,8 @@ class TestPsfResReadInput(SheValPsfTestCase):
 
         # Check if the defaults are the same as one of the test values - if so, test values will need update
         assert ((num_global_bins != num_default_bins) and (num_local_bins != num_default_bins) and
-                (num_global_bins != num_default_bins)), (f"Number of bins for test global, local, and default cases "
-                                                         f"must all differ for test to be run properly.")
+                (num_global_bins != num_default_bins)), ("Number of bins for test global, local, and default cases "
+                                                         "must all differ for test to be run properly.")
 
         test_global_val = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_global_bins}"
         test_local_val = f"{STR_AUTO_BIN_LIMITS_HEAD}-{num_local_bins}"

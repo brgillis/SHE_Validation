@@ -54,13 +54,13 @@ class TestCtiGalInput(SheTestCase):
         lmcm_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[ShearEstimationMethods.LENSMC]
         lensmc_shear_estimates_table = Table.read(os.path.join(
             self.workdir, "data", LENSMC_MEASUREMENTS_TABLE_FILENAME))
-        d_shear_estimates_tables = {ShearEstimationMethods.KSB      : None,
-                                    ShearEstimationMethods.LENSMC   : lensmc_shear_estimates_table,
+        d_shear_estimates_tables = {ShearEstimationMethods.KSB: None,
+                                    ShearEstimationMethods.LENSMC: lensmc_shear_estimates_table,
                                     ShearEstimationMethods.MOMENTSML: None,
-                                    ShearEstimationMethods.REGAUSS  : None}
+                                    ShearEstimationMethods.REGAUSS: None}
 
-        raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack = self.data_stack,
-                                                              d_shear_estimate_tables = d_shear_estimates_tables)
+        raw_cti_gal_object_data = get_raw_cti_gal_object_data(data_stack=self.data_stack,
+                                                              d_shear_estimate_tables=d_shear_estimates_tables)
 
         # Check the results
 
@@ -92,7 +92,7 @@ class TestCtiGalInput(SheTestCase):
             assert is_nan_or_masked(object_data.world_shear_info[ShearEstimationMethods.REGAUSS].g1)
 
             # Check the shear info for each exposure
-            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width = 1)
+            ministamp_stack = self.data_stack.extract_galaxy_stack(object_data.id, width=1)
 
             ra = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_x_world]
             dec = self.data_stack.detections_catalogue.loc[object_data.id][mfc_tf.gal_y_world]
@@ -154,12 +154,12 @@ class TestCtiGalInput(SheTestCase):
             detections_row[mfc_tf.FLUX_NIR_STACK_APER] = fnir
             detections_row[mfc_tf.SEGMENTATION_AREA] = area
 
-            object_data = SingleObjectData(object_id = object_id,
-                                           num_exposures = num_exposures, )
+            object_data = SingleObjectData(object_id=object_id,
+                                           num_exposures=num_exposures, )
 
-            object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1 = g1,
-                                                                                        g2 = g2,
-                                                                                        weight = weight)
+            object_data.world_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(g1=g1,
+                                                                                        g2=g2,
+                                                                                        weight=weight)
             object_data.world_shear_info[ShearEstimationMethods.KSB] = ShearEstimate()
             object_data.world_shear_info[ShearEstimationMethods.MOMENTSML] = ShearEstimate()
             object_data.world_shear_info[ShearEstimationMethods.REGAUSS] = ShearEstimate()
@@ -169,14 +169,14 @@ class TestCtiGalInput(SheTestCase):
                 position_info.x_pix = x + dx_dexp * exp_index
                 position_info.y_pix = y + dy_dexp * exp_index
                 position_info.exposure_shear_info[ShearEstimationMethods.LENSMC] = ShearEstimate(
-                    g1 = g1 + dg1_dexp * exp_index,
-                    g2 = g2 + dg2_dexp * exp_index,
-                    weight = weight + dweight_dexp * exp_index)
+                    g1=g1 + dg1_dexp * exp_index,
+                    g2=g2 + dg2_dexp * exp_index,
+                    weight=weight + dweight_dexp * exp_index)
                 object_data.position_info[exp_index] = position_info
 
             l_raw_object_data.append(object_data)
 
-        object_data_table_list = sort_raw_object_data_into_table(l_raw_object_data = l_raw_object_data)
+        object_data_table_list = sort_raw_object_data_into_table(l_raw_object_data=l_raw_object_data)
 
         # Check that the tables are as expected
         for exp_index, object_data_table in enumerate(object_data_table_list):

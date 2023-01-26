@@ -139,7 +139,7 @@ class TestShearBias(SheTestCase):
 
         self.d_l_bin_limits = make_mock_bin_limits()
 
-        full_indices = np.arange(NUM_TEST_POINTS, dtype = int)
+        full_indices = np.arange(NUM_TEST_POINTS, dtype=int)
         self.good_ids = full_indices[:NUM_GOOD_TEST_POINTS]
 
         # Set up dicts for each method and bin we'll be testing
@@ -155,8 +155,8 @@ class TestShearBias(SheTestCase):
                                                ShearEstimationMethods.KSB]):
             tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[method]
 
-            matched_table_gen = MockValTUMatchedTableGenerator(method = method,
-                                                               workdir = self.workdir)
+            matched_table_gen = MockValTUMatchedTableGenerator(method=method,
+                                                               workdir=self.workdir)
 
             matched_table = matched_table_gen.get_mock_table()
             self.d_matched_tables[method] = matched_table
@@ -171,25 +171,25 @@ class TestShearBias(SheTestCase):
             l_good_g2_out_err: Sequence[float] = matched_table[tf.g2_err][:NUM_GOOD_TEST_POINTS]
 
             # Make a mock data loader we can use for tests which assume data has already been loaded in
-            self.d_mock_data_loaders[method] = MockDataLoader(method = method,
-                                                              workdir = self.workdir,
-                                                              d_g_in = {1: l_good_g1_in,
-                                                                        2: l_good_g2_in},
-                                                              d_g_out = {1: l_good_g1_out,
-                                                                         2: l_good_g2_out},
-                                                              d_g_out_err = {1: l_good_g1_out_err,
-                                                                             2: l_good_g2_out_err}, )
+            self.d_mock_data_loaders[method] = MockDataLoader(method=method,
+                                                              workdir=self.workdir,
+                                                              d_g_in={1: l_good_g1_in,
+                                                                      2: l_good_g2_in},
+                                                              d_g_out={1: l_good_g1_out,
+                                                                       2: l_good_g2_out},
+                                                              d_g_out_err={1: l_good_g1_out_err,
+                                                                           2: l_good_g2_out_err}, )
 
             # Make mock regression results and bias measurements
 
-            g1_linregress_results = linregress_with_errors(x = l_good_g1_in,
-                                                           y = l_good_g1_out,
-                                                           y_err = l_good_g1_out_err)
+            g1_linregress_results = linregress_with_errors(x=l_good_g1_in,
+                                                           y=l_good_g1_out,
+                                                           y_err=l_good_g1_out_err)
             g1_bias_measurements = BiasMeasurements(g1_linregress_results)
 
-            g2_linregress_results = linregress_with_errors(x = l_good_g2_in,
-                                                           y = l_good_g2_out,
-                                                           y_err = l_good_g2_out_err)
+            g2_linregress_results = linregress_with_errors(x=l_good_g2_in,
+                                                           y=l_good_g2_out,
+                                                           y_err=l_good_g2_out_err)
             g2_bias_measurements = BiasMeasurements(g2_linregress_results)
 
             # Get a separate data processors and test case info for each bin parameter
@@ -204,34 +204,34 @@ class TestShearBias(SheTestCase):
                 # Make mock test case info to use
 
                 self.d_d_m_test_case_info[method][bin_parameter] = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                                                                       methods = method,
-                                                                                       bin_parameters = bin_parameter,
-                                                                                       return_one = True)
+                                                                                       methods=method,
+                                                                                       bin_parameters=bin_parameter,
+                                                                                       return_one=True)
 
                 self.d_d_c_test_case_info[method][bin_parameter] = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_M_INFO,
-                                                                                       methods = method,
-                                                                                       bin_parameters = bin_parameter,
-                                                                                       return_one = True)
+                                                                                       methods=method,
+                                                                                       bin_parameters=bin_parameter,
+                                                                                       return_one=True)
 
-                mock_data_processor = MockDataProcessor(method = method,
-                                                        bin_parameter = bin_parameter,
-                                                        bin_index = 0,
-                                                        workdir = self.workdir,
-                                                        d_g_in = {1: l_good_g1_in,
-                                                                  2: l_good_g2_in},
-                                                        d_g_out = {1: l_good_g1_out,
-                                                                   2: l_good_g2_out},
-                                                        d_g_out_err = {1: l_good_g1_out_err,
-                                                                       2: l_good_g2_out_err},
-                                                        l_d_bias_measurements = [{1: g1_bias_measurements,
-                                                                                  2: g2_bias_measurements}],
-                                                        l_d_linregress_results = [{
+                mock_data_processor = MockDataProcessor(method=method,
+                                                        bin_parameter=bin_parameter,
+                                                        bin_index=0,
+                                                        workdir=self.workdir,
+                                                        d_g_in={1: l_good_g1_in,
+                                                                2: l_good_g2_in},
+                                                        d_g_out={1: l_good_g1_out,
+                                                                 2: l_good_g2_out},
+                                                        d_g_out_err={1: l_good_g1_out_err,
+                                                                     2: l_good_g2_out_err},
+                                                        l_d_bias_measurements=[{1: g1_bias_measurements,
+                                                                                2: g2_bias_measurements}],
+                                                        l_d_linregress_results=[{
                                                             1: g1_linregress_results,
                                                             2: g2_linregress_results}],
-                                                        l_d_bias_strings = [{"m1": "m1 bias string",
-                                                                             "m2": "m2 bias string",
-                                                                             "c1": "c1 bias string",
-                                                                             "c2": "c2 bias string"}], )
+                                                        l_d_bias_strings=[{"m1": "m1 bias string",
+                                                                           "m2": "m2 bias string",
+                                                                           "c1": "c1 bias string",
+                                                                           "c2": "c2 bias string"}], )
                 self.d_d_mock_data_processors[method][bin_parameter] = mock_data_processor
 
                 # noinspection PyTypeChecker
@@ -243,8 +243,8 @@ class TestShearBias(SheTestCase):
 
                 for bin_index in range(len(self.d_l_bin_limits[bin_parameter]) - 1):
 
-                    l_true = np.ones_like(l_good_g1_in, dtype = bool)
-                    l_false = np.zeros_like(l_good_g1_in, dtype = bool)
+                    l_true = np.ones_like(l_good_g1_in, dtype=bool)
+                    l_false = np.zeros_like(l_good_g1_in, dtype=bool)
 
                     bin_slice: np.ndarray
                     if bin_parameter != BinParameters.SNR:
@@ -256,45 +256,45 @@ class TestShearBias(SheTestCase):
                         if bin_index == 1:
                             bin_slice = np.logical_not(bin_slice)
 
-                    bin_g1_linregress_results = linregress_with_errors(x = l_good_g1_in[bin_slice],
-                                                                       y = l_good_g1_out[bin_slice],
-                                                                       y_err = l_good_g1_out_err[bin_slice])
+                    bin_g1_linregress_results = linregress_with_errors(x=l_good_g1_in[bin_slice],
+                                                                       y=l_good_g1_out[bin_slice],
+                                                                       y_err=l_good_g1_out_err[bin_slice])
                     bin_g1_bias_measurements = BiasMeasurements(bin_g1_linregress_results)
 
-                    bin_g2_linregress_results = linregress_with_errors(x = l_good_g2_in[bin_slice],
-                                                                       y = l_good_g2_out[bin_slice],
-                                                                       y_err = l_good_g2_out_err[bin_slice])
+                    bin_g2_linregress_results = linregress_with_errors(x=l_good_g2_in[bin_slice],
+                                                                       y=l_good_g2_out[bin_slice],
+                                                                       y_err=l_good_g2_out_err[bin_slice])
                     bin_g2_bias_measurements = BiasMeasurements(bin_g2_linregress_results)
 
-                    mock_data_loader = MockDataLoader(method = method,
-                                                      workdir = self.workdir,
-                                                      d_g_in = {1: l_good_g1_in[bin_slice],
-                                                                2: l_good_g2_in[bin_slice]},
-                                                      d_g_out = {1: l_good_g1_out[bin_slice],
-                                                                 2: l_good_g2_out[bin_slice]},
-                                                      d_g_out_err = {1: l_good_g1_out_err[bin_slice],
-                                                                     2: l_good_g2_out_err[bin_slice]}, )
+                    mock_data_loader = MockDataLoader(method=method,
+                                                      workdir=self.workdir,
+                                                      d_g_in={1: l_good_g1_in[bin_slice],
+                                                              2: l_good_g2_in[bin_slice]},
+                                                      d_g_out={1: l_good_g1_out[bin_slice],
+                                                               2: l_good_g2_out[bin_slice]},
+                                                      d_g_out_err={1: l_good_g1_out_err[bin_slice],
+                                                                   2: l_good_g2_out_err[bin_slice]}, )
                     self.d_d_l_mock_data_loaders[method][bin_parameter][bin_index] = mock_data_loader
 
-                    mock_data_processor = MockDataProcessor(method = method,
-                                                            bin_parameter = bin_parameter,
-                                                            bin_index = bin_index,
-                                                            workdir = self.workdir,
-                                                            d_g_in = {1: l_good_g1_in[bin_slice],
-                                                                      2: l_good_g2_in[bin_slice]},
-                                                            d_g_out = {1: l_good_g1_out[bin_slice],
-                                                                       2: l_good_g2_out[bin_slice]},
-                                                            d_g_out_err = {1: l_good_g1_out_err[bin_slice],
-                                                                           2: l_good_g2_out_err[bin_slice]},
-                                                            l_d_bias_measurements = [{1: bin_g1_bias_measurements,
-                                                                                      2: bin_g2_bias_measurements}],
-                                                            l_d_linregress_results = [{
+                    mock_data_processor = MockDataProcessor(method=method,
+                                                            bin_parameter=bin_parameter,
+                                                            bin_index=bin_index,
+                                                            workdir=self.workdir,
+                                                            d_g_in={1: l_good_g1_in[bin_slice],
+                                                                    2: l_good_g2_in[bin_slice]},
+                                                            d_g_out={1: l_good_g1_out[bin_slice],
+                                                                     2: l_good_g2_out[bin_slice]},
+                                                            d_g_out_err={1: l_good_g1_out_err[bin_slice],
+                                                                         2: l_good_g2_out_err[bin_slice]},
+                                                            l_d_bias_measurements=[{1: bin_g1_bias_measurements,
+                                                                                    2: bin_g2_bias_measurements}],
+                                                            l_d_linregress_results=[{
                                                                 1: bin_g1_linregress_results,
                                                                 2: bin_g2_linregress_results}],
-                                                            l_d_bias_strings = [{"m1": "m1 bias string",
-                                                                                 "m2": "m2 bias string",
-                                                                                 "c1": "c1 bias string",
-                                                                                 "c2": "c2 bias string"}], )
+                                                            l_d_bias_strings=[{"m1": "m1 bias string",
+                                                                               "m2": "m2 bias string",
+                                                                               "c1": "c1 bias string",
+                                                                               "c2": "c2 bias string"}], )
                     self.d_d_l_mock_data_processors[method][bin_parameter][bin_index] = mock_data_processor
 
     @staticmethod
@@ -317,23 +317,23 @@ class TestShearBias(SheTestCase):
 
             # Write out the table
             self.d_matched_tables[method].write(qualified_tu_matched_table_filename,
-                                                overwrite = True)
+                                                overwrite=True)
 
             # Create a data loader object and load in the data
-            data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
-                                              workdir = self.workdir,
-                                              method = method)
+            data_loader = ShearBiasDataLoader(l_filenames=[TEST_TABLE_FILENAME],
+                                              workdir=self.workdir,
+                                              method=method)
             data_loader.load_ids(self.good_ids)
 
-            self._check_loaded_data(data_loader = data_loader,
-                                    mock_data_loader = self.d_mock_data_loaders[method])
+            self._check_loaded_data(data_loader=data_loader,
+                                    mock_data_loader=self.d_mock_data_loaders[method])
 
             # Try loading with a bin constraint
-            bin_constraint = GoodMeasurementBinConstraint(method = method)
-            data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+            bin_constraint = GoodMeasurementBinConstraint(method=method)
+            data_loader.load_for_bin_constraint(bin_constraint=bin_constraint)
 
-            self._check_loaded_data(data_loader = data_loader,
-                                    mock_data_loader = self.d_mock_data_loaders[method])
+            self._check_loaded_data(data_loader=data_loader,
+                                    mock_data_loader=self.d_mock_data_loaders[method])
 
             # Try loading all data, and check that NaN values were read in
             data_loader.load_all()
@@ -346,25 +346,25 @@ class TestShearBias(SheTestCase):
         bin_test_bin_parameter = BinParameters.SNR
 
         self.d_matched_tables[bin_test_method].write(qualified_tu_matched_table_filename,
-                                                     overwrite = True)
+                                                     overwrite=True)
 
         # Create a data loader object and load in the data
-        data_loader = ShearBiasDataLoader(l_filenames = [TEST_TABLE_FILENAME],
-                                          workdir = self.workdir,
-                                          method = bin_test_method)
+        data_loader = ShearBiasDataLoader(l_filenames=[TEST_TABLE_FILENAME],
+                                          workdir=self.workdir,
+                                          method=bin_test_method)
 
-        bin_constraint_0 = GoodBinnedMeasurementBinConstraint(method = bin_test_method,
-                                                              bin_parameter = bin_test_bin_parameter,
-                                                              bin_limits = self.d_l_bin_limits[bin_test_bin_parameter][
-                                                                           0:2])
-        data_loader.load_for_bin_constraint(bin_constraint = bin_constraint_0)
+        bin_constraint_0 = GoodBinnedMeasurementBinConstraint(method=bin_test_method,
+                                                              bin_parameter=bin_test_bin_parameter,
+                                                              bin_limits=self.d_l_bin_limits[bin_test_bin_parameter][
+                                                                         0:2])
+        data_loader.load_for_bin_constraint(bin_constraint=bin_constraint_0)
         bin_0_data = set(data_loader.d_g_out[1])
 
-        bin_constraint_1 = GoodBinnedMeasurementBinConstraint(method = bin_test_method,
-                                                              bin_parameter = bin_test_bin_parameter,
-                                                              bin_limits = self.d_l_bin_limits[bin_test_bin_parameter][
-                                                                           1:3])
-        data_loader.load_for_bin_constraint(bin_constraint = bin_constraint_1)
+        bin_constraint_1 = GoodBinnedMeasurementBinConstraint(method=bin_test_method,
+                                                              bin_parameter=bin_test_bin_parameter,
+                                                              bin_limits=self.d_l_bin_limits[bin_test_bin_parameter][
+                                                                         1:3])
+        data_loader.load_for_bin_constraint(bin_constraint=bin_constraint_1)
         bin_1_data = set(data_loader.d_g_out[1])
 
         # Make sure the data from the two bins adds up
@@ -393,10 +393,10 @@ class TestShearBias(SheTestCase):
 
                 mock_data_processor = self.d_d_mock_data_processors[method][bin_parameter]
 
-                self._test_specific_data_processor(bin_limits = TOT_BIN_LIMITS,
-                                                   test_case_info = m_test_case_info,
-                                                   mock_data_loader = mock_data_loader,
-                                                   mock_data_processor = mock_data_processor)
+                self._test_specific_data_processor(bin_limits=TOT_BIN_LIMITS,
+                                                   test_case_info=m_test_case_info,
+                                                   mock_data_loader=mock_data_loader,
+                                                   mock_data_processor=mock_data_processor)
 
                 # Now test for actual bin limits
                 for bin_index in range(len(l_bin_limits) - 1):
@@ -407,10 +407,10 @@ class TestShearBias(SheTestCase):
                     bin_mock_data_loader = self.d_d_l_mock_data_loaders[method][bin_parameter][bin_index]
                     bin_mock_data_processor = self.d_d_l_mock_data_processors[method][bin_parameter][bin_index]
 
-                    self._test_specific_data_processor(bin_limits = bin_limits,
-                                                       test_case_info = m_test_case_info,
-                                                       mock_data_loader = bin_mock_data_loader,
-                                                       mock_data_processor = bin_mock_data_processor)
+                    self._test_specific_data_processor(bin_limits=bin_limits,
+                                                       test_case_info=m_test_case_info,
+                                                       mock_data_loader=bin_mock_data_loader,
+                                                       mock_data_processor=bin_mock_data_processor)
 
     @staticmethod
     def _test_specific_data_processor(bin_limits: Sequence[float],
@@ -420,9 +420,9 @@ class TestShearBias(SheTestCase):
 
         # Process the data and check that it matches the mock processor
         # noinspection PyTypeChecker
-        data_processor = ShearBiasTestCaseDataProcessor(data_loader = mock_data_loader,
-                                                        test_case_info = test_case_info,
-                                                        l_bin_limits = bin_limits)
+        data_processor = ShearBiasTestCaseDataProcessor(data_loader=mock_data_loader,
+                                                        test_case_info=test_case_info,
+                                                        l_bin_limits=bin_limits)
         # Check basic attributes
         assert data_processor.method == mock_data_processor.method
         assert data_processor.bin_parameter == mock_data_processor.bin_parameter
@@ -490,9 +490,9 @@ class TestShearBias(SheTestCase):
                     # Run the plotting
 
                     # noinspection PyTypeChecker
-                    plotter = ShearBiasPlotter(data_processor = mock_data_processor,
-                                               bin_index = 0,
-                                               bin_limits = l_bin_limits[bin_index:bin_index + 2])
+                    plotter = ShearBiasPlotter(data_processor=mock_data_processor,
+                                               bin_index=0,
+                                               bin_limits=l_bin_limits[bin_index:bin_index + 2])
                     plotter.plot()
 
                     # Check the results

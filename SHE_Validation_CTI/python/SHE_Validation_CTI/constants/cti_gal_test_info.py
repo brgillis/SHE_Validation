@@ -25,24 +25,24 @@ from SHE_Validation.constants.test_info import (ID_NUMBER_REPLACE_TAG, NAME_REPL
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins_and_methods
 
 # Metadata about the requirement
-CTI_GAL_REQUIREMENT_INFO = RequirementInfo(requirement_id = "R-SHE-CAL-F-140",
-                                           description = ("Residual of CTI to galaxy multiplicative bias mu <5x10-4 " +
-                                                          "(1-sigma)."),
-                                           parameter = ("Z-value for slope of g1_image versus distance from readout " +
-                                                        "register compared to expectation of zero."))
+CTI_GAL_REQUIREMENT_INFO = RequirementInfo(requirement_id="R-SHE-CAL-F-140",
+                                           description=("Residual of CTI to galaxy multiplicative bias mu <5x10-4 " +
+                                                        "(1-sigma)."),
+                                           parameter=("Z-value for slope of g1_image versus distance from readout " +
+                                                      "register compared to expectation of zero."))
 
 # Metadata about the test
-CTI_GAL_TEST_INFO = TestInfo(test_id = "T-SHE-000010-CTI-gal",
-                             description = ("Linear dependence of galaxy ellipticity with read-out register distance " +
-                                            "(slope)."))
+CTI_GAL_TEST_INFO = TestInfo(test_id="T-SHE-000010-CTI-gal",
+                             description=("Linear dependence of galaxy ellipticity with read-out register distance " +
+                                          "(slope)."))
 
-BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id = f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-gal-"
-                                                               f"{NAME_REPLACE_TAG}",
-                                           base_name = f"CG-{NAME_REPLACE_TAG}",
-                                           base_description = ("Linear dependence of " +
-                                                               "residual galaxy ellipticity with read-out " +
-                                                               "register distance (slope)."),
-                                           base_id_number = 100028)
+BASE_CTI_GAL_TEST_CASE_INFO = TestCaseInfo(base_test_case_id=f"TC-SHE-{ID_NUMBER_REPLACE_TAG}-CTI-gal-"
+                                                             f"{NAME_REPLACE_TAG}",
+                                           base_name=f"CG-{NAME_REPLACE_TAG}",
+                                           base_description=("Linear dependence of " +
+                                                             "residual galaxy ellipticity with read-out " +
+                                                             "register distance (slope)."),
+                                           base_id_number=100028)
 
 # Create a dict of the test case info
 L_CTI_GAL_TEST_CASE_INFO = make_test_case_info_for_bins_and_methods(BASE_CTI_GAL_TEST_CASE_INFO)

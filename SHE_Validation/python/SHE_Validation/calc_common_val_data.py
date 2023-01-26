@@ -46,25 +46,25 @@ def calc_common_val_data_from_args(d_args: Dict[str, Any]):
 
     # Read in the shear estimates data product, and get the filenames of the tables for each method from it
     d_shear_tables, _ = read_d_method_tables(d_args[CA_SHE_MEAS],
-                                             workdir = workdir,
-                                             log_info = True)
+                                             workdir=workdir,
+                                             log_info=True)
 
     # Read in the data stack
     s_object_ids: Set[int] = get_object_id_list_from_se_tables(d_shear_tables)
-    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename = d_args[CA_VIS_CAL_FRAME],
-                                                             detections_listfile_filename = d_args[CA_MER_CAT],
-                                                             object_id_list = s_object_ids,
-                                                             workdir = workdir)
+    data_stack: Optional[SHEFrameStack] = SHEFrameStack.read(exposure_listfile_filename=d_args[CA_VIS_CAL_FRAME],
+                                                             detections_listfile_filename=d_args[CA_MER_CAT],
+                                                             object_id_list=s_object_ids,
+                                                             workdir=workdir)
 
     # We'll modify the detections stack attribute within the data stack to create the extended table
     extended_catalog: Table = data_stack.detections_catalogue
 
     # Add bin data columns to the table
-    add_binning_data(extended_catalog, data_stack = data_stack)
+    add_binning_data(extended_catalog, data_stack=data_stack)
 
     # Write out to a fits file
-    extended_catalog_namer = SheValFileNamer(type_name = "P-EX-MFC",
-                                             workdir = workdir)
+    extended_catalog_namer = SheValFileNamer(type_name="P-EX-MFC",
+                                             workdir=workdir)
     extended_catalog.write(extended_catalog_namer.qualified_filename)
 
     # Create output data product
@@ -73,5 +73,5 @@ def calc_common_val_data_from_args(d_args: Dict[str, Any]):
     # Write the data product
     file_io.write_xml_product(extended_catalog_product,
                               d_args[CA_SHE_EXT_CAT],
-                              workdir = workdir,
-                              log_info = True)
+                              workdir=workdir,
+                              log_info=True)

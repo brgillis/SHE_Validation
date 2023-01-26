@@ -63,15 +63,15 @@ class TestCase:
                                                         "m2": RESULT_PASS,
                                                         "c1": RESULT_PASS,
                                                         "c2": RESULT_PASS, }],
-                       ShearEstimationMethods.KSB   : [{"m1": RESULT_FAIL,
-                                                        "m2": RESULT_PASS,
-                                                        "c1": RESULT_FAIL,
-                                                        "c2": RESULT_PASS, },
-                                                       {"m1": RESULT_FAIL,
-                                                        "m2": RESULT_PASS,
-                                                        "c1": RESULT_FAIL,
-                                                        "c2": RESULT_PASS, }
-                                                       ],
+                       ShearEstimationMethods.KSB: [{"m1": RESULT_FAIL,
+                                                     "m2": RESULT_PASS,
+                                                     "c1": RESULT_FAIL,
+                                                     "c2": RESULT_PASS, },
+                                                    {"m1": RESULT_FAIL,
+                                                     "m2": RESULT_PASS,
+                                                     "c1": RESULT_FAIL,
+                                                     "c2": RESULT_PASS, }
+                                                    ],
 
                        }
 
@@ -80,14 +80,14 @@ class TestCase:
                       "c1": KEY_G1_INFO,
                       "c2": KEY_G2_INFO, }
 
-    @pytest.fixture(autouse = True)
+    @pytest.fixture(autouse=True)
     def setup(self, tmpdir):
 
         self.workdir = tmpdir.strpath
         os.makedirs(os.path.join(self.workdir, "data"))
 
         # Make a pipeline_config using the default values
-        mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir = self.workdir)
+        mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir=self.workdir)
         self.pipeline_config = mock_pipeline_config_factory.pipeline_config
 
         self.pipeline_config[ValidationConfigKeys.VAL_FAIL_SIGMA_SCALING] = FailSigmaScaling.NONE
@@ -114,12 +114,12 @@ class TestCase:
                 m_test_case_info: TestCaseInfo = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      method,
                                                                      bin_parameter,
-                                                                     return_one = True)
+                                                                     return_one=True)
                 m_name = m_test_case_info.name
                 c_test_case_info: TestCaseInfo = find_test_case_info(L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      method,
                                                                      bin_parameter,
-                                                                     return_one = True)
+                                                                     return_one=True)
                 c_name = c_test_case_info.name
 
                 if bin_parameter not in D_D_L_D_INPUT_BIAS[method]:
@@ -133,11 +133,11 @@ class TestCase:
                     d_input_bias = l_d_input_bias[bin_index]
                     d_bias_measurements = {}
                     for component_index in (1, 2):
-                        d_bias_measurements[component_index] = BiasMeasurements(m = d_input_bias[f"m{component_index}"],
-                                                                                m_err = d_input_bias[
+                        d_bias_measurements[component_index] = BiasMeasurements(m=d_input_bias[f"m{component_index}"],
+                                                                                m_err=d_input_bias[
                                                                                     f"m{component_index}_err"],
-                                                                                c = d_input_bias[f"c{component_index}"],
-                                                                                c_err = d_input_bias[
+                                                                                c=d_input_bias[f"c{component_index}"],
+                                                                                c_err=d_input_bias[
                                                                                     f"c{component_index}_err"],
                                                                                 )
                         l_d_bias_measurements[bin_index] = d_bias_measurements
@@ -147,15 +147,15 @@ class TestCase:
 
         # Set up the output data product
         sb_test_results_product = products.she_validation_test_results.create_validation_test_results_product(
-            num_tests = NUM_SHEAR_BIAS_TEST_CASES)
+            num_tests=NUM_SHEAR_BIAS_TEST_CASES)
 
-        fill_shear_bias_test_results(test_result_product = sb_test_results_product,
-                                     d_l_test_results = d_l_d_bias_measurements,
-                                     pipeline_config = self.pipeline_config,
-                                     d_l_bin_limits = self.d_bin_limits,
-                                     workdir = self.workdir,
-                                     dl_dl_plot_filenames = None,
-                                     mode = ExecutionMode.LOCAL)
+        fill_shear_bias_test_results(test_result_product=sb_test_results_product,
+                                     d_l_test_results=d_l_d_bias_measurements,
+                                     pipeline_config=self.pipeline_config,
+                                     d_l_bin_limits=self.d_bin_limits,
+                                     workdir=self.workdir,
+                                     dl_dl_plot_filenames=None,
+                                     mode=ExecutionMode.LOCAL)
 
         # Check the results are as expected. Only check for LensMC-Tot here
 
@@ -201,12 +201,12 @@ class TestCase:
                                            (KSB, SNR, "c", ksb_sb_c_test_result,
                                             RESULT_FAIL, DEFAULT_C_TARGET),
                                            ):
-            self._check_results_string(method = method,
-                                       bins = bins,
-                                       comp = comp,
-                                       target_val = target,
-                                       test_result_object = test_result,
-                                       ex_global_result = ex_global_result, )
+            self._check_results_string(method=method,
+                                       bins=bins,
+                                       comp=comp,
+                                       target_val=target,
+                                       test_result_object=test_result,
+                                       ex_global_result=ex_global_result, )
 
     def _check_results_string(self,
                               method: ShearEstimationMethods,

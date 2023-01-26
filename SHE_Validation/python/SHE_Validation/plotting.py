@@ -378,7 +378,7 @@ class ValidationPlotter(abc.ABC):
     def _subplots_adjust(self) -> None:
         """ Set up the figure with a single subplot in a standard format.
         """
-        self.fig.subplots_adjust(wspace = 0, hspace = 0, bottom = 0.1, right = 0.95, top = 0.95, left = 0.12)
+        self.fig.subplots_adjust(wspace=0, hspace=0, bottom=0.1, right=0.95, top=0.95, left=0.12)
 
     @abc.abstractmethod
     def _draw_plot(self) -> None:
@@ -418,9 +418,9 @@ class ValidationPlotter(abc.ABC):
         l_x = l_x[~nan_values]
         l_y = l_y[~nan_values]
 
-        data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins = bins, density = True)
+        data, l_xe, l_ye = np.histogram2d(l_x, l_y, bins=bins, density=True)
         l_z: np.ndarray = interpn((0.5 * (l_xe[1:] + l_xe[:-1]), 0.5 * (l_ye[1:] + l_ye[:-1])), data,
-                                  np.vstack([l_x, l_y]).T, method = "splinef2d", bounds_error = False)
+                                  np.vstack([l_x, l_y]).T, method="splinef2d", bounds_error=False)
 
         # To be sure to plot all data
         l_z[np.where(is_nan_or_masked(l_z))] = 0.0
@@ -430,27 +430,27 @@ class ValidationPlotter(abc.ABC):
             idx: np.ndarray = l_z.argsort()
             l_x, l_y, l_z = l_x[idx], l_y[idx], l_z[idx]
 
-        self.ax.scatter(l_x, l_y, c = l_z, **kwargs)
+        self.ax.scatter(l_x, l_y, c=l_z, **kwargs)
 
         if colorbar:
             if len(l_z) == 0:
-                norm = Normalize(vmin = 0, vmax = 1)
+                norm = Normalize(vmin=0, vmax=1)
             else:
-                norm = Normalize(vmin = np.min(l_z), vmax = np.max(l_z))
-            cbar = self.fig.colorbar(cm.ScalarMappable(norm = norm), ax = self.ax)
+                norm = Normalize(vmin=np.min(l_z), vmax=np.max(l_z))
+            cbar = self.fig.colorbar(cm.ScalarMappable(norm=norm), ax=self.ax)
             cbar.ax.set_ylabel('Density')
 
     def _draw_x_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis on a plot.
         """
 
-        self.ax.plot(self.xlim, [0, 0], label = None, color = color, linestyle = linestyle, **kwargs)
+        self.ax.plot(self.xlim, [0, 0], label=None, color=color, linestyle=linestyle, **kwargs)
 
     def _draw_y_axis(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws a y-axis on a plot.
         """
 
-        self.ax.plot([0, 0], self.ylim, label = None, color = color, linestyle = linestyle, **kwargs)
+        self.ax.plot([0, 0], self.ylim, label=None, color=color, linestyle=linestyle, **kwargs)
 
     def _draw_axes(self, color: str = "k", linestyle: str = "solid", **kwargs) -> None:
         """ Draws an x-axis and y-axis on a plot.
@@ -469,7 +469,7 @@ class ValidationPlotter(abc.ABC):
 
         bestfit_x: Iterable[float] = np.array(self.xlim)
         bestfit_y: Iterable[float] = linregress_results.slope * bestfit_x + linregress_results.intercept
-        self.ax.plot(bestfit_x, bestfit_y, label = label, color = color, linestyle = linestyle)
+        self.ax.plot(bestfit_x, bestfit_y, label=label, color=color, linestyle=linestyle)
 
     def _reset_axes(self):
         """ Resets the axes to saved xlim/ylim from when they were first accessed.
@@ -495,8 +495,8 @@ class ValidationPlotter(abc.ABC):
         self.qualified_plot_filename = self.file_namer.qualified_filename
 
         # Save the figure and close it
-        plt.savefig(self.qualified_plot_filename, format = self.plot_format,
-                    bbox_inches = "tight", pad_inches = 0.05)
+        plt.savefig(self.qualified_plot_filename, format=self.plot_format,
+                    bbox_inches="tight", pad_inches=0.05)
         logger.info(self.msg_plot_saved)
 
         return self.plot_filename
@@ -512,7 +512,7 @@ class ValidationPlotter(abc.ABC):
 
         # Write each string on a separate line
         for line_num, s in enumerate(self.l_summary_text):
-            self._write_summary_text_line(s, line_num = line_num)
+            self._write_summary_text_line(s, line_num=line_num)
 
     def _write_summary_text_line(self,
                                  s: str,
@@ -520,21 +520,21 @@ class ValidationPlotter(abc.ABC):
         """ Writes a single line of summary text on the plot.
         """
 
-        self.ax.text(s = s,
-                     x = self.SUM_TXT_X_ORIGIN,
-                     y = self.SUM_TXT_Y_ORIGIN + line_num * self.SUM_TXT_Y_STEP,
-                     horizontalalignment = self.SUM_TXT_HALIGN,
-                     verticalalignment = self.SUM_TXT_VALIGN,
-                     transform = self.ax.transAxes,
-                     fontsize = self.SUM_TEXT_FONTSIZE)
+        self.ax.text(s=s,
+                     x=self.SUM_TXT_X_ORIGIN,
+                     y=self.SUM_TXT_Y_ORIGIN + line_num * self.SUM_TXT_Y_STEP,
+                     horizontalalignment=self.SUM_TXT_HALIGN,
+                     verticalalignment=self.SUM_TXT_VALIGN,
+                     transform=self.ax.transAxes,
+                     fontsize=self.SUM_TEXT_FONTSIZE)
 
     def _set_xy_labels(self) -> None:
-        self.ax.set_xlabel(self.x_label, fontsize = self.AXISLABEL_FONTSIZE)
-        self.ax.set_ylabel(self.y_label, fontsize = self.AXISLABEL_FONTSIZE)
+        self.ax.set_xlabel(self.x_label, fontsize=self.AXISLABEL_FONTSIZE)
+        self.ax.set_ylabel(self.y_label, fontsize=self.AXISLABEL_FONTSIZE)
 
     def _set_title(self) -> None:
-        plt.title(self.plot_title, fontsize = self.TITLE_FONTSIZE)
+        plt.title(self.plot_title, fontsize=self.TITLE_FONTSIZE)
 
     def _draw_legend(self) -> None:
         if self.legend_loc is not None:
-            plt.legend(loc = self.legend_loc)
+            plt.legend(loc=self.legend_loc)

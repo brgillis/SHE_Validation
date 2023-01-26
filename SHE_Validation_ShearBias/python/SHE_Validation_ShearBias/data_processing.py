@@ -81,9 +81,9 @@ class ShearBiasDataLoader:
         self.method = method
 
         # Create a table loader with this list of filenames
-        self._table_loader = BinnedMultiTableLoader(l_filenames = self.l_filenames,
-                                                    workdir = self.workdir,
-                                                    file_loader_type = TableLoader)
+        self._table_loader = BinnedMultiTableLoader(l_filenames=self.l_filenames,
+                                                    workdir=self.workdir,
+                                                    file_loader_type=TableLoader)
 
         # Determine the table format
         self._sem_tf = D_SHEAR_ESTIMATION_METHOD_TUM_TABLE_FORMATS[self.method]
@@ -145,12 +145,12 @@ class ShearBiasDataLoader:
         # If no tables were loaded, set up empty data
         if self.table is None:
 
-            self._d_g_in = {1: np.array([], dtype = float),
-                            2: np.array([], dtype = float)}
-            self._d_g_out = {1: np.array([], dtype = float),
-                             2: np.array([], dtype = float)}
-            self._d_g_out_err = {1: np.array([], dtype = float),
-                                 2: np.array([], dtype = float)}
+            self._d_g_in = {1: np.array([], dtype=float),
+                            2: np.array([], dtype=float)}
+            self._d_g_out = {1: np.array([], dtype=float),
+                             2: np.array([], dtype=float)}
+            self._d_g_out_err = {1: np.array([], dtype=float),
+                                 2: np.array([], dtype=float)}
 
             return
 
@@ -177,7 +177,7 @@ class ShearBiasDataLoader:
                  l_ids: Sequence[int],
                  *args, **kwargs) -> None:
         self.__decache()
-        self.table = self.get_ids(l_ids = l_ids, *args, **kwargs)
+        self.table = self.get_ids(l_ids=l_ids, *args, **kwargs)
         self.table_loaded = True
 
     def load_all(self, *args, **kwargs):
@@ -189,7 +189,7 @@ class ShearBiasDataLoader:
                                 bin_constraint: BinConstraint,
                                 *args, **kwargs):
         self.__decache()
-        self.table = self.get_for_bin_constraint(bin_constraint = bin_constraint, *args, **kwargs)
+        self.table = self.get_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
         self.table_loaded = True
 
     def get_all(self, *args, **kwargs) -> Table:
@@ -198,12 +198,12 @@ class ShearBiasDataLoader:
     def get_ids(self,
                 l_ids: Sequence[int],
                 *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_ids(l_ids = l_ids, *args, **kwargs)
+        return self._table_loader.get_table_for_ids(l_ids=l_ids, *args, **kwargs)
 
     def get_for_bin_constraint(self,
                                bin_constraint: BinConstraint,
                                *args, **kwargs) -> Table:
-        return self._table_loader.get_table_for_bin_constraint(bin_constraint = bin_constraint, *args, **kwargs)
+        return self._table_loader.get_table_for_bin_constraint(bin_constraint=bin_constraint, *args, **kwargs)
 
     def clear(self):
         if self.table_loaded:
@@ -328,9 +328,9 @@ class ShearBiasTestCaseDataProcessor:
         """
 
         # Limit the data to that in the current bin
-        bin_constraint = GoodBinnedMeasurementBinConstraint(test_case_info = self.test_case_info,
-                                                            bin_limits = self.l_bin_limits[bin_index:bin_index + 2])
-        self.data_loader.load_for_bin_constraint(bin_constraint = bin_constraint)
+        bin_constraint = GoodBinnedMeasurementBinConstraint(test_case_info=self.test_case_info,
+                                                            bin_limits=self.l_bin_limits[bin_index:bin_index + 2])
+        self.data_loader.load_for_bin_constraint(bin_constraint=bin_constraint)
 
         # Get data limited to the rows where g_in is less than the allowed max
         # noinspection PyTypeChecker
@@ -344,21 +344,21 @@ class ShearBiasTestCaseDataProcessor:
         # Perform the linear regression, calculate bias, and save it in the bias dict
         if not self.bootstrap_errors:
 
-            linregress_results = linregress_with_errors(x = g_in,
-                                                        y = g_out,
-                                                        y_err = g_out_err)
+            linregress_results = linregress_with_errors(x=g_in,
+                                                        y=g_out,
+                                                        y_err=g_out_err)
 
         else:
 
-            g_table = Table([g_in, g_out, g_out_err], names = ("g_in", "g_out", "g_out_err"))
+            g_table = Table([g_in, g_out, g_out_err], names=("g_in", "g_out", "g_out_err"))
 
             # Seed the random number generator
             np.random.seed(self.bootstrap_seed)
 
             # Get a base object for the m and c calculations
-            linregress_results = linregress_with_errors(x = g_table["g_in"],
-                                                        y = g_table["g_out"],
-                                                        y_err = g_table["g_out_err"])
+            linregress_results = linregress_with_errors(x=g_table["g_in"],
+                                                        y=g_table["g_out"],
+                                                        y_err=g_table["g_out_err"])
 
             # Bootstrap to get errors on slope and intercept
             n_sample = len(g_table)
@@ -367,9 +367,9 @@ class ShearBiasTestCaseDataProcessor:
             intercept_bs = np.empty(self.n_bootstrap)
             for b_i in range(self.n_bootstrap):
                 u = np.random.randint(0, n_sample, n_sample)
-                linregress_results_bs = linregress_with_errors(x = g_table[u]["g_in"],
-                                                               y = g_table[u]["g_out"],
-                                                               y_err = g_table[u]["g_out_err"])
+                linregress_results_bs = linregress_with_errors(x=g_table[u]["g_in"],
+                                                               y=g_table[u]["g_out"],
+                                                               y_err=g_table[u]["g_out_err"])
                 slope_bs[b_i] = linregress_results_bs.slope
                 intercept_bs[b_i] = linregress_results_bs.intercept
 
@@ -413,7 +413,7 @@ class ShearBiasTestCaseDataProcessor:
 
             for component_index in (1, 2):
 
-                self._calc_component_shear_bias(bin_index = bin_index,
-                                                component_index = component_index, )
+                self._calc_component_shear_bias(bin_index=bin_index,
+                                                component_index=component_index, )
 
         self._calculated = True

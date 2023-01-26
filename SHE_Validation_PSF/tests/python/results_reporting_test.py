@@ -64,9 +64,9 @@ class TestCtiResultsReporting(SheValPsfTestCase):
         self.d_l_bin_limits = self.make_d_l_bin_limits()
 
         # Make a mock star cataolog product
-        mock_starcat_table_gen = MockStarCatTableGenerator(workdir = self.workdir)
+        mock_starcat_table_gen = MockStarCatTableGenerator(workdir=self.workdir)
         mock_starcat_table_gen.write_mock_product()
-        self.mock_starcat_product = read_xml_product(mock_starcat_table_gen.product_filename, workdir = self.workdir, )
+        self.mock_starcat_product = read_xml_product(mock_starcat_table_gen.product_filename, workdir=self.workdir, )
 
         # Make a dict of mock test results
         self.d_l_test_results = {L_PSF_RES_SP_TEST_CASE_INFO[0].name: [KstestResult(KSS_TOT, P_TOT)],
@@ -74,15 +74,15 @@ class TestCtiResultsReporting(SheValPsfTestCase):
                                                                        KstestResult(KSS_SNR_1, P_SNR_1),
                                                                        KstestResult(np.nan, np.nan)]}
 
-    @pytest.fixture(scope = 'class')
+    @pytest.fixture(scope='class')
     def test_result_product(self, class_setup):
-        test_result_product = create_dpd_she_validation_test_results(reference_product = self.mock_starcat_product,
-                                                                     num_tests = NUM_PSF_RES_SP_TEST_CASES)
-        test_results_writer = PsfResValidationResultsWriter(test_object = test_result_product,
-                                                            workdir = self.workdir,
-                                                            d_l_bin_limits = self.d_l_bin_limits,
-                                                            d_l_test_results = self.d_l_test_results,
-                                                            d_requirement_writer_kwargs = {"p_fail": TEST_P_TARGET})
+        test_result_product = create_dpd_she_validation_test_results(reference_product=self.mock_starcat_product,
+                                                                     num_tests=NUM_PSF_RES_SP_TEST_CASES)
+        test_results_writer = PsfResValidationResultsWriter(test_object=test_result_product,
+                                                            workdir=self.workdir,
+                                                            d_l_bin_limits=self.d_l_bin_limits,
+                                                            d_l_test_results=self.d_l_test_results,
+                                                            d_requirement_writer_kwargs={"p_fail": TEST_P_TARGET})
 
         test_results_writer.write()
 

@@ -81,14 +81,14 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
             # Run a test for individual stars
-            star_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_starcat_table,
-                                                              ref_star_cat = ref_star_cat,
-                                                              group_mode = False)
+            star_kstest_result = run_psf_res_val_test_for_bin(star_cat=self.mock_starcat_table,
+                                                              ref_star_cat=ref_star_cat,
+                                                              group_mode=False)
 
             # And for the group
-            group_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_starcat_table,
-                                                               ref_star_cat = ref_star_cat,
-                                                               group_mode = True)
+            group_kstest_result = run_psf_res_val_test_for_bin(star_cat=self.mock_starcat_table,
+                                                               ref_star_cat=ref_star_cat,
+                                                               group_mode=True)
 
             # Check that the results are reasonable, and that the two modes are doing something different
             assert 1.0 >= star_kstest_result.pvalue > DEFAULT_P_FAIL
@@ -99,12 +99,12 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                     (not np.isclose(star_kstest_result.pvalue, group_kstest_result.pvalue)))
 
             # Now try with the bad and too-good data, and check that the p-values for each are lower
-            star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_bad_starcat_table,
-                                                                  ref_star_cat = ref_star_cat,
-                                                                  group_mode = False)
-            star_too_good_kstest_result = run_psf_res_val_test_for_bin(star_cat = self.mock_too_good_starcat_table,
-                                                                       ref_star_cat = ref_star_cat,
-                                                                       group_mode = False)
+            star_bad_kstest_result = run_psf_res_val_test_for_bin(star_cat=self.mock_bad_starcat_table,
+                                                                  ref_star_cat=ref_star_cat,
+                                                                  group_mode=False)
+            star_too_good_kstest_result = run_psf_res_val_test_for_bin(star_cat=self.mock_too_good_starcat_table,
+                                                                       ref_star_cat=ref_star_cat,
+                                                                       group_mode=False)
 
             assert star_bad_kstest_result.pvalue < star_kstest_result.pvalue
             if ref_star_cat is None:
@@ -116,14 +116,14 @@ class TestPsfDataProcessing(SheValPsfTestCase):
         """ Test that a figure is properly generated for data in individual bins.
         """
 
-        snr_test_case_info = find_test_case_info(l_test_case_info = L_PSF_RES_SP_TEST_CASE_INFO,
-                                                 bin_parameters = BinParameters.SNR,
-                                                 return_one = True)
+        snr_test_case_info = find_test_case_info(l_test_case_info=L_PSF_RES_SP_TEST_CASE_INFO,
+                                                 bin_parameters=BinParameters.SNR,
+                                                 return_one=True)
 
-        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info = [snr_test_case_info],
-                                                            d_bin_limits = {BinParameters.SNR: self.l_bin_limits},
-                                                            detections_table = self.mock_starcat_table,
-                                                            bin_constraint_type = BinParameterBinConstraint)
+        d_l_l_test_case_object_ids = get_ids_for_test_cases(l_test_case_info=[snr_test_case_info],
+                                                            d_bin_limits={BinParameters.SNR: self.l_bin_limits},
+                                                            detections_table=self.mock_starcat_table,
+                                                            bin_constraint_type=BinParameterBinConstraint)
 
         l_l_test_case_object_ids = d_l_l_test_case_object_ids[snr_test_case_info.name]
 
@@ -139,24 +139,24 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                         hist_file_namer_type = PsfResSPCumHistFileNamer
                     else:
                         hist_file_namer_type = PsfResSPHistFileNamer
-                    hist_file_namer = hist_file_namer_type(bin_parameter = self.bin_parameter,
-                                                           bin_index = bin_index,
-                                                           workdir = self.workdir)
+                    hist_file_namer = hist_file_namer_type(bin_parameter=self.bin_parameter,
+                                                           bin_index=bin_index,
+                                                           workdir=self.workdir)
 
                     # Plot the histogram
-                    hist_plotter = PsfResSPHistPlotter(star_cat = self.mock_starcat_table,
-                                                       ref_star_cat = ref_star_cat,
-                                                       file_namer = hist_file_namer,
-                                                       bin_limits = self.l_bin_limits[bin_index:bin_index + 2],
-                                                       l_ids_in_bin = l_test_case_object_ids,
-                                                       l_ref_ids_in_bin = l_test_case_object_ids,
-                                                       ks_test_result = KstestResult(0.1412, 0.2),
-                                                       group_mode = False,
-                                                       cumulative = cumulative)
+                    hist_plotter = PsfResSPHistPlotter(star_cat=self.mock_starcat_table,
+                                                       ref_star_cat=ref_star_cat,
+                                                       file_namer=hist_file_namer,
+                                                       bin_limits=self.l_bin_limits[bin_index:bin_index + 2],
+                                                       l_ids_in_bin=l_test_case_object_ids,
+                                                       l_ref_ids_in_bin=l_test_case_object_ids,
+                                                       ks_test_result=KstestResult(0.1412, 0.2),
+                                                       group_mode=False,
+                                                       cumulative=cumulative)
                     hist_plotter.plot()
 
-            scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter = self.bin_parameter,
-                                                          workdir = self.workdir)
+            scatter_file_namer = PsfResSPScatterFileNamer(bin_parameter=self.bin_parameter,
+                                                          workdir=self.workdir)
 
             if ref_star_cat is None:
                 l_ref_ids = None,
@@ -164,13 +164,13 @@ class TestPsfDataProcessing(SheValPsfTestCase):
                 l_ref_ids = ref_star_cat[ESC_TF.id]
 
             # Plot the scatter plot
-            scatter_plotter = PsfResSPScatterPlotter(star_cat = self.mock_starcat_table,
-                                                     ref_star_cat = ref_star_cat,
-                                                     file_namer = scatter_file_namer,
-                                                     bin_limits = self.l_bin_limits,
-                                                     l_ids_in_bin = self.mock_starcat_table[ESC_TF.id],
-                                                     l_ref_ids_in_bin = l_ref_ids,
-                                                     group_mode = False, )
+            scatter_plotter = PsfResSPScatterPlotter(star_cat=self.mock_starcat_table,
+                                                     ref_star_cat=ref_star_cat,
+                                                     file_namer=scatter_file_namer,
+                                                     bin_limits=self.l_bin_limits,
+                                                     l_ids_in_bin=self.mock_starcat_table[ESC_TF.id],
+                                                     l_ref_ids_in_bin=l_ref_ids,
+                                                     group_mode=False, )
             scatter_plotter.plot()
 
     def test_run_psf_res_val_test(self):
@@ -182,10 +182,10 @@ class TestPsfDataProcessing(SheValPsfTestCase):
 
         for ref_star_cat in (None, self.mock_ref_starcat_table):
 
-            d_l_kstest_results, _ = run_psf_res_val_test(star_cat = self.mock_starcat_table,
-                                                         ref_star_cat = ref_star_cat,
-                                                         d_l_bin_limits = d_l_bin_limits,
-                                                         workdir = self.workdir)
+            d_l_kstest_results, _ = run_psf_res_val_test(star_cat=self.mock_starcat_table,
+                                                         ref_star_cat=ref_star_cat,
+                                                         d_l_bin_limits=d_l_bin_limits,
+                                                         workdir=self.workdir)
 
             tc_tot = L_PSF_RES_SP_TEST_CASE_INFO[0]
             tc_snr = L_PSF_RES_SP_TEST_CASE_INFO[1]
