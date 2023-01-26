@@ -18,13 +18,15 @@
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Dict
+from typing import Dict, Optional
 
 import numpy as np
 
 from SHE_PPT.constants.classes import BinParameters
+from SHE_PPT.flags import flag_success, flag_unclassified_failure
 from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.mock_data import MockDataGenerator
+from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateDataGenerator
 from SHE_PPT.testing.mock_tables import MockTableGenerator
 from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
@@ -35,6 +37,10 @@ SHE_CHAINS_PRODUCT_FILENAME = "she_chains.xml"
 SHE_CHAINS_TABLE_FILENAME = "data/she_chains.fits"
 
 SHE_TEST_RESULTS_PRODUCT_FILENAME = "she_validation_test_results.xml"
+
+FIT_CLASS_GAL = 0
+FIT_CLASS_STAR = 1
+FIT_CLASS_UNKNOWN = 2
 
 
 def make_mock_bin_limits() -> Dict[BinParameters, np.ndarray]:
@@ -91,3 +97,54 @@ class MockBinTableGenerator(MockTableGenerator):
             written out.
         """
         return None
+
+
+class ExtendedMockMeasDataGenerator(MockShearEstimateDataGenerator):
+    """A MockShearEstimateDataGenerator, extended to also produce all data checked for in the validation steps.
+    """
+
+    # New class attributes for this child class
+    flag_bad: bool = True
+
+    # New class constants
+    RE_MIN: float = 0.1
+    RE_MAX: float = 0.2
+
+    FIT_CLASS_CHANCE_GAL = 0.8
+    FIT_CLASS_CHANCE_STAR = 0.1
+
+    def __init__(self,
+                 flag_bad: Optional[bool] = None,
+                 *args, **kwargs):
+        """Inherit init so we can set extra values.
+        """
+
+        super().__init__(*args, **kwargs)
+        if flag_bad is not None:
+            self.flag_bad = flag_bad
+
+    def _generate_unique_data(self):
+        """Inherit and add generation of new data.
+        """
+
+        # Inherit parent data generation
+        super()._generate_unique_data()
+
+        # Generate mock sizes through uniform distribution (don't want to risk them going negative on rare occasions)
+        self.data[self.tf.re] = self._rng.uniform(self.RE_MIN, self.RE_MAX, self.num_test_points)
+
+        # Generate random gal/star/unknown classifications
+        l_p = self._rng.uniform(size=self.num_test_points)
+        self.data[self.tf.fit_class] = np.where(l_p < self.FIT_CLASS_CHANCE_GAL,
+                                                FIT_CLASS_GAL,
+                                                np.where(l_p < self.FIT_CLASS_CHANCE_GAL + self.FIT_CLASS_CHANCE_STAR,
+                                                         FIT_CLASS_STAR,
+                                                         FIT_CLASS_UNKNOWN))
+
+        # If desired, flag all bad data as such
+        if self.flag_bad:
+            self.data[self.tf.fit_flags] = np.where(self._indices < self.num_good_test_points,
+                                                    flag_success,
+                                                    flag_unclassified_failure)
+        else:
+            self.data[self.tf.fit_flags] = flag_success * np.ones_like(self._indices)

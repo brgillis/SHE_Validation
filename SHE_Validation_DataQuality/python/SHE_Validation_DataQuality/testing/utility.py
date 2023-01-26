@@ -36,7 +36,8 @@ from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
-from SHE_Validation.testing.mock_data import SHE_CHAINS_PRODUCT_FILENAME, SHE_CHAINS_TABLE_FILENAME
+from SHE_Validation.testing.mock_data import (ExtendedMockMeasDataGenerator, SHE_CHAINS_PRODUCT_FILENAME,
+                                              SHE_CHAINS_TABLE_FILENAME, )
 from SHE_Validation.testing.utility import compile_regex
 from SHE_Validation_DataQuality.dp_input import DataProcInput
 from SHE_Validation_DataQuality.gi_input import GalInfoInput
@@ -89,8 +90,9 @@ class SheDQTestCase(SheTestCase):
         d_she_cat: Dict[ShearEstimationMethods, Optional[Table]] = {}
         for method in ShearEstimationMethods:
             if method == ShearEstimationMethods.LENSMC:
-                d_she_cat[method] = MockShearEstimateTableGenerator(num_test_points=self.TABLE_SIZE,
-                                                                    method=method).get_mock_table()
+                d_she_cat[method] = MockShearEstimateTableGenerator(
+                    mock_data_generator=ExtendedMockMeasDataGenerator(num_test_points=self.TABLE_SIZE,
+                                                                      method=method)).get_mock_table()
             else:
                 d_she_cat[method] = None
 
