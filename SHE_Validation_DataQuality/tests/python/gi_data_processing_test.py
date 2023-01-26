@@ -121,6 +121,6 @@ class TestGalInfoDataProcessing(SheDQTestCase):
 
             # Check that n_out is calculated correctly
             assert test_results.n_out_meas == test_results.n_in - len(l_ids_to_exclude_meas)
-            assert test_results.n_out_chains == test_results.n_in - len(l_ids_to_exclude_meas)
+            assert test_results.n_out_chains == test_results.n_in - len(l_ids_to_exclude_chains)
 
             assert not test_results.global_passed, f"{name=}"

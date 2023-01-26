@@ -207,13 +207,18 @@ class ExtendedMockChainsDataGenerator(MockDataGenerator):
 
         for attr in ("g1", "g2", "re"):
 
+            # Get the data reshaped to 2D arrays so that numpy can broadcast them properly for operations
             val_colname = getattr(m_tf, attr)
-            err_colname = getattr(m_tf, f"{attr}_err")
-            chains_colname = getattr(self.tf, attr)
+            val_reshaped = np.reshape(self._meas_data[val_colname], (self.num_test_points, 1))
 
+            err_colname = getattr(m_tf, f"{attr}_err")
+            err_reshaped = np.reshape(self._meas_data[err_colname], (self.num_test_points, 1))
+
+            # Calculate a set of normal deviates, and use them to calculate mock chains for the output
             deviates = self._rng.normal(size=(self.num_test_points, len_chain))
 
-            self.data[chains_colname] = self.data[val_colname] + deviates * self.data[err_colname]
+            chains_colname = getattr(self.tf, attr)
+            self.data[chains_colname] = val_reshaped + deviates * err_reshaped
 
 
 class ExtendedMockChainsTableGenerator(MockTableGenerator):
