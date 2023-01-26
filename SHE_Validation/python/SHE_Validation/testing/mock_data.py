@@ -161,7 +161,7 @@ class ExtendedMockChainsDataGenerator(MockDataGenerator):
     """A MockDataGenerator for generating LensMC chains data.
     """
 
-    # Overring base class default values
+    # Overriding base class default values
     tf: SheLensMcChainsFormat
     seed: int = CHAINS_SEED
 
