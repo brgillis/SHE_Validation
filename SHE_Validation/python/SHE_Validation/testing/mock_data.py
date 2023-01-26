@@ -26,7 +26,7 @@ from SHE_PPT.constants.classes import BinParameters, ShearEstimationMethods
 from SHE_PPT.flags import flag_success, flag_unclassified_failure
 from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.table_formats.she_lensmc_chains import SheLensMcChainsFormat, lensmc_chains_table_format
+from SHE_PPT.table_formats.she_lensmc_chains import SheLensMcChainsFormat, len_chain, lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.testing.mock_data import MockDataGenerator, NUM_TEST_POINTS
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateDataGenerator
@@ -138,6 +138,7 @@ class ExtendedMockMeasDataGenerator(MockShearEstimateDataGenerator):
 
         # Generate mock sizes through uniform distribution (don't want to risk them going negative on rare occasions)
         self.data[self.tf.re] = self._rng.uniform(self.RE_MIN, self.RE_MAX, self.num_test_points)
+        self.data[self.tf.re_err] = np.zeros_like(self.data[self.tf.re])
 
         # Generate random gal/star/unknown classifications
         l_p = self._rng.uniform(size=self.num_test_points)
@@ -204,7 +205,15 @@ class ExtendedMockChainsDataGenerator(MockDataGenerator):
 
         # Generate random chains for g1, g2, and re
 
-        # TODO
+        for attr in ("g1", "g2", "re"):
+
+            val_colname = getattr(m_tf, attr)
+            err_colname = getattr(m_tf, f"{attr}_err")
+            chains_colname = getattr(self.tf, attr)
+
+            deviates = self._rng.normal(size=(self.num_test_points, len_chain))
+
+            self.data[chains_colname] = self.data[val_colname] + deviates * self.data[err_colname]
 
 
 class ExtendedMockChainsTableGenerator(MockTableGenerator):
