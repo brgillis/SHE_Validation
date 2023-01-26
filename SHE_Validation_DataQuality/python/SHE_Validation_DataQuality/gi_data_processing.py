@@ -259,7 +259,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
         # First, we check for any objects which are flagged as failures - these are all considered to be flagged
         # properly
-        l_flagged_fail = cat[tf.fit_flags] & failure_flags
+        l_flagged_fail = np.asarray(cat[tf.fit_flags] & failure_flags, bool)
 
         # Exclude the objects marked as failures from the remaining analysis
         good_cat = cat[~l_flagged_fail]
