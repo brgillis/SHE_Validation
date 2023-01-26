@@ -55,7 +55,4 @@ class TestGalInfoDataProcessing(SheDQTestCase):
                 else:
                     assert not test_results.global_passed, f"{name=}"
             else:
-                if method == ShearEstimationMethods.LENSMC:
-                    assert not test_results.global_passed, f"{name=}"
-                else:
-                    assert test_results.global_passed, f"{name=}"
+                assert test_results.global_passed, f"{name=}"
