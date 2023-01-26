@@ -26,6 +26,7 @@ API Changes
 - Added new executable SHE_Validation_ValidateGalInfo
   - Main ~~executable~~ and interface implemented
   - Reading in of input data implemented
+  - Processing data implemented
 - Bin limits can now be provided (at the command-line or via pipeline_config file) in the format "auto-N" (where N is a
   positive integer). This will be interpreted as "Automatically generate bin limits from the data, by separating it
   N quantiles (of equal data volume)." The default is now "auto-4" for all parameters, which splits the data into
