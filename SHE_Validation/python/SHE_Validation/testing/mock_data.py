@@ -138,7 +138,7 @@ class ExtendedMockMeasDataGenerator(MockShearEstimateDataGenerator):
 
         # Generate mock sizes through uniform distribution (don't want to risk them going negative on rare occasions)
         self.data[self.tf.re] = self._rng.uniform(self.RE_MIN, self.RE_MAX, self.num_test_points)
-        self.data[self.tf.re_err] = np.zeros_like(self.data[self.tf.re])
+        self.data[self.tf.re_err] = (self.RE_MAX - self.RE_MIN) / 2 * np.ones(self.num_test_points, dtype=float)
 
         # Generate random gal/star/unknown classifications
         l_p = self._rng.uniform(size=self.num_test_points)
@@ -205,20 +205,25 @@ class ExtendedMockChainsDataGenerator(MockDataGenerator):
 
         # Generate random chains for g1, g2, and re
 
-        for attr in ("g1", "g2", "re"):
+        for (attr, min_value, max_value) in (("g1", -0.99, 0.99),
+                                             ("g2", -0.99, 0.99),
+                                             ("re", 0.01, 1e99)):
 
             # Get the data reshaped to 2D arrays so that numpy can broadcast them properly for operations
             val_colname = getattr(m_tf, attr)
-            val_reshaped = np.reshape(self._meas_data[val_colname], (self.num_test_points, 1))
+            l_l_val_reshaped = np.reshape(self._meas_data[val_colname], (self.num_test_points, 1))
 
             err_colname = getattr(m_tf, f"{attr}_err")
-            err_reshaped = np.reshape(self._meas_data[err_colname], (self.num_test_points, 1))
+            l_l_err_reshaped = np.reshape(self._meas_data[err_colname], (self.num_test_points, 1))
 
             # Calculate a set of normal deviates, and use them to calculate mock chains for the output
             deviates = self._rng.normal(size=(self.num_test_points, len_chain))
 
-            chains_colname = getattr(self.tf, attr)
-            self.data[chains_colname] = val_reshaped + deviates * err_reshaped
+            # Calculate values, and clip them to be within min and max
+            l_l_chain_values = l_l_val_reshaped + deviates * l_l_err_reshaped
+            l_l_chain_values_clipped = np.clip(l_l_chain_values, min_value, max_value)
+
+            self.data[getattr(self.tf, attr)] = l_l_chain_values_clipped
 
 
 class ExtendedMockChainsTableGenerator(MockTableGenerator):

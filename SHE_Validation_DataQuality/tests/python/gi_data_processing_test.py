@@ -25,10 +25,14 @@ from copy import deepcopy
 import numpy as np
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_Validation_DataQuality.constants.gal_info_test_info import GAL_INFO_N_TEST_CASE_INFO, L_GAL_INFO_TEST_CASE_INFO
-from SHE_Validation_DataQuality.gi_data_processing import GalInfoNTestResults, get_gal_info_test_results
+from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
+                                                                     GAL_INFO_N_TEST_CASE_INFO,
+                                                                     L_GAL_INFO_TEST_CASE_INFO, )
+from SHE_Validation_DataQuality.gi_data_processing import (GalInfoDataTestResults, GalInfoNTestResults,
+                                                           get_gal_info_test_results, )
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
@@ -123,4 +127,68 @@ class TestGalInfoDataProcessing(SheDQTestCase):
             assert test_results.n_out_meas == test_results.n_in - len(l_ids_to_exclude_meas)
             assert test_results.n_out_chains == test_results.n_in - len(l_ids_to_exclude_chains)
 
-            assert not test_results.global_passed, f"{name=}"
+            assert not test_results.global_passed
+
+    def test_invalid_objects(self):
+        """Unit test of the `get_gal_info_test_results` method with input which is missing some objects.
+        """
+
+        bad_gi_input = deepcopy(self.good_gi_input)
+
+        # Create mock measurements data with some IDs made invalid
+
+        she_cat = self.good_gi_input.d_she_cat[ShearEstimationMethods.LENSMC]
+        m_tf = lensmc_measurements_table_format
+
+        l_is_flagged_meas = np.asarray(she_cat[m_tf.fit_flags] & failure_flags, bool)
+
+        # The mock input data should already have invalid data at the end flagged out. Double-check this is the case
+        assert l_is_flagged_meas.sum() > 0
+
+        l_ids_to_inv_meas = she_cat[m_tf.ID][l_is_flagged_meas]
+        inv_she_cat = deepcopy(she_cat)
+        inv_she_cat[m_tf.fit_flags][l_is_flagged_meas] = 0
+
+        bad_gi_input.d_she_cat[ShearEstimationMethods.LENSMC] = inv_she_cat
+
+        # Do the same for the chains
+
+        she_chains = self.good_gi_input.she_chains
+        c_tf = lensmc_chains_table_format
+
+        l_is_flagged_chains = np.asarray(she_chains[c_tf.fit_flags] & failure_flags, bool)
+
+        # The mock input data should already have invalid data at the end flagged out. Double-check this is the case
+        # Use a slightly different list of IDs for the chains
+        l_is_flagged_chains[-1] = False
+        assert l_is_flagged_chains.sum() > 0
+
+        l_ids_to_inv_chains = she_chains[c_tf.ID][l_is_flagged_chains]
+        inv_she_chains = deepcopy(she_chains)
+        inv_she_chains[c_tf.fit_flags][l_is_flagged_chains] = 0
+
+        bad_gi_input.she_chains = inv_she_chains
+
+        # Run the test, and check that the IDs are invalid as expected
+
+        d_l_test_results = get_gal_info_test_results(bad_gi_input)
+        for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
+            name = test_case_info.name
+            method = test_case_info.method
+            id_ = test_case_info.id
+
+            if not (method == ShearEstimationMethods.LENSMC and
+                    id_.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id)):
+                continue
+
+            test_results: GalInfoDataTestResults = d_l_test_results[name][0]
+
+            # Check that the lists of missing IDs are correct
+            assert len(np.setxor1d(test_results.l_invalid_ids_meas, l_ids_to_inv_meas)) == 0
+            assert len(np.setxor1d(test_results.l_invalid_ids_chains, l_ids_to_inv_chains)) == 0
+
+            # Check that n_out is calculated correctly
+            assert test_results.n_inv_meas == len(l_ids_to_inv_meas)
+            assert test_results.n_inv_chains == len(l_ids_to_inv_chains)
+
+            assert not test_results.global_passed
