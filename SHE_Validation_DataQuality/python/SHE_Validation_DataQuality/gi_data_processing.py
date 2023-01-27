@@ -58,7 +58,7 @@ MSG_MISSING_IDS = "Missing %s IDs: %s\n"
 MSG_N_INV = "%s n_inv = %i\n"
 MSG_INVALID_IDS = "Invalid %s IDs: %s\n"
 
-MSG_RESULT = "%s Result: %s\n"
+MSG_ATTR_RESULT = "%s Result: %s\n"
 STR_GLOBAL = "Global"
 
 
@@ -116,10 +116,7 @@ class GalInfoTestResults(abc.ABC):
             message += self._get_unique_supp_info(attr)
 
             attr_result = RESULT_PASS if getattr(self, f"{attr}_passed") else RESULT_FAIL
-            message += MSG_RESULT % (attr_capped, attr_result)
-
-        global_result = RESULT_PASS if self.global_passed else RESULT_FAIL
-        message += MSG_RESULT % (STR_GLOBAL, global_result)
+            message += MSG_ATTR_RESULT % (attr_capped, attr_result)
 
         return message
 

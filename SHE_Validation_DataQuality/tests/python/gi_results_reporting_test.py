@@ -32,8 +32,10 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO,
                                                                      NUM_GAL_INFO_TEST_CASES, )
-from SHE_Validation_DataQuality.gi_data_processing import (GalInfoDataTestResults, GalInfoNTestResults,
-                                                           GalInfoTestResults, )
+from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoDataTestResults, GalInfoNTestResults,
+                                                           GalInfoTestResults, MEAS_ATTR, MSG_F_OUT, MSG_MISSING_IDS,
+                                                           MSG_N_IN,
+                                                           MSG_N_OUT, MSG_ATTR_RESULT, STR_GLOBAL, )
 from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
 from SHE_Validation.constants.misc import MSG_NA
 
@@ -41,10 +43,21 @@ MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
 
 N_IN = 100
+
 L_MISSING_MEAS = []
-L_MISSING_CHAINS = []
-L_INVALID_MEAS = []
-L_INVALID_CHAINS = []
+N_OUT_MEAS = N_IN - len(L_MISSING_MEAS)
+
+L_MISSING_CHAINS = [4, 6]
+N_OUT_CHAINS = N_IN - len(L_MISSING_CHAINS)
+
+L_INVALID_MEAS = [2, 3]
+N_INVALID_MEAS = len(L_INVALID_MEAS)
+
+L_INVALID_CHAINS = [2, 3, 4]
+N_INVALID_CHAINS = len(L_INVALID_CHAINS)
+
+MEAS_CAPPED = MEAS_ATTR.capitalize()
+CHAINS_CAPPED = CHAINS_ATTR.capitalize()
 
 
 class TestGalInfoResultsReporting(SheTestCase):
@@ -115,7 +128,7 @@ class TestGalInfoResultsReporting(SheTestCase):
             requirement_object = test_results.ValidatedRequirements.Requirement[0]
 
             supp_info = requirement_object.SupplementaryInformation
-            supp_info_string = supp_info.Parameter[0].StringValue
+            supp_info_string: str = supp_info.Parameter[0].StringValue
 
             # Split check depending on which test case this is
             if test_results.TestId.startswith(GAL_INFO_N_TEST_CASE_INFO.base_test_case_id):
@@ -125,12 +138,26 @@ class TestGalInfoResultsReporting(SheTestCase):
                 assert requirement_object.MeasuredValue[0].Value.FloatValue == 1.
                 assert requirement_object.ValidationResult == RESULT_PASS
 
+                assert supp_info_string.startswith(MSG_N_IN % (MEAS_CAPPED, N_IN))
+                assert MSG_N_OUT % (MEAS_CAPPED, N_OUT_MEAS) in supp_info_string
+                assert MSG_F_OUT % (MEAS_CAPPED, N_OUT_MEAS / N_IN) in supp_info_string
+                assert MSG_MISSING_IDS % (MEAS_CAPPED, MSG_NA) in supp_info_string
+                assert MSG_ATTR_RESULT % (MEAS_CAPPED, RESULT_PASS) in supp_info_string
+
+                assert MSG_N_IN % (CHAINS_CAPPED, N_IN) in supp_info_string
+                assert MSG_N_OUT % (CHAINS_CAPPED, N_OUT_CHAINS) in supp_info_string
+                assert MSG_F_OUT % (CHAINS_CAPPED, N_OUT_CHAINS / N_IN) in supp_info_string
+                assert MSG_MISSING_IDS % (CHAINS_CAPPED, str(list(L_MISSING_CHAINS))) in supp_info_string
+                assert MSG_ATTR_RESULT % (CHAINS_CAPPED, RESULT_FAIL) in supp_info_string
+
+                assert supp_info_string.endswith(f"Result: {RESULT_PASS}")
+
             elif test_results.TestId.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
 
-                assert test_results.GlobalResult == RESULT_PASS
+                assert test_results.GlobalResult == RESULT_FAIL
                 assert requirement_object.Comment == INFO_MULTIPLE
-                assert requirement_object.MeasuredValue[0].Value.FloatValue == 0.
-                assert requirement_object.ValidationResult == RESULT_PASS
+                assert requirement_object.MeasuredValue[0].Value.FloatValue == N_INVALID_MEAS
+                assert requirement_object.ValidationResult == RESULT_FAIL
 
             else:
 
