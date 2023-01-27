@@ -49,7 +49,7 @@ MSG_NA = "N/A"
 
 
 class DataProcRequirementWriter(RequirementWriter):
-    """ Class for managing reporting of results for a single Shear Bias requirement
+    """ Class for managing reporting of results for a single DataProc requirement
     """
 
     value_name: str = STR_DP_STAT
