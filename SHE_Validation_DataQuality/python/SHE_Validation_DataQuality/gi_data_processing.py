@@ -66,6 +66,10 @@ class GalInfoTestResults(abc.ABC):
 
     Methods
     -------
+    meas_passed: bool
+        (Read-only property) Whether the Shear Measurements data passed
+    chains_passed: bool
+        (Read-only property) Whether the Chains data passed
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
     get_supp_info_message: str
@@ -74,6 +78,20 @@ class GalInfoTestResults(abc.ABC):
     get_measured_value: float
         Returns the "measured value" for the test (defined per test case)
     """
+
+    @property
+    @abc.abstractmethod
+    def meas_passed(self) -> bool:
+        """Whether the Shear Measurements data passed
+        """
+        pass
+
+    @property
+    @abc.abstractmethod
+    def chains_passed(self) -> bool:
+        """Whether the Chains data passed
+        """
+        pass
 
     @property
     @abc.abstractmethod
@@ -117,6 +135,10 @@ class GalInfoNTestResults(GalInfoTestResults):
         (Read-only property) The number of objects in the output measurements catalog
     n_out_chains: int
         (Read-only property) The number of objects in the output chains catalog
+    meas_passed: bool
+        (Read-only property) Whether the Shear Measurements data passed
+    chains_passed: bool
+        (Read-only property) Whether the Chains data passed
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
     get_supp_info_message: str
@@ -145,10 +167,22 @@ class GalInfoNTestResults(GalInfoTestResults):
         return self.n_in - len(self.l_missing_ids_chains)
 
     @property
+    def meas_passed(self) -> bool:
+        """Whether the Shear Measurements data passed
+        """
+        return self.n_in == self.n_out_meas
+
+    @property
+    def chains_passed(self) -> bool:
+        """Whether the Chains data passed
+        """
+        return self.n_in == self.n_out_chains
+
+    @property
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
         """
-        return self.n_in == self.n_out_meas
+        return self.meas_passed
 
     def get_supp_info_message(self) -> str:
         """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
@@ -201,6 +235,10 @@ class GalInfoDataTestResults(GalInfoTestResults):
         (Read-only property) The number of objects in the output measurements catalog with invalid data
     n_inv_chains: int
         (Read-only property) The number of objects in the output chains catalog with invalid data
+    meas_passed: bool
+        (Read-only property) Whether the Shear Measurements data passed
+    chains_passed: bool
+        (Read-only property) Whether the Chains data passed
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
     get_supp_info_message: str
@@ -227,10 +265,22 @@ class GalInfoDataTestResults(GalInfoTestResults):
         return len(self.l_invalid_ids_chains)
 
     @property
+    def meas_passed(self) -> bool:
+        """Whether the Shear Measurements data passed
+        """
+        return self.n_inv_meas == 0
+
+    @property
+    def chains_passed(self) -> bool:
+        """Whether the Chains data passed
+        """
+        return self.n_inv_chains == 0
+
+    @property
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
         """
-        return self.n_inv_meas == 0
+        return self.meas_passed
 
     def get_supp_info_message(self) -> str:
         """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
