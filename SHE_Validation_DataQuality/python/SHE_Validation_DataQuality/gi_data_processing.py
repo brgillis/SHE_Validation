@@ -38,6 +38,8 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_measurements import tf as sem_tf
 from SHE_PPT.utility import is_inf_nan_or_masked, is_inf_or_nan
+from SHE_Validation.constants.misc import MSG_NA
+from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
@@ -63,6 +65,13 @@ class GalInfoTestResults(abc.ABC):
     @abc.abstractmethod
     def global_passed(self) -> bool:
         """Whether the test case as a whole passed
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_supp_info_message(self) -> str:
+        """Abstract method to return a formatted SupplementaryInfo message based on the results, which can be output to
+        the results data product.
         """
         pass
 
@@ -115,6 +124,36 @@ class GalInfoNTestResults(GalInfoTestResults):
         """
         return self.n_in == self.n_out_meas
 
+    @abc.abstractmethod
+    def get_supp_info_message(self) -> str:
+        """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
+        product.
+        """
+
+        message = f"n_in = {self.n_in}\n"
+
+        for attr in (MEAS_KEY, CHAINS_KEY):
+
+            n_out = getattr(self, f"n_out_{attr}")
+
+            message += f"n_out_{attr} = {n_out}\n"
+            message += f"n_out_{attr}/n_in = {n_out / self.n_in}\n"
+
+            if n_out < self.n_in:
+                # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
+                l_missing_ids = list(getattr(self, f"l_missing_ids_{attr}"))
+                message += f"Missing IDs: {l_missing_ids}"
+            else:
+                message += f"Missing IDs: {MSG_NA}"
+
+        if self.global_passed:
+            result = RESULT_PASS
+        else:
+            result = RESULT_FAIL
+        message += f"Result: {result}"
+
+        return message
+
 
 @dataclass
 class GalInfoDataTestResults(GalInfoTestResults):
@@ -157,6 +196,34 @@ class GalInfoDataTestResults(GalInfoTestResults):
         """Whether the test case as a whole passed
         """
         return self.n_inv_meas == 0
+
+    @abc.abstractmethod
+    def get_supp_info_message(self) -> str:
+        """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
+        product.
+        """
+
+        message = ""
+
+        for attr in (MEAS_KEY, CHAINS_KEY):
+
+            n_inv = getattr(self, f"n_inv_{attr}")
+
+            message += f"n_inv_{attr} = {n_inv}\n"
+
+            if n_inv > 0:
+                # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
+                l_invalid_ids = list(getattr(self, f"l_invalid_ids_{attr}"))
+                message += f"Invalid IDs: {l_invalid_ids}"
+            else:
+                message += f"Invalid IDs: {MSG_NA}"
+
+        if self.global_passed:
+            message += f"Result: {RESULT_PASS}"
+        else:
+            message += f"Result: {RESULT_FAIL}"
+
+        return message
 
 
 def get_gal_info_test_results(gal_info_input):

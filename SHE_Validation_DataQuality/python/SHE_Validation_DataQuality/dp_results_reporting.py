@@ -28,6 +28,7 @@ from typing import List, Optional
 import numpy as np
 
 from SHE_PPT.logging import getLogger
+from SHE_Validation.constants.misc import MSG_NA
 from SHE_Validation.results_writer import (RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
                                            ValidationResultsWriter, get_result_string, )
 from SHE_Validation_DataQuality.constants.data_proc_test_info import (D_L_DATA_PROC_REQUIREMENT_INFO,
@@ -45,7 +46,6 @@ STR_SHE_CHAINS = "Chains Catalog"
 
 MSG_PRESENT_AND_VALID = "Presence and validity of %s: "
 MSG_DETAILS = "Details: "
-MSG_NA = "N/A"
 
 
 class DataProcRequirementWriter(RequirementWriter):

@@ -32,9 +32,10 @@ from SHE_Validation_DataQuality.constants.data_proc_test_info import (L_DATA_PRO
                                                                       NUM_DATA_PROC_TEST_CASES, )
 from SHE_Validation_DataQuality.dp_data_processing import DataProcTestResults
 from SHE_Validation_DataQuality.dp_results_reporting import (DataProcValidationResultsWriter, MSG_DETAILS,
-                                                             MSG_NA, MSG_PRESENT_AND_VALID,
+                                                             MSG_PRESENT_AND_VALID,
                                                              STR_P_SHE_CAT, STR_P_SHE_CHAINS, STR_SHE_CAT,
                                                              STR_SHE_CHAINS, )
+from SHE_Validation.constants.misc import MSG_NA
 
 MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
