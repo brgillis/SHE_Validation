@@ -7,7 +7,7 @@ Dependencies
 Internal Euclid Dependencies
 ----------------------------
 
--  `SHE\_PPT 9.2 <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PPT>`__
+-  `SHE\_PPT 9.2.1 <https://gitlab.euclid-sgs.uk/PF-SHE/SHE_PPT>`__
 
 
 External Euclid Dependencies
