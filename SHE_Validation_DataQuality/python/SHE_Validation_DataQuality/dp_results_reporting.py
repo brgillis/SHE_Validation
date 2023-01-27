@@ -94,7 +94,7 @@ class DataProcRequirementWriter(RequirementWriter):
         return message
 
     def _determine_results(self):
-        """Determine the test results if not already generated, filling in self.l_good_data and self.l_test_pass
+        """Determine the test results if not already generated, filling in self.l_good_data, self.l_test_pass
         and self.measured_value
         """
 
