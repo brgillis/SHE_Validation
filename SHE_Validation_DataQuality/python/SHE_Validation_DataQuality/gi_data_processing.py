@@ -50,8 +50,13 @@ if TYPE_CHECKING:
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
 
+MSG_N_OUT = "%s n_out = %i\n"
+MSG_F_OUT = "%s n_out/n_in = %f\n"
 MSG_MISSING_IDS = "Missing IDs: %s\n"
+
+MSG_N_INV = "%s n_inv = %i\n"
 MSG_INVALID_IDS = "Invalid IDs: %s\n"
+
 MSG_RESULT = "Result: %s\n"
 
 
@@ -145,8 +150,8 @@ class GalInfoNTestResults(GalInfoTestResults):
 
             n_out = getattr(self, f"n_out_{attr}")
 
-            message += f"n_out_{attr} = {n_out}\n"
-            message += f"n_out_{attr}/n_in = {n_out / self.n_in}\n"
+            message += MSG_N_OUT % (attr, n_out)
+            message += MSG_F_OUT % (attr, n_out / self.n_in)
 
             if n_out < self.n_in:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
@@ -221,7 +226,7 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
             n_inv = getattr(self, f"n_inv_{attr}")
 
-            message += f"n_inv_{attr} = {n_inv}\n"
+            message += MSG_N_INV % (attr, n_inv)
 
             if n_inv > 0:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
