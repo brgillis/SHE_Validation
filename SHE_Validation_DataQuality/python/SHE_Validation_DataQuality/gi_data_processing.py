@@ -47,8 +47,8 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
 
-MEAS_KEY = "meas"
-CHAINS_KEY = "chains"
+MEAS_ATTR = "meas"
+CHAINS_ATTR = "chains"
 
 
 @dataclass
@@ -137,7 +137,7 @@ class GalInfoNTestResults(GalInfoTestResults):
 
         message = f"n_in = {self.n_in}\n"
 
-        for attr in (MEAS_KEY, CHAINS_KEY):
+        for attr in (MEAS_ATTR, CHAINS_ATTR):
 
             n_out = getattr(self, f"n_out_{attr}")
 
@@ -147,9 +147,9 @@ class GalInfoNTestResults(GalInfoTestResults):
             if n_out < self.n_in:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
                 l_missing_ids = list(getattr(self, f"l_missing_ids_{attr}"))
-                message += f"Missing IDs: {l_missing_ids}"
+                message += f"Missing IDs: {l_missing_ids}\n"
             else:
-                message += f"Missing IDs: {MSG_NA}"
+                message += f"Missing IDs: {MSG_NA}\n"
 
         if self.global_passed:
             result = RESULT_PASS
@@ -214,7 +214,7 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
         message = ""
 
-        for attr in (MEAS_KEY, CHAINS_KEY):
+        for attr in (MEAS_ATTR, CHAINS_ATTR):
 
             n_inv = getattr(self, f"n_inv_{attr}")
 
@@ -223,9 +223,9 @@ class GalInfoDataTestResults(GalInfoTestResults):
             if n_inv > 0:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
                 l_invalid_ids = list(getattr(self, f"l_invalid_ids_{attr}"))
-                message += f"Invalid IDs: {l_invalid_ids}"
+                message += f"Invalid IDs: {l_invalid_ids}\n"
             else:
-                message += f"Invalid IDs: {MSG_NA}"
+                message += f"Invalid IDs: {MSG_NA}\n"
 
         if self.global_passed:
             message += f"Result: {RESULT_PASS}"
@@ -299,8 +299,8 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
 
     d_l_missing_ids: Dict[str, np.ndarray] = {}
 
-    for cat, cat_type in ((she_cat, MEAS_KEY),
-                          (she_chains, CHAINS_KEY)):
+    for cat, cat_type in ((she_cat, MEAS_ATTR),
+                          (she_chains, CHAINS_ATTR)):
         # Check for case where we don't have a catalog provided
         if cat is None:
             d_l_missing_ids[cat_type] = np.array(l_mer_ids, dtype=int)
@@ -312,8 +312,8 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
         d_l_missing_ids[cat_type] = np.setdiff1d(l_mer_ids, l_she_ids)
 
     return GalInfoNTestResults(n_in=n_in,
-                               l_missing_ids_meas=d_l_missing_ids[MEAS_KEY],
-                               l_missing_ids_chains=d_l_missing_ids[CHAINS_KEY])
+                               l_missing_ids_meas=d_l_missing_ids[MEAS_ATTR],
+                               l_missing_ids_chains=d_l_missing_ids[CHAINS_ATTR])
 
 
 def _get_gal_info_data_test_results(she_cat: Optional[Table],
@@ -324,8 +324,8 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
     d_l_invalid_ids: Dict[str, np.ndarray] = {}
 
-    for cat, cat_type in ((she_cat, MEAS_KEY),
-                          (she_chains, CHAINS_KEY)):
+    for cat, cat_type in ((she_cat, MEAS_ATTR),
+                          (she_chains, CHAINS_ATTR)):
 
         # Check for case where we don't have a catalog provided
         if cat is None:
@@ -333,7 +333,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             continue
 
         # Some different setup between measurements and chains catalogs
-        if cat_type == MEAS_KEY:
+        if cat_type == MEAS_ATTR:
             tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
         else:
             tf = lensmc_chains_table_format
@@ -367,7 +367,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
             # For chains, we need to use slightly-different methods, which reduce the multi-dimensional array
             # properly, to do checks on values
-            if cat_type == MEAS_KEY or not is_chain:
+            if cat_type == MEAS_ATTR or not is_chain:
                 bad_value_test = _meas_bad_value
                 min_value_test = _meas_min_value
                 max_value_test = _meas_max_value
@@ -393,8 +393,8 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         # Now, get a list of IDs which failed checks to output
         d_l_invalid_ids[cat_type] = good_cat[~l_pass_all_checks][sem_tf.ID]
 
-    return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_KEY],
-                                  l_invalid_ids_chains=d_l_invalid_ids[CHAINS_KEY])
+    return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
+                                  l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR])
 
 
 def _meas_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
