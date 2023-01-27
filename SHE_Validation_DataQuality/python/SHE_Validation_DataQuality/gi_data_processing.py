@@ -50,6 +50,10 @@ if TYPE_CHECKING:
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
 
+MSG_MISSING_IDS = "Missing IDs: %s\n"
+MSG_INVALID_IDS = "Invalid IDs: %s\n"
+MSG_RESULT = "Result: %s\n"
+
 
 @dataclass
 class GalInfoTestResults(abc.ABC):
@@ -147,15 +151,14 @@ class GalInfoNTestResults(GalInfoTestResults):
             if n_out < self.n_in:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
                 l_missing_ids = list(getattr(self, f"l_missing_ids_{attr}"))
-                message += f"Missing IDs: {l_missing_ids}\n"
+                message += MSG_MISSING_IDS % str(l_missing_ids)
             else:
-                message += f"Missing IDs: {MSG_NA}\n"
+                message += MSG_MISSING_IDS % MSG_NA
 
         if self.global_passed:
-            result = RESULT_PASS
+            message += MSG_RESULT % RESULT_PASS
         else:
-            result = RESULT_FAIL
-        message += f"Result: {result}"
+            message += MSG_RESULT % RESULT_FAIL
 
         return message
 
@@ -223,14 +226,14 @@ class GalInfoDataTestResults(GalInfoTestResults):
             if n_inv > 0:
                 # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
                 l_invalid_ids = list(getattr(self, f"l_invalid_ids_{attr}"))
-                message += f"Invalid IDs: {l_invalid_ids}\n"
+                message += MSG_INVALID_IDS % str(l_invalid_ids)
             else:
-                message += f"Invalid IDs: {MSG_NA}\n"
+                message += MSG_INVALID_IDS % MSG_NA
 
         if self.global_passed:
-            message += f"Result: {RESULT_PASS}"
+            message += MSG_RESULT % RESULT_PASS
         else:
-            message += f"Result: {RESULT_FAIL}"
+            message += MSG_RESULT % RESULT_FAIL
 
         return message
 
