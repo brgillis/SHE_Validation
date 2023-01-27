@@ -28,8 +28,8 @@ from typing import List, Optional
 import numpy as np
 
 from SHE_PPT.logging import getLogger
-from SHE_Validation.results_writer import (RESULT_FAIL, RESULT_PASS, RequirementWriter, TestCaseWriter,
-                                           ValidationResultsWriter, get_result_string, )
+from SHE_Validation.results_writer import (RequirementWriter, TestCaseWriter, ValidationResultsWriter,
+                                           get_result_string, )
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (D_L_GAL_INFO_REQUIREMENT_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.gi_data_processing import GalInfoTestResults
