@@ -26,16 +26,14 @@ from typing import Dict, Optional
 from astropy.table import Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.file_io import write_xml_product
 from SHE_PPT.products.mer_final_catalog import create_dpd_mer_final_catalog
+from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
 from SHE_PPT.products.she_validated_measurements import create_dpd_she_validated_measurements
+from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateTableGenerator
 from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
 from SHE_PPT.testing.utility import SheTestCase
-
-from SHE_PPT.file_io import write_xml_product
-from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
-from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_Validation.testing.mock_data import (ExtendedMockChainsTableGenerator, ExtendedMockMeasDataGenerator,
                                               SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_CHAINS_TABLE_FILENAME, )

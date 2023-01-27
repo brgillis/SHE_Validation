@@ -24,7 +24,6 @@ Code for processing data in the GalInfo validation test
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import abc
-
 from dataclasses import dataclass
 from typing import Dict, List, MutableSequence, Optional, Sequence, TYPE_CHECKING, Union
 

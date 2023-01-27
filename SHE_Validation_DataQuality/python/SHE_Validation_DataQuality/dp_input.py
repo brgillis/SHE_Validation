@@ -35,8 +35,8 @@ from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_utility import is_in_format
 from SHE_PPT.utility import is_any_type_of_none
-from ST_DataModelBindings.dpd.she.measurements_stub import dpdSheMeasurements
 from ST_DataModelBindings.dpd.she.lensmcchains_stub import dpdSheLensMcChains
+from ST_DataModelBindings.dpd.she.measurements_stub import dpdSheMeasurements
 
 ERR_MEASUREMENTS_NONE = "No Shear Estimates table for method %s found in data product."
 ERR_MEASUREMENTS_FORMAT = "Shear Estimates table for method %s is not in expected format %s."

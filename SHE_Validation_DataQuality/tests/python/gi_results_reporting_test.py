@@ -27,18 +27,17 @@ import pytest
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
 from SHE_PPT.testing.utility import SheTestCase
+from SHE_Validation.constants.misc import MSG_NA
 from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO,
                                                                      NUM_GAL_INFO_TEST_CASES, )
 from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoDataTestResults, GalInfoNTestResults,
-                                                           GalInfoTestResults, MEAS_ATTR, MSG_F_OUT, MSG_INVALID_IDS,
-                                                           MSG_MISSING_IDS,
-                                                           MSG_N_IN,
-                                                           MSG_N_INV, MSG_N_OUT, MSG_ATTR_RESULT, STR_GLOBAL, )
+                                                           GalInfoTestResults, MEAS_ATTR, MSG_ATTR_RESULT, MSG_F_OUT,
+                                                           MSG_INVALID_IDS, MSG_MISSING_IDS, MSG_N_IN, MSG_N_INV,
+                                                           MSG_N_OUT, )
 from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
-from SHE_Validation.constants.misc import MSG_NA
 
 MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"

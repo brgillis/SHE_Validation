@@ -7,6 +7,7 @@
 Core code for SEDExist validation test
 """
 
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under
