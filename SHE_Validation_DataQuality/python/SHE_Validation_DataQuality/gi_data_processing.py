@@ -117,6 +117,8 @@ class GalInfoTestResults(abc.ABC):
             attr_result = RESULT_PASS if getattr(self, f"{attr}_passed") else RESULT_FAIL
             message += MSG_ATTR_RESULT % (attr_capped, attr_result)
 
+            message += "\n"
+
         return message
 
     @abc.abstractmethod
