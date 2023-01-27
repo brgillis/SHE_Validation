@@ -20,6 +20,7 @@ Integration test of the GalInfo validation test
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 from argparse import Namespace
 
 from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
@@ -70,3 +71,7 @@ class TestGalInfoRun(SheDQTestCase):
 
         # Call the mainMethod, to ensure we're testing the full executable
         mainMethod(self.args)
+
+        # Check that the expected output has been created
+        qualified_test_results_filename = os.path.join(self.workdir, self.d_args[CA_SHE_TEST_RESULTS])
+        assert os.path.isfile(qualified_test_results_filename)
