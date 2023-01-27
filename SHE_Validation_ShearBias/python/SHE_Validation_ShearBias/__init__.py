@@ -22,9 +22,8 @@ SHE_Validation_ShearBias package, for validation tests and documentation related
 
 from pkgutil import extend_path
 
-# noinspection PyUnresolvedReferences
-from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__, __maintainer__,
-                                     __status__, __url__, __version__, )
+from SHE_Validation.__init__ import (__authors__, __copyright__, __credits__, __email__, __license__,  # noqa F401
+                                     __maintainer__, __status__, __url__, __version__, )  # noqa F401
 
 __description__ = 'Python package for unit tests relating to Shear Bias.'
 

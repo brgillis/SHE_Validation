@@ -314,7 +314,7 @@ class CtiRequirementWriter(RequirementWriter):
             else:
                 l_prop_z[bin_index] = np.abs(
                     getattr(self, f"l_{prop}")[bin_index] / getattr(self, f"l_{prop}_err")[bin_index])
-                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, f"fail_sigma")
+                l_prop_pass[bin_index] = l_prop_z[bin_index] < getattr(self, "fail_sigma")
                 l_prop_good_data[bin_index] = True
 
         else:
