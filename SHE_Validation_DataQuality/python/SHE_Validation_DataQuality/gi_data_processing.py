@@ -130,7 +130,6 @@ class GalInfoNTestResults(GalInfoTestResults):
         """
         return self.n_in == self.n_out_meas
 
-    @abc.abstractmethod
     def get_supp_info_message(self) -> str:
         """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
         product.
@@ -160,7 +159,6 @@ class GalInfoNTestResults(GalInfoTestResults):
 
         return message
 
-    @abc.abstractmethod
     def get_measured_value(self) -> float:
         """Abstract method to return the measured value of the test case.
         """
@@ -209,7 +207,6 @@ class GalInfoDataTestResults(GalInfoTestResults):
         """
         return self.n_inv_meas == 0
 
-    @abc.abstractmethod
     def get_supp_info_message(self) -> str:
         """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
         product.
@@ -237,7 +234,6 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
         return message
 
-    @abc.abstractmethod
     def get_measured_value(self) -> float:
         """Abstract method to return the measured value of the test case.
         """
