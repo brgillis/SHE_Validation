@@ -6,6 +6,7 @@
 
 Entry-point module for the PSFLambda validation test
 """
+from typing import TYPE_CHECKING
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,8 +24,6 @@ Entry-point module for the PSFLambda validation test
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from argparse import ArgumentParser, Namespace
-
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
                                       D_GLOBAL_CONFIG_TYPES, ValidationConfigKeys, )
@@ -32,6 +31,9 @@ from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation_PSF.validate_psf_lambda import run_validate_psf_lambda_from_args
+
+if TYPE_CHECKING:
+    from argparse import ArgumentParser, Namespace  # noqa F401
 
 EXEC_NAME = "SHE_Validation_ValidatePSFLambda"
 
@@ -48,7 +50,7 @@ def defineSpecificProgramOptions():
 
     Returns
     -------
-    parser: ArgumentParser
+    parser: ValidationArgumentParser
     """
 
     logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')

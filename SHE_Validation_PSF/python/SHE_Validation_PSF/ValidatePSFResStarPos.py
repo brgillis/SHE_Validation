@@ -25,13 +25,16 @@ Entry-point module for the PSFResStarPos validation executable
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-from argparse import ArgumentParser, Namespace
+from typing import TYPE_CHECKING
 
 from SHE_PPT import logging as log
 from SHE_Validation.executor import ValLogOptions
 from SHE_Validation_PSF.argument_parser import PsfResArgumentParser
 from SHE_Validation_PSF.executor import PsfResValExecutor
 from SHE_Validation_PSF.validate_psf_res_star_pos import run_validate_psf_res_from_args
+
+if TYPE_CHECKING:
+    from argparse import ArgumentParser, Namespace  # noqa F401
 
 EXEC_NAME = "SHE_Validation_ValidatePSFResStarPos"
 

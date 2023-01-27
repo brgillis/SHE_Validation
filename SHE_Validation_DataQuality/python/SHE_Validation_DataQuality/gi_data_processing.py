@@ -36,7 +36,7 @@ from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_measurements import tf as sem_tf
-from SHE_PPT.utility import is_inf_nan_or_masked, is_inf_or_nan, is_masked
+from SHE_PPT.utility import is_inf_nan_or_masked, is_masked
 from SHE_Validation.constants.misc import MSG_NA
 from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,

@@ -45,12 +45,12 @@ PSF_LAMBDA_TEST_INFO = TestInfo(test_id="T-SHE-000002-PSF-lambda",
                                              "spectroscopic data."))
 
 PSF_LAMBDA_E_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="TC-SHE-100003-PSF-lambda-ell",
-                                           base_name=f"PL-E",
+                                           base_name="PL-E",
                                            base_description=f"{PSF_LAMBDA_TEST_INFO.description} Effect on "
                                                             "ellipticity.",
                                            base_id_number=100003)
 PSF_LAMBDA_R2_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="TC-SHE-100004-PSF-lambda-R2",
-                                            base_name=f"PL-R2",
+                                            base_name="PL-R2",
                                             base_description=f"{PSF_LAMBDA_TEST_INFO.description} Effect on size.",
                                             base_id_number=100004)
 

@@ -23,7 +23,7 @@ Entry-point module for the PSFModelErr validation test
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from argparse import ArgumentParser, Namespace
+from typing import TYPE_CHECKING
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
@@ -32,6 +32,9 @@ from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation_PSF.validate_psf_model_err import run_validate_psf_model_err_from_args
+
+if TYPE_CHECKING:
+    from argparse import ArgumentParser, Namespace  # noqa F401
 
 EXEC_NAME = "SHE_Validation_ValidatePSFModelErr"
 

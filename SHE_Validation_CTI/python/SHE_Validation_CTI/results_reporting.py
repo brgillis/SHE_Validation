@@ -564,10 +564,6 @@ class CtiValidationResultsWriter(ValidationResultsWriter):
             l_intercept[bin_index] = regression_results_row[RR_TF.intercept]
             l_intercept_err[bin_index] = regression_results_row[RR_TF.intercept_err]
 
-        # For the tot case, override the bin limits with None
-        if test_case_info.bins == BinParameters.TOT:
-            l_bin_limits = None
-
         return l_slope, l_slope_err, l_intercept, l_intercept_err, l_test_case_bins
 
     def write_test_case_objects(self):

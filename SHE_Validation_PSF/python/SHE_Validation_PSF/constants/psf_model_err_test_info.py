@@ -42,12 +42,12 @@ PSF_MODEL_ERR_TEST_INFO = TestInfo(test_id="T-SHE-000004-PSF-model-err-propa",
                                                 "size, and ensure below requirements."))
 
 PSF_MODEL_ERR_E_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="TC-SHE-100011-PSF-model-err-propa-ell",
-                                              base_name=f"PME-E",
+                                              base_name="PME-E",
                                               base_description=f"{PSF_MODEL_ERR_TEST_INFO.description} Effect on "
                                                                "ellipticity.",
                                               base_id_number=100011)
 PSF_MODEL_ERR_R2_TEST_CASE_INFO = TestCaseInfo(base_test_case_id="TC-SHE-100012-PSF-model-err-propa-R2",
-                                               base_name=f"PME-R2",
+                                               base_name="PME-R2",
                                                base_description=f"{PSF_MODEL_ERR_TEST_INFO.description} Effect on "
                                                                 f"size.",
                                                base_id_number=100012)

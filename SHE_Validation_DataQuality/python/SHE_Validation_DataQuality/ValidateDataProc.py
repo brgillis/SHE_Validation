@@ -6,6 +6,7 @@
 
 Entry-point module for DataProc validation test
 """
+from typing import TYPE_CHECKING
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,8 +24,6 @@ Entry-point module for DataProc validation test
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from argparse import ArgumentParser, Namespace
-
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,
                                       D_GLOBAL_CONFIG_TYPES, ReconciliationConfigKeys, )
@@ -32,6 +31,9 @@ from SHE_PPT.executor import ReadConfigArgs
 from SHE_Validation.argument_parser import CA_SHE_CAT, CA_SHE_CHAINS, ValidationArgumentParser
 from SHE_Validation.executor import SheValExecutor, ValLogOptions
 from SHE_Validation_DataQuality.validate_data_proc import run_validate_data_proc_from_args
+
+if TYPE_CHECKING:
+    from argparse import ArgumentParser, Namespace  # noqa F401
 
 EXEC_NAME = "SHE_Validation_ValidateDataProc"
 
