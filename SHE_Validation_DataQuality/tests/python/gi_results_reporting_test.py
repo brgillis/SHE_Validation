@@ -33,9 +33,10 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      L_GAL_INFO_TEST_CASE_INFO,
                                                                      NUM_GAL_INFO_TEST_CASES, )
 from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoDataTestResults, GalInfoNTestResults,
-                                                           GalInfoTestResults, MEAS_ATTR, MSG_F_OUT, MSG_MISSING_IDS,
+                                                           GalInfoTestResults, MEAS_ATTR, MSG_F_OUT, MSG_INVALID_IDS,
+                                                           MSG_MISSING_IDS,
                                                            MSG_N_IN,
-                                                           MSG_N_OUT, MSG_ATTR_RESULT, STR_GLOBAL, )
+                                                           MSG_N_INV, MSG_N_OUT, MSG_ATTR_RESULT, STR_GLOBAL, )
 from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
 from SHE_Validation.constants.misc import MSG_NA
 
@@ -158,6 +159,16 @@ class TestGalInfoResultsReporting(SheTestCase):
                 assert requirement_object.Comment == INFO_MULTIPLE
                 assert requirement_object.MeasuredValue[0].Value.FloatValue == N_INVALID_MEAS
                 assert requirement_object.ValidationResult == RESULT_FAIL
+
+                assert supp_info_string.startswith(MSG_N_INV % (MEAS_CAPPED, N_INVALID_MEAS))
+                assert MSG_INVALID_IDS % (MEAS_CAPPED, str(L_INVALID_MEAS)) in supp_info_string
+                assert MSG_ATTR_RESULT % (MEAS_CAPPED, RESULT_FAIL) in supp_info_string
+
+                assert MSG_N_INV % (CHAINS_CAPPED, N_INVALID_CHAINS) in supp_info_string
+                assert MSG_INVALID_IDS % (CHAINS_CAPPED, str(L_INVALID_CHAINS)) in supp_info_string
+                assert MSG_ATTR_RESULT % (CHAINS_CAPPED, RESULT_FAIL) in supp_info_string
+
+                assert supp_info_string.endswith(f"Result: {RESULT_FAIL}")
 
             else:
 
