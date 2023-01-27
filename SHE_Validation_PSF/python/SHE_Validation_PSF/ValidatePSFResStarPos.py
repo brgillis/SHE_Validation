@@ -42,15 +42,13 @@ logger = log.getLogger(__name__)
 
 
 # noinspection PyPep8Naming
-def defineSpecificProgramOptions() -> ArgumentParser:
-    """
-    @brief Allows to define the (command line and configuration file) options
-    specific to this program
+def defineSpecificProgramOptions():
+    """Allows one to define the (command line and configuration file) options specific to this program. See the
+    Elements documentation for more details.
 
-    @details
-        See the Elements documentation for more details.
-    @return
-        An  ArgumentParser.
+    Returns
+    -------
+    parser: ArgumentParser
     """
 
     logger.debug(f'# Entering {EXEC_NAME} defineSpecificProgramOptions()')
@@ -64,8 +62,13 @@ def defineSpecificProgramOptions() -> ArgumentParser:
 
 
 # noinspection PyPep8Naming
-def mainMethod(args: Namespace) -> None:
-    """ Main entry point method
+def mainMethod(args):
+    """Main entry point function for program.
+
+    Parameters
+    ----------
+    args : Namespace
+        The parsed arguments for this program, as would be obtained through e.g. `args = parser.parse_args()`
     """
 
     executor = PsfResValExecutor(run_from_args_function=run_validate_psf_res_from_args,
