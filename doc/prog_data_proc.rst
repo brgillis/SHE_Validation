@@ -4,7 +4,10 @@ SHE_Validation_ValidateDataProc
 ===============================
 
 This program performs the Data Proc validation test, T-SHE-000013-data-proc, which validates requirement
-R-SHE-PRD-F-010. This tests checks that all required Level-2 data is produced by PF-SHE pipelines.
+R-SHE-PRD-F-010. This tests checks that all required Level-2 data is produced by PF-SHE pipelines. This test does not
+perform any quality checks on the data; it only checks that the data is provided in the expected format. Basic quality
+checks are performed by the program SHE_Validation_ValidateGalInfo, which performs the validation test
+T-SHE-000008-gal-info.
 
 
 Running the Program on EDEN/LODEEN
