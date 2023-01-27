@@ -68,6 +68,11 @@ class GalInfoTestResults(abc.ABC):
     -------
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
+    get_supp_info_message: str
+        Returns a string which reports detailed test results and can be written to the output data product's
+        SupplementaryInfo for the associated test case.
+    get_measured_value: float
+        Returns the "measured value" for the test (defined per test case)
     """
 
     @property
@@ -114,6 +119,12 @@ class GalInfoNTestResults(GalInfoTestResults):
         (Read-only property) The number of objects in the output chains catalog
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
+    get_supp_info_message: str
+        Returns a string which reports detailed test results and can be written to the output data product's
+        SupplementaryInfo for the associated test case.
+    get_measured_value: float
+        Returns the "measured value" for the test. For this test, this is the fraction of weak lensing objects in the
+        input catalog which are also present in the output shear measurements catalog, where 1.0 constitutes a pass.
     """
 
     n_in: int
@@ -192,6 +203,12 @@ class GalInfoDataTestResults(GalInfoTestResults):
         (Read-only property) The number of objects in the output chains catalog with invalid data
     global_passed: bool
         (Read-only property) Whether the test case as a whole passed
+    get_supp_info_message: str
+        Returns a string which reports detailed test results and can be written to the output data product's
+        SupplementaryInfo for the associated test case.
+    get_measured_value: float
+        Returns the "measured value" for the test. For this test, this is the number of objects with invalid data in
+        the measurements catalog, where 0 constitutes a pass.
     """
 
     l_invalid_ids_meas: Sequence[int]
