@@ -28,7 +28,7 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.products.she_lensmc_chains import create_dpd_she_lensmc_chains
 from SHE_PPT.table_formats.she_lensmc_chains import SheLensMcChainsFormat, len_chain, lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
-from SHE_PPT.testing.mock_data import MockDataGenerator, NUM_TEST_POINTS
+from SHE_PPT.testing.mock_data import MockDataGenerator
 from SHE_PPT.testing.mock_measurements_cat import MockShearEstimateDataGenerator
 from SHE_PPT.testing.mock_tables import MockDataGeneratorType, MockTableGenerator
 from SHE_Validation.binning.bin_data import BIN_TF, SheBinDataFormat
