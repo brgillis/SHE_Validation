@@ -67,6 +67,8 @@ GAL_INFO_DATA_TEST_CASE_INFO = TestCaseInfo(test_info=GAL_INFO_TEST_INFO,
 L_GAL_INFO_TEST_CASE_INFO = make_test_case_info_for_methods([GAL_INFO_N_TEST_CASE_INFO,
                                                              GAL_INFO_DATA_TEST_CASE_INFO])
 
+NUM_GAL_INFO_TEST_CASES = len(L_GAL_INFO_TEST_CASE_INFO)
+
 # Create a dict of the requirement info
 D_L_GAL_INFO_REQUIREMENT_INFO = {}
 for test_case_info in L_GAL_INFO_TEST_CASE_INFO:

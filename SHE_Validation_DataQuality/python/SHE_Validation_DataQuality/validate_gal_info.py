@@ -24,9 +24,13 @@ Core code for GalInfo validation test
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.argument_parser import CA_WORKDIR
-from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS
+from SHE_PPT.file_io import write_xml_product
+from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
+from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
+from SHE_Validation_DataQuality.constants.gal_info_test_info import NUM_GAL_INFO_TEST_CASES
 from SHE_Validation_DataQuality.gi_data_processing import get_gal_info_test_results
 from SHE_Validation_DataQuality.gi_input import read_gal_info_input
+from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
 
 
 def run_validate_gal_info_from_args(d_args):
@@ -55,3 +59,16 @@ def run_validate_gal_info_from_args(d_args):
 
     # Process the data to get the test results
     d_l_test_results = get_gal_info_test_results(gal_info_input)
+
+    # Create and fill the output data product to contain the results
+    test_result_product = create_dpd_she_validation_test_results(num_tests=NUM_GAL_INFO_TEST_CASES)
+    test_result_product.Data.TileIndex = gal_info_input.p_she_cat.Data.TileList[0]
+
+    test_results_writer = GalInfoValidationResultsWriter(test_object=test_result_product,
+                                                         workdir=workdir,
+                                                         d_l_test_results=d_l_test_results, )
+
+    test_results_writer.write()
+
+    # Output the results to the desired location
+    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir=workdir)
