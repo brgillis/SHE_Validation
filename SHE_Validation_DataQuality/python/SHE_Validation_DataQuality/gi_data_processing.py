@@ -480,7 +480,7 @@ def _meas_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
 
 
 def _chains_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
-    return np.any(is_inf_or_nan(a), axis=1)
+    return np.logical_or(np.ismasked(a), np.any(np.logical_or(np.isinf(a), np.isnan(a)), axis=1))
 
 
 def _meas_min_value(a: np.ndarray, min_value: float) -> Union[np.ndarray, MutableSequence[bool]]:
