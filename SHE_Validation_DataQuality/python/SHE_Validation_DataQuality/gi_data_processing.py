@@ -50,14 +50,16 @@ if TYPE_CHECKING:
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
 
+MSG_N_IN = "%s n_in = %i\n"
 MSG_N_OUT = "%s n_out = %i\n"
 MSG_F_OUT = "%s n_out/n_in = %f\n"
-MSG_MISSING_IDS = "Missing IDs: %s\n"
+MSG_MISSING_IDS = "Missing %s IDs: %s\n"
 
 MSG_N_INV = "%s n_inv = %i\n"
-MSG_INVALID_IDS = "Invalid IDs: %s\n"
+MSG_INVALID_IDS = "Invalid %s IDs: %s\n"
 
-MSG_RESULT = "Result: %s\n"
+MSG_RESULT = "%s Result: %s\n"
+STR_GLOBAL = "Global"
 
 
 @dataclass
@@ -100,12 +102,31 @@ class GalInfoTestResults(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def get_supp_info_message(self) -> str:
-        """Abstract method to return a formatted SupplementaryInfo message based on the results, which can be output to
-        the results data product.
+        """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
+        product.
         """
-        pass
+
+        message = ""
+
+        for attr in (MEAS_ATTR, CHAINS_ATTR):
+
+            attr_capped = attr.capitalize()
+
+            message += self._get_unique_supp_info(attr)
+
+            attr_result = RESULT_PASS if getattr(self, f"{attr}_passed") else RESULT_FAIL
+            message += MSG_RESULT % (attr_capped, attr_result)
+
+        global_result = RESULT_PASS if self.global_passed else RESULT_FAIL
+        message += MSG_RESULT % (STR_GLOBAL, global_result)
+
+        return message
+
+    @abc.abstractmethod
+    def _get_unique_supp_info(self, attr):
+        """Get the unique portion of the SupplementaryInfo for this test case
+        """
 
     @abc.abstractmethod
     def get_measured_value(self) -> float:
@@ -184,31 +205,25 @@ class GalInfoNTestResults(GalInfoTestResults):
         """
         return self.meas_passed
 
-    def get_supp_info_message(self) -> str:
-        """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
-        product.
+    def _get_unique_supp_info(self, attr):
+        """Get the unique portion of the SupplementaryInfo for this test case
         """
 
-        message = f"n_in = {self.n_in}\n"
+        attr_capped = attr.capitalize()
 
-        for attr in (MEAS_ATTR, CHAINS_ATTR):
+        message = MSG_N_IN % (attr_capped, self.n_in)
 
-            n_out = getattr(self, f"n_out_{attr}")
+        n_out = getattr(self, f"n_out_{attr}")
 
-            message += MSG_N_OUT % (attr, n_out)
-            message += MSG_F_OUT % (attr, n_out / self.n_in)
+        message += MSG_N_OUT % (attr_capped, n_out)
+        message += MSG_F_OUT % (attr_capped, n_out / self.n_in)
 
-            if n_out < self.n_in:
-                # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
-                l_missing_ids = list(getattr(self, f"l_missing_ids_{attr}"))
-                message += MSG_MISSING_IDS % str(l_missing_ids)
-            else:
-                message += MSG_MISSING_IDS % MSG_NA
-
-        if self.global_passed:
-            message += MSG_RESULT % RESULT_PASS
+        if n_out < self.n_in:
+            # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
+            l_missing_ids = list(getattr(self, f"l_missing_ids_{attr}"))
+            message += MSG_MISSING_IDS % (attr_capped, str(l_missing_ids))
         else:
-            message += MSG_RESULT % RESULT_FAIL
+            message += MSG_MISSING_IDS % (attr_capped, MSG_NA)
 
         return message
 
@@ -282,30 +297,22 @@ class GalInfoDataTestResults(GalInfoTestResults):
         """
         return self.meas_passed
 
-    def get_supp_info_message(self) -> str:
-        """Return a formatted SupplementaryInfo message based on the results, which can be output to the results data
-        product.
+    def _get_unique_supp_info(self, attr):
+        """Get the unique portion of the SupplementaryInfo for this test case
         """
 
-        message = ""
+        attr_capped = attr.capitalize()
 
-        for attr in (MEAS_ATTR, CHAINS_ATTR):
+        n_inv = getattr(self, f"n_inv_{attr}")
 
-            n_inv = getattr(self, f"n_inv_{attr}")
+        message = MSG_N_INV % (attr_capped, n_inv)
 
-            message += MSG_N_INV % (attr, n_inv)
-
-            if n_inv > 0:
-                # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
-                l_invalid_ids = list(getattr(self, f"l_invalid_ids_{attr}"))
-                message += MSG_INVALID_IDS % str(l_invalid_ids)
-            else:
-                message += MSG_INVALID_IDS % MSG_NA
-
-        if self.global_passed:
-            message += MSG_RESULT % RESULT_PASS
+        if n_inv > 0:
+            # Get the list of missing IDs as a list, to ensure it'll be formatted properly in output
+            l_invalid_ids = list(getattr(self, f"l_invalid_ids_{attr}"))
+            message += MSG_INVALID_IDS % (attr_capped, str(l_invalid_ids))
         else:
-            message += MSG_RESULT % RESULT_FAIL
+            message += MSG_INVALID_IDS % (attr_capped, MSG_NA)
 
         return message
 
