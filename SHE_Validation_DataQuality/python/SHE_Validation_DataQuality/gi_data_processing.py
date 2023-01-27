@@ -75,6 +75,12 @@ class GalInfoTestResults(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def get_measured_value(self) -> float:
+        """Abstract method to return the measured value of the test case.
+        """
+        pass
+
 
 @dataclass
 class GalInfoNTestResults(GalInfoTestResults):
@@ -154,6 +160,12 @@ class GalInfoNTestResults(GalInfoTestResults):
 
         return message
 
+    @abc.abstractmethod
+    def get_measured_value(self) -> float:
+        """Abstract method to return the measured value of the test case.
+        """
+        return self.n_out_meas / self.n_in
+
 
 @dataclass
 class GalInfoDataTestResults(GalInfoTestResults):
@@ -224,6 +236,12 @@ class GalInfoDataTestResults(GalInfoTestResults):
             message += f"Result: {RESULT_FAIL}"
 
         return message
+
+    @abc.abstractmethod
+    def get_measured_value(self) -> float:
+        """Abstract method to return the measured value of the test case.
+        """
+        return self.n_inv_meas
 
 
 def get_gal_info_test_results(gal_info_input):
