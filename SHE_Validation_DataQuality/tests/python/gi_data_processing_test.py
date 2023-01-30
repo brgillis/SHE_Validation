@@ -23,11 +23,13 @@ Tests of function to process data and determine test results for the GalInfo tes
 from copy import deepcopy
 
 import numpy as np
+from astropy.table import Row
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
+from SHE_PPT.testing.mock_data import NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_POINTS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
@@ -144,11 +146,14 @@ class TestGalInfoDataProcessing(SheDQTestCase):
         l_is_flagged_meas = np.asarray(she_cat[m_tf.fit_flags] & failure_flags, bool)
 
         # The mock input data should already have invalid data at the end flagged out. Double-check this is the case
-        assert l_is_flagged_meas.sum() > 0
+        assert l_is_flagged_meas.sum() == NUM_NAN_TEST_POINTS + NUM_ZERO_WEIGHT_TEST_POINTS
 
         l_ids_to_inv_meas = she_cat[m_tf.ID][l_is_flagged_meas]
         inv_she_cat = deepcopy(she_cat)
         inv_she_cat[m_tf.fit_flags][l_is_flagged_meas] = 0
+
+        l_g_is_nan = l_ids_to_inv_meas[:NUM_NAN_TEST_POINTS]
+        l_weight_is_zero = l_ids_to_inv_meas[NUM_NAN_TEST_POINTS:]
 
         bad_gi_input.d_she_cat[ShearEstimationMethods.LENSMC] = inv_she_cat
 
@@ -198,3 +203,32 @@ class TestGalInfoDataProcessing(SheDQTestCase):
             meas_table = test_results.invalid_data_table_meas
             assert len(meas_table) == test_results.n_inv_meas
             assert len(np.setxor1d(meas_table[GIDM_TF.ID], l_ids_to_inv_meas)) == 0
+
+            chains_table = test_results.invalid_data_table_chains
+            assert len(chains_table) == test_results.n_inv_chains
+            assert len(np.setxor1d(chains_table[GIDM_TF.ID], l_ids_to_inv_chains)) == 0
+
+            # Check that rows for g1/g2 NaN and weight zero are marked appropriately for the measurements table
+            meas_table.add_index(GIDM_TF.ID)
+
+            meas_table_g_nan = meas_table.loc[l_g_is_nan]
+            for row in meas_table_g_nan:
+                assert np.isnan(row[GIDM_TF.g1])
+                assert not row[GIDM_TF.g1_val_check]
+                assert np.isnan(row[GIDM_TF.g2])
+                assert not row[GIDM_TF.g2_val_check]
+
+            meas_table_weight_zero = meas_table.loc[l_weight_is_zero]
+            assert isinstance(meas_table_weight_zero, Row), "Expected only a single row"
+            assert meas_table_weight_zero[GIDM_TF.weight] == 0
+            assert not meas_table_weight_zero[GIDM_TF.weight_min_check]
+
+            # Check that rows for g1/g2 NaN and weight zero are marked appropriately for the chains table
+            chains_table.add_index(GIDM_TF.ID)
+
+            chains_table_g_nan = chains_table.loc[l_g_is_nan]
+            for row in chains_table_g_nan:
+                assert np.isnan(row[GIDM_TF.g1]).any()
+                assert not row[GIDM_TF.g1_val_check]
+                assert np.isnan(row[GIDM_TF.g2]).any()
+                assert not row[GIDM_TF.g2_val_check]

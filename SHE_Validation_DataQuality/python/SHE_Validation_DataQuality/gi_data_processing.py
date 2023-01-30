@@ -487,7 +487,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         d_l_invalid_ids[cat_type] = l_invalid_ids
 
         # If anything failed to pass a check, create a table to detail info about those objects
-        if np.sum(l_fail_some_checks) == 0 or cat_type == CHAINS_ATTR:
+        if np.sum(l_fail_some_checks) == 0:
             d_invalid_data_tables[cat_type] = None
             continue
 

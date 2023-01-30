@@ -215,7 +215,7 @@ class GalInfoDataChainsFormat(GalInfoDataMeasFormat):
 
 
 # Define an instance of this object that can be imported
-GAL_INFO_DATA_CHAINS_FORMAT = GalInfoDataMeasFormat()
+GAL_INFO_DATA_CHAINS_FORMAT = GalInfoDataChainsFormat()
 
 # And a convenient alias for it
 GIDC_TF = GAL_INFO_DATA_CHAINS_FORMAT
