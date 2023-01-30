@@ -33,6 +33,7 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.gi_data_processing import (GalInfoDataTestResults, GalInfoNTestResults,
                                                            get_gal_info_test_results, )
+from SHE_Validation_DataQuality.table_formats.gid_objects import GIDM_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
@@ -192,3 +193,8 @@ class TestGalInfoDataProcessing(SheDQTestCase):
             assert test_results.n_inv_chains == len(l_ids_to_inv_chains)
 
             assert not test_results.global_passed
+
+            # Check that we have proper tables of the invalid objects
+            meas_table = test_results.invalid_data_table_meas
+            assert len(meas_table) == test_results.n_inv_meas
+            assert len(np.setxor1d(meas_table[GIDM_TF.ID], l_ids_to_inv_meas)) == 0
