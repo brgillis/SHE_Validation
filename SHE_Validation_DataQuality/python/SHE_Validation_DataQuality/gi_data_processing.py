@@ -43,7 +43,8 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
-from SHE_Validation_DataQuality.table_formats.gid_objects import GID_CHECK_TAIL, GID_MAX, GID_MIN, GID_VAL, TF as GID_TF
+from SHE_Validation_DataQuality.table_formats.gid_objects import (GID_CHECK_TAIL, GID_MAX, GID_MIN, GID_VAL,
+                                                                  GIDM_TF, GIDC_TF, )
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
@@ -445,10 +446,10 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
             attr = gid_criteria.attr
             meas_colname: str = getattr(tf, attr)
-            gid_colname: str = getattr(GID_TF, attr)
-            gid_val_check_colname: str = getattr(GID_TF, f"{attr}_{GID_VAL}_{GID_CHECK_TAIL}")
-            gid_min_check_colname: str = getattr(GID_TF, f"{attr}_{GID_MIN}_{GID_CHECK_TAIL}")
-            gid_max_check_colname: str = getattr(GID_TF, f"{attr}_{GID_MAX}_{GID_CHECK_TAIL}")
+            gid_colname: str = getattr(GIDM_TF, attr)
+            gid_val_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_VAL}_{GID_CHECK_TAIL}")
+            gid_min_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_MIN}_{GID_CHECK_TAIL}")
+            gid_max_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_MAX}_{GID_CHECK_TAIL}")
 
             # For chains, we need to use slightly-different methods, which reduce the multidimensional array
             # properly, to do checks on values
@@ -482,7 +483,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         l_fail_some_checks = ~np.logical_and.reduce(l_l_checks)
 
         # Now, get a list of IDs which failed checks to output
-        l_invalid_ids = Column(good_cat[l_fail_some_checks][sem_tf.ID], name=GID_TF.ID)
+        l_invalid_ids = Column(good_cat[l_fail_some_checks][sem_tf.ID], name=GIDM_TF.ID)
         d_l_invalid_ids[cat_type] = l_invalid_ids
 
         # If anything failed to pass a check, create a table to detail info about those objects
@@ -490,12 +491,16 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             d_invalid_data_tables[cat_type] = None
             continue
 
-        d_l_invalid_data_cols: Dict[str, Column] = {GID_TF.ID: l_invalid_ids,
-                                                    GID_TF.fit_flags: good_cat[l_fail_some_checks][tf.fit_flags]}
+        d_l_invalid_data_cols: Dict[str, Column] = {GIDM_TF.ID: l_invalid_ids,
+                                                    GIDM_TF.fit_flags: good_cat[l_fail_some_checks][tf.fit_flags]}
         for l_data_col in (*l_l_val, *l_l_checks):
             d_l_invalid_data_cols[l_data_col.name] = l_data_col[l_fail_some_checks]
 
-        d_invalid_data_tables[cat_type] = GID_TF.init_table(init_cols=d_l_invalid_data_cols)
+        if cat_type == MEAS_ATTR:
+            gid_table_format = GIDM_TF
+        else:
+            gid_table_format = GIDC_TF
+        d_invalid_data_tables[cat_type] = gid_table_format.init_table(init_cols=d_l_invalid_data_cols)
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
                                   l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR],

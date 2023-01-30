@@ -22,12 +22,16 @@ import itertools
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.she_lensmc_chains import len_chain
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 
-FITS_VERSION = "9.1"
-FITS_DEF = "she.galInfoDataObjects"
+GID_FITS_VERSION = "9.1"
+GID_FITS_DEF = "she.galInfoDataObjects"
+
+GID_CHAINS_FITS_VERSION = GID_FITS_VERSION
+GID_CHAINS_FITS_DEF = "she.galInfoDataObjectsChains"
 
 GID_COLNAME_HEAD = "SHE_GID"
 
@@ -51,12 +55,12 @@ GID_CHECK_TAIL = "check"
 logger = getLogger(__name__)
 
 
-class GalInfoDataMeta(SheTableMeta):
-    """A class defining the metadata for GalInfo-Data objects tables
+class GalInfoDataMeasMeta(SheTableMeta):
+    """A class defining the metadata for GalInfo-Data objects measurements tables
     """
 
-    __version__: str = FITS_VERSION
-    table_format: str = FITS_DEF
+    __version__: str = GID_FITS_VERSION
+    table_format: str = GID_FITS_DEF
 
     g1_min = f"{GID_META_G1}_{GID_META_MIN}"
     g1_max = f"{GID_META_G1}_{GID_META_MAX}"
@@ -101,10 +105,10 @@ class GalInfoDataMeta(SheTableMeta):
         return m
 
 
-class GalInfoDataFormat(SheTableFormat):
-    """A class defining the columns in the GalInfo-Data object tables
+class GalInfoDataMeasFormat(SheTableFormat):
+    """A class defining the columns in the GalInfo-Data object measurements tables
     """
-    meta_type = GalInfoDataMeta
+    meta_type = GalInfoDataMeasMeta
 
     # Column names
     ID: str
@@ -135,7 +139,7 @@ class GalInfoDataFormat(SheTableFormat):
     re_min_check: str
     re_max_check: str
 
-    def __init__(self):
+    def __init__(self, final=True):
         super().__init__()
 
         # Table column labels
@@ -169,11 +173,49 @@ class GalInfoDataFormat(SheTableFormat):
 
             setattr(self, attr_prop, colname)
 
+        if final:
+            self._finalize_init()
+
+
+# Define an instance of this object that can be imported
+GAL_INFO_DATA_MEAS_FORMAT = GalInfoDataMeasFormat()
+
+# And a convenient alias for it
+GIDM_TF = GAL_INFO_DATA_MEAS_FORMAT
+
+
+class GalInfoDataChainsMeta(GalInfoDataMeasMeta):
+    """A class defining the metadata for GalInfo-Data object chains tables. This is subclassed from the measurements
+    table, as the only difference is the value data types and some header info
+    """
+
+    __version__: str = GID_FITS_VERSION
+    table_format: str = GID_FITS_DEF
+
+
+class GalInfoDataChainsFormat(GalInfoDataMeasFormat):
+    """A class defining the columns in the GalInfo-Data object chains tables. This is subclassed from the measurements
+    table, as the only difference is the value data types and some header info
+    """
+    meta_type = GalInfoDataChainsMeta
+
+    def __init__(self):
+        super().__init__(final=False)
+
+        # Adjust the datatype for each chains column
+        for gid_criteria in L_GID_CRITERIA:
+
+            if not gid_criteria.is_chain:
+                continue
+
+            colname = f"{GID_COLNAME_HEAD}_{gid_criteria.attr.upper()}"
+            self.lengths[colname] = len_chain
+
         self._finalize_init()
 
 
 # Define an instance of this object that can be imported
-GAL_INFO_INVALID_TABLE_FORMAT = GalInfoDataFormat()
+GAL_INFO_DATA_CHAINS_FORMAT = GalInfoDataMeasFormat()
 
 # And a convenient alias for it
-TF = GAL_INFO_INVALID_TABLE_FORMAT
+GIDC_TF = GAL_INFO_DATA_CHAINS_FORMAT
