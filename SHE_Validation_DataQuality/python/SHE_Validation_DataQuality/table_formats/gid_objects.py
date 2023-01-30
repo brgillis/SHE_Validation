@@ -135,6 +135,7 @@ class GalInfoDataFormat(SheTableFormat):
             # Split some setup depending on if we're setting the basic value or its checks
             if prop is None:
                 attr_prop = attr
+                comment = None
                 if attr_prop == "fit_class":
                     dtype = ">i2"
                     fits_dtype = "I"
@@ -145,9 +146,10 @@ class GalInfoDataFormat(SheTableFormat):
                 attr_prop = f"{attr}_{prop}_check"
                 dtype = "bool"
                 fits_dtype = "L"
+                comment = "True = pass check; False = fail check"
 
             colname = f"{GID_COLNAME_HEAD}{attr_prop.upper()}"
-            self.set_column_properties(colname, dtype=dtype, fits_dtype=fits_dtype)
+            self.set_column_properties(colname, dtype=dtype, fits_dtype=fits_dtype, comment=comment)
 
             setattr(self, attr_prop, colname)
 
