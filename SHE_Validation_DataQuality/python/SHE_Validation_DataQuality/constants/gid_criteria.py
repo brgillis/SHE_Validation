@@ -34,16 +34,16 @@ class GalInfoDataCriteria:
     ----------
     attr: str
         The name of the attribute, which can be used to get the appropriate column name via `getattr(tf, attr)`
-    min_value: float
+    min: float
         The minimum (exclusive) value allowed
-    max_value: float
+    max: float
         The maximum (exclusive) value allowed
     is_chain: bool
         Whether the data is expressed as a chain in the chains catalog
     """
     attr: str
-    min_value: float
-    max_value: float
+    min: float
+    max: float
     is_chain: bool
 
 

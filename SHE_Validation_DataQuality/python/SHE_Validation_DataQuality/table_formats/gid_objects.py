@@ -29,7 +29,24 @@ from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 FITS_VERSION = "9.1"
 FITS_DEF = "she.galInfoDataObjects"
 
-GID_COLNAME_HEAD = "SHE_GID_"
+GID_COLNAME_HEAD = "SHE_GID"
+
+GID_META_G1 = "G1"
+GID_META_G2 = "G2"
+GID_META_WEIGHT = "W"
+GID_META_FIT_CLASS = "FC"
+GID_META_RE = "RE"
+
+GID_META_MIN = "MAX"
+GID_META_MAX = "MAX"
+GID_META_IS_CHAIN = "ISC"
+
+GID_VAL = "val"
+GID_MIN = "min"
+GID_MAX = "max"
+GID_IS_CHAIN = "is_chain"
+
+GID_CHECK_TAIL = "check"
 
 logger = getLogger(__name__)
 
@@ -41,38 +58,37 @@ class GalInfoDataMeta(SheTableMeta):
     __version__: str = FITS_VERSION
     table_format: str = FITS_DEF
 
-    g1_min = "G1_MIN"
-    g1_max = "G1_MAX"
-    g1_is_chain = "G1_ISC"
+    g1_min = f"{GID_META_G1}_{GID_META_MIN}"
+    g1_max = f"{GID_META_G1}_{GID_META_MAX}"
+    g1_is_chain = f"{GID_META_G1}_{GID_META_IS_CHAIN}"
 
-    g2_min = "G2_MIN"
-    g2_max = "G2_MAX"
-    g2_is_chain = "G2_ISC"
+    g2_min = f"{GID_META_G2}_{GID_META_MIN}"
+    g2_max = f"{GID_META_G2}_{GID_META_MAX}"
+    g2_is_chain = f"{GID_META_G2}_{GID_META_IS_CHAIN}"
 
-    weight_min = "W_MIN"
-    weight_max = "W_MAX"
-    weight_is_chain = "W_ISC"
+    weight_min = f"{GID_META_WEIGHT}_{GID_META_MIN}"
+    weight_max = f"{GID_META_WEIGHT}_{GID_META_MAX}"
+    weight_is_chain = f"{GID_META_WEIGHT}_{GID_META_IS_CHAIN}"
 
-    fit_class_min = "FC_MIN"
-    fit_class_max = "FC_MAX"
-    fit_class_is_chain = "FC_ISC"
+    fit_class_min = f"{GID_META_FIT_CLASS}_{GID_META_MIN}"
+    fit_class_max = f"{GID_META_FIT_CLASS}_{GID_META_MAX}"
+    fit_class_is_chain = f"{GID_META_FIT_CLASS}_{GID_META_IS_CHAIN}"
 
-    re_min = "RE_MIN"
-    re_max = "RE_MAX"
-    re_is_chain = "RE_ISC"
+    re_min = f"{GID_META_RE}_{GID_META_MIN}"
+    re_max = f"{GID_META_RE}_{GID_META_MAX}"
+    re_is_chain = f"{GID_META_RE}_{GID_META_IS_CHAIN}"
 
     def init_meta(self, **kwargs):
         """Inherit init to also set up min/max/is_chain values for each parameter
         """
         m = super().init_meta(**kwargs)
 
-        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, ("min_value", "max_value", "is_chain")):
+        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GID_MIN,
+                                                                     GID_MAX,
+                                                                     GID_IS_CHAIN)):
 
             attr = gid_criteria.attr
-
-            # For getting meta attrs, remove the "_value" ending
-            attr_prop = f"{attr}_{prop.replace('_value', '')}"
-
+            attr_prop = f"{attr}_{prop}"
             meta_key = getattr(self, attr_prop)
 
             # Don't override any that have already been set through kwargs
@@ -124,11 +140,11 @@ class GalInfoDataFormat(SheTableFormat):
 
         # Table column labels
         self.ID = self.set_column_properties(mfc_tf.ID, dtype=">i8", fits_dtype="K")
-        self.fit_flags = self.set_column_properties(f"{GID_COLNAME_HEAD}FIT_FLAGS",
+        self.fit_flags = self.set_column_properties(f"{GID_COLNAME_HEAD}_FIT_FLAGS",
                                                     dtype=">i8", fits_dtype="K")
 
         # Columns for each value we test
-        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (None, "val", "min", "max")):
+        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (None, GID_VAL, GID_MIN, GID_MAX)):
 
             attr = gid_criteria.attr
 
@@ -143,12 +159,12 @@ class GalInfoDataFormat(SheTableFormat):
                     dtype = ">f4"
                     fits_dtype = "E"
             else:
-                attr_prop = f"{attr}_{prop}_check"
+                attr_prop = f"{attr}_{prop}_{GID_CHECK_TAIL}"
                 dtype = "bool"
                 fits_dtype = "L"
                 comment = "True = pass check; False = fail check"
 
-            colname = f"{GID_COLNAME_HEAD}{attr_prop.upper()}"
+            colname = f"{GID_COLNAME_HEAD}_{attr_prop.upper()}"
             self.set_column_properties(colname, dtype=dtype, fits_dtype=fits_dtype, comment=comment)
 
             setattr(self, attr_prop, colname)

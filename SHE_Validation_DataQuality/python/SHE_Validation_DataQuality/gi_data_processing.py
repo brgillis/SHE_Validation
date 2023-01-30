@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from typing import Dict, List, MutableSequence, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
-from astropy.table import Table
+from astropy.table import Column, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
@@ -43,6 +43,7 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
+from SHE_Validation_DataQuality.table_formats.gid_objects import GID_CHECK_TAIL, GID_MAX, GID_MIN, GID_VAL, TF as GID_TF
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
@@ -242,6 +243,11 @@ class GalInfoDataTestResults(GalInfoTestResults):
         A sequence of the IDs of all objects in the output measurements catalog which have invalid data
     l_invalid_ids_chains: Sequence[int]
         A sequence of the IDs of all objects in the output chains catalog which have invalid data
+    invalid_data_table_meas: Optional[Table]
+        If any measurements data is invalid, a table detailing the values and which checks were failed, otherwise None
+    invalid_data_table_chains: Optional[Table]
+        If any chains data is invalid, a table detailing the values and which checks were failed, otherwise None
+
 
     Methods
     -------
@@ -265,6 +271,9 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
     l_invalid_ids_meas: Sequence[int]
     l_invalid_ids_chains: Sequence[int]
+
+    invalid_data_table_meas: Optional[Table] = None
+    invalid_data_table_chains: Optional[Table] = None
 
     @property
     def n_inv_meas(self) -> int:
@@ -404,6 +413,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
     """
 
     d_l_invalid_ids: Dict[str, np.ndarray] = {}
+    d_invalid_data_tables: Dict[str, Optional[Table]] = {}
 
     for cat, cat_type in ((she_cat, MEAS_ATTR),
                           (she_chains, CHAINS_ATTR)):
@@ -411,6 +421,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         # Check for case where we don't have a catalog provided
         if cat is None:
             d_l_invalid_ids[cat_type] = np.ndarray(shape=(0,), dtype=int)
+            d_invalid_data_tables[cat_type] = None
             continue
 
         # Some different setup between measurements and chains catalogs
@@ -428,12 +439,18 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
         # We'll now do a check on each required column to ensure that it has valid data, then get the final results by
         # combining the checks
-        l_l_checks: List[np.ndarray] = []
+        l_l_val: List[Column] = []
+        l_l_checks: List[Column] = []
         for gid_criteria in L_GID_CRITERIA:
 
-            colname: str = getattr(tf, gid_criteria.attr)
+            attr = gid_criteria.attr
+            meas_colname: str = getattr(tf, attr)
+            gid_colname: str = getattr(GID_TF, attr)
+            gid_val_check_colname: str = getattr(GID_TF, f"{attr}_{GID_VAL}_{GID_CHECK_TAIL}")
+            gid_min_check_colname: str = getattr(GID_TF, f"{attr}_{GID_MIN}_{GID_CHECK_TAIL}")
+            gid_max_check_colname: str = getattr(GID_TF, f"{attr}_{GID_MAX}_{GID_CHECK_TAIL}")
 
-            # For chains, we need to use slightly-different methods, which reduce the multi-dimensional array
+            # For chains, we need to use slightly-different methods, which reduce the multidimensional array
             # properly, to do checks on values
             if cat_type == MEAS_ATTR or not gid_criteria.is_chain:
                 bad_value_test = _meas_bad_value
@@ -444,25 +461,46 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
                 min_value_test = _chains_min_value
                 max_value_test = _chains_max_value
 
+            # Get a column of the value we're testing
+            l_val = Column(good_cat[meas_colname], name=gid_colname)
+
             # Confirm the value is not Inf, NaN, or masked
-            l_good_value_check = np.logical_not(bad_value_test(good_cat[colname]))
+            l_val_check = Column(np.logical_not(bad_value_test(good_cat[meas_colname])), name=gid_val_check_colname)
 
             # Confirm the value is between the minimum and maximum, exclusive
-            l_min_check = min_value_test(good_cat[colname], gid_criteria.min_value)
-            l_max_check = max_value_test(good_cat[colname], gid_criteria.max_value)
+            l_min_check = Column(min_value_test(good_cat[meas_colname], gid_criteria.min), name=gid_min_check_colname)
+            l_max_check = Column(max_value_test(good_cat[meas_colname], gid_criteria.max), name=gid_max_check_colname)
 
-            # Store the checks in the ongoing list
-            l_l_checks.append(l_good_value_check)
+            # Store the checks in the ongoing list we can use to see which objects fail any check
+            l_l_checks.append(l_val_check)
             l_l_checks.append(l_min_check)
             l_l_checks.append(l_max_check)
 
-        l_pass_all_checks = np.logical_and.reduce(l_l_checks)
+            # Also store a column for the attribute value for later output if needed
+            l_l_val.append(l_val)
+
+        l_fail_some_checks = ~np.logical_and.reduce(l_l_checks)
 
         # Now, get a list of IDs which failed checks to output
-        d_l_invalid_ids[cat_type] = good_cat[~l_pass_all_checks][sem_tf.ID]
+        l_invalid_ids = Column(good_cat[l_fail_some_checks][sem_tf.ID], name=GID_TF.ID)
+        d_l_invalid_ids[cat_type] = l_invalid_ids
+
+        # If anything failed to pass a check, create a table to detail info about those objects
+        if np.sum(l_fail_some_checks) == 0 or cat_type == CHAINS_ATTR:
+            d_invalid_data_tables[cat_type] = None
+            continue
+
+        d_l_invalid_data_cols: Dict[str, Column] = {GID_TF.ID: l_invalid_ids,
+                                                    GID_TF.fit_flags: good_cat[l_fail_some_checks][tf.fit_flags]}
+        for l_data_col in (*l_l_val, *l_l_checks):
+            d_l_invalid_data_cols[l_data_col.name] = l_data_col[l_fail_some_checks]
+
+        d_invalid_data_tables[cat_type] = GID_TF.init_table(init_cols=d_l_invalid_data_cols)
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
-                                  l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR])
+                                  l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR],
+                                  invalid_data_table_meas=d_invalid_data_tables[MEAS_ATTR],
+                                  invalid_data_table_chains=d_invalid_data_tables[CHAINS_ATTR])
 
 
 def _meas_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
