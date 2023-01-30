@@ -42,6 +42,7 @@ from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
+from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
@@ -428,26 +429,13 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         # We'll now do a check on each required column to ensure that it has valid data, then get the final results by
         # combining the checks
         l_l_checks: List[np.ndarray] = []
-        colname: str
-        min_value: float
-        max_value: float
-        is_chain: bool
-        for colname, min_value, max_value, is_chain in ((tf.g1, -1, 1, True),
-                                                        (tf.g2, -1, 1, True),
-                                                        (tf.weight, 0., 1e99, False),
-                                                        (tf.fit_class, -np.inf, np.inf, False),
-                                                        (tf.re, 0., 1e99, True),):
-            # Explanation of min/max values:
-            # - In general, -1e99 and 1e99 are used to indicate failure. But in the case of failure, this should be
-            #   flagged instead, so we limit to values between those
-            # - g1/g2: These are physically limited to between -1 and 1 exclusive
-            # - weight: 0 would indicate no weight, or not to be used, but this should be flagged as a failure instead
-            # - fit_class: Any integer value is valid
-            # - re: Size is physically limited to be greater than 0
+        for gid_criteria in L_GID_CRITERIA:
+
+            colname: str = getattr(tf, gid_criteria.attr)
 
             # For chains, we need to use slightly-different methods, which reduce the multi-dimensional array
             # properly, to do checks on values
-            if cat_type == MEAS_ATTR or not is_chain:
+            if cat_type == MEAS_ATTR or not gid_criteria.is_chain:
                 bad_value_test = _meas_bad_value
                 min_value_test = _meas_min_value
                 max_value_test = _meas_max_value
@@ -460,8 +448,8 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             l_good_value_check = np.logical_not(bad_value_test(good_cat[colname]))
 
             # Confirm the value is between the minimum and maximum, exclusive
-            l_min_check = min_value_test(good_cat[colname], min_value)
-            l_max_check = max_value_test(good_cat[colname], max_value)
+            l_min_check = min_value_test(good_cat[colname], gid_criteria.min_value)
+            l_max_check = max_value_test(good_cat[colname], gid_criteria.max_value)
 
             # Store the checks in the ongoing list
             l_l_checks.append(l_good_value_check)
