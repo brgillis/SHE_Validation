@@ -41,6 +41,7 @@ from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoD
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDM_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
+
 class TestGalInfoDataProcessing(SheDQTestCase):
     """Test case for GalInfo validation test data processing
     """

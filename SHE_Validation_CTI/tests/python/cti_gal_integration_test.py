@@ -114,50 +114,7 @@ class TestCtiGalRun(SheValTestCase):
 
         assert os.path.isfile(qualified_output_filename)
 
-        self._check_ana_files()
-
-        p = read_xml_product(xml_filename=qualified_output_filename)
-
-        # Find the index for the LensMC Tot test case. We'll check that for the presence of expected output data
-
-        textfiles_tarball_filename: str = ""
-        figures_tarball_filename: str = ""
-        for val_test in p.Data.ValidationTestList:
-            if "tot-lensmc" not in val_test.TestId.lower():
-                continue
-            textfiles_tarball_filename = val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName
-            figures_tarball_filename = val_test.AnalysisResult.AnalysisFiles.Figures.FileName
-
-        assert textfiles_tarball_filename
-        assert figures_tarball_filename
-
-        # Unpack the tarballs containing both the textfiles and the figures
-        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            subprocess.call(f"cd {workdir} && tar xf {DATA_SUBDIR}/{tarball_filename}", shell=True)
-
-        # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
-        # containing with in the filenames of all other files which were tarred up. We open this first, and use
-        # it to guide us on the filenames of other files that were tarred up, and test for their existence.
-
-        qualified_directory_filename = os.path.join(workdir, CTI_GAL_DIRECTORY_FILENAME)
-
-        # Search for the line in the directory file which contains the plot for the LensMC-tot test, for bin 0
-        obs_plot_filename = None
-        l_exp_plot_filenames: List[Optional[str]] = [None] * EX_NUM_EXPOSURES
-
-        # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
-        with open(qualified_directory_filename, "r") as fi:
-            for line in fi:
-                if line[0] == "#":
-                    continue
-                key, value = line.strip().split(": ")
-                if key == "LensMC-tot-0":
-                    obs_plot_filename = value
-                else:
-                    for exp_index in range(4):
-                        if key == f"LensMC-{exp_index}-tot-0":
-                            l_exp_plot_filenames[exp_index] = value
-
-        # Check that we found the filenames for the plots and they all exist
-        assert obs_plot_filename is not None
-        assert os.path.isfile(os.path.join(workdir, obs_plot_filename))
+        self._check_ana_files(qualified_test_results_filename=qualified_output_filename,
+                              test_id_substring="tot-lensmc",
+                              directory_filename=CTI_GAL_DIRECTORY_FILENAME,
+                              l_ex_keys=["LensMC-tot-0"])

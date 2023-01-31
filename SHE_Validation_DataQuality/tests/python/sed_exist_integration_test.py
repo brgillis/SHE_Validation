@@ -27,11 +27,12 @@ from SHE_PPT.constants.test_data import MER_FINAL_CATALOG_LISTFILE_FILENAME, VIS
 from SHE_Validation.argument_parser import CA_PHZ_CAT_LIST, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
 from SHE_Validation_DataQuality.ValidateSedExist import defineSpecificProgramOptions, mainMethod
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 PHZ_CATALOG_LISTFILE_FILENAME = "phz_catalog_listfile.json"
 
 
-class TestSedExistRun(SheValTestCase):
+class TestSedExistRun(SheDQTestCase):
     """Test case for SedExist validation test integration tests.
     """
 

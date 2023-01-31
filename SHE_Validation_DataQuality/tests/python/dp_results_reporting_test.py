@@ -35,12 +35,13 @@ from SHE_Validation_DataQuality.dp_results_reporting import (DataProcValidationR
                                                              MSG_PRESENT_AND_VALID,
                                                              STR_P_SHE_CAT, STR_P_SHE_CHAINS, STR_SHE_CAT,
                                                              STR_SHE_CHAINS, )
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
 
 
-class TestDataProcResultsReporting(SheValTestCase):
+class TestDataProcResultsReporting(SheDQTestCase):
     """Test case for DataProc validation test results reporting
     """
 

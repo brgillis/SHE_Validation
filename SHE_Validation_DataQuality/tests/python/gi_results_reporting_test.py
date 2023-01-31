@@ -37,6 +37,7 @@ from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoD
                                                            MSG_INVALID_IDS, MSG_MISSING_IDS, MSG_N_IN, MSG_N_INV,
                                                            MSG_N_OUT, )
 from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
+from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
@@ -59,7 +60,7 @@ MEAS_CAPPED = MEAS_ATTR.capitalize()
 CHAINS_CAPPED = CHAINS_ATTR.capitalize()
 
 
-class TestGalInfoResultsReporting(SheValTestCase):
+class TestGalInfoResultsReporting(SheDQTestCase):
     """Test case for GalInfo validation test results reporting
     """
 
