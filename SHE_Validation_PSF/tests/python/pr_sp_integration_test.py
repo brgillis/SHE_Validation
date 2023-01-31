@@ -21,12 +21,9 @@ Unit tests the input/output interface of the PSF-Res validation task.
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import subprocess
 from argparse import Namespace
-from typing import Optional
 
 from SHE_PPT.argument_parser import CA_SHE_STAR_CAT
-from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory

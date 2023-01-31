@@ -21,9 +21,7 @@ Unit tests the input/output interface of the CTI-Gal validation task
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import subprocess
 from argparse import Namespace
-from typing import List, Optional
 
 import pytest
 
@@ -33,7 +31,6 @@ from SHE_PPT.argument_parser import (CA_DRY_RUN, CA_MDB, CA_SHE_MEAS,
 from SHE_PPT.constants.test_data import (MDB_PRODUCT_FILENAME, SHE_EXTENDED_CATALOG_PRODUCT_FILENAME,
                                          SHE_VALIDATED_MEASUREMENTS_PRODUCT_FILENAME,
                                          VIS_CALIBRATED_FRAME_LISTFILE_FILENAME, )
-from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
 from SHE_Validation.testing.utility import SheValTestCase
