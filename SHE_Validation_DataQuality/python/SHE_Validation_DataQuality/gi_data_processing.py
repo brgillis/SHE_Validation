@@ -24,14 +24,17 @@ Code for processing data in the GalInfo validation test
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import abc
+import os
 from dataclasses import dataclass
 from typing import Dict, List, MutableSequence, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
 from astropy.table import Column, Table
 
+import SHE_Validation
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.constants.shear_estimation_methods import D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS
+from SHE_PPT.file_io import get_allowed_filename
 from SHE_PPT.flags import failure_flags
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
@@ -51,6 +54,9 @@ if TYPE_CHECKING:
 
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
+
+STR_TABLE_TYPE_NAME = "SHE-GID-%s"
+TEXTFILE_TABLE_FORMAT = "ascii.ecsv"
 
 MSG_N_IN = "%s n_in = %i\n"
 MSG_N_OUT = "%s n_out = %i\n"
@@ -348,6 +354,28 @@ class GalInfoDataTestResults(GalInfoTestResults):
         """Abstract method to return the measured value of the test case.
         """
         return self.n_inv_meas
+
+    def write_textfiles(self, workdir):
+        """For this subclass, we implement this method to write out the tables of invalid measurements and chains
+        objects as textfiles.
+        """
+
+        d_textfiles = {}
+
+        for table, key in ((self.invalid_data_table_meas, MEAS_ATTR),
+                           (self.invalid_data_table_chains, CHAINS_ATTR)):
+            if table is None:
+                continue
+
+            table_filename = get_allowed_filename(type_name=STR_TABLE_TYPE_NAME % key.upper(),
+                                                  instance_id=str(os.getpid()),
+                                                  extension=".dat",
+                                                  version=SHE_Validation.__version__)
+            table.write(os.path.join(workdir, table_filename), format=TEXTFILE_TABLE_FORMAT)
+
+            d_textfiles[key] = table_filename
+
+        return d_textfiles
 
 
 def get_gal_info_test_results(gal_info_input, workdir):
