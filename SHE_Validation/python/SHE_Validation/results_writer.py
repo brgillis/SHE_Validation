@@ -1142,7 +1142,7 @@ class ValidationResultsWriter:
     d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None
     d_l_test_results: Optional[Dict[str, List[Any]]] = None
 
-    dl_l_textfiles: Optional[StrDictOrList] = None
+    dl_dl_textfiles: Optional[StrDictOrList] = None
     dl_dl_figures: Union[Dict[str, Optional[StrDictOrList]],
                          List[Optional[StrDictOrList]],
                          None] = None
@@ -1163,7 +1163,7 @@ class ValidationResultsWriter:
                  workdir: str,
                  d_l_bin_limits: Optional[Dict[BinParameters, np.ndarray]] = None,
                  d_l_test_results: Optional[Dict[str, List[Any]]] = None,
-                 dl_l_textfiles: Optional[StrDictOrList] = None,
+                 dl_dl_textfiles: Optional[StrDictOrList] = None,
                  dl_dl_figures: Optional[StrDictOrList] = None,
                  num_test_cases: Optional[int] = None,
                  l_test_case_info: Union[None, TestCaseInfo, List[TestCaseInfo]] = None,
@@ -1178,7 +1178,7 @@ class ValidationResultsWriter:
         self.d_l_bin_limits = default_value_if_none(d_l_bin_limits, self.d_l_bin_limits)
         self.d_l_test_results = default_value_if_none(d_l_test_results, self.d_l_test_results)
 
-        self.dl_l_textfiles = default_value_if_none(dl_l_textfiles, self.dl_l_textfiles)
+        self.dl_dl_textfiles = default_value_if_none(dl_dl_textfiles, self.dl_dl_textfiles)
         self.dl_dl_figures = default_value_if_none(dl_dl_figures, self.dl_dl_figures)
 
         self.num_test_cases = default_value_if_none(num_test_cases, self.num_test_cases)
@@ -1335,7 +1335,7 @@ class ValidationResultsWriter:
 
         # Get the proper textfiles and figures for this test case
         key = self.test_case_keys[i]
-        test_case_textfiles = self._get_item_from_dl(self.dl_l_textfiles, key)
+        test_case_textfiles = self._get_item_from_dl(self.dl_dl_textfiles, key)
         test_case_figures = self._get_item_from_dl(self.dl_dl_figures, key)
         num_requirements = self._get_item_from_dl(self.dl_num_requirements, key)
         l_requirement_info = self._get_item_from_dl(self.dl_l_requirement_info, key)

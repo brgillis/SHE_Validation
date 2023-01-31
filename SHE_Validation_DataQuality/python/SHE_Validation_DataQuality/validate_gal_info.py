@@ -66,7 +66,8 @@ def run_validate_gal_info_from_args(d_args):
 
     test_results_writer = GalInfoValidationResultsWriter(test_object=test_result_product,
                                                          workdir=workdir,
-                                                         d_l_test_results=d_l_test_results, )
+                                                         d_l_test_results=d_l_test_results,
+                                                         dl_dl_textfiles=d_d_textfiles)
 
     test_results_writer.write()
 
