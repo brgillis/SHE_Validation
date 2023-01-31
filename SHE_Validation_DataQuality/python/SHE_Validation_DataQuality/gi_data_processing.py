@@ -135,6 +135,26 @@ class GalInfoTestResults(abc.ABC):
         """
         pass
 
+    @staticmethod
+    def write_textfiles(workdir):
+        """Write out any textfiles associated with this test, and return a dict providing their filenames. This may
+        be overridden by subclasses which generate any textfiles.
+
+        Parameters
+        ----------
+        workdir: str
+            The workdir for this program. Any generated textfiles will be written to this directory.
+
+        Returns
+        -------
+        d_textfiles: Dict[str, str]
+            A dictionary providing the workdir-relative filenames of all textfiles written out. The key for each
+            filename will be used in the generated "directory" file, to aid automatic parsing of it and finding of
+            filenames
+        """
+
+        return {}
+
 
 @dataclass
 class GalInfoNTestResults(GalInfoTestResults):
@@ -331,13 +351,15 @@ class GalInfoDataTestResults(GalInfoTestResults):
         return self.n_inv_meas
 
 
-def get_gal_info_test_results(gal_info_input):
+def get_gal_info_test_results(gal_info_input, workdir):
     """Get the results of the GalInfo test for each shear estimation method, based on the provided input data.
 
     Parameters
     ----------
     gal_info_input: GalInfoInput
         The input data, as read in by the `read_gal_info_input` method in the `gi_input.py` module
+    workdir: str
+        The workdir for execution of this program. Any output textfiles will be written in this directory
 
     Returns
     -------
@@ -366,15 +388,21 @@ def get_gal_info_test_results(gal_info_input):
 
         if test_case_info.test_case_id.startswith(GAL_INFO_N_TEST_CASE_INFO.base_test_case_id):
 
-            d_l_test_results[name] = [_get_gal_info_n_test_results(method_she_cat, she_chains, mer_cat)]
+            test_results = _get_gal_info_n_test_results(method_she_cat, she_chains, mer_cat)
 
         elif test_case_info.test_case_id.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
 
-            d_l_test_results[name] = [_get_gal_info_data_test_results(method_she_cat, she_chains, method)]
+            test_results = _get_gal_info_data_test_results(method_she_cat, she_chains, method)
 
         else:
 
             raise ValueError(f"Unrecognized test case id: {test_case_info.test_case_id}")
+
+        # Write out textfiles associated with the test results
+        d_textfiles = test_results.write_textfiles(workdir=workdir)
+
+        # Store the results in a list, to match the common format expected by the ResultsWriter
+        d_l_test_results[name] = [test_results]
 
     return d_l_test_results
 
