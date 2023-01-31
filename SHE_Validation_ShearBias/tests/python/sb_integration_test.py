@@ -141,3 +141,21 @@ class TestShearBias(SheValTestCase):
 
         assert plot_filename is not None
         assert os.path.isfile(os.path.join(workdir, plot_filename))
+
+        # Check the resulting data product and plots exist in the expected locations
+
+        workdir = self.workdir
+        output_filename = getattr(self.args, CA_SHE_TEST_RESULTS)
+        qualified_output_filename = os.path.join(workdir, output_filename)
+
+        assert os.path.isfile(qualified_output_filename)
+
+        # Check the data product exists, as do the expected analysis files
+        assert os.path.isfile(qualified_output_filename)
+
+        self._check_ana_files(qualified_test_results_filename=qualified_output_filename,
+                              test_id_substring="m-lensmc",
+                              directory_filename=SHEAR_BIAS_DIRECTORY_FILENAME,
+                              l_ex_keys=["LensMC-tot-0-g1"])
+
+        return

@@ -76,7 +76,7 @@ class TestGalInfoRun(SheDQTestCase):
 
         # Check that the expected output has been created
 
-        # Check the data product exists
+        # Check the data product exists, as do the expected analysis files
         qualified_test_results_filename = os.path.join(self.workdir, self.d_args[CA_SHE_TEST_RESULTS])
         assert os.path.isfile(qualified_test_results_filename)
 

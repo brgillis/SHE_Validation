@@ -23,6 +23,7 @@ Utility functions and classes for testing of SHE_Validation code
 import os
 import re
 import subprocess
+from typing import List
 
 from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.file_io import read_xml_product
@@ -54,45 +55,60 @@ class SheValTestCase(SheTestCase):
     """Test case providing utilities common across tests in the SHE_Validation project.
     """
 
-    def _check_ana_files(self, qualified_test_results_filename, test_id_substring, directory_filename, l_ex_keys):
+    def _check_ana_files(self, qualified_test_results_filename, test_id_substring, directory_filename, l_ex_keys,
+                         strict=True):
         """Parse the data product to find the output tarballs for the desired test case, and check that they all exist.
         """
 
         p = read_xml_product(xml_filename=qualified_test_results_filename)
 
-        textfiles_tarball_filename: str = ""
-        figures_tarball_filename: str = ""
+        l_textfiles_tarball_filenames: List[str] = []
+        l_figures_tarball_filenames: List[str] = []
         for val_test in p.Data.ValidationTestList:
-            if test_id_substring not in val_test.TestId.lower():
+            if test_id_substring.lower() not in val_test.TestId.lower():
                 continue
-            textfiles_tarball_filename = os.path.join(DATA_SUBDIR,
-                                                      val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName)
-            figures_tarball_filename = os.path.join(DATA_SUBDIR,
-                                                    val_test.AnalysisResult.AnalysisFiles.Figures.FileName)
+            l_textfiles_tarball_filenames.append(os.path.join(DATA_SUBDIR,
+                                                              val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName))
+            l_figures_tarball_filenames.append(os.path.join(DATA_SUBDIR,
+                                                            val_test.AnalysisResult.AnalysisFiles.Figures.FileName))
 
-        # Unpack the tarballs containing both the textfiles and the figures
-        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            assert tarball_filename
-            assert os.path.exists(os.path.join(self.workdir, tarball_filename))
-            subprocess.call(f"cd {self.workdir} && tar xf {tarball_filename}", shell=True)
+        found_some = False
 
-        # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
-        # containing with in the filenames of all other files which were tarred up. We open this first, and use
-        # it to guide us on the filenames of other files that were tarred up, and test for their existence.
-        qualified_directory_filename = os.path.join(self.workdir, directory_filename)
+        for textfiles_tarball_filename, figures_tarball_filename in zip(l_textfiles_tarball_filenames,
+                                                                        l_figures_tarball_filenames):
 
-        # Search for the line in the directory file which contains the plot for the desired test
-        d_ana_filenames = {}
-        with open(qualified_directory_filename, "r") as fi:
-            for line in fi:
-                if line[0] == "#":
+            # Unpack the tarballs containing both the textfiles and the figures
+            for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
+                assert tarball_filename
+                assert os.path.exists(os.path.join(self.workdir, tarball_filename))
+                subprocess.call(f"cd {self.workdir} && tar xf {tarball_filename}", shell=True)
+
+            # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
+            # containing with in the filenames of all other files which were tarred up. We open this first, and use
+            # it to guide us on the filenames of other files that were tarred up, and test for their existence.
+            qualified_directory_filename = os.path.join(self.workdir, directory_filename)
+
+            # Search for the line in the directory file which contains the plot for the desired test
+            d_ana_filenames = {}
+            with open(qualified_directory_filename, "r") as fi:
+                for line in fi:
+                    if line[0] == "#":
+                        continue
+                    key, value = line.strip().split(": ")
+                    if key in l_ex_keys:
+                        d_ana_filenames[key] = value
+
+            # Check that we found the filenames for the plots and that they all exist
+            for key in l_ex_keys:
+                ana_filename = d_ana_filenames.get(key)
+                if strict:
+                    assert ana_filename is not None
+                    assert os.path.isfile(os.path.join(self.workdir, ana_filename))
+                elif not ana_filename:
                     continue
-                key, value = line.strip().split(": ")
-                if key in l_ex_keys:
-                    d_ana_filenames[key] = value
+                else:
+                    assert os.path.isfile(os.path.join(self.workdir, ana_filename))
+                    found_some = True
 
-        # Check that we found the filenames for the plots and that they all exist
-        for key in l_ex_keys:
-            ana_filename = d_ana_filenames.get(key)
-            assert ana_filename is not None
-            assert os.path.isfile(os.path.join(self.workdir, ana_filename))
+        if not strict:
+            assert found_some
