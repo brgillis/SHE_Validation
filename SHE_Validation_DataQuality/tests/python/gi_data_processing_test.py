@@ -6,7 +6,7 @@
 
 Tests of function to process data and determine test results for the GalInfo test
 """
-
+import os
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -21,9 +21,10 @@ Tests of function to process data and determine test results for the GalInfo tes
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from copy import deepcopy
+from typing import Dict
 
 import numpy as np
-from astropy.table import Row
+from astropy.table import Row, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.flags import failure_flags
@@ -33,7 +34,8 @@ from SHE_PPT.testing.mock_data import NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
-from SHE_Validation_DataQuality.gi_data_processing import (GalInfoDataTestResults, GalInfoNTestResults,
+from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoDataTestResults, GalInfoNTestResults,
+                                                           MEAS_ATTR, TEXTFILE_TABLE_FORMAT,
                                                            get_gal_info_test_results, )
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDM_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
@@ -232,3 +234,14 @@ class TestGalInfoDataProcessing(SheDQTestCase):
                 assert not row[GIDM_TF.g1_val_check]
                 assert np.isnan(row[GIDM_TF.g2]).any()
                 assert not row[GIDM_TF.g2_val_check]
+
+            # Check that the invalid object tables were output properly
+            d_textfiles: Dict[str, str] = d_d_textfiles[name]
+
+            qualified_meas_table_filename = os.path.join(self.workdir, d_textfiles[MEAS_ATTR])
+            meas_table_read_in = Table.read(qualified_meas_table_filename, format=TEXTFILE_TABLE_FORMAT)
+            assert np.all(meas_table_read_in[GIDM_TF.ID] == meas_table[GIDM_TF.ID])
+
+            qualified_chains_table_filename = os.path.join(self.workdir, d_textfiles[CHAINS_ATTR])
+            chains_table_read_in = Table.read(qualified_chains_table_filename, format=TEXTFILE_TABLE_FORMAT)
+            assert np.all(chains_table_read_in[GIDM_TF.ID] == chains_table[GIDM_TF.ID])
