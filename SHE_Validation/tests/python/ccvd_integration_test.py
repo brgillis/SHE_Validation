@@ -35,6 +35,7 @@ from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
 from SHE_Validation.CalcCommonValData import defineSpecificProgramOptions, mainMethod
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.utility import SheValTestCase
 
 EXTENDED_CATALOG_PRODUCT_FILENAME = "ext_mfc.xml"
 
