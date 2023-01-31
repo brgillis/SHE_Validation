@@ -80,8 +80,7 @@ class TestGalInfoRun(SheDQTestCase):
         qualified_test_results_filename = os.path.join(self.workdir, self.d_args[CA_SHE_TEST_RESULTS])
         assert os.path.isfile(qualified_test_results_filename)
 
-        directory_filename = GID_DIRECTORY_FILENAME
-        test_id_substring = "info-out-lensmc"
-        l_ex_keys = [MEAS_ATTR, CHAINS_ATTR]
-
-        self._check_ana_files(qualified_test_results_filename, test_id_substring, directory_filename, l_ex_keys)
+        self._check_ana_files(qualified_test_results_filename=qualified_test_results_filename,
+                              test_id_substring="info-out-lensmc",
+                              directory_filename=GID_DIRECTORY_FILENAME,
+                              l_ex_keys=[MEAS_ATTR, CHAINS_ATTR])
