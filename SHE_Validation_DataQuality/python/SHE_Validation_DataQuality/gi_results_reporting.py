@@ -28,7 +28,7 @@ from typing import List, Optional
 import numpy as np
 
 from SHE_PPT.logging import getLogger
-from SHE_Validation.results_writer import (RequirementWriter, TestCaseWriter, ValidationResultsWriter,
+from SHE_Validation.results_writer import (AnalysisWriter, RequirementWriter, TestCaseWriter, ValidationResultsWriter,
                                            get_result_string, )
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (D_L_GAL_INFO_REQUIREMENT_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
@@ -37,6 +37,9 @@ from SHE_Validation_DataQuality.gi_data_processing import GalInfoTestResults
 logger = getLogger(__name__)
 
 STR_GI_STAT = ""
+
+GID_DIRECTORY_FILENAME = "SheGalInfoDataResultsDirectory.txt"
+GID_DIRECTORY_HEADER = "### OU-SHE GalInfo-Data Analysis Results File Directory ###"
 
 
 class GalInfoRequirementWriter(RequirementWriter):
@@ -96,6 +99,14 @@ class GalInfoRequirementWriter(RequirementWriter):
         self.result = get_result_string(self.test_pass)
 
 
+class GalInfoAnalysisWriter(AnalysisWriter):
+    """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
+    """
+
+    _directory_filename: str = GID_DIRECTORY_FILENAME
+    directory_header: str = GID_DIRECTORY_HEADER
+
+
 class GalInfoTestCaseWriter(TestCaseWriter):
     """ TestCaseWriter specialized for the PSF-Res validation test.
     """
@@ -104,6 +115,7 @@ class GalInfoTestCaseWriter(TestCaseWriter):
 
     # Types of child objects, overriding those in base class
     requirement_writer_type = GalInfoRequirementWriter
+    analysis_writer_type = GalInfoAnalysisWriter
 
 
 class GalInfoValidationResultsWriter(ValidationResultsWriter):
