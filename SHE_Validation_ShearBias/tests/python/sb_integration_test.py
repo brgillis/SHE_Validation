@@ -38,6 +38,7 @@ from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESUL
 from SHE_Validation.testing.constants import SHE_BIAS_TEST_RESULT_FILENAME
 from SHE_Validation.testing.mock_data import MockBinTableGenerator
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_ShearBias.ValidateShearBias import (defineSpecificProgramOptions,
                                                         mainMethod, )
 from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILENAME

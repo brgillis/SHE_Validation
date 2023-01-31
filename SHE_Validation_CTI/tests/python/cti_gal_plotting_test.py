@@ -28,6 +28,7 @@ from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_CTI.file_io import CtiGalPlotFileNamer
 from SHE_Validation_CTI.plot_cti import CtiPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF

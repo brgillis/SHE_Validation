@@ -39,6 +39,7 @@ from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PAS
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_C_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_INFO,
                                                                      L_SHEAR_BIAS_TEST_CASE_M_INFO,
@@ -55,7 +56,7 @@ D_REQUIREMENT_INFO = {"m": SHEAR_BIAS_M_REQUIREMENT_INFO,
                       "c": SHEAR_BIAS_C_REQUIREMENT_INFO}
 
 
-class TestCase:
+class TestCase(SheValTestCase):
     """
     """
 
@@ -81,11 +82,7 @@ class TestCase:
                       "c1": KEY_G1_INFO,
                       "c2": KEY_G2_INFO, }
 
-    @pytest.fixture(autouse=True)
-    def setup(self, tmpdir):
-
-        self.workdir = tmpdir.strpath
-        os.makedirs(os.path.join(self.workdir, "data"))
+    def post_setup(self):
 
         # Make a pipeline_config using the default values
         mock_pipeline_config_factory = MockValPipelineConfigFactory(workdir=self.workdir)

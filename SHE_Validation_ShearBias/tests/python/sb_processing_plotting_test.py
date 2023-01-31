@@ -41,6 +41,7 @@ from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import find_test_case_info
 from SHE_Validation.testing.constants import TEST_BIN_PARAMETERS, TEST_METHODS
 from SHE_Validation.testing.mock_data import make_mock_bin_limits
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_ShearBias.constants.shear_bias_test_info import (L_SHEAR_BIAS_TEST_CASE_M_INFO,
                                                                      )
 from SHE_Validation_ShearBias.data_processing import (C_DIGITS, M_DIGITS, SIGMA_DIGITS, ShearBiasDataLoader,

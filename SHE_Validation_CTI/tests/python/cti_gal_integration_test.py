@@ -37,6 +37,7 @@ from SHE_PPT.file_io import DATA_SUBDIR, read_xml_product
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_EXP_TEST_RESULTS_LIST, CA_SHE_EXT_CAT, CA_SHE_OBS_TEST_RESULTS
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_CTI.ValidateCTIGal import defineSpecificProgramOptions, mainMethod
 from SHE_Validation_CTI.results_reporting import CtiTest, D_CTI_DIRECTORY_FILENAMES
 
@@ -113,6 +114,8 @@ class TestCtiGalRun(SheValTestCase):
         qualified_output_filename = os.path.join(workdir, output_filename)
 
         assert os.path.isfile(qualified_output_filename)
+
+        self._check_ana_files()
 
         p = read_xml_product(xml_filename=qualified_output_filename)
 

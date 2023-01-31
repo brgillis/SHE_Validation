@@ -31,6 +31,7 @@ from SHE_PPT.constants.test_data import LENSMC_MEASUREMENTS_TABLE_FILENAME
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.utility import is_nan_or_masked
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_CTI.input_data import (PositionInfo, ShearEstimate, SingleObjectData, get_raw_cti_gal_object_data,
                                            sort_raw_object_data_into_table, )
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF

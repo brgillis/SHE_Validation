@@ -40,6 +40,7 @@ from SHE_Validation.results_writer import (DESC_NOT_RUN_REASON, INFO_MULTIPLE, K
                                            MSG_NO_DATA, RESULT_FAIL, RESULT_PASS, WARNING_BAD_DATA, WARNING_MULTIPLE,
                                            WARNING_TEST_NOT_RUN, )
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_CTI.constants.cti_gal_default_config import (D_CTI_GAL_CONFIG_DEFAULTS,
                                                                  D_CTI_GAL_CONFIG_TYPES, )
 from SHE_Validation_CTI.constants.cti_gal_test_info import (CTI_GAL_REQUIREMENT_INFO, L_CTI_GAL_TEST_CASE_INFO,

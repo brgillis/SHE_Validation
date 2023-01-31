@@ -27,6 +27,7 @@ from SHE_PPT.testing.constants import STAR_CAT_PRODUCT_FILENAME
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_PSF.ValidatePSFResInterp import defineSpecificProgramOptions, mainMethod
 from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME

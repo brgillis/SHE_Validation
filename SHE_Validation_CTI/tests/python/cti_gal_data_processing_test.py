@@ -38,6 +38,7 @@ from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo
 from SHE_Validation.test_info_utility import make_test_case_info_for_bins
 from SHE_Validation.testing.mock_data import MockBinDataGenerator, TEST_L_GOOD, TEST_L_NAN, TEST_L_ZERO
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_CTI.data_processing import add_readout_register_distance, calculate_regression_results
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 from SHE_Validation_CTI.table_formats.regression_results import TF as RR_TF

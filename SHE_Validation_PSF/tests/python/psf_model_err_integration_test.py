@@ -25,6 +25,7 @@ from argparse import Namespace
 from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.mock_data import SHE_TEST_RESULTS_PRODUCT_FILENAME
+from SHE_Validation.testing.utility import SheValTestCase
 from SHE_Validation_PSF.ValidatePSFModelErr import CA_L_SHE_STAR_CAT, defineSpecificProgramOptions, mainMethod
 
 STAR_CAT_LISTFILE_FILENAME = "mock_she_star_catalog_product.xml"
