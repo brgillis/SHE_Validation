@@ -21,11 +21,8 @@ Integration test of the GalInfo validation test
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import subprocess
 from argparse import Namespace
 
-from SHE_PPT.constants.misc import DATA_SUBDIR
-from SHE_PPT.file_io import read_xml_product
 from SHE_PPT.testing.mock_measurements_cat import EST_TABLE_PRODUCT_FILENAME
 from SHE_PPT.testing.mock_mer_final_cat import MFC_TABLE_PRODUCT_FILENAME
 from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_CHAINS, CA_SHE_TEST_RESULTS
@@ -87,47 +84,4 @@ class TestGalInfoRun(SheDQTestCase):
         test_id_substring = "info-out-lensmc"
         l_ex_keys = [MEAS_ATTR, CHAINS_ATTR]
 
-        # Parse the data product to find the output textfiles tarball for the desired test case, and check that it
-        # exists
-
-        p = read_xml_product(xml_filename=qualified_test_results_filename)
-
-        textfiles_tarball_filename: str = ""
-        figures_tarball_filename: str = ""
-        for val_test in p.Data.ValidationTestList:
-            if test_id_substring not in val_test.TestId.lower():
-                continue
-            textfiles_tarball_filename = os.path.join(DATA_SUBDIR,
-                                                      val_test.AnalysisResult.AnalysisFiles.TextFiles.FileName)
-            figures_tarball_filename = os.path.join(DATA_SUBDIR,
-                                                    val_test.AnalysisResult.AnalysisFiles.Figures.FileName)
-
-        # Unpack the tarballs containing both the textfiles and the figures
-        for tarball_filename in (textfiles_tarball_filename, figures_tarball_filename):
-            assert tarball_filename
-            assert os.path.exists(os.path.join(self.workdir, tarball_filename))
-            subprocess.call(f"cd {self.workdir} && tar xf {tarball_filename}", shell=True)
-
-        # The "directory" file, which is contained in the textfiles tarball, is a file with a predefined name,
-        # containing with in the filenames of all other files which were tarred up. We open this first, and use
-        # it to guide us on the filenames of other files that were tarred up, and test for their existence.
-
-        qualified_directory_filename = os.path.join(self.workdir, directory_filename)
-
-        # Search for the line in the directory file which contains the plot for the desired test
-        d_ana_filenames = {}
-
-        # Search for the line in the directory file which contails the plot for the LensMC-tot test, for bin 0
-        with open(qualified_directory_filename, "r") as fi:
-            for line in fi:
-                if line[0] == "#":
-                    continue
-                key, value = line.strip().split(": ")
-                if key in l_ex_keys:
-                    d_ana_filenames[key] = value
-
-        # Check that we found the filenames for the plots and that they all exist
-        for key in l_ex_keys:
-            ana_filename = d_ana_filenames.get(key)
-            assert ana_filename is not None
-            assert os.path.isfile(os.path.join(self.workdir, ana_filename))
+        self._check_ana_files(qualified_test_results_filename, test_id_substring, directory_filename, l_ex_keys)
