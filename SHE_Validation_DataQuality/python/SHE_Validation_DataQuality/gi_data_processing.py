@@ -61,7 +61,6 @@ MSG_N_INV = "%s n_inv = %i\n"
 MSG_INVALID_IDS = "Invalid %s IDs: %s\n"
 
 MSG_ATTR_RESULT = "%s Result: %s\n"
-STR_GLOBAL = "Global"
 
 
 @dataclass
