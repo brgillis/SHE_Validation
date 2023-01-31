@@ -45,7 +45,7 @@ from SHE_Validation_ShearBias.results_reporting import SHEAR_BIAS_DIRECTORY_FILE
 logger = getLogger(__name__)
 
 
-class TestShearBias(SheTestCase):
+class TestShearBias(SheValTestCase):
     """ Test case for Shear Bias validation test code
     """
 

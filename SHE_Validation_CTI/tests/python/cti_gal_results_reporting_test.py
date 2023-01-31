@@ -59,7 +59,7 @@ D_EX_TEST_CASE_IDS = {BinParameters.TOT: "TC-SHE--1-CTI-gal-tot",
                       BinParameters.EPOCH: "TC-SHE-100032-CTI-gal-epoch"}
 
 
-class TestCtiResultsReporting(SheTestCase):
+class TestCtiResultsReporting(SheValTestCase):
     """ Test case for CTI validation results reporting.
     """
 

@@ -77,7 +77,7 @@ class MockCtiDataGenerator(MockBinDataGenerator):
         self.data["weight"][-TEST_L_ZERO:] = 0
 
 
-class TestCtiGalDataProcessing(SheTestCase):
+class TestCtiGalDataProcessing(SheValTestCase):
     """ Unit tests for CTI validation data processing.
     """
 

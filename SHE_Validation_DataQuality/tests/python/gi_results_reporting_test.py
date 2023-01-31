@@ -60,7 +60,7 @@ MEAS_CAPPED = MEAS_ATTR.capitalize()
 CHAINS_CAPPED = CHAINS_ATTR.capitalize()
 
 
-class TestGalInfoResultsReporting(SheTestCase):
+class TestGalInfoResultsReporting(SheValTestCase):
     """Test case for GalInfo validation test results reporting
     """
 

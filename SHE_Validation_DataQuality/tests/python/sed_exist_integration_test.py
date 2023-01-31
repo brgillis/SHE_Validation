@@ -32,7 +32,7 @@ from SHE_Validation_DataQuality.ValidateSedExist import defineSpecificProgramOpt
 PHZ_CATALOG_LISTFILE_FILENAME = "phz_catalog_listfile.json"
 
 
-class TestSedExistRun(SheTestCase):
+class TestSedExistRun(SheValTestCase):
     """Test case for SedExist validation test integration tests.
     """
 

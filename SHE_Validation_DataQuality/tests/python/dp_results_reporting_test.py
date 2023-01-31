@@ -41,7 +41,7 @@ MSG_SHE_CAT = "ERROR: she_cat message"
 MSG_P_SHE_CHAINS = "ERROR: p_she_chains message"
 
 
-class TestDataProcResultsReporting(SheTestCase):
+class TestDataProcResultsReporting(SheValTestCase):
     """Test case for DataProc validation test results reporting
     """
 

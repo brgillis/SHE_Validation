@@ -110,7 +110,7 @@ class MockValTUMatchedTableGenerator(MockTUMatchedTableGenerator):
     mock_data_generator_type: Type[MockDataGeneratorType] = MockValTUMatchedDataGenerator
 
 
-class TestShearBias(SheTestCase):
+class TestShearBias(SheValTestCase):
     """ Unit tests for plotting shear bias results
     """
 

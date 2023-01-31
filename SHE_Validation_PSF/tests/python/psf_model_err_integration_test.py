@@ -30,7 +30,7 @@ from SHE_Validation_PSF.ValidatePSFModelErr import CA_L_SHE_STAR_CAT, defineSpec
 STAR_CAT_LISTFILE_FILENAME = "mock_she_star_catalog_product.xml"
 
 
-class TestPsfModelErrRun(SheTestCase):
+class TestPsfModelErrRun(SheValTestCase):
     """Test case for PsfModelErr validation test integration tests.
     """
 

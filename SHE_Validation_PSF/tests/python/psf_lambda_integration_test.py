@@ -32,7 +32,7 @@ SHE_REF_SC_PRODUCT_FILENAME = "reference_star_cat_product.xml"
 SHE_BB_SC_PRODUCT_FILENAME = "broadband_star_cat_product.xml"
 
 
-class TestPsfLambdaRun(SheTestCase):
+class TestPsfLambdaRun(SheValTestCase):
     """Test case for PsfLambda validation test integration tests.
     """
 

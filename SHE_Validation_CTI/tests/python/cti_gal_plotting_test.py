@@ -33,7 +33,7 @@ from SHE_Validation_CTI.plot_cti import CtiPlotter
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
-class TestPlotCti(SheTestCase):
+class TestPlotCti(SheValTestCase):
     """ Test case for CTI validation test plotting.
     """
 

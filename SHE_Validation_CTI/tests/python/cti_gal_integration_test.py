@@ -50,7 +50,7 @@ SHE_EXP_TEST_RESULTS_PRODUCT_FILENAME = "she_exposure_validation_test_results.js
 EX_NUM_EXPOSURES = 4
 
 
-class TestCtiGalRun(SheTestCase):
+class TestCtiGalRun(SheValTestCase):
     """ Test case for CTI-Gal validation test code.
     """
 

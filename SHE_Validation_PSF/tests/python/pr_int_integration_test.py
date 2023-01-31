@@ -32,7 +32,7 @@ from SHE_Validation_PSF.argument_parser import CA_REF_SHE_STAR_CAT
 from SHE_Validation_PSF.testing.constants import REF_STAR_CAT_PRODUCT_FILENAME
 
 
-class TestPsfResInterpRun(SheTestCase):
+class TestPsfResInterpRun(SheValTestCase):
     """Test case for PsfResInterp validation test integration tests.
     """
 

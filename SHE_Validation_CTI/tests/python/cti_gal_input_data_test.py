@@ -36,7 +36,7 @@ from SHE_Validation_CTI.input_data import (PositionInfo, ShearEstimate, SingleOb
 from SHE_Validation_CTI.table_formats.cti_gal_object_data import TF as CGOD_TF
 
 
-class TestCtiGalInput(SheTestCase):
+class TestCtiGalInput(SheValTestCase):
     """ Unit tests for loading CTI validation input data.
     """
 
