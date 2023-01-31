@@ -363,9 +363,11 @@ def get_gal_info_test_results(gal_info_input, workdir):
 
     Returns
     -------
-    Dict[str, List[GalInfoNTestResults or GalInfoDataTestResults]]
+    d_l_test_results: Dict[str, List[GalInfoNTestResults or GalInfoDataTestResults]]
         A dict of the test results for each shear estimation method (indexed by the test case name). The result is
         returned as a dict of lists of one element each for consistency of format with other validation tests
+    d_d_textfiles: Dict[str, Dict[str, str]]
+        A dict providing dicts of the filenames of textfiles output for each test case
     """
 
     # The MER Final Catalog is used identically by all test cases, so prepare it first by pruning to only rows
@@ -375,8 +377,9 @@ def get_gal_info_test_results(gal_info_input, workdir):
 
     she_chains = gal_info_input.she_chains
 
-    # Prepare an output dict, which we'll fill in for each method
+    # Prepare output dicts, which we'll fill in for each method
     d_l_test_results: Dict[str, List[GalInfoTestResults]] = {}
+    d_d_textfiles: Dict[str, Dict[str, str]] = {}
 
     for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
         method = test_case_info.method
@@ -398,13 +401,13 @@ def get_gal_info_test_results(gal_info_input, workdir):
 
             raise ValueError(f"Unrecognized test case id: {test_case_info.test_case_id}")
 
-        # Write out textfiles associated with the test results
-        d_textfiles = test_results.write_textfiles(workdir=workdir)
-
         # Store the results in a list, to match the common format expected by the ResultsWriter
         d_l_test_results[name] = [test_results]
 
-    return d_l_test_results
+        # Write out textfiles associated with the test results
+        d_d_textfiles[name] = test_results.write_textfiles(workdir=workdir)
+
+    return d_l_test_results, d_d_textfiles
 
 
 def _get_gal_info_n_test_results(she_cat: Optional[Table],

@@ -53,7 +53,7 @@ class TestGalInfoDataProcessing(SheDQTestCase):
         """Unit test of the `get_gal_info_test_results` method with good input
         """
 
-        d_l_test_results = get_gal_info_test_results(self.good_gi_input, workdir=self.workdir)
+        d_l_test_results, d_d_textfiles = get_gal_info_test_results(self.good_gi_input, workdir=self.workdir)
 
         # Check that all results are as expected
         for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
@@ -110,7 +110,7 @@ class TestGalInfoDataProcessing(SheDQTestCase):
 
         # Run the test, and check that the IDs are missing as expected
 
-        d_l_test_results = get_gal_info_test_results(bad_gi_input, workdir=self.workdir)
+        d_l_test_results, d_d_textfiles = get_gal_info_test_results(bad_gi_input, workdir=self.workdir)
         for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
             name = test_case_info.name
             method = test_case_info.method
@@ -177,7 +177,7 @@ class TestGalInfoDataProcessing(SheDQTestCase):
 
         # Run the test, and check that the IDs are invalid as expected
 
-        d_l_test_results = get_gal_info_test_results(bad_gi_input, workdir=self.workdir)
+        d_l_test_results, d_d_textfiles = get_gal_info_test_results(bad_gi_input, workdir=self.workdir)
         for test_case_info in L_GAL_INFO_TEST_CASE_INFO:
             name = test_case_info.name
             method = test_case_info.method

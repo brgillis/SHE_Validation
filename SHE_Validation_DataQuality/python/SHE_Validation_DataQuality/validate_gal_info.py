@@ -58,7 +58,7 @@ def run_validate_gal_info_from_args(d_args):
         raise ValueError(f"MER Final Catalog table could not be read. Exception was: {gal_info_input.err_mer_cat}")
 
     # Process the data to get the test results
-    d_l_test_results = get_gal_info_test_results(gal_info_input, workdir=workdir)
+    d_l_test_results, d_d_textfiles = get_gal_info_test_results(gal_info_input, workdir=workdir)
 
     # Create and fill the output data product to contain the results
     test_result_product = create_dpd_she_validation_test_results(num_tests=NUM_GAL_INFO_TEST_CASES)
