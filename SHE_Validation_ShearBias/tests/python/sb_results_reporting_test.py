@@ -20,12 +20,10 @@ Unit tests of the Shear Bias results_reporting.py module
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import pytest
 
 from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods

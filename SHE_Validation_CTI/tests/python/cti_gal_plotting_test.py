@@ -25,7 +25,6 @@ import os
 import numpy as np
 
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS
 from SHE_Validation.constants.test_info import BinParameters
 from SHE_Validation.testing.utility import SheValTestCase

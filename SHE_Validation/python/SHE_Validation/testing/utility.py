@@ -6,7 +6,7 @@
 
 Utility functions and classes for testing of SHE_Validation code
 """
-import os
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -20,12 +20,12 @@ import os
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 import re
 import subprocess
 
 from SHE_PPT.constants.misc import DATA_SUBDIR
 from SHE_PPT.file_io import read_xml_product
-
 from SHE_PPT.testing.utility import SheTestCase
 
 ESCAPE_CHARS = r"\[](){}*+?|^$."

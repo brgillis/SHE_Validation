@@ -33,7 +33,6 @@ from SHE_PPT.logging import getLogger
 from SHE_PPT.testing.constants import PIPELINE_CONFIG_FILENAME
 from SHE_PPT.testing.mock_tum_cat import (TUM_KSB_TABLE_FILENAME, TUM_LENSMC_TABLE_FILENAME, TUM_TABLE_PRODUCT_FILENAME,
                                           write_mock_tum_tables, )
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.argument_parser import CA_SHE_MATCHED_CAT, CA_SHE_TEST_RESULTS
 from SHE_Validation.testing.constants import SHE_BIAS_TEST_RESULT_FILENAME
 from SHE_Validation.testing.mock_data import MockBinTableGenerator

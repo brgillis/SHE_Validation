@@ -6,7 +6,7 @@
 
 Tests of function to process data and determine test results for the GalInfo test
 """
-import os
+
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -20,6 +20,7 @@ import os
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 from copy import deepcopy
 from typing import Dict
 
@@ -39,7 +40,6 @@ from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoD
                                                            get_gal_info_test_results, )
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDM_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
-
 
 class TestGalInfoDataProcessing(SheDQTestCase):
     """Test case for GalInfo validation test data processing

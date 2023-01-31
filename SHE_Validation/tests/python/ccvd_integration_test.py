@@ -32,7 +32,6 @@ from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.testing.mock_data import NUM_TEST_POINTS
 from SHE_PPT.testing.mock_measurements_cat import write_mock_measurements_tables
 from SHE_PPT.testing.mock_mer_final_cat import MockMFCGalaxyTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.CalcCommonValData import defineSpecificProgramOptions, mainMethod
 from SHE_Validation.argument_parser import CA_SHE_EXT_CAT
 from SHE_Validation.testing.mock_pipeline_config import MockValPipelineConfigFactory

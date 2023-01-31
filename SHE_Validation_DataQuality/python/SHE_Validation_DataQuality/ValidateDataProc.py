@@ -6,7 +6,6 @@
 
 Entry-point module for DataProc validation test
 """
-from typing import TYPE_CHECKING
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -23,6 +22,8 @@ from typing import TYPE_CHECKING
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+from typing import TYPE_CHECKING
 
 from SHE_PPT import logging as log
 from SHE_PPT.constants.config import (D_GLOBAL_CONFIG_CLINE_ARGS, D_GLOBAL_CONFIG_DEFAULTS,

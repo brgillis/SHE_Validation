@@ -46,8 +46,8 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
-from SHE_Validation_DataQuality.table_formats.gid_objects import (GID_CHECK_TAIL, GID_MAX, GID_MIN, GID_VAL,
-                                                                  GIDM_TF, GIDC_TF, )
+from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GID_CHECK_TAIL, GID_MAX, GID_MIN,
+                                                                  GID_VAL, )
 
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401

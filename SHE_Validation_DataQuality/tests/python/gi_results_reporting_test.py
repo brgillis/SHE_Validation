@@ -26,7 +26,6 @@ import pytest
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.products.she_validation_test_results import create_dpd_she_validation_test_results
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.misc import MSG_NA
 from SHE_Validation.results_writer import INFO_MULTIPLE, RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,

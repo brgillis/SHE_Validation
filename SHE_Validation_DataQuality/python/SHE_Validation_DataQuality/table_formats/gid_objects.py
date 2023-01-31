@@ -6,7 +6,6 @@
 
 Table format definition for a table providing details on objects which failed GalInfo-Data validity check.
 """
-import itertools
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
@@ -21,10 +20,12 @@ import itertools
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import itertools
+
 from SHE_PPT.logging import getLogger
+from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import len_chain
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
-from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 
 GID_FITS_VERSION = "9.1"

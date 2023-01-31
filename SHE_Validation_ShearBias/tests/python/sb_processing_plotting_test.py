@@ -33,7 +33,6 @@ from SHE_PPT.testing.mock_data import (NUM_GOOD_TEST_POINTS, NUM_NAN_TEST_POINTS
                                        NUM_ZERO_WEIGHT_TEST_POINTS, )
 from SHE_PPT.testing.mock_tables import MockDataGeneratorType
 from SHE_PPT.testing.mock_tum_cat import MockTUMatchedDataGenerator, MockTUMatchedTableGenerator
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_PPT.utility import is_inf, is_nan_or_masked
 from SHE_Validation.binning.bin_constraints import GoodBinnedMeasurementBinConstraint, GoodMeasurementBinConstraint
 from SHE_Validation.constants.default_config import TOT_BIN_LIMITS

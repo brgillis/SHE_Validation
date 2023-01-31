@@ -32,7 +32,6 @@ from SHE_PPT import mdb
 from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.table_formats.mer_final_catalog import tf as MFC_TF
 from SHE_PPT.table_formats.she_lensmc_measurements import tf as LMC_TF
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.binning.bin_constraints import BinParameterBinConstraint, get_ids_for_test_cases
 from SHE_Validation.binning.bin_data import TF as BIN_TF
 from SHE_Validation.constants.test_info import BinParameters, TestCaseInfo

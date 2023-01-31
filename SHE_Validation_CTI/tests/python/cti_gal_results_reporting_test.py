@@ -31,7 +31,6 @@ from SHE_PPT import products
 from SHE_PPT.constants.shear_estimation_methods import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.pipeline_utility import GlobalConfigKeys, ValidationConfigKeys, read_config
-from SHE_PPT.testing.utility import SheTestCase
 from SHE_Validation.constants.default_config import (D_VALIDATION_CONFIG_FIXED_DEFAULTS, FailSigmaScaling,
                                                      TOT_BIN_LIMITS_STR, )
 from SHE_Validation.constants.test_info import BinParameters
