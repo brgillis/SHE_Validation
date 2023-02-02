@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from typing import Dict, List, MutableSequence, Optional, Sequence, TYPE_CHECKING, Union
 
 import numpy as np
-from astropy.table import Column, Table
+from astropy.table import Column, MaskedColumn, Table
 
 import SHE_Validation
 from SHE_PPT.constants.classes import ShearEstimationMethods
@@ -521,7 +521,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
                 max_value_test = _chains_max_value
 
             # Get a column of the value we're testing
-            l_val = Column(good_cat[meas_colname], name=gid_colname)
+            l_val = MaskedColumn(good_cat[meas_colname], name=gid_colname)
 
             # Confirm the value is not Inf, NaN, or masked
             l_val_check = Column(np.logical_not(bad_value_test(good_cat[meas_colname])), name=gid_val_check_colname)
