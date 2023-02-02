@@ -520,7 +520,8 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
                 min_value_test = _chains_min_value
                 max_value_test = _chains_max_value
 
-            # Get a column of the value we're testing
+            # Get a column of the value we're testing. Need to read in as a MaskedColumn in case of masked data in the
+            # table that was read-in
             l_val = MaskedColumn(good_cat[meas_colname], name=gid_colname)
 
             # Confirm the value is not Inf, NaN, or masked
