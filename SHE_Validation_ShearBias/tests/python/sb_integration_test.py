@@ -153,9 +153,12 @@ class TestShearBias(SheValTestCase):
         # Check the data product exists, as do the expected analysis files
         assert os.path.isfile(qualified_output_filename)
 
+        # We do a non-strict check on the analysis files, as we want to confirm the expected file we're looking for
+        # exists for at least one test case, but doesn't need to exist for all
         self._check_ana_files(qualified_test_results_filename=qualified_output_filename,
                               test_id_substring="m-lensmc",
                               directory_filename=SHEAR_BIAS_DIRECTORY_FILENAME,
-                              l_ex_keys=["LensMC-tot-0-g1"])
+                              l_ex_keys=["LensMC-tot-0-g1"],
+                              strict=False)
 
         return
