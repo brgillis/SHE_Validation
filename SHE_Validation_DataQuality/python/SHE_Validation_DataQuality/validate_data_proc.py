@@ -65,4 +65,4 @@ def run_validate_data_proc_from_args(d_args):
     test_results_writer.write()
 
     # Output the results to the desired location
-    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir=workdir)
+    write_xml_product(test_result_product, d_args[CA_SHE_TEST_RESULTS], workdir=workdir, log_info=True)
