@@ -73,4 +73,4 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
                 attr_prop = f"{attr}_{prop}"
                 meta_key = getattr(tf.m, attr_prop)
 
-                assert table.meta[meta_key] == getattr(gid_criteria, prop)
+                assert table.meta[meta_key] == getattr(gid_criteria, prop), f"{attr=}, {prop=}"

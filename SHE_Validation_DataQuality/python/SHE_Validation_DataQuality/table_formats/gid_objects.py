@@ -42,7 +42,7 @@ GID_META_WEIGHT = "W"
 GID_META_FIT_CLASS = "FC"
 GID_META_RE = "RE"
 
-GID_META_MIN = "MAX"
+GID_META_MIN = "MIN"
 GID_META_MAX = "MAX"
 GID_META_IS_CHAIN = "ISC"
 
@@ -97,7 +97,7 @@ class GalInfoDataMeasMeta(SheTableMeta):
             meta_key = getattr(self, attr_prop)
 
             # Don't override any that have already been set through kwargs
-            if meta_key in m:
+            if m.get(meta_key) is not None:
                 continue
 
             # Set the value from the `gid_criteria`
