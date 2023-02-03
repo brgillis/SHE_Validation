@@ -49,6 +49,8 @@ from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GID_CHECK_TAIL, GID_MAX, GID_MIN,
                                                                   GID_VAL, )
 
+TEXTFILE_TABLE_EXTENSION = ".ecsv"
+
 if TYPE_CHECKING:
     from SHE_Validation_DataQuality.gi_input import GalInfoInput  # noqa F401
 
@@ -369,7 +371,7 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
             table_filename = get_allowed_filename(type_name=STR_TABLE_TYPE_NAME % key.upper(),
                                                   instance_id=str(os.getpid()),
-                                                  extension=".dat",
+                                                  extension=TEXTFILE_TABLE_EXTENSION,
                                                   version=SHE_Validation.__version__)
             table.write(os.path.join(workdir, table_filename), format=TEXTFILE_TABLE_FORMAT)
 

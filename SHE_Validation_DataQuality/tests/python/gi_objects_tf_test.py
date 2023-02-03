@@ -14,7 +14,7 @@ from astropy.table import Table
 
 from SHE_PPT.table_utility import is_in_format
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
-from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_FORMAT
+from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSION, TEXTFILE_TABLE_FORMAT
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -65,7 +65,7 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
         """Test that a table survives being written out and read back in.
         """
 
-        qualified_table_filename = os.path.join(self.workdir, "test_table.ecsv")
+        qualified_table_filename = os.path.join(self.workdir, f"test_table{TEXTFILE_TABLE_EXTENSION}")
 
         for table, tf in ((mock_gid_meas_table, GIDM_TF),
                           (mock_gid_chains_table, GIDC_TF)):
