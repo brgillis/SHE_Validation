@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
 
-STR_TABLE_TYPE_NAME = "SHE-GID-%s"
+STR_TABLE_TYPE_NAME = "GID-%s"
 TEXTFILE_TABLE_FORMAT = "ascii.ecsv"
 
 MSG_N_IN = "%s n_in = %i\n"
