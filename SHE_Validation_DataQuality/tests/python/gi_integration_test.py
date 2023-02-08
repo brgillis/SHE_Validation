@@ -29,7 +29,7 @@ from SHE_Validation.argument_parser import CA_MER_CAT_PROD, CA_SHE_CAT, CA_SHE_C
 from SHE_Validation.testing.mock_data import (SHE_CHAINS_PRODUCT_FILENAME,
                                               SHE_TEST_RESULTS_PRODUCT_FILENAME, )
 from SHE_Validation_DataQuality.ValidateGalInfo import defineSpecificProgramOptions, mainMethod
-from SHE_Validation_DataQuality.gi_data_processing import CHAINS_ATTR, MEAS_ATTR
+from SHE_Validation_DataQuality.gi_data_processing import CHAINS_ATTR, FLAGS_ATTR, MEAS_ATTR
 from SHE_Validation_DataQuality.gi_results_reporting import GID_DIRECTORY_FILENAME
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
@@ -83,4 +83,4 @@ class TestGalInfoRun(SheDQTestCase):
         self._check_ana_files(qualified_test_results_filename=qualified_test_results_filename,
                               test_id_substring="info-out-lensmc",
                               directory_filename=GID_DIRECTORY_FILENAME,
-                              l_ex_keys=[MEAS_ATTR, CHAINS_ATTR])
+                              l_ex_keys=[MEAS_ATTR, CHAINS_ATTR, FLAGS_ATTR])
