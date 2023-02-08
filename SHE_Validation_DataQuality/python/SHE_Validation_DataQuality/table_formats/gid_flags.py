@@ -74,7 +74,7 @@ class GalInfoDataFlagsFormat(SheTableFormat):
                                                length=MAX_FLAG_NAME_LEN)
         self.value = self.set_column_properties(f"{GIDF_COLNAME_HEAD}_VALUE", dtype=">i8", fits_dtype="K")
         self.count = self.set_column_properties(f"{GIDF_COLNAME_HEAD}_COUNT", dtype=">i4", fits_dtype="J")
-        self.rate = self.set_column_properties(f"{GIDF_COLNAME_HEAD}_NAME", dtype=">f4", fits_dtype="E")
+        self.rate = self.set_column_properties(f"{GIDF_COLNAME_HEAD}_RATE", dtype=">f4", fits_dtype="E")
 
         self._finalize_init()
 

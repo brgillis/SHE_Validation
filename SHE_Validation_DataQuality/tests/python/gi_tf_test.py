@@ -1,10 +1,10 @@
 """
-:file: tests/python/gi_objects_tf_test.py
+:file: tests/python/gi_tf_test.py
 
 :date: 02/03/23
 :author: Bryan Gillis
 
-Tests of the GID Objects table format
+Tests of the GID table formats
 """
 
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
@@ -30,13 +30,14 @@ from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.table_utility import is_in_format
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSION, TEXTFILE_TABLE_FORMAT
+from SHE_Validation_DataQuality.table_formats.gid_flags import GIDF_TF
 
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDC_TF, GIDM_TF, GIDO_IS_CHAIN, GIDO_MAX, GIDO_MIN
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
-class TestGIDObjectsTableFormat(SheDQTestCase):
-    """Test case for GID Objects table format
+class TestGIDTableFormat(SheDQTestCase):
+    """Test case for GID table formats
     """
 
     TABLE_SIZE = 10
@@ -47,7 +48,7 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
 
     @pytest.fixture
     def mock_gid_meas_table(self) -> Table:
-        """Pytest fixture providing a mock GID Objects table for testing
+        """Pytest fixture providing a mock GID Objects Measurements table for testing
         """
 
         return GIDM_TF.init_table(size=self.TABLE_SIZE,
@@ -57,7 +58,7 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
 
     @pytest.fixture
     def mock_gid_chains_table(self) -> Table:
-        """Pytest fixture providing a mock GID Objects table for testing
+        """Pytest fixture providing a mock GID Objects Chains table for testing
         """
 
         # We don't need to set method here, as it's assumed to be LensMC unless set otherwise
@@ -65,23 +66,35 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
                                   obs_ids=self.obs_ids,
                                   tile_ids=self.tile_ids)
 
-    def test_table_defaults(self, mock_gid_meas_table, mock_gid_chains_table):
+    @pytest.fixture
+    def mock_gid_flags_table(self) -> Table:
+        """Pytest fixture providing a mock GID Flags table for testing
+        """
+
+        return GIDF_TF.init_table(size=self.TABLE_SIZE,
+                                  method=self.method,
+                                  obs_ids=self.obs_ids,
+                                  tile_ids=self.tile_ids)
+
+    def test_table_defaults(self, mock_gid_meas_table, mock_gid_chains_table, mock_gid_flags_table):
         """Test that the default table is set up as expected.
         """
 
         for table, tf in ((mock_gid_meas_table, GIDM_TF),
-                          (mock_gid_chains_table, GIDC_TF)):
+                          (mock_gid_chains_table, GIDC_TF),
+                          (mock_gid_flags_table, GIDF_TF)):
 
             self._check_table(table, tf)
 
-    def test_table_rw(self, mock_gid_meas_table, mock_gid_chains_table):
+    def test_table_rw(self, mock_gid_meas_table, mock_gid_chains_table, mock_gid_flags_table):
         """Test that a table survives being written out and read back in.
         """
 
         qualified_table_filename = os.path.join(self.workdir, f"test_table{TEXTFILE_TABLE_EXTENSION}")
 
         for table, tf in ((mock_gid_meas_table, GIDM_TF),
-                          (mock_gid_chains_table, GIDC_TF)):
+                          (mock_gid_chains_table, GIDC_TF),
+                          (mock_gid_flags_table, GIDF_TF)):
 
             table.write(qualified_table_filename, overwrite=True, format=TEXTFILE_TABLE_FORMAT)
             table_read_in = Table.read(qualified_table_filename, format=TEXTFILE_TABLE_FORMAT)
@@ -103,6 +116,10 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
         assert table.meta[tf.m.method] == ShearEstimationMethods.LENSMC.value
         assert table.meta[tf.m.obs_ids] == self.obs_ids
         assert table.meta[tf.m.tile_ids] == self.tile_ids
+
+        # The following checks are only for the GIDO formats, so stop here for other formats
+        if tf not in (GIDM_TF, GIDC_TF):
+            return
 
         for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GIDO_MIN,
                                                                      GIDO_MAX,
