@@ -589,11 +589,11 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
     # Get the table for flags info
     if she_cat is None:
-        l_fit_class = Column([], name=meas_tf.fit_class, dtype=int)
+        l_fit_flags = Column([], name=meas_tf.fit_flags, dtype=int)
     else:
-        l_fit_class = she_cat[meas_tf.fit_class]
+        l_fit_flags = she_cat[meas_tf.fit_flags]
 
-    flags_table = _make_flags_table(l_fit_class=l_fit_class,
+    flags_table = _make_flags_table(l_fit_flags=l_fit_flags,
                                     **table_meta_kwargs)
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
@@ -603,13 +603,13 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
                                   invalid_data_table_chains=d_invalid_data_tables[CHAINS_ATTR])
 
 
-def _make_flags_table(l_fit_class: Column, **table_meta_kwargs) -> Table:
+def _make_flags_table(l_fit_flags: Column, **table_meta_kwargs) -> Table:
     """Private method to construct a table detailing occurrence rates of flags in the measurements catalog.
     """
 
     gidf_table = GIDF_TF.init_table(size=NUM_FLAGS, **table_meta_kwargs)
 
-    num_objects = len(l_fit_class)
+    num_objects = len(l_fit_flags)
 
     for i, flag_info in enumerate(L_FLAG_INFO):
         row = gidf_table[i]
@@ -620,7 +620,7 @@ def _make_flags_table(l_fit_class: Column, **table_meta_kwargs) -> Table:
         row[GIDF_TF.is_failure] = flag_info.is_failure
 
         # Calculate the count of this flag appearing and the overall rate, and add them to the table
-        l_is_flagged = np.asarray(np.bitwise_and(l_fit_class, flag_info.value), dtype=bool)
+        l_is_flagged = np.asarray(np.bitwise_and(l_fit_flags, flag_info.value), dtype=bool)
         count = np.sum(l_is_flagged)
         row[GIDF_TF.count] = count
         row[GIDF_TF.rate] = count / num_objects

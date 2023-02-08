@@ -50,6 +50,9 @@ class SheDQTestCase(SheValTestCase):
     """
 
     TABLE_SIZE = 10
+    NUM_BAD_TEST_POINTS = (ExtendedMockMeasDataGenerator.num_nan_test_points +
+                           ExtendedMockMeasDataGenerator.num_zero_weight_test_points)
+    NUM_GOOD_TEST_POINTS = TABLE_SIZE - NUM_BAD_TEST_POINTS
 
     good_dp_input: Optional[DataProcInput] = None
     good_gi_input: Optional[GalInfoInput] = None

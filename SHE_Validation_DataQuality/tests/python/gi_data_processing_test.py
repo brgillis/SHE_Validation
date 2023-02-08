@@ -28,16 +28,18 @@ import numpy as np
 from astropy.table import Row, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.flags import failure_flags
+from SHE_PPT.flags import failure_flags, flag_unclassified_failure
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.testing.mock_data import NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_POINTS
+from SHE_Validation_DataQuality.constants.fit_flags import D_FLAG_INFO_FROM_VALUE
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoDataTestResults, GalInfoNTestResults,
                                                            MEAS_ATTR, TEXTFILE_TABLE_FORMAT,
                                                            get_gal_info_test_results, )
+from SHE_Validation_DataQuality.table_formats.gid_flags import GIDF_TF
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDM_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
@@ -73,6 +75,18 @@ class TestGalInfoDataProcessing(SheDQTestCase):
                     assert not test_results.global_passed, f"{name=}"
             else:
                 assert test_results.global_passed, f"{name=}"
+
+                # Check that the flags table is as expected
+                for row in test_results.flags_table:
+                    if row[GIDF_TF.value] == flag_unclassified_failure:
+                        assert row[GIDF_TF.name] == "unclassified_failure"
+                        assert row[GIDF_TF.is_failure] == True
+                        assert row[GIDF_TF.count] == self.NUM_BAD_TEST_POINTS
+                        assert np.isclose(row[GIDF_TF.rate], self.NUM_BAD_TEST_POINTS / self.TABLE_SIZE)
+                    else:
+                        assert row[GIDF_TF.is_failure] == D_FLAG_INFO_FROM_VALUE[row[GIDF_TF.value]].is_failure
+                        assert row[GIDF_TF.count] == 0
+                        assert row[GIDF_TF.rate] == 0.
 
     def test_missing_objects(self):
         """Unit test of the `get_gal_info_test_results` method with input which is missing some objects.
