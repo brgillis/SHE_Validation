@@ -6,16 +6,7 @@
 
 Tests of the GID Objects table format
 """
-import itertools
-import os
 
-import pytest
-from astropy.table import Table
-
-from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.table_utility import is_in_format
-from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
-from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSION, TEXTFILE_TABLE_FORMAT
 # Copyright (C) 2012-2020 Euclid Science Ground Segment
 #
 # This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
@@ -28,6 +19,17 @@ from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSI
 #
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+import itertools
+import os
+
+import pytest
+from astropy.table import Table
+
+from SHE_PPT.constants.classes import ShearEstimationMethods
+from SHE_PPT.table_utility import is_in_format
+from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
+from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSION, TEXTFILE_TABLE_FORMAT
 
 from SHE_Validation_DataQuality.table_formats.gid_objects import GIDC_TF, GIDM_TF, GIDO_IS_CHAIN, GIDO_MAX, GIDO_MIN
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
