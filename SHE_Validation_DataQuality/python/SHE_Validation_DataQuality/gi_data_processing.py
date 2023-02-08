@@ -623,7 +623,7 @@ def _make_flags_table(l_fit_flags: Column, **table_meta_kwargs) -> Table:
         l_is_flagged = np.asarray(np.bitwise_and(l_fit_flags, flag_info.value), dtype=bool)
         count = np.sum(l_is_flagged)
         row[GIDF_TF.count] = count
-        row[GIDF_TF.rate] = count / num_objects
+        row[GIDF_TF.rate] = count / num_objects if num_objects != 0 else 0
 
     return gidf_table
 

@@ -76,13 +76,18 @@ class TestGalInfoDataProcessing(SheDQTestCase):
             else:
                 assert test_results.global_passed, f"{name=}"
 
+                if method == ShearEstimationMethods.LENSMC:
+                    ex_count = self.NUM_BAD_TEST_POINTS
+                else:
+                    ex_count = 0
+
                 # Check that the flags table is as expected
                 for row in test_results.flags_table:
                     if row[GIDF_TF.value] == flag_unclassified_failure:
                         assert row[GIDF_TF.name] == "unclassified_failure"
                         assert row[GIDF_TF.is_failure] == True
-                        assert row[GIDF_TF.count] == self.NUM_BAD_TEST_POINTS
-                        assert np.isclose(row[GIDF_TF.rate], self.NUM_BAD_TEST_POINTS / self.TABLE_SIZE)
+                        assert row[GIDF_TF.count] == ex_count
+                        assert np.isclose(row[GIDF_TF.rate], ex_count / self.TABLE_SIZE)
                     else:
                         assert row[GIDF_TF.is_failure] == D_FLAG_INFO_FROM_VALUE[row[GIDF_TF.value]].is_failure
                         assert row[GIDF_TF.count] == 0
