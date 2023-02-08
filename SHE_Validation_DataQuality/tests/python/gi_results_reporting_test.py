@@ -37,6 +37,7 @@ from SHE_Validation_DataQuality.gi_data_processing import (CHAINS_ATTR, GalInfoD
                                                            MSG_INVALID_IDS, MSG_MISSING_IDS, MSG_N_IN, MSG_N_INV,
                                                            MSG_N_OUT, )
 from SHE_Validation_DataQuality.gi_results_reporting import GalInfoValidationResultsWriter
+from SHE_Validation_DataQuality.table_formats.gid_flags import GIDF_TF
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 MSG_SHE_CAT = "ERROR: she_cat message"
@@ -87,7 +88,8 @@ class TestGalInfoResultsReporting(SheDQTestCase):
                     self.lensmc_n_id = test_case_info.id
             elif id_.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
                 self.d_l_test_results[name] = [GalInfoDataTestResults(l_invalid_ids_meas=L_INVALID_MEAS,
-                                                                      l_invalid_ids_chains=L_INVALID_CHAINS)]
+                                                                      l_invalid_ids_chains=L_INVALID_CHAINS,
+                                                                      flags_table=GIDF_TF.init_table(size=0))]
                 # Note the LensMC ID for later specific tests
                 if method == ShearEstimationMethods.LENSMC:
                     self.lensmc_data_id = test_case_info.id
