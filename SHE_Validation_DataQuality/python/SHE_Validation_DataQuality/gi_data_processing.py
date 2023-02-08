@@ -406,6 +406,15 @@ def get_gal_info_test_results(gal_info_input, workdir):
 
     she_chains = gal_info_input.she_chains
 
+    # Get the lists of observation and tile IDs from the input data products
+    l_tile_ids = [gal_info_input.p_mer_cat.Data.TileIndex]
+    l_obs_ids = list(gal_info_input.p_mer_cat.Data.ObservationIdList)
+
+    # Workaround for IDs being stored as a custom long int type, which can't be printed out in tables. Need to
+    # convert each ID to a standard python int
+    l_tile_ids = [int(x) for x in l_tile_ids]
+    l_obs_ids = [int(x) for x in l_obs_ids]
+
     # Prepare output dicts, which we'll fill in for each method
     d_l_test_results: Dict[str, List[GalInfoTestResults]] = {}
     d_d_textfiles: Dict[str, Dict[str, str]] = {}
@@ -424,7 +433,11 @@ def get_gal_info_test_results(gal_info_input, workdir):
 
         elif test_case_info.test_case_id.startswith(GAL_INFO_DATA_TEST_CASE_INFO.base_test_case_id):
 
-            test_results = _get_gal_info_data_test_results(method_she_cat, she_chains, method)
+            test_results = _get_gal_info_data_test_results(she_cat=method_she_cat,
+                                                           she_chains=she_chains,
+                                                           method=method,
+                                                           l_obs_ids=l_obs_ids,
+                                                           l_tile_ids=l_tile_ids)
 
         else:
 
@@ -469,7 +482,9 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
 
 def _get_gal_info_data_test_results(she_cat: Optional[Table],
                                     she_chains: Optional[Table],
-                                    method: ShearEstimationMethods) -> GalInfoDataTestResults:
+                                    method: ShearEstimationMethods,
+                                    l_obs_ids: Optional[Sequence[int]],
+                                    l_tile_ids: Optional[Sequence[int]]) -> GalInfoDataTestResults:
     """Private implementation of determining test results for the GalInfo-Data test case.
     """
 
@@ -561,7 +576,10 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             gid_table_format = GIDM_TF
         else:
             gid_table_format = GIDC_TF
-        d_invalid_data_tables[cat_type] = gid_table_format.init_table(init_cols=d_l_invalid_data_cols)
+        d_invalid_data_tables[cat_type] = gid_table_format.init_table(init_cols=d_l_invalid_data_cols,
+                                                                      method=method.value,
+                                                                      obs_ids=l_obs_ids,
+                                                                      tile_ids=l_tile_ids)
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
                                   l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR],

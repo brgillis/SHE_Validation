@@ -22,6 +22,7 @@ Table format definition for a table providing details on objects which failed Ga
 
 import itertools
 
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.logging import getLogger
 from SHE_PPT.table_formats.mer_final_catalog import tf as mfc_tf
 from SHE_PPT.table_formats.she_lensmc_chains import len_chain
@@ -35,6 +36,10 @@ GID_CHAINS_FITS_VERSION = GID_FITS_VERSION
 GID_CHAINS_FITS_DEF = "she.galInfoDataObjectsChains"
 
 GID_COLNAME_HEAD = "SHE_GID"
+
+GID_META_METHOD = "SEMETHOD"
+GID_META_OBS_IDS = "OBS_IDS"
+GID_META_TILE_IDS = "TILE_IDS"
 
 GID_META_G1 = "G1"
 GID_META_G2 = "G2"
@@ -62,6 +67,10 @@ class GalInfoDataMeasMeta(SheTableMeta):
 
     __version__: str = GID_FITS_VERSION
     table_format: str = GID_FITS_DEF
+
+    method = GID_META_METHOD
+    obs_ids = GID_META_OBS_IDS
+    tile_ids = GID_META_TILE_IDS
 
     g1_min = f"{GID_META_G1}_{GID_META_MIN}"
     g1_max = f"{GID_META_G1}_{GID_META_MAX}"
@@ -140,8 +149,8 @@ class GalInfoDataMeasFormat(SheTableFormat):
     re_min_check: str
     re_max_check: str
 
-    def __init__(self, final=True):
-        super().__init__()
+    def __init__(self, final=True, **meta_kwargs):
+        super().__init__(meta=self.meta_type(**meta_kwargs))
 
         # Table column labels
         self.ID = self.set_column_properties(mfc_tf.ID, dtype=">i8", fits_dtype="K")
@@ -193,6 +202,11 @@ class GalInfoDataChainsMeta(GalInfoDataMeasMeta):
     __version__: str = GID_FITS_VERSION
     table_format: str = GID_FITS_DEF
 
+    def init_meta(self, method=ShearEstimationMethods.LENSMC.value, **kwargs):
+        """Inherit init to set method to LensMC if not otherwise set
+        """
+        return super().init_meta(method=method, **kwargs)
+
 
 class GalInfoDataChainsFormat(GalInfoDataMeasFormat):
     """A class defining the columns in the GalInfo-Data object chains tables. This is subclassed from the measurements
@@ -200,8 +214,8 @@ class GalInfoDataChainsFormat(GalInfoDataMeasFormat):
     """
     meta_type = GalInfoDataChainsMeta
 
-    def __init__(self):
-        super().__init__(final=False)
+    def __init__(self, **meta_kwargs):
+        super().__init__(final=False, **meta_kwargs)
 
         # Adjust the datatype for each chains column
         for gid_criteria in L_GID_CRITERIA:

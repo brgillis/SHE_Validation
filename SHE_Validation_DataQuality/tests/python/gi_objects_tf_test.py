@@ -12,6 +12,7 @@ import os
 import pytest
 from astropy.table import Table
 
+from SHE_PPT.constants.classes import ShearEstimationMethods
 from SHE_PPT.table_utility import is_in_format
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSION, TEXTFILE_TABLE_FORMAT
@@ -38,19 +39,29 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
 
     TABLE_SIZE = 10
 
+    method = ShearEstimationMethods.LENSMC.value
+    obs_ids = [100, 999]
+    tile_ids = [2, 3, 4]
+
     @pytest.fixture
     def mock_gid_meas_table(self) -> Table:
         """Pytest fixture providing a mock GID Objects table for testing
         """
 
-        return GIDM_TF.init_table(size=self.TABLE_SIZE)
+        return GIDM_TF.init_table(size=self.TABLE_SIZE,
+                                  method=self.method,
+                                  obs_ids=self.obs_ids,
+                                  tile_ids=self.tile_ids)
 
     @pytest.fixture
     def mock_gid_chains_table(self) -> Table:
         """Pytest fixture providing a mock GID Objects table for testing
         """
 
-        return GIDC_TF.init_table(size=self.TABLE_SIZE)
+        # We don't need to set method here, as it's assumed to be LensMC unless set otherwise
+        return GIDC_TF.init_table(size=self.TABLE_SIZE,
+                                  obs_ids=self.obs_ids,
+                                  tile_ids=self.tile_ids)
 
     def test_table_defaults(self, mock_gid_meas_table, mock_gid_chains_table):
         """Test that the default table is set up as expected.
@@ -87,6 +98,9 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
 
         assert table.meta[tf.m.fits_version] == tf.m.__version__
         assert table.meta[tf.m.fits_def] == tf.m.table_format
+        assert table.meta[tf.m.method] == ShearEstimationMethods.LENSMC.value
+        assert table.meta[tf.m.obs_ids] == self.obs_ids
+        assert table.meta[tf.m.tile_ids] == self.tile_ids
 
         for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GID_MIN,
                                                                      GID_MAX,
