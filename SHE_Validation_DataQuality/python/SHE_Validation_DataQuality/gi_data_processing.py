@@ -47,8 +47,8 @@ from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DA
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
 from SHE_Validation_DataQuality.constants.fit_flags import L_FLAG_INFO
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
-from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GID_CHECK_TAIL, GID_MAX, GID_MIN,
-                                                                  GID_VAL, )
+from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GIDO_CHECK_TAIL, GIDO_MAX, GIDO_MIN,
+                                                                  GIDO_VAL, )
 
 TEXTFILE_TABLE_EXTENSION = ".ecsv"
 
@@ -520,9 +520,9 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
             attr = gid_criteria.attr
             meas_colname: str = getattr(tf, attr)
             gid_colname: str = getattr(GIDM_TF, attr)
-            gid_val_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_VAL}_{GID_CHECK_TAIL}")
-            gid_min_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_MIN}_{GID_CHECK_TAIL}")
-            gid_max_check_colname: str = getattr(GIDM_TF, f"{attr}_{GID_MAX}_{GID_CHECK_TAIL}")
+            gid_val_check_colname: str = getattr(GIDM_TF, f"{attr}_{GIDO_VAL}_{GIDO_CHECK_TAIL}")
+            gid_min_check_colname: str = getattr(GIDM_TF, f"{attr}_{GIDO_MIN}_{GIDO_CHECK_TAIL}")
+            gid_max_check_colname: str = getattr(GIDM_TF, f"{attr}_{GIDO_MAX}_{GIDO_CHECK_TAIL}")
 
             # For chains, we need to use slightly-different methods, which reduce the multidimensional array
             # properly, to do checks on values

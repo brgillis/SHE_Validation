@@ -29,34 +29,34 @@ from SHE_PPT.table_formats.she_lensmc_chains import len_chain
 from SHE_PPT.table_utility import SheTableFormat, SheTableMeta
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 
-GID_FITS_VERSION = "9.1"
-GID_FITS_DEF = "she.galInfoDataObjects"
+GIDO_FITS_VERSION = "9.1"
+GIDO_FITS_DEF = "she.galInfoDataObjects"
 
-GID_CHAINS_FITS_VERSION = GID_FITS_VERSION
-GID_CHAINS_FITS_DEF = "she.galInfoDataObjectsChains"
+GIDO_CHAINS_FITS_VERSION = GIDO_FITS_VERSION
+GIDO_CHAINS_FITS_DEF = "she.galInfoDataObjectsChains"
 
-GID_COLNAME_HEAD = "SHE_GID"
+GIDO_COLNAME_HEAD = "SHE_GID"
 
-GID_META_METHOD = "SEMETHOD"
-GID_META_OBS_IDS = "OBS_IDS"
-GID_META_TILE_IDS = "TILE_IDS"
+GIDO_META_METHOD = "SEMETHOD"
+GIDO_META_OBS_IDS = "OBS_IDS"
+GIDO_META_TILE_IDS = "TILE_IDS"
 
-GID_META_G1 = "G1"
-GID_META_G2 = "G2"
-GID_META_WEIGHT = "W"
-GID_META_FIT_CLASS = "FC"
-GID_META_RE = "RE"
+GIDO_META_G1 = "G1"
+GIDO_META_G2 = "G2"
+GIDO_META_WEIGHT = "W"
+GIDO_META_FIT_CLASS = "FC"
+GIDO_META_RE = "RE"
 
-GID_META_MIN = "MIN"
-GID_META_MAX = "MAX"
-GID_META_IS_CHAIN = "ISC"
+GIDO_META_MIN = "MIN"
+GIDO_META_MAX = "MAX"
+GIDO_META_IS_CHAIN = "ISC"
 
-GID_VAL = "val"
-GID_MIN = "min"
-GID_MAX = "max"
-GID_IS_CHAIN = "is_chain"
+GIDO_VAL = "val"
+GIDO_MIN = "min"
+GIDO_MAX = "max"
+GIDO_IS_CHAIN = "is_chain"
 
-GID_CHECK_TAIL = "check"
+GIDO_CHECK_TAIL = "check"
 
 logger = getLogger(__name__)
 
@@ -65,41 +65,41 @@ class GalInfoDataMeasMeta(SheTableMeta):
     """A class defining the metadata for GalInfo-Data objects measurements tables
     """
 
-    __version__: str = GID_FITS_VERSION
-    table_format: str = GID_FITS_DEF
+    __version__: str = GIDO_FITS_VERSION
+    table_format: str = GIDO_FITS_DEF
 
-    method = GID_META_METHOD
-    obs_ids = GID_META_OBS_IDS
-    tile_ids = GID_META_TILE_IDS
+    method = GIDO_META_METHOD
+    obs_ids = GIDO_META_OBS_IDS
+    tile_ids = GIDO_META_TILE_IDS
 
-    g1_min = f"{GID_META_G1}_{GID_META_MIN}"
-    g1_max = f"{GID_META_G1}_{GID_META_MAX}"
-    g1_is_chain = f"{GID_META_G1}_{GID_META_IS_CHAIN}"
+    g1_min = f"{GIDO_META_G1}_{GIDO_META_MIN}"
+    g1_max = f"{GIDO_META_G1}_{GIDO_META_MAX}"
+    g1_is_chain = f"{GIDO_META_G1}_{GIDO_META_IS_CHAIN}"
 
-    g2_min = f"{GID_META_G2}_{GID_META_MIN}"
-    g2_max = f"{GID_META_G2}_{GID_META_MAX}"
-    g2_is_chain = f"{GID_META_G2}_{GID_META_IS_CHAIN}"
+    g2_min = f"{GIDO_META_G2}_{GIDO_META_MIN}"
+    g2_max = f"{GIDO_META_G2}_{GIDO_META_MAX}"
+    g2_is_chain = f"{GIDO_META_G2}_{GIDO_META_IS_CHAIN}"
 
-    weight_min = f"{GID_META_WEIGHT}_{GID_META_MIN}"
-    weight_max = f"{GID_META_WEIGHT}_{GID_META_MAX}"
-    weight_is_chain = f"{GID_META_WEIGHT}_{GID_META_IS_CHAIN}"
+    weight_min = f"{GIDO_META_WEIGHT}_{GIDO_META_MIN}"
+    weight_max = f"{GIDO_META_WEIGHT}_{GIDO_META_MAX}"
+    weight_is_chain = f"{GIDO_META_WEIGHT}_{GIDO_META_IS_CHAIN}"
 
-    fit_class_min = f"{GID_META_FIT_CLASS}_{GID_META_MIN}"
-    fit_class_max = f"{GID_META_FIT_CLASS}_{GID_META_MAX}"
-    fit_class_is_chain = f"{GID_META_FIT_CLASS}_{GID_META_IS_CHAIN}"
+    fit_class_min = f"{GIDO_META_FIT_CLASS}_{GIDO_META_MIN}"
+    fit_class_max = f"{GIDO_META_FIT_CLASS}_{GIDO_META_MAX}"
+    fit_class_is_chain = f"{GIDO_META_FIT_CLASS}_{GIDO_META_IS_CHAIN}"
 
-    re_min = f"{GID_META_RE}_{GID_META_MIN}"
-    re_max = f"{GID_META_RE}_{GID_META_MAX}"
-    re_is_chain = f"{GID_META_RE}_{GID_META_IS_CHAIN}"
+    re_min = f"{GIDO_META_RE}_{GIDO_META_MIN}"
+    re_max = f"{GIDO_META_RE}_{GIDO_META_MAX}"
+    re_is_chain = f"{GIDO_META_RE}_{GIDO_META_IS_CHAIN}"
 
     def init_meta(self, **kwargs):
         """Inherit init to also set up min/max/is_chain values for each parameter
         """
         m = super().init_meta(**kwargs)
 
-        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GID_MIN,
-                                                                     GID_MAX,
-                                                                     GID_IS_CHAIN)):
+        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GIDO_MIN,
+                                                                     GIDO_MAX,
+                                                                     GIDO_IS_CHAIN)):
 
             attr = gid_criteria.attr
             attr_prop = f"{attr}_{prop}"
@@ -154,11 +154,11 @@ class GalInfoDataMeasFormat(SheTableFormat):
 
         # Table column labels
         self.ID = self.set_column_properties(mfc_tf.ID, dtype=">i8", fits_dtype="K")
-        self.fit_flags = self.set_column_properties(f"{GID_COLNAME_HEAD}_FIT_FLAGS",
+        self.fit_flags = self.set_column_properties(f"{GIDO_COLNAME_HEAD}_FIT_FLAGS",
                                                     dtype=">i8", fits_dtype="K")
 
         # Columns for each value we test
-        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (None, GID_VAL, GID_MIN, GID_MAX)):
+        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (None, GIDO_VAL, GIDO_MIN, GIDO_MAX)):
 
             attr = gid_criteria.attr
 
@@ -173,12 +173,12 @@ class GalInfoDataMeasFormat(SheTableFormat):
                     dtype = ">f4"
                     fits_dtype = "E"
             else:
-                attr_prop = f"{attr}_{prop}_{GID_CHECK_TAIL}"
+                attr_prop = f"{attr}_{prop}_{GIDO_CHECK_TAIL}"
                 dtype = "bool"
                 fits_dtype = "L"
                 comment = "True = pass check; False = fail check"
 
-            colname = f"{GID_COLNAME_HEAD}_{attr_prop.upper()}"
+            colname = f"{GIDO_COLNAME_HEAD}_{attr_prop.upper()}"
             self.set_column_properties(colname, dtype=dtype, fits_dtype=fits_dtype, comment=comment)
 
             setattr(self, attr_prop, colname)
@@ -199,8 +199,8 @@ class GalInfoDataChainsMeta(GalInfoDataMeasMeta):
     table, as the only difference is the value data types and some header info
     """
 
-    __version__: str = GID_FITS_VERSION
-    table_format: str = GID_FITS_DEF
+    __version__: str = GIDO_FITS_VERSION
+    table_format: str = GIDO_FITS_DEF
 
     def init_meta(self, method=ShearEstimationMethods.LENSMC.value, **kwargs):
         """Inherit init to set method to LensMC if not otherwise set
@@ -223,7 +223,7 @@ class GalInfoDataChainsFormat(GalInfoDataMeasFormat):
             if not gid_criteria.is_chain:
                 continue
 
-            colname = f"{GID_COLNAME_HEAD}_{gid_criteria.attr.upper()}"
+            colname = f"{GIDO_COLNAME_HEAD}_{gid_criteria.attr.upper()}"
             self.lengths[colname] = len_chain
 
         self._finalize_init()

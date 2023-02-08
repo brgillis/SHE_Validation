@@ -29,7 +29,7 @@ from SHE_Validation_DataQuality.gi_data_processing import TEXTFILE_TABLE_EXTENSI
 # You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from SHE_Validation_DataQuality.table_formats.gid_objects import GIDC_TF, GIDM_TF, GID_IS_CHAIN, GID_MAX, GID_MIN
+from SHE_Validation_DataQuality.table_formats.gid_objects import GIDC_TF, GIDM_TF, GIDO_IS_CHAIN, GIDO_MAX, GIDO_MIN
 from SHE_Validation_DataQuality.testing.utility import SheDQTestCase
 
 
@@ -102,9 +102,9 @@ class TestGIDObjectsTableFormat(SheDQTestCase):
         assert table.meta[tf.m.obs_ids] == self.obs_ids
         assert table.meta[tf.m.tile_ids] == self.tile_ids
 
-        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GID_MIN,
-                                                                     GID_MAX,
-                                                                     GID_IS_CHAIN)):
+        for gid_criteria, prop in itertools.product(L_GID_CRITERIA, (GIDO_MIN,
+                                                                     GIDO_MAX,
+                                                                     GIDO_IS_CHAIN)):
             attr = gid_criteria.attr
             attr_prop = f"{attr}_{prop}"
             meta_key = getattr(tf.m, attr_prop)
