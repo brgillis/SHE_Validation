@@ -45,7 +45,7 @@ from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
-from SHE_Validation_DataQuality.constants.fit_flags import L_FLAG_INFO, NUM_FLAGS
+from SHE_Validation_DataQuality.constants.fit_flags import L_FLAG_INFO, NUM_FLAGS, SUCCESS_FLAG_INFO
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
 from SHE_Validation_DataQuality.table_formats.gid_flags import GIDF_TF
 from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GIDO_CHECK_TAIL, GIDO_MAX, GIDO_MIN,
@@ -607,12 +607,26 @@ def _make_flags_table(l_fit_flags: Column, **table_meta_kwargs) -> Table:
     """Private method to construct a table detailing occurrence rates of flags in the measurements catalog.
     """
 
-    gidf_table = GIDF_TF.init_table(size=NUM_FLAGS, **table_meta_kwargs)
+    gidf_table = GIDF_TF.init_table(size=NUM_FLAGS + 1, **table_meta_kwargs)
 
     num_objects = len(l_fit_flags)
 
+    # The 0th row of the table will be the "success" case, with no flags
+    success_row = gidf_table[0]
+
+    success_row[GIDF_TF.name] = SUCCESS_FLAG_INFO.name
+    success_row[GIDF_TF.value] = SUCCESS_FLAG_INFO.value
+    success_row[GIDF_TF.is_failure] = SUCCESS_FLAG_INFO.is_failure
+
+    # Calculate the count of this flag appearing and the overall rate, and add them to the table
+    l_is_success = l_fit_flags == SUCCESS_FLAG_INFO.value
+    success_count = np.sum(l_is_success)
+    success_row[GIDF_TF.count] = success_count
+    success_row[GIDF_TF.rate] = success_count / num_objects if num_objects != 0 else 0
+
+    # Now fill in rows for all proper flags
     for i, flag_info in enumerate(L_FLAG_INFO):
-        row = gidf_table[i]
+        row = gidf_table[i + 1]
 
         # Add the basic info about this flag to the table
         row[GIDF_TF.name] = flag_info.name

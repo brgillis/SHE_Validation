@@ -28,11 +28,11 @@ import numpy as np
 from astropy.table import Row, Table
 
 from SHE_PPT.constants.classes import ShearEstimationMethods
-from SHE_PPT.flags import failure_flags, flag_unclassified_failure
+from SHE_PPT.flags import failure_flags, flag_success, flag_unclassified_failure
 from SHE_PPT.table_formats.she_lensmc_chains import lensmc_chains_table_format
 from SHE_PPT.table_formats.she_lensmc_measurements import lensmc_measurements_table_format
 from SHE_PPT.testing.mock_data import NUM_NAN_TEST_POINTS, NUM_ZERO_WEIGHT_TEST_POINTS
-from SHE_Validation_DataQuality.constants.fit_flags import D_FLAG_INFO_FROM_VALUE
+from SHE_Validation_DataQuality.constants.fit_flags import D_FLAG_INFO_FROM_VALUE, SUCCESS_FLAG_INFO
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
@@ -77,17 +77,24 @@ class TestGalInfoDataProcessing(SheDQTestCase):
                 assert test_results.global_passed, f"{name=}"
 
                 if method == ShearEstimationMethods.LENSMC:
-                    ex_count = self.NUM_BAD_TEST_POINTS
+                    ex_success_count = self.NUM_GOOD_TEST_POINTS
+                    ex_fail_count = self.NUM_BAD_TEST_POINTS
                 else:
-                    ex_count = 0
+                    ex_success_count = 0
+                    ex_fail_count = 0
 
                 # Check that the flags table is as expected
                 for row in test_results.flags_table:
-                    if row[GIDF_TF.value] == flag_unclassified_failure:
+                    if row[GIDF_TF.value] == SUCCESS_FLAG_INFO.value:
+                        assert row[GIDF_TF.name] == SUCCESS_FLAG_INFO.name
+                        assert row[GIDF_TF.is_failure] == SUCCESS_FLAG_INFO.is_failure
+                        assert row[GIDF_TF.count] == ex_success_count
+                        assert np.isclose(row[GIDF_TF.rate], ex_success_count / self.TABLE_SIZE)
+                    elif row[GIDF_TF.value] == flag_unclassified_failure:
                         assert row[GIDF_TF.name] == "unclassified_failure"
                         assert row[GIDF_TF.is_failure] == True
-                        assert row[GIDF_TF.count] == ex_count
-                        assert np.isclose(row[GIDF_TF.rate], ex_count / self.TABLE_SIZE)
+                        assert row[GIDF_TF.count] == ex_fail_count
+                        assert np.isclose(row[GIDF_TF.rate], ex_fail_count / self.TABLE_SIZE)
                     else:
                         assert row[GIDF_TF.is_failure] == D_FLAG_INFO_FROM_VALUE[row[GIDF_TF.value]].is_failure
                         assert row[GIDF_TF.count] == 0

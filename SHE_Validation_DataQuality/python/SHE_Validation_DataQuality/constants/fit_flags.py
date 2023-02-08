@@ -61,5 +61,8 @@ def get_flag_info():
 
 L_FLAG_INFO, MAX_FLAG_NAME_LEN = get_flag_info()
 NUM_FLAGS = len(L_FLAG_INFO)
+
 D_FLAG_INFO_FROM_NAME = {flag_info.name: flag_info for flag_info in L_FLAG_INFO}
 D_FLAG_INFO_FROM_VALUE = {flag_info.value: flag_info for flag_info in L_FLAG_INFO}
+
+SUCCESS_FLAG_INFO = FlagInfo(name="success", value=0, is_failure=False)
