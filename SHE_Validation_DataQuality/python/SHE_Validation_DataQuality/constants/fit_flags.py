@@ -26,6 +26,7 @@ from typing import List
 from SHE_PPT import flags
 
 STR_FLAG_HEAD = "flag_"
+STR_FLAG_SUCCESS = "flag_success"
 LEN_FLAG_HEAD = len(STR_FLAG_HEAD)
 
 
@@ -43,7 +44,7 @@ def get_flag_info():
     l_flag_info: List[FlagInfo] = []
 
     for name, value in flags.__dict__.items():
-        if not name.startswith(STR_FLAG_HEAD):
+        if not name.startswith(STR_FLAG_HEAD) or name == STR_FLAG_SUCCESS:
             continue
         l_flag_info.append(FlagInfo(name=name[LEN_FLAG_HEAD:],
                                     value=value,
