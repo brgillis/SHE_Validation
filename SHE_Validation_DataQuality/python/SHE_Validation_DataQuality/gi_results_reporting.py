@@ -103,6 +103,7 @@ class GalInfoAnalysisWriter(AnalysisWriter):
     """ Subclass of AnalysisWriter, to handle some changes specific for CTI tests
     """
 
+    _product_type: str = "GAL-INFO"
     _directory_filename: str = GID_DIRECTORY_FILENAME
     directory_header: str = GID_DIRECTORY_HEADER
 
