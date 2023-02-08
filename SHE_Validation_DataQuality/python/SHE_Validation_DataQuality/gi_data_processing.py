@@ -45,8 +45,9 @@ from SHE_Validation.results_writer import RESULT_FAIL, RESULT_PASS
 from SHE_Validation_DataQuality.constants.gal_info_test_info import (GAL_INFO_DATA_TEST_CASE_INFO,
                                                                      GAL_INFO_N_TEST_CASE_INFO,
                                                                      L_GAL_INFO_TEST_CASE_INFO, )
-from SHE_Validation_DataQuality.constants.fit_flags import L_FLAG_INFO
+from SHE_Validation_DataQuality.constants.fit_flags import L_FLAG_INFO, NUM_FLAGS
 from SHE_Validation_DataQuality.constants.gid_criteria import L_GID_CRITERIA
+from SHE_Validation_DataQuality.table_formats.gid_flags import GIDF_TF
 from SHE_Validation_DataQuality.table_formats.gid_objects import (GIDC_TF, GIDM_TF, GIDO_CHECK_TAIL, GIDO_MAX, GIDO_MIN,
                                                                   GIDO_VAL, )
 
@@ -57,6 +58,7 @@ if TYPE_CHECKING:
 
 MEAS_ATTR = "meas"
 CHAINS_ATTR = "chains"
+FLAGS_ATTR = "flags"
 
 STR_TABLE_TYPE_NAME = "GID-%s"
 TEXTFILE_TABLE_FORMAT = "ascii.ecsv"
@@ -301,6 +303,8 @@ class GalInfoDataTestResults(GalInfoTestResults):
     l_invalid_ids_meas: Sequence[int]
     l_invalid_ids_chains: Sequence[int]
 
+    flags_table: Optional[Table]
+
     invalid_data_table_meas: Optional[Table] = None
     invalid_data_table_chains: Optional[Table] = None
 
@@ -360,13 +364,14 @@ class GalInfoDataTestResults(GalInfoTestResults):
 
     def write_textfiles(self, workdir):
         """For this subclass, we implement this method to write out the tables of invalid measurements and chains
-        objects as textfiles.
+        objects, and the flags table, as textfiles.
         """
 
         d_textfiles = {}
 
         for table, key in ((self.invalid_data_table_meas, MEAS_ATTR),
-                           (self.invalid_data_table_chains, CHAINS_ATTR)):
+                           (self.invalid_data_table_chains, CHAINS_ATTR),
+                           (self.flags_table, FLAGS_ATTR)):
             if table is None:
                 continue
 
@@ -434,8 +439,8 @@ def get_gal_info_test_results(gal_info_input, workdir):
             test_results = _get_gal_info_data_test_results(she_cat=method_she_cat,
                                                            she_chains=she_chains,
                                                            method=method,
-                                                           l_obs_ids=l_obs_ids,
-                                                           l_tile_ids=l_tile_ids)
+                                                           obs_ids=l_obs_ids,
+                                                           tile_ids=l_tile_ids)
 
         else:
 
@@ -481,13 +486,18 @@ def _get_gal_info_n_test_results(she_cat: Optional[Table],
 def _get_gal_info_data_test_results(she_cat: Optional[Table],
                                     she_chains: Optional[Table],
                                     method: ShearEstimationMethods,
-                                    l_obs_ids: Optional[Sequence[int]],
-                                    l_tile_ids: Optional[Sequence[int]]) -> GalInfoDataTestResults:
+                                    **table_meta_kwargs) -> GalInfoDataTestResults:
     """Private implementation of determining test results for the GalInfo-Data test case.
     """
 
     d_l_invalid_ids: Dict[str, np.ndarray] = {}
     d_invalid_data_tables: Dict[str, Optional[Table]] = {}
+
+    # Add the method name to the table meta kwargs
+    table_meta_kwargs = {"method": method.value,
+                         **table_meta_kwargs}
+
+    meas_tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
 
     for cat, cat_type in ((she_cat, MEAS_ATTR),
                           (she_chains, CHAINS_ATTR)):
@@ -500,7 +510,7 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
 
         # Some different setup between measurements and chains catalogs
         if cat_type == MEAS_ATTR:
-            tf = D_SHEAR_ESTIMATION_METHOD_TABLE_FORMATS[method]
+            tf = meas_tf
         else:
             tf = lensmc_chains_table_format
 
@@ -575,14 +585,47 @@ def _get_gal_info_data_test_results(she_cat: Optional[Table],
         else:
             gid_table_format = GIDC_TF
         d_invalid_data_tables[cat_type] = gid_table_format.init_table(init_cols=d_l_invalid_data_cols,
-                                                                      method=method.value,
-                                                                      obs_ids=l_obs_ids,
-                                                                      tile_ids=l_tile_ids)
+                                                                      **table_meta_kwargs)
+
+    # Get the table for flags info
+    if she_cat is None:
+        l_fit_class = Column([], name=meas_tf.fit_class, dtype=int)
+    else:
+        l_fit_class = she_cat[meas_tf.fit_class]
+
+    flags_table = _make_flags_table(l_fit_class=l_fit_class,
+                                    **table_meta_kwargs)
 
     return GalInfoDataTestResults(l_invalid_ids_meas=d_l_invalid_ids[MEAS_ATTR],
                                   l_invalid_ids_chains=d_l_invalid_ids[CHAINS_ATTR],
+                                  flags_table=flags_table,
                                   invalid_data_table_meas=d_invalid_data_tables[MEAS_ATTR],
                                   invalid_data_table_chains=d_invalid_data_tables[CHAINS_ATTR])
+
+
+def _make_flags_table(l_fit_class: Column, **table_meta_kwargs) -> Table:
+    """Private method to construct a table detailing occurrence rates of flags in the measurements catalog.
+    """
+
+    gidf_table = GIDF_TF.init_table(size=NUM_FLAGS, **table_meta_kwargs)
+
+    num_objects = len(l_fit_class)
+
+    for i, flag_info in enumerate(L_FLAG_INFO):
+        row = gidf_table[i]
+
+        # Add the basic info about this flag to the table
+        row[GIDF_TF.name] = flag_info.name
+        row[GIDF_TF.value] = flag_info.value
+        row[GIDF_TF.is_failure] = flag_info.is_failure
+
+        # Calculate the count of this flag appearing and the overall rate, and add them to the table
+        l_is_flagged = np.asarray(np.bitwise_and(l_fit_class, flag_info.value), dtype=bool)
+        count = np.sum(l_is_flagged)
+        row[GIDF_TF.count] = count
+        row[GIDF_TF.rate] = count / num_objects
+
+    return gidf_table
 
 
 def _meas_bad_value(a: np.ndarray) -> Union[np.ndarray, MutableSequence[bool]]:
