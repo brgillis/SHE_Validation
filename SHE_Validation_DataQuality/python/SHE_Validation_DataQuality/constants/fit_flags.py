@@ -53,8 +53,8 @@ def get_flag_info():
         l_flag_info.append(FlagInfo(name=name[LEN_FLAG_HEAD:],
                                     value=value,
                                     is_failure=bool(value & flags.failure_flags)))
-        if value > max_flag_name_len:
-            max_flag_name_len = value
+        if len(name) > max_flag_name_len:
+            max_flag_name_len = len(name)
 
     return l_flag_info, max_flag_name_len
 
