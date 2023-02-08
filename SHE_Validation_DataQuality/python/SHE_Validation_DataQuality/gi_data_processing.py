@@ -407,13 +407,10 @@ def get_gal_info_test_results(gal_info_input, workdir):
     she_chains = gal_info_input.she_chains
 
     # Get the lists of observation and tile IDs from the input data products
-    l_tile_ids = [gal_info_input.p_mer_cat.Data.TileIndex]
-    l_obs_ids = list(gal_info_input.p_mer_cat.Data.ObservationIdList)
-
-    # Workaround for IDs being stored as a custom long int type, which can't be printed out in tables. Need to
+    # Use a workaround for IDs being stored as a custom long int type, which can't be printed out in tables. Need to
     # convert each ID to a standard python int
-    l_tile_ids = [int(x) for x in l_tile_ids]
-    l_obs_ids = [int(x) for x in l_obs_ids]
+    l_tile_ids = [int(gal_info_input.p_mer_cat.Data.TileIndex)]
+    l_obs_ids = [int(id_) for id_ in gal_info_input.p_mer_cat.Data.ObservationIdList]
 
     # Prepare output dicts, which we'll fill in for each method
     d_l_test_results: Dict[str, List[GalInfoTestResults]] = {}
