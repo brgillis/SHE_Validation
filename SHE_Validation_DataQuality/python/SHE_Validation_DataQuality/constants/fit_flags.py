@@ -40,8 +40,12 @@ class FlagInfo:
 
 
 def get_flag_info():
+    """Function to run on import, parsing the variable names used for flags in the SHE_PPT.flags module into a
+    structured format.
+    """
 
     l_flag_info: List[FlagInfo] = []
+    max_flag_name_len = 0
 
     for name, value in flags.__dict__.items():
         if not name.startswith(STR_FLAG_HEAD) or name == STR_FLAG_SUCCESS:
@@ -49,10 +53,12 @@ def get_flag_info():
         l_flag_info.append(FlagInfo(name=name[LEN_FLAG_HEAD:],
                                     value=value,
                                     is_failure=bool(value & flags.failure_flags)))
+        if value > max_flag_name_len:
+            max_flag_name_len = value
 
-    return l_flag_info
+    return l_flag_info, max_flag_name_len
 
 
-L_FLAG_INFO = get_flag_info()
+L_FLAG_INFO, MAX_FLAG_NAME_LEN = get_flag_info()
 D_FLAG_INFO_FROM_NAME = {flag_info.name: flag_info for flag_info in L_FLAG_INFO}
 D_FLAG_INFO_FROM_VALUE = {flag_info.value: flag_info for flag_info in L_FLAG_INFO}
